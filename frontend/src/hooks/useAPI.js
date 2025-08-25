@@ -1,16 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api.jsx'
+import { SOCKET_QUERY_KEYS } from './useSocketQuery.js'
 
-// Query Keys - centralized for consistency
+// Query Keys - centralized for consistency with Socket.IO integration
 export const QUERY_KEYS = {
-  FARMERS: 'farmers',
-  CLAIMS: 'claims',
-  FARMER_CLAIMS: (farmerId) => ['claims', farmerId],
-  ASSISTANCES: 'assistances',
-  FARMER_APPLICATIONS: (farmerId) => ['applications', farmerId],
-  ALL_APPLICATIONS: 'allApplications',
-  CROP_INSURANCE: 'cropInsurance',
-  FARMER_CROP_INSURANCE: (farmerId) => ['cropInsurance', farmerId],
+  FARMERS: SOCKET_QUERY_KEYS.FARMERS,
+  CLAIMS: SOCKET_QUERY_KEYS.CLAIMS,
+  FARMER_CLAIMS: (farmerId) => [SOCKET_QUERY_KEYS.CLAIMS, farmerId],
+  ASSISTANCES: SOCKET_QUERY_KEYS.ASSISTANCE,
+  FARMER_APPLICATIONS: (farmerId) => [SOCKET_QUERY_KEYS.APPLICATIONS, farmerId],
+  ALL_APPLICATIONS: SOCKET_QUERY_KEYS.APPLICATIONS,
+  CROP_INSURANCE: SOCKET_QUERY_KEYS.CROP_INSURANCE,
+  FARMER_CROP_INSURANCE: (farmerId) => [SOCKET_QUERY_KEYS.CROP_INSURANCE, farmerId],
   CROP_INSURANCE_STATS: 'cropInsuranceStats',
   DASHBOARD_DATA: (farmerId) => ['dashboardData', farmerId],
 }

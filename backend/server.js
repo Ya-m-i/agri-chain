@@ -1,4 +1,6 @@
 const express = require('express')
+const { createServer } = require('http')
+const { Server } = require('socket.io')
 const colors = require('colors')
 const dotenv = require('dotenv').config()
 const { errorHandler } = require('./middleware/errorMiddleware')
@@ -14,6 +16,19 @@ console.log('Starting server with environment:', {
 connectDB()
 
 const app = express()
+const server = createServer(app)
+
+// Socket.IO setup with CORS for React Query integration
+const io = new Server(server, {
+  cors: {
+    origin: process.env.NODE_ENV === 'production' 
+      ? [process.env.FRONTEND_URL] 
+      : ['http://localhost:3000', 'http://localhost:5173'],
+    methods: ['GET', 'POST'],
+    credentials: true
+  },
+  transports: ['websocket', 'polling']
+})
 
 // Manual CORS configuration for React Query
 app.use((req, res, next) => {
@@ -63,10 +78,36 @@ app.use('/api/claims', require('./routes/claimRoutes'))
 app.use('/api/assistance', require('./routes/assistanceRoutes'))
 app.use('/api/crop-insurance', require('./routes/cropInsuranceRoutes'))
 
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log(`Client connected: ${socket.id}`.cyan)
+  
+  // Handle room joining for targeted updates
+  socket.on('join-room', (room) => {
+    socket.join(room)
+    console.log(`Client ${socket.id} joined room: ${room}`.green)
+  })
+  
+  socket.on('leave-room', (room) => {
+    socket.leave(room)
+    console.log(`Client ${socket.id} left room: ${room}`.yellow)
+  })
+  
+  socket.on('disconnect', (reason) => {
+    console.log(`Client disconnected: ${socket.id}, reason: ${reason}`.red)
+  })
+})
+
+// Make io available to routes for emitting events
+app.set('io', io)
+
 app.use(errorHandler)
 
 
-app.listen(port, '0.0.0.0', () => console.log(`Server running on port: ${port}`))
+server.listen(port, '0.0.0.0', () => {
+  console.log(`Server running on port: ${port}`.green)
+  console.log(`Socket.IO server initialized`.cyan)
+})
 
 
 

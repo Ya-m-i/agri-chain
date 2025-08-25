@@ -124,7 +124,11 @@ import {
   useCropInsurance, 
   useAssistances, 
   useAllApplications,
-  useUpdateApplicationStatus
+  useUpdateApplicationStatus,
+  useCreateAssistance,
+  useDeleteAssistance,
+  useRegisterFarmer,
+  useDeleteFarmer
 } from '../hooks/useAPI'
 
 // Utility: Moving Average
@@ -156,16 +160,24 @@ const AdminDashboard = () => {
   // React Query mutations
   const updateClaimMutation = useUpdateClaim()
   const updateApplicationMutation = useUpdateApplicationStatus()
-  // Note: deleteAssistanceMutation removed as it was unused
+  const createAssistanceMutation = useCreateAssistance()
+  const deleteAssistanceMutation = useDeleteAssistance()
+  const registerFarmerMutation = useRegisterFarmer()
+  const deleteFarmerMutation = useDeleteFarmer()
   
   // Note: Combined loading state available but removed due to ESLint unused variable warning
   // const loading = claimsLoading || farmersLoading || insuranceLoading || assistanceLoading || applicationsLoading
   
-  // Missing functions from old store - need to implement these
+  // React Query mutation implementation for adding assistance
   const addAssistanceItem = async (assistanceData) => {
-    // TODO: Implement with React Query mutation when useCreateAssistance is added
-    console.log('Adding assistance item:', assistanceData)
-    throw new Error('addAssistanceItem not yet implemented with React Query')
+    try {
+      const result = await createAssistanceMutation.mutateAsync(assistanceData)
+      console.log('Successfully added assistance item:', result)
+      return result
+    } catch (error) {
+      console.error('Error adding assistance item:', error)
+      throw error
+    }
   }
   
   const updateApplicationStatus = async (applicationId, statusData) => {
@@ -391,48 +403,65 @@ const AdminDashboard = () => {
   }
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     
-    // TODO: Implement farmer registration with React Query mutation
-    console.log('Farmer registration completed. React Query will refresh data automatically.');
-    
-    // Reset the form
-    setFormData({
-      firstName: "",
-      middleName: "",
-      lastName: "",
-      birthday: "",
-      gender: "",
-      contactNum: "",
-      address: "",
-      cropType: "",
-      cropArea: "",
-      insuranceType: "",
-      lotNumber: "",
-      lotArea: "",
-      agency: "",
-      isCertified: false,
-      periodFrom: "",
-      periodTo: "",
-      username: "",
-      password: "",
-    })
+    try {
+      // Prepare farmer data with location
+      const farmerData = {
+        ...formData,
+        location: selectedLocation // Include map coordinates if selected
+      };
+      
+      // Register farmer using React Query mutation
+      await registerFarmerMutation.mutateAsync(farmerData);
+      
+      // Reset the form
+      setFormData({
+        firstName: "",
+        middleName: "",
+        lastName: "",
+        birthday: "",
+        gender: "",
+        contactNum: "",
+        address: "",
+        cropType: "",
+        cropArea: "",
+        insuranceType: "",
+        lotNumber: "",
+        lotArea: "",
+        agency: "",
+        isCertified: false,
+        periodFrom: "",
+        periodTo: "",
+        username: "",
+        password: "",
+      })
 
-    // Reset selected location
-    setSelectedLocation(null)
+      // Reset selected location
+      setSelectedLocation(null)
 
-    // Close the modal
-    setShowRegisterForm(false)
+      // Close the modal
+      setShowRegisterForm(false)
 
-    // Show success message
-    useNotificationStore.getState().addAdminNotification({
-      id: Date.now(),
-      type: 'success',
-      title: 'Farmer Registered Successfully',
-      message: `${formData.firstName} ${formData.lastName} has been registered successfully.`,
-      timestamp: new Date()
-    });
+      // Show success message
+      useNotificationStore.getState().addAdminNotification({
+        id: generateUniqueId(),
+        type: 'success',
+        title: 'Farmer Registered Successfully',
+        message: `${formData.firstName} ${formData.lastName} has been registered successfully.`,
+        timestamp: new Date()
+      });
+    } catch (error) {
+      console.error('Error registering farmer:', error);
+      useNotificationStore.getState().addAdminNotification({
+        id: generateUniqueId(),
+        type: 'error',
+        title: 'Registration Failed',
+        message: `Error: ${error.message}`,
+        timestamp: new Date()
+      });
+    }
   }
 
   // Function to add farmers to map
@@ -956,8 +985,8 @@ const AdminDashboard = () => {
     const { type: actionType, applicationId, itemName } = assistanceAction;
     try {
       if (actionType === 'delete') {
-        // TODO: Implement delete assistance with React Query mutation
-        console.log('Delete assistance item:', applicationId, itemName)
+        // Implement delete assistance with React Query mutation
+        await deleteAssistanceMutation.mutateAsync(applicationId);
         
         // Show success notification
         useNotificationStore.getState().addAdminNotification({
@@ -3916,22 +3945,36 @@ const AdminDashboard = () => {
                 Cancel
               </button>
               <button
-                onClick={() => {
-                  // TODO: Implement farmer deletion with React Query mutation
-                  console.log('Delete farmer:', farmers[showDeleteConfirmation].id);
+                onClick={async () => {
+                  try {
+                    const farmerId = farmers[showDeleteConfirmation].id || farmers[showDeleteConfirmation]._id;
+                    const farmerName = farmers[showDeleteConfirmation].farmerName || 
+                                     `${farmers[showDeleteConfirmation].firstName} ${farmers[showDeleteConfirmation].lastName}`;
+                    
+                    await deleteFarmerMutation.mutateAsync(farmerId);
 
-                  // Close modal
-                  setShowDeleteConfirmation(false)
-                  setFarmerToDelete(null)
+                    // Close modal
+                    setShowDeleteConfirmation(false)
+                    setFarmerToDelete(null)
 
-                  // Show success message
-                  useNotificationStore.getState().addAdminNotification({
-                    id: generateUniqueId(),
-                    type: 'success',
-                    title: 'Farmer Deleted Successfully',
-                    message: 'Farmer has been removed from the system.',
-                    timestamp: new Date()
-                  });
+                    // Show success message
+                    useNotificationStore.getState().addAdminNotification({
+                      id: generateUniqueId(),
+                      type: 'success',
+                      title: 'Farmer Deleted Successfully',
+                      message: `${farmerName} has been removed from the system.`,
+                      timestamp: new Date()
+                    });
+                  } catch (error) {
+                    // Show error message
+                    useNotificationStore.getState().addAdminNotification({
+                      id: generateUniqueId(),
+                      type: 'error',
+                      title: 'Delete Failed',
+                      message: `Error: ${error.message}`,
+                      timestamp: new Date()
+                    });
+                  }
                 }}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
               >

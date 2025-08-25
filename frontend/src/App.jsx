@@ -8,12 +8,14 @@ import AuthRoute from "./components/AuthRoute"
 import { useAuthStore } from "./store/authStore"
 import { initImageOptimization } from "./utils/imageOptimization"
 import { initAssetOptimization } from "./utils/assetOptimization"
+import { useSocketQuery } from "./hooks/useSocketQuery"
 
 // Lazy load page components for better performance
 const Login = lazy(() => import("./pages/Login"))
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"))
 const FarmerDashboard = lazy(() => import("./pages/FarmerDashboard"))
 const FarmerForm = lazy(() => import("./pages/FarmerForm/FarmerForm"))
+const SocketTestComponent = lazy(() => import("./components/SocketTestComponent"))
 const NotFound = lazy(() => import("./pages/NotFound"))
 
 // Preload critical routes for faster navigation
@@ -41,6 +43,11 @@ const PageLoader = () => (
 function App() {
   const [loading, setLoading] = useState(true)
   const { isAuthenticated, userType, login } = useAuthStore()
+  
+  // Initialize Socket.IO integration with React Query
+  const { isConnected } = useSocketQuery({
+    serverUrl: import.meta.env.VITE_SERVER_URL || 'http://localhost:5000'
+  })
 
   useEffect(() => {
     // Initialize optimizations first
@@ -65,7 +72,10 @@ function App() {
     setTimeout(() => {
       setLoading(false)
     }, 1000)
-  }, [login])
+    
+    // Log socket connection status
+    console.log('Socket.IO connection status:', isConnected ? 'Connected' : 'Disconnected')
+  }, [login, isConnected])
 
   if (loading) {
     return <Loading />
@@ -110,6 +120,15 @@ function App() {
             element={
               <AuthRoute userType="farmer">
                 <FarmerForm />
+              </AuthRoute>
+            }
+          />
+
+          <Route
+            path="/socket-test"
+            element={
+              <AuthRoute userType={["admin", "farmer"]}>
+                <SocketTestComponent />
               </AuthRoute>
             }
           />
