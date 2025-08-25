@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
+import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   Menu,
@@ -26,10 +26,9 @@ import { useNotificationStore } from "../store/notificationStore"
 import WeatherWidget from "../components/dashboard/weather-widget"
 import ClaimStatusTracker from "../components/dashboard/claim-status-tracker"
 import farmerLogoImage from "../assets/images/Farmlogo.png" // Update this path to your farmer logo
-import useAssistanceStore from "../store/assistanceStore"
 import FarmerCropInsurance from "../components/FarmerCropInsurance"
 import { calculateCompensation, getPaymentStatus, getExpectedPaymentDate, getDamageSeverity, getCoverageDetails } from "../utils/insuranceUtils"
-import { fetchClaims, fetchCropInsurance } from '../api';
+import { useClaims, useCropInsurance, useFarmerApplications, useAssistances, useApplyForAssistance } from '../hooks/useAPI'
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
@@ -72,33 +71,21 @@ const FarmerDashboard = () => {
   const [showClaimDetails, setShowClaimDetails] = useState(false)
   const [selectedClaim, setSelectedClaim] = useState(null)
 
-  // State for claims
-  const [claims, setClaims] = useState([])
+  // Use React Query for claims data
+  const { data: claims = [], refetch: refetchClaims } = useClaims(user?.id)
   
-  // Insured crop types derived from crop insurance records
-  const [insuredCropTypes, setInsuredCropTypes] = useState([])
+  // Use React Query for crop insurance data
+  const { data: cropInsuranceRecords = [] } = useCropInsurance(user?.id)
+  
+  // Insured crop types derived from crop insurance records using React Query
+  const insuredCropTypes = useMemo(() => {
+    if (!cropInsuranceRecords || cropInsuranceRecords.length === 0) return []
+    return Array.from(new Set(cropInsuranceRecords.map(r => r.cropType).filter(Boolean)))
+  }, [cropInsuranceRecords])
   
   // Real-time status indicator for farmer
   const [lastRefreshTime, setLastRefreshTime] = useState(new Date())
   const [isRefreshing, setIsRefreshing] = useState(false)
-  
-  // Ref to store current claims for comparison without causing re-renders
-  const claimsRef = useRef([])
-  
-  // Load crop insurance for this farmer to determine insured crop type(s)
-  useEffect(() => {
-    const loadInsurance = async () => {
-      if (!user?.id) return
-      try {
-        const records = await fetchCropInsurance(user.id)
-        const uniqueCrops = Array.from(new Set((records || []).map(r => r.cropType).filter(Boolean)))
-        setInsuredCropTypes(uniqueCrops)
-      } catch (err) {
-        console.error('FarmerDashboard: Failed to fetch crop insurance for farmer:', err)
-      }
-    }
-    loadInsurance()
-  }, [user?.id])
 
   const displayedCropType = useMemo(() => {
     return (insuredCropTypes && insuredCropTypes.length > 0)
@@ -112,65 +99,25 @@ const FarmerDashboard = () => {
     insuredCropTypes,
   }), [user, insuredCropTypes])
   
-    // Load claims function with real-time updates
+  // Load claims function with real-time updates using React Query
   const loadClaims = useCallback(async () => {
     if (user && user.id) {
       try {
         setIsRefreshing(true);
-        console.log('FarmerDashboard: Fetching claims for user ID:', user.id);
-        console.log('FarmerDashboard: User agent:', navigator.userAgent);
-        console.log('FarmerDashboard: Is mobile:', /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+        console.log('FarmerDashboard: Refetching claims for user ID:', user.id);
         
-        const fetchedClaims = await fetchClaims(user.id);
-        console.log('FarmerDashboard: Fetched claims:', fetchedClaims);
-        
-        // Check for status changes in existing claims
-        const previousClaims = claimsRef.current;
-        const updatedClaims = fetchedClaims.map(newClaim => {
-          const oldClaim = previousClaims.find(c => c._id === newClaim._id);
-          if (oldClaim && oldClaim.status !== newClaim.status) {
-            // Check if notification already exists to prevent duplicates
-            const existingNotifications = useNotificationStore.getState().getFarmerNotifications(user.id);
-            const notificationExists = existingNotifications.some(
-              notification => notification.id === `status-change-${newClaim._id}`
-            );
-            
-            if (!notificationExists) {
-              // Notify about status change
-              useNotificationStore.getState().addFarmerNotification({
-                id: `status-change-${newClaim._id}`,
-                type: newClaim.status === 'approved' ? 'success' : newClaim.status === 'rejected' ? 'error' : 'info',
-                title: `Claim Status Updated`,
-                message: `Your claim for ${newClaim.crop || 'damage'} has been ${newClaim.status}.`,
-                timestamp: new Date()
-              }, user.id);
-            }
-          }
-          return newClaim;
-        });
-        
-        console.log('FarmerDashboard: Setting claims to:', updatedClaims);
-        setClaims(updatedClaims);
-        claimsRef.current = updatedClaims; // Update the ref with current claims
+        await refetchClaims();
         setLastRefreshTime(new Date());
       } catch (error) {
-        console.error('FarmerDashboard: Failed to fetch claims:', error);
-        console.error('FarmerDashboard: Error details:', {
-          message: error.message,
-          stack: error.stack,
-          name: error.name
-        });
+        console.error('FarmerDashboard: Failed to refetch claims:', error);
       } finally {
         setIsRefreshing(false);
       }
     }
-  }, [user]); // Removed 'claims' from dependencies to prevent infinite loops
+  }, [user, refetchClaims]);
   
-  // Fetch claims for this farmer from MongoDB with auto-refresh
+  // Set up auto-refresh for claims with React Query
   useEffect(() => {
-    // Initial load
-    loadClaims();
-    
     // Set up auto-refresh every 10 seconds for real-time updates
     const intervalId = setInterval(loadClaims, 10000); // Refresh every 10 seconds
     
@@ -187,16 +134,64 @@ const FarmerDashboard = () => {
       clearInterval(intervalId);
       window.removeEventListener('claimSubmitted', handleClaimSubmitted);
     };
-  }, [loadClaims]); // Include loadClaims in dependencies
+  }, [loadClaims]);
 
-  // Cache assistance store selectors
-  const assistanceStore = useMemo(() => useAssistanceStore.getState(), [])
-  const assistanceItems = useMemo(() => assistanceStore.assistanceItems || [], [assistanceStore.assistanceItems])
-  const farmerApplications = useMemo(() => assistanceStore.farmerApplications || [], [assistanceStore.farmerApplications])
-  const loading = useMemo(() => assistanceStore.loading, [assistanceStore.loading])
-  const error = useMemo(() => assistanceStore.error, [assistanceStore.error])
-  const applyForAssistance = useMemo(() => assistanceStore.applyForAssistance, [assistanceStore.applyForAssistance])
-  const checkEligibility = useMemo(() => assistanceStore.checkEligibility, [assistanceStore.checkEligibility])
+  // Use React Query for assistance data
+  const { data: assistanceItems = [], isLoading: assistanceLoading, error: assistanceError } = useAssistances()
+  const { data: farmerApplications = [], isLoading: applicationsLoading, error: applicationsError } = useFarmerApplications(user?.id)
+  const applyForAssistanceMutation = useApplyForAssistance()
+  
+  // Combine loading and error states for UI
+  const loading = assistanceLoading || applicationsLoading
+  const error = assistanceError || applicationsError
+  
+  // Check eligibility for assistance (moved from store)
+  const checkEligibility = useCallback((farmer, assistance) => {
+    const now = new Date();
+    const currentQuarter = `Q${Math.floor(now.getMonth() / 3) + 1}-${now.getFullYear()}`;
+    
+    // Check if already applied this quarter
+    const alreadyApplied = farmerApplications.some(app => 
+      app.farmerId === farmer.id && 
+      app.assistanceId === assistance._id && 
+      app.quarter === currentQuarter &&
+      ['pending', 'approved', 'distributed'].includes(app.status)
+    );
+
+    // Check crop type match (supports insuredCropTypes array or single cropType)
+    const farmerCrops = (farmer.insuredCropTypes && Array.isArray(farmer.insuredCropTypes) && farmer.insuredCropTypes.length > 0)
+      ? farmer.insuredCropTypes.map(c => String(c).toLowerCase())
+      : (farmer.cropType ? [String(farmer.cropType).toLowerCase()] : []);
+    const cropTypeMatch = Boolean(
+      assistance.cropType && farmerCrops.length > 0 &&
+      farmerCrops.includes(String(assistance.cropType).toLowerCase())
+    );
+
+    // Check RSBSA registration
+    const rsbsaEligible = !assistance.requiresRSBSA || farmer.rsbsaRegistered;
+
+    // Check certification (for cash assistance)
+    const certificationEligible = !assistance.requiresCertification || farmer.isCertified;
+
+    // Check stock availability
+    const stockAvailable = assistance.availableQuantity > 0;
+
+    return {
+      eligible: !alreadyApplied && cropTypeMatch && rsbsaEligible && certificationEligible && stockAvailable,
+      alreadyApplied,
+      cropTypeMatch,
+      rsbsaEligible,
+      certificationEligible,
+      stockAvailable,
+      reasons: {
+        alreadyApplied: alreadyApplied ? 'Already applied this quarter' : null,
+        cropTypeMismatch: !cropTypeMatch ? `Only for ${assistance.cropType} farmers` : null,
+        rsbsaRequired: !rsbsaEligible ? 'RSBSA registration required' : null,
+        certificationRequired: !certificationEligible ? 'Certification required' : null,
+        outOfStock: !stockAvailable ? 'Out of stock' : null
+      }
+    };
+  }, [farmerApplications]);
 
   const [showAssistanceForm, setShowAssistanceForm] = useState(false)
   const [selectedAssistance, setSelectedAssistance] = useState(null)
@@ -265,11 +260,6 @@ const FarmerDashboard = () => {
     };
   };
 
-  // Calculate pagination
-  const indexOfLastItem = currentPage * itemsPerPage
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage
-  const totalPages = Math.ceil((assistanceItems?.length || 0) / itemsPerPage)
-
   // Filter assistanceItems by insured crop types (fallback to user's crop type)
   const availableAssistanceItems = useMemo(() => {
     const items = assistanceItems || []
@@ -287,40 +277,10 @@ const FarmerDashboard = () => {
     })
   }, [assistanceItems, insuredCropTypes, user?.cropType]);
 
-  // Load assistance applications with real-time updates
-  const loadAssistanceApplications = useCallback(async () => {
-    if (user && user.id) {
-      try {
-        console.log('FarmerDashboard: Fetching applications for user ID:', user.id);
-        await assistanceStore.getFarmerApplications(user.id);
-      } catch (error) {
-        console.error('FarmerDashboard: Error fetching applications:', error);
-        // Set empty applications array to prevent UI errors
-        assistanceStore.setState({ farmerApplications: [], loading: false });
-      }
-    }
-  }, [user, assistanceStore]);
-
-  // Fetch farmer's applications when user changes with auto-refresh
-  useEffect(() => {
-    // Initial load
-    loadAssistanceApplications();
-    
-    // Set up auto-refresh every 15 seconds for assistance applications
-    const intervalId = setInterval(loadAssistanceApplications, 15000); // Refresh every 15 seconds
-    
-    // Cleanup interval on component unmount
-    return () => clearInterval(intervalId);
-  }, [loadAssistanceApplications]); // Include loadAssistanceApplications in dependencies
-
-  useEffect(() => {
-    console.log('FarmerDashboard: Initializing assistance items');
-    assistanceStore.initAssistanceItems().catch(error => {
-      console.error('FarmerDashboard: Error initializing assistance items:', error);
-      // Set empty assistance items array to prevent UI errors
-      assistanceStore.setState({ assistanceItems: [], loading: false });
-    });
-  }, [assistanceStore]);
+  // Calculate pagination
+  const indexOfLastItem = currentPage * itemsPerPage
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage
+  const totalPages = Math.ceil((availableAssistanceItems?.length || 0) / itemsPerPage)
 
   const handleLogout = () => {
     logout()
@@ -474,11 +434,21 @@ const FarmerDashboard = () => {
     if (!selectedAssistance || !user) return;
     
     try {
-      // Apply for assistance using the new Seed Assistance Flow
-      await applyForAssistance({
-      farmerId: user.id,
+      // Prepare farmer data with insured crop types for proper backend validation
+      const farmerData = {
+        ...user,
+        insuredCropTypes,
+        // Ensure cropType is set from insured crops if available
+        cropType: insuredCropTypes.length > 0 ? insuredCropTypes[0] : user.cropType
+      };
+      
+      // Apply for assistance using React Query mutation
+      await applyForAssistanceMutation.mutateAsync({
+        farmerId: user.id,
         assistanceId: selectedAssistance._id,
-        requestedQuantity: parseInt(assistanceForm.requestedQuantity)
+        requestedQuantity: parseInt(assistanceForm.requestedQuantity),
+        // Include farmer data for backend validation
+        farmerData: farmerData
       });
       
       // Reset form and close modal
@@ -487,7 +457,7 @@ const FarmerDashboard = () => {
       setSelectedAssistance(null);
       
       // Show success message using notification store for farmer
-    useNotificationStore.getState().addFarmerNotification({
+      useNotificationStore.getState().addFarmerNotification({
         id: generateUniqueId(),
         type: 'success',
         title: 'Application Submitted',
@@ -496,7 +466,7 @@ const FarmerDashboard = () => {
       }, user.id);
       
       // Also notify admin about the new application
-    useNotificationStore.getState().addAdminNotification({
+      useNotificationStore.getState().addAdminNotification({
         id: generateUniqueId(),
         type: 'info',
         title: 'New Assistance Application',
@@ -1363,15 +1333,9 @@ const FarmerDashboard = () => {
                     </svg>
                     <p className="text-red-700 font-medium">Error loading assistance data</p>
                   </div>
-                  <p className="text-red-600 text-sm mt-1">{error}</p>
+                  <p className="text-red-600 text-sm mt-1">{error?.message || 'Unknown error'}</p>
                   <button 
-                    onClick={() => {
-                      assistanceStore.setState({ error: null });
-                      assistanceStore.initAssistanceItems();
-                      if (user?.id) {
-                        assistanceStore.getFarmerApplications(user.id);
-                      }
-                    }}
+                    onClick={() => window.location.reload()}
                     className="mt-2 text-red-600 hover:text-red-800 text-sm font-medium"
                   >
                     Try again
@@ -1663,7 +1627,7 @@ const FarmerDashboard = () => {
 
               {error && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                  <p>Error: {error}</p>
+                  <p>Error: {error?.message || 'Unknown error'}</p>
                 </div>
               )}
             </div>
@@ -2092,10 +2056,25 @@ const FarmerDashboard = () => {
                     <label className="block text-sm font-medium text-gray-700">Crop Type</label>
                     <input
                       type="text"
-                      value={user?.cropType || ""}
+                      value={displayedCropType}
                       disabled
                       className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-500"
                     />
+                    {insuredCropTypes.length > 0 && (
+                      <p className="text-xs text-green-600 mt-1">
+                        ✓ Based on your active crop insurance records
+                      </p>
+                    )}
+                    {(!insuredCropTypes.length && !user?.cropType) && (
+                      <p className="text-xs text-orange-600 mt-1">
+                        ⚠️ No crop type found. Please ensure you have active crop insurance.
+                      </p>
+                    )}
+                    {(!insuredCropTypes.length && user?.cropType) && (
+                      <p className="text-xs text-blue-600 mt-1">
+                        ℹ️ Using crop type from farmer profile. Consider adding crop insurance for better assistance eligibility.
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Area</label>
@@ -2107,6 +2086,33 @@ const FarmerDashboard = () => {
                     />
                   </div>
                 </div>
+                
+                {/* Crop Type Eligibility Check */}
+                {selectedAssistance && (
+                  <div className="mt-4 p-3 rounded-lg border">
+                    <h4 className="text-sm font-medium text-gray-700 mb-2">Eligibility Check</h4>
+                    <div className="flex items-center gap-2">
+                      {(() => {
+                        const eligibility = checkEligibility(farmerForEligibility, selectedAssistance);
+                        return (
+                          <>
+                            <div className={`w-3 h-3 rounded-full ${
+                              eligibility.cropTypeMatch ? 'bg-green-500' : 'bg-red-500'
+                            }`}></div>
+                            <span className={`text-sm ${
+                              eligibility.cropTypeMatch ? 'text-green-700' : 'text-red-700'
+                            }`}>
+                              {eligibility.cropTypeMatch 
+                                ? `✓ Crop type matches (${selectedAssistance.cropType})`
+                                : `✗ Crop type mismatch - Assistance is for ${selectedAssistance.cropType} farmers`
+                              }
+                            </span>
+                          </>
+                        );
+                      })()} 
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Assistance Details Section */}
@@ -2179,9 +2185,17 @@ const FarmerDashboard = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-800"
+                  disabled={selectedAssistance && !checkEligibility(farmerForEligibility, selectedAssistance).eligible}
+                  className={`px-4 py-2 rounded transition ${
+                    selectedAssistance && !checkEligibility(farmerForEligibility, selectedAssistance).eligible
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-lime-700 text-white hover:bg-lime-800'
+                  }`}
                 >
-                  Submit Request
+                  {selectedAssistance && !checkEligibility(farmerForEligibility, selectedAssistance).eligible
+                    ? 'Not Eligible'
+                    : 'Submit Request'
+                  }
                 </button>
               </div>
             </form>

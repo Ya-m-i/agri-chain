@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import {
   UserPlus,
   Users,
@@ -15,18 +15,21 @@ import {
   Layers,
   AlertTriangle,
 } from "lucide-react"
-import { registerFarmer, fetchFarmers, deleteFarmer, fetchCropInsurance } from '../api';
-import { useNotificationStore } from '../store/notificationStore';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
-import { Doughnut } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-import { getCropTypeDistributionFromInsurance } from '../utils/cropTypeDistribution';
+import {
+  useRegisterFarmer,
+  useFarmers,
+  useDeleteFarmer,
+  useCropInsurance
+} from '../hooks/useAPI'
+import { useNotificationStore } from '../store/notificationStore'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts'
+import { Doughnut } from 'react-chartjs-2'
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
+import { getCropTypeDistributionFromInsurance } from '../utils/cropTypeDistribution'
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(ArcElement, Tooltip, Legend)
 
 const FarmerRegistration = ({
-  farmers,
-  setFarmers,
   formData,
   setFormData,
   setShowMapModal,
@@ -34,6 +37,11 @@ const FarmerRegistration = ({
   selectedLocation,
   setSelectedLocation,
 }) => {
+  // React Query hooks
+  const { data: farmers = [], isLoading: farmersLoading, refetch: refetchFarmers } = useFarmers()
+  const { data: allCropInsurance = [], isLoading: cropInsuranceLoading } = useCropInsurance()
+  const registerFarmerMutation = useRegisterFarmer()
+  const deleteFarmerMutation = useDeleteFarmer()
   // Local state for farmer registration
   const [showRegisterForm, setShowRegisterForm] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
@@ -51,59 +59,32 @@ const FarmerRegistration = ({
   const [farmerToDelete, setFarmerToDelete] = useState(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
-  // Add state for crop insurance data
-  const [cropInsuranceData, setCropInsuranceData] = useState({});
-  const [cropInsuranceLoading, setCropInsuranceLoading] = useState(false);
-
   // Add state for crop insurance-based crop type distribution
-  const [insuranceCropTypeDistribution, setInsuranceCropTypeDistribution] = useState({});
-
-  // Function to fetch crop insurance data for all farmers
-  const loadCropInsuranceData = async () => {
-    setCropInsuranceLoading(true);
-    try {
-      console.log('Loading crop insurance data...');
-      const allCropInsurance = await fetchCropInsurance();
-      console.log('Fetched crop insurance data:', allCropInsurance);
-      
-      // Group crop insurance by farmer ID
-      const groupedData = {};
-      allCropInsurance.forEach(insurance => {
-        const farmerId = insurance.farmerId;
-        console.log('Processing insurance for farmer ID:', farmerId, 'Crop:', insurance.cropType);
-        if (!groupedData[farmerId]) {
-          groupedData[farmerId] = [];
-        }
-        groupedData[farmerId].push(insurance);
-      });
-      
-      console.log('Grouped crop insurance data:', groupedData);
-      setCropInsuranceData(groupedData);
-    } catch (error) {
-      console.error('Error loading crop insurance data:', error);
-    } finally {
-      setCropInsuranceLoading(false);
-    }
-  };
+  const [insuranceCropTypeDistribution, setInsuranceCropTypeDistribution] = useState({})
+  
+  // Group crop insurance data by farmer ID
+  const cropInsuranceData = useMemo(() => {
+    const groupedData = {}
+    allCropInsurance.forEach(insurance => {
+      const farmerId = insurance.farmerId
+      console.log('Processing insurance for farmer ID:', farmerId, 'Crop:', insurance.cropType)
+      if (!groupedData[farmerId]) {
+        groupedData[farmerId] = []
+      }
+      groupedData[farmerId].push(insurance)
+    })
+    console.log('Grouped crop insurance data:', groupedData)
+    return groupedData
+  }, [allCropInsurance])
 
   // Fetch and update crop type distribution from insurance records
   useEffect(() => {
     async function fetchDistribution() {
-      const dist = await getCropTypeDistributionFromInsurance();
-      setInsuranceCropTypeDistribution(dist);
+      const dist = await getCropTypeDistributionFromInsurance()
+      setInsuranceCropTypeDistribution(dist)
     }
-    fetchDistribution();
-  }, []);
-
-  // Load crop insurance data when component mounts and set up auto-refresh
-  useEffect(() => {
-    loadCropInsuranceData();
-    
-    // Set up auto-refresh every 10 seconds
-    const intervalId = setInterval(loadCropInsuranceData, 10000);
-    
-    return () => clearInterval(intervalId);
-  }, []);
+    fetchDistribution()
+  }, [])
 
   // Function to get insured crops for a farmer
   const getInsuredCrops = (farmer) => {
@@ -228,25 +209,24 @@ const FarmerRegistration = ({
     }))
   }
 
-  // Fetch farmers from backend on mount
-  useEffect(() => {
-    fetchFarmers()
-      .then(setFarmers)
-      .catch((err) => console.error('Failed to fetch farmers:', err));
-  }, [setFarmers]);
+  // Fetch farmers from backend on mount - now handled by React Query
+  // useEffect(() => {
+  //   fetchFarmers()
+  //     .then(setFarmers)
+  //     .catch((err) => console.error('Failed to fetch farmers:', err));
+  // }, [setFarmers]);
 
   // Handle form submission
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
     const newFarmer = {
       ...formData,
       farmerName: `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim(),
       location: selectedLocation,
       registrationDate: new Date().toISOString(), // Add registration date
-    };
+    }
     try {
-      const savedFarmer = await registerFarmer(newFarmer);
-      setFarmers((prev) => [...prev, savedFarmer]);
+      const savedFarmer = await registerFarmerMutation.mutateAsync(newFarmer)
       
       // Notify admin about successful registration
       useNotificationStore.getState().addAdminNotification({
@@ -255,7 +235,7 @@ const FarmerRegistration = ({
         title: 'Farmer Registered Successfully',
         message: `New farmer ${newFarmer.farmerName} has been registered successfully.`,
         timestamp: new Date()
-      });
+      })
       
       // Notify the new farmer about their registration
       useNotificationStore.getState().addFarmerNotification({
@@ -264,7 +244,7 @@ const FarmerRegistration = ({
         title: 'Registration Successful',
         message: `Welcome ${newFarmer.farmerName}! Your account has been created successfully. You can now log in with your credentials.`,
         timestamp: new Date()
-      }, savedFarmer._id);
+      }, savedFarmer._id)
       
       setFormData({
         firstName: "",
@@ -284,9 +264,9 @@ const FarmerRegistration = ({
         username: "",
         password: "",
         rsbsaRegistered: false,
-      });
-      setSelectedLocation(null);
-      setShowRegisterForm(false);
+      })
+      setSelectedLocation(null)
+      setShowRegisterForm(false)
     } catch (err) {
       useNotificationStore.getState().addAdminNotification({
         id: generateUniqueId(),
@@ -294,10 +274,10 @@ const FarmerRegistration = ({
         title: 'Registration Failed',
         message: 'Failed to register farmer. Please try again.',
         timestamp: new Date()
-      });
-      console.error(err);
+      })
+      console.error(err)
     }
-  };
+  }
 
   useEffect(() => {
     if (selectedLocation) {
@@ -355,15 +335,15 @@ const FarmerRegistration = ({
         <button
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center shadow-sm"
           onClick={() => {
-            console.log('Manual refresh triggered');
-            loadCropInsuranceData();
+            console.log('Manual refresh triggered')
+            refetchFarmers()
           }}
-          disabled={cropInsuranceLoading}
+          disabled={farmersLoading || cropInsuranceLoading}
         >
           <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
-          {cropInsuranceLoading ? 'Refreshing...' : 'Refresh Crop Data'}
+          {farmersLoading || cropInsuranceLoading ? 'Refreshing...' : 'Refresh Data'}
         </button>
       </div>
 
@@ -460,7 +440,7 @@ const FarmerRegistration = ({
       {/* Chart Visualizations Section */}
       <div className="w-full flex flex-col md:flex-row gap-6 mb-6">
         {/* Area Chart: Registered Farmers Over Time */}
-        <div className="flex-1 bg-white rounded-xl shadow p-6">
+        <div className="flex-1 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-lime-700 flex items-center gap-2">
               <Users className="h-5 w-5 text-lime-600" /> Registered Farmers Over Time
@@ -492,7 +472,6 @@ const FarmerRegistration = ({
                 data={generateTimeBasedData()}
                 margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis 
                   dataKey="period" 
                   stroke="#6b7280" 
@@ -540,7 +519,7 @@ const FarmerRegistration = ({
           </div>
         </div>
         {/* Donut Pie Chart: Crop Type Distribution */}
-        <div className="flex-1 bg-white rounded-xl shadow p-6">
+        <div className="flex-1 p-6">
           <h3 className="text-lg font-semibold mb-4 text-emerald-700 flex items-center gap-2">
             <Layers className="h-5 w-5 text-emerald-600" /> Crop Type Distribution
           </h3>
@@ -615,7 +594,7 @@ const FarmerRegistration = ({
           </table>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-10 text-center mb-6">
+        <div className="p-10 text-center mb-6">
           <UserPlus size={48} className="mx-auto text-gray-300 mb-3" />
           <p className="text-gray-500 italic">No farmers match the current filters.</p>
           <button className="mt-4 bg-lime-600 text-white px-4 py-2 rounded-lg hover:bg-lime-700 transition-colors" onClick={() => { setFormData({ ...formData, isCertified: "", cropType: "", address: "", availedItems: "" }); setSearchQuery(""); }}>Reset Filters</button>
@@ -1055,26 +1034,11 @@ const FarmerRegistration = ({
                       throw new Error('No valid farmer ID found');
                     }
                     
-                    // Delete from backend database
-                    await deleteFarmer(farmerId);
+                    // Delete from backend database using React Query
+                    await deleteFarmerMutation.mutateAsync(farmerId)
                     
-                    // Update local state
-                    const updatedFarmers = farmers.filter(
-                      (farmer) =>
-                        farmer.id !== farmerToDelete.id &&
-                        farmer._id !== farmerToDelete._id
-                    );
-                    setFarmers(updatedFarmers);
-                    
-                    // Update localStorage
-                    if (updatedFarmers.length > 0) {
-                      localStorage.setItem("farmers", JSON.stringify(updatedFarmers));
-                    } else {
-                      localStorage.removeItem("farmers");
-                    }
-                    
-                    setShowDeleteConfirmation(false);
-                    setFarmerToDelete(null);
+                    setShowDeleteConfirmation(false)
+                    setFarmerToDelete(null)
                     
                     // Notify admin about successful deletion
                     useNotificationStore.getState().addAdminNotification({
@@ -1083,7 +1047,7 @@ const FarmerRegistration = ({
                       title: 'Farmer Deleted',
                       message: `${farmerToDelete.farmerName} has been deleted successfully from the database.`,
                       timestamp: new Date()
-                    });
+                    })
                     
                     // Notify the farmer about their account deletion
                     useNotificationStore.getState().addFarmerNotification({
@@ -1092,7 +1056,7 @@ const FarmerRegistration = ({
                       title: 'Account Deleted',
                       message: `Your account has been deleted by the administrator. Please contact support if you believe this is an error.`,
                       timestamp: new Date()
-                    }, farmerId);
+                    }, farmerId)
                   } catch (error) {
                     console.error('Error deleting farmer:', error);
                     
@@ -1103,7 +1067,7 @@ const FarmerRegistration = ({
                       title: 'Delete Failed',
                       message: `Failed to delete ${farmerToDelete.farmerName}: ${error.message}`,
                       timestamp: new Date()
-                    });
+                    })
                   }
                 }}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"

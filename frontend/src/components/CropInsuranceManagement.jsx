@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState } from "react"
 import {
   Plus,
   Search,
@@ -21,21 +21,28 @@ import {
   Crop,
   Timer,
 } from "lucide-react"
-import { 
-  createCropInsurance, 
-  fetchCropInsurance, 
-  updateCropInsurance, 
-  deleteCropInsurance,
-  getCropInsuranceStats,
-  fetchFarmers
-} from '../api'
+import {
+  useFarmers,
+  useCropInsurance,
+  useCropInsuranceStats,
+  useCreateCropInsurance,
+  useUpdateCropInsurance,
+  useDeleteCropInsurance
+} from '../hooks/useAPI'
 import { useNotificationStore } from '../store/notificationStore'
 
 const CropInsuranceManagement = () => {
-  const [cropInsuranceRecords, setCropInsuranceRecords] = useState([])
-  const [farmers, setFarmers] = useState([])
-  const [stats, setStats] = useState({})
-  const [loading, setLoading] = useState(false)
+  // React Query hooks
+  const { data: cropInsuranceRecords = [], isLoading: insuranceLoading } = useCropInsurance()
+  const { data: farmers = [], isLoading: farmersLoading } = useFarmers()
+  const { data: stats = {}, isLoading: statsLoading } = useCropInsuranceStats()
+  const createInsuranceMutation = useCreateCropInsurance()
+  const updateInsuranceMutation = useUpdateCropInsurance()
+  const deleteInsuranceMutation = useDeleteCropInsurance()
+  
+  // Combined loading state
+  const loading = insuranceLoading || farmersLoading || statsLoading || 
+                 createInsuranceMutation.isPending || updateInsuranceMutation.isPending || deleteInsuranceMutation.isPending
   const [searchQuery, setSearchQuery] = useState("")
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -74,54 +81,7 @@ const CropInsuranceManagement = () => {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
   }
 
-  const loadData = useCallback(async () => {
-    setLoading(true)
-    try {
-      const [insuranceData, statsData] = await Promise.all([
-        fetchCropInsurance(),
-        getCropInsuranceStats()
-      ])
-      console.log('Loaded crop insurance data:', insuranceData)
-      setCropInsuranceRecords(insuranceData)
-      setStats(statsData)
-    } catch (error) {
-      console.error('Error loading data:', error)
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'error',
-        title: 'Error Loading Data',
-        message: error.message,
-        timestamp: new Date()
-      })
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  // Load data on component mount
-  useEffect(() => {
-    loadData()
-  }, [loadData])
-
-  // Load farmers for dropdown
-  useEffect(() => {
-    const loadFarmers = async () => {
-      try {
-        const farmersData = await fetchFarmers()
-        setFarmers(farmersData)
-      } catch (error) {
-        console.error('Error loading farmers:', error)
-        useNotificationStore.getState().addAdminNotification({
-          id: generateUniqueId(),
-          type: 'error',
-          title: 'Error Loading Farmers',
-          message: 'Failed to load farmers data',
-          timestamp: new Date()
-        })
-      }
-    }
-    loadFarmers()
-  }, [])
+  // Remove unused loadData function - React Query handles data loading automatically
 
   const handleFormChange = (e) => {
     const { name, value } = e.target
@@ -142,7 +102,6 @@ const CropInsuranceManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
 
     console.log('Form submission started with data:', formData)
 
@@ -158,9 +117,8 @@ const CropInsuranceManagement = () => {
       
       console.log('Submitting crop insurance data:', submissionData)
       
-      const newRecord = await createCropInsurance(submissionData)
+      await createInsuranceMutation.mutateAsync(submissionData)
 
-      setCropInsuranceRecords(prev => [newRecord, ...prev])
       setShowAddModal(false)
       setFormData({
         farmerId: "",
@@ -182,10 +140,6 @@ const CropInsuranceManagement = () => {
         message: 'New crop insurance record has been created successfully.',
         timestamp: new Date()
       })
-
-      // Reload stats
-      const updatedStats = await getCropInsuranceStats()
-      setStats(updatedStats)
     } catch (error) {
       console.error('Error creating crop insurance record:', error)
       useNotificationStore.getState().addAdminNotification({
@@ -195,26 +149,21 @@ const CropInsuranceManagement = () => {
         message: error.message,
         timestamp: new Date()
       })
-    } finally {
-      setLoading(false)
     }
   }
 
   const handleApplyInsurance = async (recordId, insuranceData) => {
     try {
-      const updatedRecord = await updateCropInsurance(recordId, {
-        isInsured: true,
-        insuranceType: insuranceData.insuranceType,
-        premiumAmount: parseFloat(insuranceData.premiumAmount),
-        agency: insuranceData.agency,
-        insuranceDate: new Date().toISOString()
+      await updateInsuranceMutation.mutateAsync({
+        id: recordId,
+        updateData: {
+          isInsured: true,
+          insuranceType: insuranceData.insuranceType,
+          premiumAmount: parseFloat(insuranceData.premiumAmount),
+          agency: insuranceData.agency,
+          insuranceDate: new Date().toISOString()
+        }
       })
-
-      setCropInsuranceRecords(prev => 
-        prev.map(record => 
-          record._id === recordId ? updatedRecord : record
-        )
-      )
 
       useNotificationStore.getState().addAdminNotification({
         id: generateUniqueId(),
@@ -240,8 +189,7 @@ const CropInsuranceManagement = () => {
     }
 
     try {
-      await deleteCropInsurance(recordId)
-      setCropInsuranceRecords(prev => prev.filter(record => record._id !== recordId))
+      await deleteInsuranceMutation.mutateAsync(recordId)
       
       useNotificationStore.getState().addAdminNotification({
         id: generateUniqueId(),

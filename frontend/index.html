@@ -2,12 +2,138 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/Farmlogo.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AgriChain</title>
+    
+    <!-- Primary Meta Tags -->
+    <title>AGRI-CHAIN - Agricultural Management System</title>
+    <meta name="title" content="AGRI-CHAIN - Agricultural Management System" />
+    <meta name="description" content="Comprehensive agricultural management system for farmers and administrators. Manage crops, insurance claims, and agricultural assistance efficiently." />
+    <meta name="keywords" content="agriculture, farming, crop management, insurance, agricultural assistance" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="English" />
+    <meta name="author" content="AGRI-CHAIN Team" />
+    
+    <!-- Viewport and Mobile Optimization -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="AGRI-CHAIN" />
+    <meta name="format-detection" content="telephone=no" />
+    
+    <!-- PWA and Theme -->
+    <meta name="theme-color" content="#22c55e" />
+    <meta name="msapplication-TileColor" content="#22c55e" />
+    <meta name="msapplication-navbutton-color" content="#22c55e" />
+    
+    <!-- Icons and Manifest -->
+    <link rel="icon" type="image/png" href="/FarmLogo.png" />
+    <link rel="apple-touch-icon" href="/FarmLogo.png" />
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Resource Hints for Performance -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+    <link rel="preconnect" href="//fonts.googleapis.com" crossorigin />
+    <link rel="preconnect" href="//fonts.gstatic.com" crossorigin />
+    
+    <!-- Critical CSS (will be inlined by asset optimization) -->
+    <style id="critical-css">
+      /* Critical above-the-fold styles */
+      html, body {
+        margin: 0;
+        padding: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      
+      #root {
+        min-height: 100vh;
+      }
+      
+      /* Loading state */
+      .min-h-screen {
+        min-height: 100vh;
+      }
+      
+      .flex {
+        display: flex;
+      }
+      
+      .items-center {
+        align-items: center;
+      }
+      
+      .justify-center {
+        justify-content: center;
+      }
+      
+      .text-center {
+        text-align: center;
+      }
+      
+      .animate-spin {
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      
+      /* Progressive image loading */
+      .progressive-image {
+        transition: opacity 0.3s ease, filter 0.3s ease;
+        will-change: opacity, filter;
+      }
+      
+      .progressive-image.loading {
+        opacity: 0.7;
+        filter: blur(2px);
+      }
+      
+      .progressive-image.loaded {
+        opacity: 1;
+        filter: none;
+      }
+      
+      .progressive-image.error {
+        opacity: 0.5;
+        filter: grayscale(100%);
+      }
+    </style>
+    
+    <!-- Preload critical assets -->
+    <link rel="modulepreload" href="/src/main.jsx" />
   </head>
   <body>
+    <!-- No-JS fallback -->
+    <noscript>
+      <div style="text-align: center; padding: 50px; font-family: Arial, sans-serif;">
+        <h2>JavaScript Required</h2>
+        <p>AGRI-CHAIN requires JavaScript to function properly. Please enable JavaScript in your browser settings.</p>
+      </div>
+    </noscript>
+    
+    <!-- App root -->
     <div id="root"></div>
+    
+    <!-- Main application script -->
     <script type="module" src="/src/main.jsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
   </body>
 </html>

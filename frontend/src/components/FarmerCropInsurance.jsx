@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import {
   Plus,
   Search,
@@ -19,16 +19,21 @@ import {
   Timer,
   Info,
 } from "lucide-react"
-import { 
-  fetchCropInsurance, 
-  createCropInsurance 
-} from '../api'
+import {
+  useCropInsurance,
+  useCreateCropInsurance
+} from '../hooks/useAPI'
 import { useNotificationStore } from '../store/notificationStore'
 import { useAuthStore } from '../store/authStore'
 
 const FarmerCropInsurance = () => {
-  const [cropInsuranceRecords, setCropInsuranceRecords] = useState([])
-  const [loading, setLoading] = useState(false)
+  const { user } = useAuthStore()
+  
+  // React Query hooks
+  const { data: cropInsuranceRecords = [], isLoading: loading } = useCropInsurance(user?._id)
+  const createInsuranceMutation = useCreateCropInsurance()
+  
+  // Local state
   const [searchQuery, setSearchQuery] = useState("")
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
@@ -48,8 +53,6 @@ const FarmerCropInsurance = () => {
     }
   })
 
-  const { user } = useAuthStore()
-
   // Crop type configurations with day limits
   const cropConfigurations = {
     "Corn": { dayLimit: 30, description: "Maize crop with 30-day insurance window" },
@@ -65,34 +68,6 @@ const FarmerCropInsurance = () => {
 
   const generateUniqueId = () => {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-  }
-
-  // Load data on component mount
-  useEffect(() => {
-    if (user?._id) {
-      loadData()
-    }
-  }, [user])
-
-  const loadData = async () => {
-    if (!user?._id) return
-    
-    setLoading(true)
-    try {
-      const insuranceData = await fetchCropInsurance(user._id)
-      setCropInsuranceRecords(insuranceData)
-    } catch (error) {
-      console.error('Error loading data:', error)
-      useNotificationStore.getState().addFarmerNotification({
-        id: generateUniqueId(),
-        type: 'error',
-        title: 'Error Loading Data',
-        message: error.message,
-        timestamp: new Date()
-      }, user._id)
-    } finally {
-      setLoading(false)
-    }
   }
 
   const handleFormChange = (e) => {
@@ -116,10 +91,8 @@ const FarmerCropInsurance = () => {
     e.preventDefault()
     if (!user?._id) return
     
-    setLoading(true)
-
     try {
-      const newRecord = await createCropInsurance({
+      await createInsuranceMutation.mutateAsync({
         ...formData,
         farmerId: user._id,
         cropArea: parseFloat(formData.cropArea),
@@ -129,7 +102,6 @@ const FarmerCropInsurance = () => {
         expectedHarvestDate: new Date(formData.expectedHarvestDate).toISOString()
       })
 
-      setCropInsuranceRecords(prev => [newRecord, ...prev])
       setShowAddModal(false)
       setFormData({
         cropType: "",
@@ -158,8 +130,6 @@ const FarmerCropInsurance = () => {
         message: error.message,
         timestamp: new Date()
       }, user._id)
-    } finally {
-      setLoading(false)
     }
   }
 

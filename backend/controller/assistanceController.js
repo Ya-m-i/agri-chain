@@ -34,7 +34,7 @@ const getAssistances = async (req, res) => {
 // @access  Public
 const applyForAssistance = async (req, res) => {
   try {
-    const { farmerId, assistanceId, requestedQuantity } = req.body;
+    const { farmerId, assistanceId, requestedQuantity, farmerData } = req.body;
 
     // Validate input
     if (!farmerId || !assistanceId || !requestedQuantity) {
@@ -52,6 +52,9 @@ const applyForAssistance = async (req, res) => {
     if (!assistance) {
       return res.status(404).json({ message: 'Assistance not found' });
     }
+
+    // Use farmer data from frontend if provided (includes insured crop types)
+    const effectiveFarmer = farmerData || farmer;
 
     // Determine current quarter
     const now = new Date();
@@ -71,15 +74,32 @@ const applyForAssistance = async (req, res) => {
       });
     }
 
+    // Enhanced crop type matching logic
+    let cropTypeMatch = false;
+    if (assistance.cropType) {
+      const assistanceCrop = assistance.cropType.toLowerCase();
+      
+      // Check insured crop types first (from insurance records)
+      if (effectiveFarmer.insuredCropTypes && Array.isArray(effectiveFarmer.insuredCropTypes)) {
+        cropTypeMatch = effectiveFarmer.insuredCropTypes.some(crop => 
+          String(crop).toLowerCase() === assistanceCrop
+        );
+      }
+      
+      // Fallback to farmer's primary crop type if no insured crops found
+      if (!cropTypeMatch && effectiveFarmer.cropType) {
+        cropTypeMatch = String(effectiveFarmer.cropType).toLowerCase() === assistanceCrop;
+      }
+    }
+
     // Eligibility checks
     const eligibilityCheck = {
-      rsbsaRegistered: farmer.rsbsaRegistered || false,
+      rsbsaRegistered: effectiveFarmer.rsbsaRegistered || false,
       notAlreadyAvailed: !existingApplication,
       withinQuarterlyLimit: true, // Will be checked during approval
       stockAvailable: assistance.availableQuantity >= requestedQuantity,
-      cropTypeMatch: assistance.cropType && farmer.cropType && 
-                    assistance.cropType.toLowerCase() === farmer.cropType.toLowerCase(),
-      isCertified: farmer.isCertified || false
+      cropTypeMatch: cropTypeMatch,
+      isCertified: effectiveFarmer.isCertified || false
     };
 
     // Check if eligible
@@ -96,8 +116,11 @@ const applyForAssistance = async (req, res) => {
     }
 
     if (!eligibilityCheck.cropTypeMatch) {
+      const farmerCrops = effectiveFarmer.insuredCropTypes && effectiveFarmer.insuredCropTypes.length > 0 
+        ? effectiveFarmer.insuredCropTypes.join(', ') 
+        : (effectiveFarmer.cropType || 'Unknown');
       return res.status(400).json({ 
-        message: `This assistance is only for ${assistance.cropType} farmers` 
+        message: `This assistance is only for ${assistance.cropType} farmers. Your crop type(s): ${farmerCrops}` 
       });
     }
 

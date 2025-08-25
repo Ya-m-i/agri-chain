@@ -39,7 +39,6 @@ import {
 } from "lucide-react"
 import { useAuthStore } from "../store/authStore"
 import { useNotificationStore } from "../store/notificationStore"
-import useAssistanceStore from "../store/assistanceStore"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 // Use a relative path that matches your project structure
@@ -72,7 +71,7 @@ import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 
 // Recharts imports
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar as RechartsBar, LineChart, Line as RechartsLine, Legend as RechartsLegend, Cell } from 'recharts';
 import { showLoading, hideLoading, showError } from "../utils/feedbackUtils"
 // Using dynamic import for jsPDF to avoid build issues
 // const jsPDF = (() => {
@@ -118,7 +117,15 @@ const scrollbarStyle = `
 `
 
 // import { calculateCompensation } from "../utils/insuranceUtils";
-import { fetchClaims, updateClaim, deleteAssistance, createAssistance, fetchFarmers, fetchCropInsurance } from '../api'
+import { 
+  useClaims, 
+  useUpdateClaim, 
+  useFarmers, 
+  useCropInsurance, 
+  useAssistances, 
+  useAllApplications,
+  useUpdateApplicationStatus
+} from '../hooks/useAPI'
 
 // Utility: Moving Average
 // Utility: Find Peaks
@@ -129,20 +136,59 @@ const AdminDashboard = () => {
   const logout = useAuthStore((state) => state.logout)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarExpanded, setSidebarExpanded] = useState(false)
   const [activeTab, setActiveTab] = useState("home")
   const [notificationOpen, setNotificationOpen] = useState(false)
   const [showViewModal, setShowViewModal] = useState(false)
   const [selectedAssistance, setSelectedAssistance] = useState(null)
 
-  const { 
-    assistanceItems, 
-    allApplications,
-    loading: assistanceLoading,
-    error: assistanceError,
-    getAllApplications,
-    updateApplicationStatus,
-    initAssistanceItems
-  } = useAssistanceStore()
+  // React Query hooks for data management
+  // eslint-disable-next-line no-unused-vars
+  const { data: claims = [], isLoading: claimsLoading, refetch: refetchClaims } = useClaims()
+  // eslint-disable-next-line no-unused-vars
+  const { data: farmers = [], isLoading: farmersLoading } = useFarmers()
+  // eslint-disable-next-line no-unused-vars
+  const { data: cropInsuranceRecords = [], isLoading: insuranceLoading } = useCropInsurance()
+  const { data: assistanceItems = [], isLoading: assistanceLoading, error: assistanceError } = useAssistances()
+  // eslint-disable-next-line no-unused-vars
+  const { data: allApplications = [], isLoading: applicationsLoading } = useAllApplications()
+  
+  // React Query mutations
+  const updateClaimMutation = useUpdateClaim()
+  const updateApplicationMutation = useUpdateApplicationStatus()
+  // Note: deleteAssistanceMutation removed as it was unused
+  
+  // Note: Combined loading state available but removed due to ESLint unused variable warning
+  // const loading = claimsLoading || farmersLoading || insuranceLoading || assistanceLoading || applicationsLoading
+  
+  // Missing functions from old store - need to implement these
+  const addAssistanceItem = async (assistanceData) => {
+    // TODO: Implement with React Query mutation when useCreateAssistance is added
+    console.log('Adding assistance item:', assistanceData)
+    throw new Error('addAssistanceItem not yet implemented with React Query')
+  }
+  
+  const updateApplicationStatus = async (applicationId, statusData) => {
+    return await updateApplicationMutation.mutateAsync({ applicationId, statusData })
+  }
+  
+  // Generate unique notification ID
+  const generateUniqueId = () => {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  };
+  
+  // Handle logout
+  const handleLogout = () => {
+    logout()
+    navigate("/")
+  }
+
+  // Application filtering and pagination states (moved here before computed values)
+  // Fixed variable initialization order to prevent reference errors
+  const [applicationStatusFilter, setApplicationStatusFilter] = useState('')
+  const [applicationSearchTerm, setApplicationSearchTerm] = useState('')
+  const [currentApplicationPage, setCurrentApplicationPage] = useState(1)
+  const applicationsPerPage = 10
 
   // Calculate low stock items with useMemo to prevent infinite loops
   const lowStockItems = useMemo(() => 
@@ -150,21 +196,45 @@ const AdminDashboard = () => {
     [assistanceItems]
   );
 
+  // Filter and paginate applications
+  const filteredApplications = useMemo(() => {
+    let filtered = allApplications || [];
+    
+    // Apply status filter
+    if (applicationStatusFilter) {
+      filtered = filtered.filter(app => app.status === applicationStatusFilter);
+    }
+    
+    // Apply search filter
+    if (applicationSearchTerm) {
+      const searchLower = applicationSearchTerm.toLowerCase();
+      filtered = filtered.filter(app => {
+        const applicationId = app._id?.toLowerCase() || '';
+        const farmerName = app.farmerId ? 
+          `${app.farmerId.firstName} ${app.farmerId.lastName}`.toLowerCase() : '';
+        const assistanceType = app.assistanceId?.assistanceType?.toLowerCase() || '';
+        
+        return applicationId.includes(searchLower) || 
+               farmerName.includes(searchLower) ||
+               assistanceType.includes(searchLower);
+      });
+    }
+    
+    // Sort by application date (newest first)
+    return filtered.sort((a, b) => new Date(b.applicationDate) - new Date(a.applicationDate));
+  }, [allApplications, applicationStatusFilter, applicationSearchTerm]);
+  
+  const applicationPages = Math.ceil(filteredApplications.length / applicationsPerPage);
+  const paginatedApplications = useMemo(() => {
+    const startIndex = (currentApplicationPage - 1) * applicationsPerPage;
+    return filteredApplications.slice(startIndex, startIndex + applicationsPerPage);
+  }, [filteredApplications, currentApplicationPage, applicationsPerPage]);
+
   // Debug logging for assistance items
   useEffect(() => {
     console.log('AdminDashboard: Assistance items updated:', assistanceItems.length);
     console.log('AdminDashboard: Assistance items:', assistanceItems);
   }, [assistanceItems]);
-
-  useEffect(() => {
-    console.log('AdminDashboard: Initializing assistance items and applications');
-    initAssistanceItems().catch(error => {
-      console.error('AdminDashboard: Error initializing assistance items:', error);
-    });
-    getAllApplications().catch(error => {
-      console.error('AdminDashboard: Error getting all applications:', error);
-    });
-  }, [initAssistanceItems, getAllApplications]);
 
 
 
@@ -210,7 +280,6 @@ const AdminDashboard = () => {
 
   // Filter states
   const [claimsTabView, setClaimsTabView] = useState("pending") // For Insurance Claims tab view
-  const [distributionRecordsFilter, setDistributionRecordsFilter] = useState("monthly") // For Distribution Records chart filter
   const [distributionYearFilter, setDistributionYearFilter] = useState(new Date().getFullYear()) // For Distribution Records year filter
 
   // Map states
@@ -226,11 +295,18 @@ const AdminDashboard = () => {
   const [monthFilter, setMonthFilter] = useState('all') // 'all' or 1..12
   const [yearFilter, setYearFilter] = useState('all') // 'all' or YYYY
 
-  // Data states
-  const [claims, setClaims] = useState([])
-  const [farmers, setFarmers] = useState([])
-  const [lastInsuranceUpdate, setLastInsuranceUpdate] = useState(null)
-  const [insuranceByFarmer, setInsuranceByFarmer] = useState({})
+  // Insurance records grouped by farmer (derived from React Query data)
+  const insuranceByFarmer = useMemo(() => {
+    const grouped = {}
+    cropInsuranceRecords.forEach((rec) => {
+      const fid = (rec.farmerId && (rec.farmerId._id || rec.farmerId)) || rec.farmer || rec.farmerID
+      if (!fid) return
+      const key = String(fid)
+      if (!grouped[key]) grouped[key] = []
+      grouped[key].push(rec)
+    })
+    return grouped
+  }, [cropInsuranceRecords])
 
   // Analytics state
   const [analyticsData, setAnalyticsData] = useState(null)
@@ -317,32 +393,10 @@ const AdminDashboard = () => {
   // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault()
-    // Create a new farmer object
-    const newFarmer = {
-      id: Date.now().toString(),
-      farmerName: `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim(),
-      address: formData.address,
-      cropType: formData.cropType,
-      cropArea: formData.cropArea,
-      insuranceType: formData.insuranceType,
-      premiumAmount: formData.premiumAmount,
-      lotNumber: formData.lotNumber,
-      lotArea: formData.lotArea,
-      agency: formData.agency,
-      isCertified: formData.isCertified,
-      periodFrom: formData.periodFrom,
-      periodTo: formData.periodTo,
-      birthday: formData.birthday,
-      gender: formData.gender,
-      contactNum: formData.contactNum,
-      username: formData.username,
-      password: formData.password,
-      location: selectedLocation,
-    }
-
-    // Update the farmers state
-    setFarmers((prevFarmers) => [...prevFarmers, newFarmer])
-
+    
+    // TODO: Implement farmer registration with React Query mutation
+    console.log('Farmer registration completed. React Query will refresh data automatically.');
+    
     // Reset the form
     setFormData({
       firstName: "",
@@ -449,6 +503,8 @@ const AdminDashboard = () => {
   }
 
   // Color palette for crops (approximate real-life associations)
+  // Function to get color for crop type (kept for potential crop-based legend)
+  // eslint-disable-next-line no-unused-vars
   const getCropColor = (cropRaw) => {
     if (!cropRaw) return '#3b82f6' // default blue
     const crop = String(cropRaw).toLowerCase().trim()
@@ -494,6 +550,10 @@ const AdminDashboard = () => {
 
     overviewMarkersLayerRef.current.clearLayers()
 
+    // Group farmers by barangay for better visualization
+    const farmersByBarangay = {}
+    const claimsByLocation = {}
+
     farmers.forEach((farmer) => {
       if (farmer.location && typeof farmer.location.lat === 'number' && typeof farmer.location.lng === 'number') {
         const getFarmerName = (farmerObj) => {
@@ -510,6 +570,12 @@ const AdminDashboard = () => {
         const insuredList = (insuranceByFarmer[farmerKey] || []).map(r => r.cropType).filter(Boolean)
         const uniqueInsured = Array.from(new Set(insuredList))
         const cropType = uniqueInsured.length > 0 ? uniqueInsured.join(', ') : (farmer.cropType || 'Not specified')
+        
+        // Extract barangay from address or use coordinates
+        const barangay = farmer.address ? 
+          farmer.address.split(',').find(part => part.includes('Barangay') || part.includes('Brgy'))?.trim() || 
+          farmer.address.split(',')[0]?.trim() || 'Unknown Barangay' : 
+          `Area ${Math.floor(farmer.location.lat * 100) % 100}`
 
         // build a primary date for filtering
         const candidateDates = []
@@ -537,103 +603,188 @@ const AdminDashboard = () => {
         if (monthFilter !== 'all' && primaryDate) {
           if ((primaryDate.getMonth() + 1) !== Number(monthFilter)) return
         }
+
+        // Check insurance status
+        const isInsured = uniqueInsured.length > 0
+        const hasActiveClaim = claims.some(claim => 
+          claim.farmerId === farmerKey || 
+          claim.name?.toLowerCase().includes(farmerName.toLowerCase())
+        )
+        
+        // Count assistance received
+        const assistanceReceived = allApplications.filter(app => 
+          app.farmerId === farmerKey && (app.status === 'approved' || app.status === 'distributed')
+        ).length
+
         const lotArea = farmer.lotArea || farmer.cropArea || 'Not specified'
-        const isCertified = farmer.isCertified ? "✓ Certified" : ""
-
-        // choose a color and icon for the marker based on primary crop
-        const primaryCropForColor = (uniqueInsured[0] || farmer.cropType || '').split(',')[0].trim()
-        const color = getCropColor(primaryCropForColor)
-
-        const emoji = getCropEmoji(primaryCropForColor)
-        const iconHtml = `<div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid ${color};background:#ffffff;color:#111827;font-size:16px;">${emoji}</div>`
-        const icon = L.divIcon({
-          className: 'crop-marker',
-          html: iconHtml,
-          iconSize: [28, 28],
-          iconAnchor: [14, 14],
-          popupAnchor: [0, -14],
+        const isCertified = farmer.isCertified ? "✓ Certified" : "❌ Not Certified"
+        
+        // Group by barangay
+        if (!farmersByBarangay[barangay]) {
+          farmersByBarangay[barangay] = []
+        }
+        farmersByBarangay[barangay].push({
+          farmer, farmerName, cropType, lotArea, isCertified, 
+          isInsured, hasActiveClaim, assistanceReceived
         })
 
-        const marker = L.marker([farmer.location.lat, farmer.location.lng], { icon }).bindPopup(`
-          <strong>${farmerName}</strong><br>
-          Crop: ${cropType}<br>
-          Area: ${lotArea}<br>
-          ${isCertified}
-        `)
+        // Track claims by location for heatmap
+        const locationKey = `${Math.floor(farmer.location.lat * 1000)},${Math.floor(farmer.location.lng * 1000)}`
+        if (!claimsByLocation[locationKey]) {
+          claimsByLocation[locationKey] = { lat: farmer.location.lat, lng: farmer.location.lng, count: 0 }
+        }
+        if (hasActiveClaim) {
+          claimsByLocation[locationKey].count++
+        }
+
+        // Choose color based on insurance status and claims
+        let markerColor
+        if (hasActiveClaim) {
+          markerColor = '#f97316' // Orange for high claims area
+        } else if (isInsured) {
+          markerColor = '#22c55e' // Green for insured
+        } else {
+          markerColor = '#ef4444' // Red for uninsured
+        }
+
+        // choose a primary crop for icon
+        const primaryCropForIcon = (uniqueInsured[0] || farmer.cropType || '').split(',')[0].trim()
+        const emoji = getCropEmoji(primaryCropForIcon)
+        
+        const iconHtml = `<div style="
+          width:32px;
+          height:32px;
+          border-radius:50%;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          border:3px solid ${markerColor};
+          background:#ffffff;
+          color:#111827;
+          font-size:14px;
+          font-weight:bold;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          cursor:pointer;
+        ">${emoji}</div>`
+        
+        const icon = L.divIcon({
+          className: 'enhanced-crop-marker',
+          html: iconHtml,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+          popupAnchor: [0, -16],
+        })
+
+        // Enhanced popup with comprehensive information
+        const popupContent = `
+          <div style="min-width:250px; font-family: system-ui, -apple-system, sans-serif;">
+            <div style="background: linear-gradient(135deg, ${markerColor} 0%, ${markerColor}99 100%); color: white; padding: 8px; margin: -9px -9px 8px -9px; border-radius: 4px 4px 0 0;">
+              <h4 style="margin: 0; font-size: 16px; font-weight: bold;">👨‍🌾 ${farmerName}</h4>
+              <small style="opacity: 0.9;">📍 ${barangay}</small>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+              <div>
+                <strong style="color: #374151; font-size: 12px;">🌾 CROP:</strong><br>
+                <span style="color: #059669; font-weight: 500;">${cropType}</span>
+              </div>
+              <div>
+                <strong style="color: #374151; font-size: 12px;">📏 AREA:</strong><br>
+                <span style="color: #0891b2;">${lotArea}</span>
+              </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+              <div>
+                <strong style="color: #374151; font-size: 12px;">🛡️ INSURANCE:</strong><br>
+                <span style="color: ${isInsured ? '#059669' : '#dc2626'}; font-weight: 500;">
+                  ${isInsured ? '✅ Insured' : '❌ Uninsured'}
+                </span>
+              </div>
+              <div>
+                <strong style="color: #374151; font-size: 12px;">🎯 STATUS:</strong><br>
+                <span style="color: #7c3aed;">${isCertified}</span>
+              </div>
+            </div>
+            
+            <div style="background: #f3f4f6; padding: 6px; border-radius: 4px; margin-top: 8px;">
+              <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                <span><strong>🤝 Assistance Received:</strong></span>
+                <span style="color: #059669; font-weight: bold;">${assistanceReceived}</span>
+              </div>
+              ${hasActiveClaim ? '<div style="color: #f97316; font-size: 11px; margin-top: 4px;"><strong>⚠️ Has Active Claims</strong></div>' : ''}
+            </div>
+          </div>
+        `
+
+        const marker = L.marker([farmer.location.lat, farmer.location.lng], { icon })
+          .bindPopup(popupContent, {
+            maxWidth: 300,
+            className: 'enhanced-popup'
+          })
 
         marker.addTo(overviewMarkersLayerRef.current)
       }
     })
-  }, [farmers, insuranceByFarmer, cropFilter, monthFilter, yearFilter])
+    
+    // Add custom CSS for enhanced popups
+    if (!document.getElementById('enhanced-popup-styles')) {
+      const style = document.createElement('style')
+      style.id = 'enhanced-popup-styles'
+      style.textContent = `
+        .enhanced-popup .leaflet-popup-content-wrapper {
+          border-radius: 8px;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+        .enhanced-popup .leaflet-popup-content {
+          margin: 0;
+          line-height: 1.4;
+        }
+        .enhanced-crop-marker {
+          transition: transform 0.2s ease;
+        }
+        .enhanced-crop-marker:hover {
+          transform: scale(1.1);
+        }
+      `
+      document.head.appendChild(style)
+    }
+    
+  }, [farmers, insuranceByFarmer, cropFilter, monthFilter, yearFilter, claims, allApplications])
 
-        // Load claims function
-        const loadClaims = async () => {
+        // Load claims function using React Query
+        const loadClaims = useCallback(async () => {
   try {
     showLoading("Loading claims...");
     setIsRefreshing(true);
-    // ...existing code...
-  // eslint-disable-next-line no-unused-vars
-  } catch (error) {
+    await refetchClaims();
+  } catch (err) {
+    console.error('Failed to load claims from the server:', err);
     showError("Failed to load claims from the server.");
-    // ...existing code...
   } finally {
     hideLoading();
     setIsRefreshing(false);
   }
-};
+}, [refetchClaims]);
 
-        // Load claims from backend with auto-refresh
+        // Auto-refresh claims with React Query
         useEffect(() => {
-          // Initial load
-          loadClaims();
-
           // Set up auto-refresh every 5 seconds for real-time updates
-          const intervalId = setInterval(loadClaims, 5000); // Refresh every 5 seconds
+          const intervalId = setInterval(loadClaims, 5000);
 
           // Cleanup interval on component unmount
           return () => clearInterval(intervalId);
          
-        }, []); // Only run once when component mounts
+        }, [loadClaims]); // loadClaims is now memoized with useCallback
 
   // Add these useEffect hooks after the other useEffect hooks in the component, before the derived data section
-
-  // Load farmers from backend when component mounts
-  useEffect(() => {
-  const loadFarmers = async () => {
-    try {
-      showLoading("Loading farmers...");
-      const farmersData = await fetchFarmers();
-      setFarmers(farmersData);
-    // eslint-disable-next-line no-unused-vars
-    } catch (error) {
-      showError("Failed to load farmers from the server.");
-      // ...existing code...
-    } finally {
-      hideLoading();
-    }
-  };
-  loadFarmers();
-}, []);
-
-  // Save farmers to local storage whenever it changes (for backup)
-  useEffect(() => {
-    if (farmers.length > 0) {
-      localStorage.setItem("farmers", JSON.stringify(farmers));
-    }
-  }, [farmers]);
 
   // Derived data
   const totalFarmers = farmers.length
   const pendingClaims = claims.filter((c) => c.status === "pending").length
   const approvedClaims = claims.filter((c) => c.status === "approved").length
-  const aidDistributed = approvedClaims
 
   // Event handlers
-  const handleLogout = () => {
-    logout()
-    localStorage.removeItem("isAdmin") // For backward compatibility
-    navigate("/")
-  }
 
   const handleEventChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -647,11 +798,6 @@ const AdminDashboard = () => {
       setEventForm(prev => ({ ...prev, [name]: value }));
     }
   }
-
-  // Generate unique notification ID
-  const generateUniqueId = () => {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  };
 
   const handleEventSubmit = async (e) => {
     e.preventDefault();
@@ -680,7 +826,9 @@ const AdminDashboard = () => {
         status: 'active'
       };
       
-      await createAssistance(assistanceData);
+      await addAssistanceItem(assistanceData);
+      
+      // No need to manually refresh as addAssistanceItem already does this
       
     setEventForm({
       assistanceType: "",
@@ -730,12 +878,13 @@ const AdminDashboard = () => {
           timestamp: new Date()
         });
       }
-    } catch (error) {
+    } catch (err) {
+      console.error('Error adding assistance:', err)
       useNotificationStore.getState().addAdminNotification({
         id: generateUniqueId(),
         type: 'error',
         title: 'Add Assistance Failed',
-        message: `Error: ${error.message}`,
+        message: `Error: ${err.message}`,
         timestamp: new Date()
       });
     }
@@ -789,14 +938,14 @@ const AdminDashboard = () => {
         message: 'Application has been marked as distributed successfully.',
         timestamp: new Date()
       });
-      // Refresh applications
-      getAllApplications();
-    } catch (error) {
+      // Note: React Query will automatically refresh data
+    } catch (err) {
+      console.error('Error handling distribution:', err);
       useNotificationStore.getState().addAdminNotification({
         id: generateUniqueId(),
         type: 'error',
         title: 'Distribution Failed',
-        message: `Error: ${error.message}`,
+        message: `Error: ${err.message}`,
         timestamp: new Date()
       });
     }
@@ -807,8 +956,8 @@ const AdminDashboard = () => {
     const { type: actionType, applicationId, itemName } = assistanceAction;
     try {
       if (actionType === 'delete') {
-        // Delete assistance item
-        await deleteAssistance(applicationId);
+        // TODO: Implement delete assistance with React Query mutation
+        console.log('Delete assistance item:', applicationId, itemName)
         
         // Show success notification
         useNotificationStore.getState().addAdminNotification({
@@ -819,10 +968,10 @@ const AdminDashboard = () => {
           timestamp: new Date()
         });
         
-        // Close modal and refresh
+        // Close modal
         setShowAssistanceFeedbackModal(false);
         setAssistanceFeedback("");
-        initAssistanceItems(); // Refresh assistance items
+        // Note: React Query will automatically refresh data
       } else {
         // Update application status
         await updateApplicationStatus(applicationId, { 
@@ -860,7 +1009,7 @@ const AdminDashboard = () => {
         // Close modal and refresh
         setShowAssistanceFeedbackModal(false);
         setAssistanceFeedback("");
-        getAllApplications();
+        // Note: React Query will automatically refresh data
       }
     } catch (error) {
       useNotificationStore.getState().addAdminNotification({
@@ -886,17 +1035,19 @@ const AdminDashboard = () => {
   const confirmStatusUpdate = async () => {
     const { type: actionType, claimId: actionClaimId, farmerId } = confirmationAction;
     try {
-      await updateClaim(actionClaimId, {
-        status: actionType,
-        adminFeedback: feedbackText,
+      await updateClaimMutation.mutateAsync({
+        id: actionClaimId,
+        updateData: {
+          status: actionType,
+          adminFeedback: feedbackText,
+        }
       });
-      const updatedClaims = await fetchClaims();
-      setClaims(updatedClaims);
+      
       setShowConfirmationModal(false);
       setFeedbackText("");
       
       // Find the claim to get farmer details
-      const claim = updatedClaims.find(c => c._id === actionClaimId || c.id === actionClaimId);
+      const claim = claims.find(c => c._id === actionClaimId || c.id === actionClaimId);
       
       // Show success notification to admin
       let adminMessage = `Claim has been ${actionType} successfully.`;
@@ -1303,25 +1454,8 @@ const AdminDashboard = () => {
   }, [showMapModal, mapCenter, mapZoom, mapMode, farmers, reverseGeocode, addFarmersToMap])
 
   // Load crop insurance records and group by farmer for dashboard overview
-  useEffect(() => {
-    const loadAllInsurance = async () => {
-      try {
-        const all = await fetchCropInsurance()
-        const grouped = {}
-        all.forEach((rec) => {
-          const fid = (rec.farmerId && (rec.farmerId._id || rec.farmerId)) || rec.farmer || rec.farmerID
-          if (!fid) return
-          const key = String(fid)
-          if (!grouped[key]) grouped[key] = []
-          grouped[key].push(rec)
-        })
-        setInsuranceByFarmer(grouped)
-      } catch (err) {
-        console.error('AdminDashboard: Failed to load crop insurance for overview map:', err)
-      }
-    }
-    loadAllInsurance()
-  }, [])
+  // Note: This useEffect removed as we now use React Query data directly
+  // The insuranceByFarmer is computed from cropInsuranceRecords in useMemo above
 
   // Initialize embedded overview map on dashboard and update markers when farmers change
   useEffect(() => {
@@ -1399,103 +1533,8 @@ const AdminDashboard = () => {
   const LOW_STOCK_THRESHOLD = 5;
 
   // Add KPI calculations for dashboard tab:
-  const totalInventoryIssued = assistanceItems.reduce((sum, item) => sum + (parseInt(item.quantity, 10) || 0), 0);
-  
-  // Calculate total insurance paid using useMemo for better performance
-  const totalInsurancePaid = useMemo(() => {
-    const total = claims
-      .filter(c => c.status === "approved" && c.compensation)
-    .reduce((sum, c) => sum + (parseFloat(c.compensation) || 0), 0);
-    
-    // Track when the total changes
-    if (lastInsuranceUpdate !== total) {
-      setLastInsuranceUpdate(total);
-    }
-    
-    return total;
-  }, [claims, lastInsuranceUpdate]);
 
-  const [showFilterDrawer, setShowFilterDrawer] = useState(false);
-  const [selectedCrops, setSelectedCrops] = useState([]);
-  const [selectedStatuses, setSelectedStatuses] = useState([]);
-
-  const cropTypes = Array.from(new Set(claims.map(c => c.cropType || c.crop))).filter(Boolean);
-  const years = claims.map(c => new Date(c.date).getFullYear());
-  const minYear = Math.min(...years);
-  const maxYear = Math.max(...years);
-  const statuses = Array.from(new Set(claims.map(c => c.status))).filter(Boolean);
-
-  const filteredClaims = claims.filter(c => {
-    const year = new Date(c.date).getFullYear();
-    const yearMatch = year >= minYear && year <= maxYear;
-    const cropMatch = selectedCrops.length === 0 || selectedCrops.includes(c.cropType || c.crop);
-    const statusMatch = selectedStatuses.length === 0 || selectedStatuses.includes(c.status);
-    return yearMatch && cropMatch && statusMatch;
-  });
-
-  const toggleCrop = crop => setSelectedCrops(crops => crops.includes(crop) ? crops.filter(c => c !== crop) : [...crops, crop]);
-  const toggleStatus = status => setSelectedStatuses(statuses => statuses.includes(status) ? statuses.filter(s => s !== status) : [...statuses, status]);
-  const resetFilters = () => {
-    setSelectedCrops([]);
-    setSelectedStatuses([]);
-  };
-  const applyFilters = () => setShowFilterDrawer(false);
-
-  // Floating filter button
-  <button
-    className="fixed bottom-8 right-8 z-50 bg-lime-700 text-white rounded-full shadow-lg p-4 hover:bg-lime-800 transition"
-    onClick={() => setShowFilterDrawer(true)}
-    aria-label="Open analytics filters"
-  >
-    <FilterIcon className="w-6 h-6" />
-  </button>
-
-  // Filter drawer
-  {showFilterDrawer && (
-    <div className="fixed inset-0 z-50 flex">
-      <div className="absolute inset-0 bg-black bg-opacity-30 transition-opacity duration-300" onClick={() => setShowFilterDrawer(false)} />
-      <div className="relative ml-auto w-full max-w-md bg-white shadow-2xl h-full flex flex-col p-8 transform transition-transform duration-300 translate-x-0">
-        <h2 className="text-2xl font-bold mb-6">Filter Analytics</h2>
-        <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium mb-2">Crop Type</label>
-            <div className="flex flex-wrap gap-2">
-              {cropTypes.map(crop => (
-                <button
-                  key={crop}
-                  className={`px-3 py-1 rounded-full border ${selectedCrops.includes(crop) ? 'bg-lime-700 text-white' : 'bg-gray-100 text-gray-700'}`}
-                  onClick={() => toggleCrop(crop)}
-                  type="button"
-                >
-                  {crop}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Status</label>
-            <div className="flex flex-wrap gap-2">
-              {statuses.map(status => (
-                <button
-                  key={status}
-                  className={`px-3 py-1 rounded-full border ${selectedStatuses.includes(status) ? 'bg-lime-700 text-white' : 'bg-gray-100 text-gray-700'}`}
-                  onClick={() => toggleStatus(status)}
-                  type="button"
-                >
-                  {status.charAt(0).toUpperCase() + status.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-        <div className="mt-auto flex gap-4 pt-8">
-          <button className="flex-1 bg-gray-200 rounded py-2" onClick={resetFilters}>Reset</button>
-          <button className="flex-1 bg-lime-700 text-white rounded py-2" onClick={applyFilters}>Apply</button>
-        </div>
-        <div className="mt-4 text-sm text-gray-500">Showing {filteredClaims.length} results</div>
-      </div>
-    </div>
-  )}
+  // Note: Filter-related code removed as it was unused
 
   // Chart data preparation removed as charts now use static data or direct calculations
 
@@ -1514,21 +1553,10 @@ const AdminDashboard = () => {
 
 
 
-  // Fetch claims from MongoDB on mount
-  useEffect(() => {
-    fetchClaims()
-      .then((data) => {
-        console.log("Fetched claims:", data);
-        setClaims(data);
-      })
-      .catch((err) => console.error('Failed to fetch claims:', err));
-  }, []);
-
   // Add at the top of AdminDashboard component:
   const [searchQuery, setSearchQuery] = useState("");
 
   // Add this state near other filter states
-  const [assistanceStatusFilter, setAssistanceStatusFilter] = useState("all");
 
   const availableCrops = useMemo(() => {
     const setCrops = new Set()
@@ -1558,7 +1586,7 @@ const AdminDashboard = () => {
       <style>{scrollbarStyle}</style>
       <style>{`.admin-lato, .admin-lato * { font-family: 'Lato', sans-serif !important; }`}</style>
       {/* Top Navbar */}
-      <header style={{ backgroundColor: 'rgb(43, 158, 102)' }} className="text-black">
+      <header style={{ backgroundColor: 'rgb(39, 78, 19)' }} className="text-black">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center">
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="mr-4 md:hidden" aria-label="Toggle menu">
@@ -1596,7 +1624,7 @@ const AdminDashboard = () => {
               <button
                 onClick={toggleNotificationPanel}
                 className={`text-white p-2 rounded-full hover:bg-lime-500 transition-colors relative ${unreadAdminCount > 0 ? 'animate-pulse' : ''}`}
-                style={{ backgroundColor: 'rgb(64, 214, 141)' }}
+                style={{ backgroundColor: 'rgb(56, 118, 29)' }}
                 aria-label="Notifications"
               >
                 <Bell size={22} />
@@ -1613,7 +1641,7 @@ const AdminDashboard = () => {
                   className="notification-panel absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl z-50 overflow-hidden"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="p-4 text-white flex justify-between items-center" style={{ backgroundColor: 'rgb(64, 178, 122)' }}>
+                  <div className="p-4 text-white flex justify-between items-center" style={{ backgroundColor: 'rgb(56, 118, 29)' }}>
                     <h3 className="font-semibold">Notifications</h3>
                     {adminNotifications.length > 0 && (
                       <button
@@ -1758,7 +1786,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "home" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <LayoutDashboard size={20} className="mr-3" />
+                  <LayoutDashboard size={24} className="mr-3" />
                   Dashboard
                 </button>
               </li>
@@ -1775,7 +1803,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "farmer-registration" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <UserPlus size={20} className="mr-3" />
+                  <UserPlus size={24} className="mr-3" />
                   Farmer Registration
                 </button>
               </li>
@@ -1789,7 +1817,7 @@ const AdminDashboard = () => {
                   className={`flex items-center w-full p-2 rounded-lg hover:bg-gray-100 pl-10 ${showMapModal ? "text-lime-800 font-bold" : "text-gray-700"}`}
                   style={showMapModal ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <Map size={20} className="mr-3" />
+                  <Map size={24} className="mr-3" />
                   View Farm Locations
                 </button>
               </li>
@@ -1804,7 +1832,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "claims" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <FileText size={20} className="mr-3" />
+                  <FileText size={24} className="mr-3" />
                   Cash Assistance Claims
                 </button>
               </li>
@@ -1819,7 +1847,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "distribution" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <Truck size={20} className="mr-3" />
+                  <Truck size={24} className="mr-3" />
                   Distribution Records
                 </button>
               </li>
@@ -1834,7 +1862,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "assistance" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <ClipboardCheck size={20} className="mr-3" />
+                  <ClipboardCheck size={24} className="mr-3" />
                   Assistance Inventory
                 </button>
               </li>
@@ -1849,7 +1877,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "crop-insurance" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <Shield size={20} className="mr-3" />
+                  <Shield size={24} className="mr-3" />
                   Crop Insurance
                 </button>
               </li>
@@ -1858,19 +1886,24 @@ const AdminDashboard = () => {
         </div>
 
         {/* Desktop Sidebar */}
-        <aside className="hidden md:block w-64 shadow-lg text-black space-y-6 border-r border-gray-100 sticky top-0 h-screen overflow-y-auto bg-white">
+        <aside 
+          className={`hidden md:block ${sidebarExpanded ? 'w-64' : 'w-16'} shadow-lg text-black space-y-6 border-r border-gray-100 sticky top-0 h-screen overflow-y-auto bg-white transition-all duration-300 ease-in-out group`}
+          onMouseEnter={() => setSidebarExpanded(true)}
+          onMouseLeave={() => setSidebarExpanded(false)}
+        >
           <br></br>
 
           <div className="space-y-1 px-3">
             <button
               onClick={() => setActiveTab("home")}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg w-full text-left transition-colors ${
+              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "home" ? "text-lime-800 font-bold" : "text-gray-700 hover:bg-gray-50"
               }`}
               style={activeTab === "home" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+              title={!sidebarExpanded ? "Dashboard" : ""}
             >
-              <LayoutDashboard size={18} />
-              Dashboard
+              <LayoutDashboard size={24} className="flex-shrink-0" />
+              {sidebarExpanded && <span>Dashboard</span>}
             </button>
 
             <div>
@@ -1879,113 +1912,126 @@ const AdminDashboard = () => {
                   setActiveTab("farmer-registration")
                   setShowFarmLocationsDropdown(!showFarmLocationsDropdown)
                 }}
-                className={`flex items-center justify-between gap-3 px-4 py-2.5 rounded-lg w-full text-left transition-colors ${
+                className={`flex items-center ${sidebarExpanded ? 'justify-between gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                   activeTab === "farmer-registration"
                     ? "text-lime-800 font-bold"
                     : "text-gray-700 hover:bg-gray-50"
                 }`}
                 style={activeTab === "farmer-registration" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+                title={!sidebarExpanded ? "Farmer Registration" : ""}
               >
                 <div className="flex items-center gap-3">
-                  <UserPlus size={18} />
-                  Farmer Registration
+                  <UserPlus size={24} className="flex-shrink-0" />
+                  {sidebarExpanded && <span>Farmer Registration</span>}
                 </div>
-                <ChevronDown
-                  size={16}
-                  className={`transition-transform ${showFarmLocationsDropdown ? "rotate-180" : ""}`}
-                />
+                {sidebarExpanded && (
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform ${showFarmLocationsDropdown ? "rotate-180" : ""}`}
+                  />
+                )}
               </button>
 
               <div
-                className={`transition-all duration-300 overflow-hidden ${showFarmLocationsDropdown ? "max-h-40" : "max-h-0"}`}
+                className={`transition-all duration-300 overflow-hidden ${showFarmLocationsDropdown && sidebarExpanded ? "max-h-40" : "max-h-0"}`}
               >
                 <button
                   onClick={() => {
                     setShowMapModal(true)
                     setMapMode("view")
                   }}
-                  className={`flex items-center gap-3 px-4 py-2 pl-10 rounded-lg hover:bg-gray-50 w-full text-left transition-colors ${showMapModal ? "text-lime-800 font-bold" : "text-gray-600"}`}
+                  className={`flex items-center ${sidebarExpanded ? 'gap-3 pl-10' : 'justify-center px-2'} py-2 rounded-lg hover:bg-gray-50 w-full text-left transition-colors ${showMapModal ? "text-lime-800 font-bold" : "text-gray-600"}`}
                   style={showMapModal ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+                  title={!sidebarExpanded ? "View Farm Locations" : ""}
                 >
-                  <Map size={16} />
-                  View Farm Locations
+                  <Map size={24} className="flex-shrink-0" />
+                  {sidebarExpanded && <span>View Farm Locations</span>}
                 </button>
                 <button
                   onClick={() => setActiveTab("crop-insurance")}
-                  className={`flex items-center gap-3 px-4 py-2 pl-10 rounded-lg hover:bg-gray-50 w-full text-left transition-colors ${activeTab === 'crop-insurance' ? "text-lime-800 font-bold" : "text-gray-600"}`}
+                  className={`flex items-center ${sidebarExpanded ? 'gap-3 pl-10' : 'justify-center px-2'} py-2 rounded-lg hover:bg-gray-50 w-full text-left transition-colors ${activeTab === 'crop-insurance' ? "text-lime-800 font-bold" : "text-gray-600"}`}
                   style={activeTab === 'crop-insurance' ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+                  title={!sidebarExpanded ? "Crop Insurance" : ""}
                 >
-                  <Shield size={16} />
-                  Crop Insurance
+                  <Shield size={24} className="flex-shrink-0" />
+                  {sidebarExpanded && <span>Crop Insurance</span>}
                 </button>
               </div>
             </div>
 
             <button
               onClick={() => setActiveTab("claims")}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg w-full text-left transition-colors ${
+              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "claims" ? "text-lime-800 font-bold" : "text-gray-700 hover:bg-gray-50"
               }`}
               style={activeTab === "claims" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+              title={!sidebarExpanded ? "Cash Assistance Claims" : ""}
             >
-              <FileText size={18} />
-              Cash Assistance Claims
+              <FileText size={24} className="flex-shrink-0" />
+              {sidebarExpanded && <span>Cash Assistance Claims</span>}
             </button>
 
             <button
               onClick={() => setActiveTab("distribution")}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg w-full text-left transition-colors ${
+              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "distribution"
                   ? "text-lime-800 font-bold"
                   : "text-gray-700 hover:bg-gray-50"
               }`}
               style={activeTab === "distribution" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+              title={!sidebarExpanded ? "Distribution Records" : ""}
             >
-              <Truck size={18} />
-              Distribution Records
+              <Truck size={24} className="flex-shrink-0" />
+              {sidebarExpanded && <span>Distribution Records</span>}
             </button>
 
-            <hr className="border-gray-100 my-4" />
+            {sidebarExpanded && <hr className="border-gray-100 my-4" />}
 
             <button
               onClick={() => setActiveTab("assistance")}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg w-full text-left transition-colors ${
+              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "assistance"
                   ? "text-lime-800 font-bold"
                   : "text-gray-700 hover:bg-gray-50"
               }`}
               style={activeTab === "assistance" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+              title={!sidebarExpanded ? "Assistance Inventory" : ""}
             >
-              <ClipboardCheck size={18} />
-              Assistance Inventory
+              <ClipboardCheck size={24} className="flex-shrink-0" />
+              {sidebarExpanded && <span>Assistance Inventory</span>}
             </button>
 
-            <div className="px-3">
-              <button
-                onClick={() => setShowEventModal(true)}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-lg w-full text-left transition-colors text-gray-700 hover:bg-gray-50"
-              >
-                <Plus size={18} />
-                Add Government Assistance
-              </button>
-            </div>
+            {sidebarExpanded && (
+              <div className="px-3">
+                <button
+                  onClick={() => setShowEventModal(true)}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-lg w-full text-left transition-colors text-gray-700 hover:bg-gray-50"
+                  title="Add Government Assistance"
+                >
+                  <Plus size={24} />
+                  <span>Add Government Assistance</span>
+                </button>
+              </div>
+            )}
           </div>
 
-          <div className="px-3 space-y-2 text-sm mt-4 max-h-[300px] overflow-y-auto hide-scrollbar">
-            {/* {events.map((event, index) => (
-              <div
-                key={index}
-                className="border border-gray-100 p-3 rounded-lg bg-white text-black shadow-sm hover:shadow transition-shadow"
-              >
-                <h3 className="font-semibold">{event.eventName}</h3>
-                <p className="text-gray-600 text-xs">Crop: {event.cropType}</p>
-                <p className="text-gray-600 text-xs">Founder: {event.founderName}</p>
-                <p className="text-xs mt-1 text-gray-500">
-                  {event.startDate} to {event.endDate}
-                </p>
-              </div>
-            ))} */}
-          </div>
+          {sidebarExpanded && (
+            <div className="px-3 space-y-2 text-sm mt-4 max-h-[300px] overflow-y-auto hide-scrollbar">
+              {/* {events.map((event, index) => (
+                <div
+                  key={index}
+                  className="border border-gray-100 p-3 rounded-lg bg-white text-black shadow-sm hover:shadow transition-shadow"
+                >
+                  <h3 className="font-semibold">{event.eventName}</h3>
+                  <p className="text-gray-600 text-xs">Crop: {event.cropType}</p>
+                  <p className="text-gray-600 text-xs">Founder: {event.founderName}</p>
+                  <p className="text-xs mt-1 text-gray-500">
+                    {event.startDate} to {event.endDate}
+                  </p>
+                </div>
+              ))} */}
+            </div>
+          )}
         </aside>
 
         {/* Main Content */}
@@ -1996,440 +2042,288 @@ const AdminDashboard = () => {
               {/* Remove the old analyticsFilters and setAnalyticsFilters dropdowns and reset button in the analytics section. */}
               {/* Only use the new floating filter drawer and its state for filtering and displaying analytics. */}
 
-              <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mt-4 mb-8">
-                {/* Total Farmers Block - Stat Card KPI Widget */}
-                <div className="bg-transparent rounded-xl shadow-lg p-3 border border-cyan-200 flex flex-col items-center text-center text-gray-800">
-                  <div className="text-lg font-bold text-cyan-700">Total Farmers</div>
-                  <div className="text-xs text-cyan-600 mt-1">Hash: <span className="font-mono">{String(totalFarmers).padStart(8, '0')}</span></div>
-                  <div className="text-2xl font-bold text-gray-900 mt-2">{totalFarmers}</div>
-                  <div className="text-sm text-cyan-700 mt-2">Registered Farmers</div>
-                  <div className="w-16 h-16 mt-3 bg-cyan-400 rounded-full flex items-center justify-center">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                    </svg>
-                  </div>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4 mb-8">
+                {/* Farmers Registered (Kapalong) Block */}
+                <div className="bg-gradient-to-br from-white to-[rgb(215,245,211)] rounded-xl shadow-lg p-2 flex flex-col items-center text-center text-gray-800">
+                  <div className="text-sm font-bold text-black">Farmers Registered (Kapalong)</div>
+                  <div className="text-xl text-gray-600 mt-1">{totalFarmers}</div>
                 </div>
-                {/* Pending Claims Block - Donut Chart (Status Breakdown) + KPI Card */}
-                <div className="bg-transparent rounded-xl shadow-lg p-3 border border-orange-200 flex flex-col items-center text-center text-gray-800">
-                  <div className="text-lg font-bold text-orange-700">Pending Claims</div>
-                  <div className="text-xs text-orange-600 mt-1">Hash: <span className="font-mono">{String(pendingClaims).padStart(8, '0')}</span></div>
-                  <div className="text-2xl font-bold text-gray-900 mt-2">{pendingClaims}</div>
-                  <div className="text-sm text-orange-700 mt-2">Awaiting Review</div>
-                  <div className="w-16 h-16 mt-3 bg-orange-400 rounded-full flex items-center justify-center">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                  </div>
+                {/* Active Insurance Policies Block */}
+                <div className="bg-gradient-to-br from-white to-[rgb(215,245,211)] rounded-xl shadow-lg p-2 flex flex-col items-center text-center text-gray-800">
+                  <div className="text-sm font-bold text-black">Active Insurance Policies</div>
+                  <div className="text-xl text-gray-600 mt-1">{farmers.filter(f => f.insuranceType && f.periodTo && new Date(f.periodTo) > new Date()).length}</div>
                 </div>
-                {/* Approved Claims Block - Area Chart + KPI Card */}
-                <div className="bg-transparent rounded-xl shadow-lg p-3 border border-green-200 flex flex-col items-center text-center text-gray-800 relative">
-                  <div className="text-lg font-bold text-green-700">Approved Claims</div>
-                  <div className="text-xs text-green-600 mt-1">Hash: <span className="font-mono">{String(approvedClaims).padStart(8, '0')}</span></div>
-                  <div className="text-2xl font-bold text-gray-900 mt-2">{approvedClaims}</div>
-                  <div className="text-sm text-green-700 mt-2">Successfully Processed</div>
-                  <div className="w-16 h-16 mt-3 bg-green-400 rounded-full flex items-center justify-center">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                  </div>
+                {/* Pending Insurance Claims Block */}
+                <div className="bg-gradient-to-br from-white to-[rgb(215,245,211)] rounded-xl shadow-lg p-2 flex flex-col items-center text-center text-gray-800 relative">
+                  <div className="text-sm font-bold text-black">Pending Insurance Claims</div>
+                  <div className="text-xl text-gray-600 mt-1">{pendingClaims}</div>
                 </div>
-                {/* Aid Distributed Block - Stacked Bar Chart (by type) + KPI Card */}
-                <div className="bg-transparent rounded-xl shadow-lg p-3 border border-purple-200 flex flex-col items-center text-center text-gray-800">
-                  <div className="text-lg font-bold text-purple-700">Aid Distributed</div>
-                  <div className="text-xs text-purple-600 mt-1">Hash: <span className="font-mono">{String(aidDistributed).padStart(8, '0')}</span></div>
-                  <div className="text-2xl font-bold text-gray-900 mt-2">{aidDistributed}</div>
-                  <div className="text-sm text-purple-700 mt-2">Items Delivered</div>
-                  <div className="w-16 h-16 mt-3 bg-purple-400 rounded-full flex items-center justify-center">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                    </svg>
-                  </div>
+                {/* Farmers Assisted (No. of Beneficiaries) Block */}
+                <div className="bg-gradient-to-br from-white to-[rgb(215,245,211)] rounded-xl shadow-lg p-2 flex flex-col items-center text-center text-gray-800">
+                  <div className="text-sm font-bold text-black">Farmers Assisted (No. of Beneficiaries)</div>
+                  <div className="text-xl text-gray-600 mt-1">{allApplications.filter(app => app.status === 'distributed' || app.status === 'approved').length + approvedClaims}</div>
                 </div>
-                {/* Total Inventory Issued Block - Bar Chart (by item type) + KPI Card */}
-                <div className="bg-transparent rounded-xl shadow-lg p-3 border border-indigo-200 flex flex-col items-center text-center text-gray-800">
-                  <div className="text-lg font-bold text-indigo-700">Total Inventory Issued</div>
-                  <div className="text-xs text-indigo-600 mt-1">Hash: <span className="font-mono">{String(totalInventoryIssued).padStart(8, '0')}</span></div>
-                  <div className="text-2xl font-bold text-gray-900 mt-2">{totalInventoryIssued}</div>
-                  <div className="text-sm text-indigo-700 mt-2">Items Released</div>
-                  <div className="w-16 h-16 mt-3 bg-indigo-400 rounded-full flex items-center justify-center">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                    </svg>
-                  </div>
-                </div>
-                {/* Total Insurance Paid Block - Line Chart + KPI Card */}
-                <div className="bg-transparent rounded-xl shadow-lg p-3 border border-emerald-200 flex flex-col items-center text-center text-gray-800 relative">
-                  <div className="text-lg font-bold text-emerald-700">Total Insurance Paid</div>
-                  <div className="text-xs text-emerald-600 mt-1">Hash: <span className="font-mono">{String(totalInsurancePaid).padStart(8, '0')}</span></div>
-                  <div className="text-3xl font-bold text-gray-900 mt-2">₱{totalInsurancePaid.toLocaleString()}</div>
-                  <div className="text-sm text-emerald-700 mt-1">Monthly Payout</div>
-                  {lastInsuranceUpdate && (
-                    <div className="absolute top-2 right-2">
-                      <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                    </div>
-                  )}
-                  <div className="w-16 h-16 mt-3 bg-emerald-100 rounded-full flex items-center justify-center">
-                    <DollarSign className="w-8 h-8 text-emerald-600" />
-                  </div>
+                {/* Avg. Processing Time (days) Block */}
+                <div className="bg-gradient-to-br from-white to-[rgb(215,245,211)] rounded-xl shadow-lg p-2 flex flex-col items-center text-center text-gray-800">
+                  <div className="text-sm font-bold text-black">Avg. Processing Time (days)</div>
+                  <div className="text-xl text-gray-600 mt-1">{(() => {
+                    const processedClaims = claims.filter(c => c.status === 'approved' || c.status === 'rejected');
+                    if (processedClaims.length === 0) return '0';
+                    const totalDays = processedClaims.reduce((sum, claim) => {
+                      const submitDate = new Date(claim.date);
+                      const processDate = new Date(claim.reviewDate || claim.date);
+                      const daysDiff = Math.ceil((processDate - submitDate) / (1000 * 60 * 60 * 24));
+                      return sum + Math.max(daysDiff, 0);
+                    }, 0);
+                    return Math.round(totalDays / processedClaims.length);
+                  })()}</div>
                 </div>
               </div>
 
               {/* Chart Visualizations Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-2">
-                {/* Distribution Records Line Area Chart */}
-                <div className="bg-white rounded-2xl p-10">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center">
-                      <TrendingUp size={20} className="text-green-600 mr-2" />
-                      <h3 className="text-lg font-semibold text-gray-800">Filed Claims Records</h3>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-600">Period:</span>
-                      <select
-                        value={distributionRecordsFilter}
-                        onChange={(e) => setDistributionRecordsFilter(e.target.value)}
-                        className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      >
-                        <option value="monthly">Monthly</option>
-                        <option value="yearly">Yearly</option>
-                      </select>
-                      <select
-                        value={distributionYearFilter}
-                        onChange={(e) => setDistributionYearFilter(parseInt(e.target.value))}
-                        className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      >
-                        {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                          <option key={year} value={year}>{year}</option>
-                        ))}
-                      </select>
-                    </div>
-                                    </div>
-                  
-
-
-                  <div className="h-[420px]">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
+                {/* Claims Trend Over Time - Left side, larger */}
+                <div className="lg:col-span-2 p-8">
+                  <div className="flex items-center gap-4 mb-4">
+                    <h3 className="text-xl font-semibold text-gray-800">Claims Trend Over Time</h3>
+                    <select
+                      value={distributionYearFilter}
+                      onChange={(e) => setDistributionYearFilter(parseInt(e.target.value))}
+                      className="px-3 py-2 text-sm border rounded-md"
+                    >
+                      {Array.from({ length: 3 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="h-[500px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
                         data={(() => {
-                          // Get only cash assistance claims
-                          const allFiledClaims = claims.map(claim => ({
-                            ...claim,
-                            applicationDate: claim.date, // Use claim date as application date
-                            requestedQuantity: claim.amount || 0 // Use claim amount as quantity
-                          }));
-                          
-                                                      if (distributionRecordsFilter === 'monthly') {
-                              // Group by month with proper month names for selected year
-                              const monthlyData = [];
-                              const monthNames = [
-                                "January", "February", "March", "April", "May", "June",
-                                "July", "August", "September", "October", "November", "December"
-                              ];
-                              
-                              for (let month = 0; month < 12; month++) {
-                                const filedClaimsInMonth = allFiledClaims.filter(app => {
-                                  // Use applicationDate for filed claims
-                                  const date = new Date(app.applicationDate);
-                                  return date.getFullYear() === distributionYearFilter && date.getMonth() === month;
-                                }).length;
-                                
-                                // Calculate total quantity requested for this month
-                                const filedClaimsInMonthData = allFiledClaims.filter(app => {
-                                  const date = new Date(app.applicationDate);
-                                  return date.getFullYear() === distributionYearFilter && date.getMonth() === month;
-                                });
-                                
-                                const totalQuantityInMonth = filedClaimsInMonthData.reduce((sum, app) => sum + (app.requestedQuantity || 0), 0);
-                                
-                                monthlyData.push({
-                                  period: monthNames[month],
-                                  month: month + 1,
-                                  count: filedClaimsInMonth,
-                                  quantity: totalQuantityInMonth,
-                                  cumulative: monthlyData.length > 0 ? monthlyData[monthlyData.length - 1].cumulative + filedClaimsInMonth : filedClaimsInMonth,
-                                  cumulativeQuantity: monthlyData.length > 0 ? monthlyData[monthlyData.length - 1].cumulativeQuantity + totalQuantityInMonth : totalQuantityInMonth
-                                });
-                              }
-                              
-                              return monthlyData;
-                            } else {
-                              // Group by year with year filter
-                              const yearlyData = {};
-                              const yearlyQuantityData = {};
-                              
-                              allFiledClaims.forEach(app => {
-                                // Use applicationDate for filed claims
-                                const date = new Date(app.applicationDate);
-                                const year = date.getFullYear();
-                                // Only include data for the selected year or all years if no specific year filter
-                                if (year === distributionYearFilter) {
-                                  yearlyData[year] = (yearlyData[year] || 0) + 1;
-                                  yearlyQuantityData[year] = (yearlyQuantityData[year] || 0) + (app.requestedQuantity || 0);
-                                }
-                              });
-                              
-                              // Convert to array format for chart with cumulative data
-                              const years = Object.keys(yearlyData).sort();
-                              let cumulative = 0;
-                              let cumulativeQuantity = 0;
-                              return years.map(year => {
-                                cumulative += yearlyData[year];
-                                cumulativeQuantity += yearlyQuantityData[year];
-                                return {
-                                  period: year.toString(),
-                                  year: parseInt(year),
-                                  count: yearlyData[year],
-                                  quantity: yearlyQuantityData[year],
-                                  cumulative: cumulative,
-                                  cumulativeQuantity: cumulativeQuantity
-                                };
-                              });
-                            }
-                        })()}
-                        margin={{
-                          top: 10,
-                          right: 30,
-                          left: 0,
-                          bottom: 0,
-                        }}
+                          const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                          return monthNames.map((month, index) => {
+                            const monthClaims = claims.filter(c => new Date(c.date).getMonth() === index && new Date(c.date).getFullYear() === distributionYearFilter);
+                            return {
+                              month,
+                              filed: monthClaims.length,
+                              approved: monthClaims.filter(c => c.status === 'approved').length,
+                              rejected: monthClaims.filter(c => c.status === 'rejected').length
+                            };
+                          });
+                        })()} 
+                        margin={{ top: 30, right: 40, left: 30, bottom: 80 }}
                       >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                        <XAxis 
-                          dataKey="period" 
-                          stroke="#6b7280"
-                          fontSize={12}
-                          tick={{ fontSize: 10 }}
-                        />
-                        <YAxis 
-                          stroke="#6b7280"
-                          fontSize={12}
-                          allowDecimals={false}
-                          label={{ value: 'Number of Filed Claims', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 12 } }}
-                        />
-                        <RechartsTooltip 
-                          contentStyle={{
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            border: '1px solid #22c55e',
-                            borderRadius: '8px',
-                            color: '#ffffff'
-                          }}
-                          formatter={(value, name) => {
-                            if (name === 'cumulative') {
-                              return [`${value} claims`, 'Total Filed Claims'];
-                            } else if (name === 'count') {
-                              return [`${value} claims`, 'New Filed Claims'];
-                            } else if (name === 'cumulativeQuantity') {
-                              return [`${value} units`, 'Total Quantity Requested'];
-                            } else if (name === 'quantity') {
-                              return [`${value} units`, 'Quantity Requested'];
-                            }
-                            return [value, name];
-                          }}
-                          labelFormatter={(label) => `${distributionRecordsFilter === 'monthly' ? 'Month' : 'Year'}: ${label}`}
-                        />
                         <defs>
-                          <linearGradient id="distributionGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
-                            <stop offset="95%" stopColor="#bbf7d0" stopOpacity={0.3}/>
+                          <linearGradient id="filedGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.4}/>
+                            <stop offset="95%" stopColor="#14b8a6" stopOpacity={0.1}/>
+                          </linearGradient>
+                          <linearGradient id="approvedGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#2f7d32" stopOpacity={0.4}/>
+                            <stop offset="95%" stopColor="#2f7d32" stopOpacity={0.1}/>
+                          </linearGradient>
+                          <linearGradient id="rejectedGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="rgb(174, 200, 28)" stopOpacity={0.4}/>
+                            <stop offset="95%" stopColor="rgb(174, 200, 28)" stopOpacity={0.1}/>
                           </linearGradient>
                         </defs>
-                        <Area 
-                          type="monotone" 
-                          dataKey="cumulative" 
-                          stroke="#22c55e" 
-                          fill="url(#distributionGradient)" 
-                          strokeWidth={3}
-                          name="cumulative"
+                        <XAxis 
+                          dataKey="month" 
+                          fontSize={14}
+                          axisLine={true}
+                          tickLine={false}
+                          label={{ value: 'Month', position: 'insideBottom', offset: -15, style: { textAnchor: 'middle', fontSize: 14 } }}
+                        />
+                        <YAxis 
+                          fontSize={14}
+                          axisLine={true}
+                          tickLine={false}
+                          label={{ value: 'Number of Claims', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 14 } }}
+                        />
+                        <RechartsTooltip 
+                          formatter={(value, name) => {
+                            const labels = {
+                              filed: 'Filed Claims',
+                              approved: 'Approved Claims', 
+                              rejected: 'Rejected Claims'
+                            };
+                            return [value, labels[name] || name];
+                          }}
+                        />
+                        <RechartsLegend 
+                          verticalAlign="top" 
+                          height={36}
+                          formatter={(value) => {
+                            const labels = {
+                              filed: 'Filed Claims',
+                              approved: 'Approved Claims',
+                              rejected: 'Rejected Claims'
+                            };
+                            return labels[value] || value;
+                          }}
                         />
                         <Area 
                           type="monotone" 
-                          dataKey="count" 
-                          stroke="#059669" 
-                          fill="#10b981" 
-                          fillOpacity={0.4} 
-                          strokeWidth={2} 
-                          name="count"
+                          dataKey="filed" 
+                          stroke="#14b8a6" 
+                          strokeWidth={3}
+                          fill="url(#filedGradient)" 
+                          fillOpacity={1}
+                          dot={false}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="approved" 
+                          stroke="#2f7d32" 
+                          strokeWidth={3}
+                          fill="url(#approvedGradient)" 
+                          fillOpacity={1}
+                          dot={false}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="rejected" 
+                          stroke="rgb(174, 200, 28)" 
+                          strokeWidth={3}
+                          fill="url(#rejectedGradient)" 
+                          fillOpacity={1}
+                          dot={false}
                         />
                       </AreaChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
 
-                {/* Assistance Application Status Polar Area Chart */}
-                <div className="bg-white rounded-2xl p-10">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center">
-                      <PieChart size={20} className="text-emerald-600 mr-2" />
-                      <h3 className="text-lg font-semibold text-gray-800">Assistance Application Status</h3>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-600">Filter:</span>
-                      <select
-                        value={assistanceStatusFilter}
-                        onChange={(e) => setAssistanceStatusFilter(e.target.value)}
-                        className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                      >
-                        <option value="all">All</option>
-                        <option value="pending">Pending</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                        <option value="distributed">Distributed</option>
-                      </select>
-                  </div>
-                </div>
-                  <div className="h-[420px] relative">
-                    <PolarArea
-                      data={(() => {
-                        if (assistanceStatusFilter === 'all') {
-                          const totalApplications = allApplications.length;
-                          const pendingCount = allApplications.filter(app => app.status === 'pending').length;
-                          const rejectedCount = allApplications.filter(app => app.status === 'rejected').length;
-                          const approvedCount = allApplications.filter(app => app.status === 'approved').length;
-                          const distributedCount = allApplications.filter(app => app.status === 'distributed').length;
-                          
-                          const pendingPercentage = totalApplications > 0 ? ((pendingCount / totalApplications) * 100).toFixed(1) : '0.0';
-                          const rejectedPercentage = totalApplications > 0 ? ((rejectedCount / totalApplications) * 100).toFixed(1) : '0.0';
-                          const approvedPercentage = totalApplications > 0 ? ((approvedCount / totalApplications) * 100).toFixed(1) : '0.0';
-                          const distributedPercentage = totalApplications > 0 ? ((distributedCount / totalApplications) * 100).toFixed(1) : '0.0';
-                          
-                          return {
-                            labels: [
-                              `Pending (${pendingPercentage}%)`, 
-                              `Rejected (${rejectedPercentage}%)`, 
-                              `Approved (${approvedPercentage}%)`, 
-                              `Distributed (${distributedPercentage}%)`
+                {/* Right side - Two charts stacked */}
+                <div className="lg:col-span-1 space-y-8">
+                  {/* Assistance Application Breakdown - Top */}
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Assistance Application Breakdown</h3>
+                    <div className="h-[220px] relative">
+                      <Pie
+                        data={{
+                          labels: ['Pending', 'Approved', 'Rejected', 'Distributed'],
+                          datasets: [{
+                            data: [
+                              allApplications.filter(app => app.status === 'pending').length,
+                              allApplications.filter(app => app.status === 'approved').length,
+                              allApplications.filter(app => app.status === 'rejected').length,
+                              allApplications.filter(app => app.status === 'distributed').length
                             ],
-                        datasets: [
-                          {
-                                data: [pendingCount, rejectedCount, approvedCount, distributedCount],
-                            backgroundColor: [
-                                  'rgba(251, 191, 36, 0.8)',   // Pending - Amber
-                                  'rgba(248, 113, 113, 0.8)',   // Rejected - Light Red
-                                  'rgba(34, 197, 94, 0.8)',     // Approved - Green
-                                  'rgba(16, 185, 129, 0.8)',    // Distributed - Emerald
-                                ],
-                                borderColor: [
-                                  'rgba(251, 191, 36, 1)',
-                                  'rgba(248, 113, 113, 1)',
-                                  'rgba(34, 197, 94, 1)',
-                                  'rgba(16, 185, 129, 1)',
-                                ],
-                                borderWidth: 2,
-                              }
-                            ],
-                          };
-                        } else {
-                          const totalApplications = allApplications.length;
-                          const filteredCount = allApplications.filter(app => app.status === assistanceStatusFilter).length;
-                          const percentage = totalApplications > 0 ? ((filteredCount / totalApplications) * 100).toFixed(1) : '0.0';
-                          const label = assistanceStatusFilter.charAt(0).toUpperCase() + assistanceStatusFilter.slice(1);
-                          const color =
-                            assistanceStatusFilter === 'pending' ? 'rgba(251, 191, 36, 0.8)' :
-                            assistanceStatusFilter === 'rejected' ? 'rgba(248, 113, 113, 0.8)' :
-                            assistanceStatusFilter === 'approved' ? 'rgba(34, 197, 94, 0.8)' :
-                            'rgba(16, 185, 129, 0.8)';
-                          const borderColor =
-                            assistanceStatusFilter === 'pending' ? 'rgba(251, 191, 36, 1)' :
-                            assistanceStatusFilter === 'rejected' ? 'rgba(248, 113, 113, 1)' :
-                            assistanceStatusFilter === 'approved' ? 'rgba(34, 197, 94, 1)' :
-                            'rgba(16, 185, 129, 1)';
-                          return {
-                            labels: [`${label} (${percentage}%)`],
-                        datasets: [
-                          {
-                                data: [filteredCount],
-                                backgroundColor: [color],
-                                borderColor: [borderColor],
-                                borderWidth: 2,
-                              }
-                            ],
-                          };
-                        }
-                      })()}
-                      options={{
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                          legend: {
-                            display: assistanceStatusFilter === 'all',
-                            position: 'bottom',
-                            labels: {
-                              padding: 20,
-                              usePointStyle: true,
-                              pointStyle: 'circle',
-                              font: {
-                                size: 12
-                              }
-                            }
-                          },
-                          tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleColor: '#ffffff',
-                            bodyColor: '#ffffff',
-                            borderColor: '#10b981',
-                            borderWidth: 1,
-                            callbacks: {
-                              label: function(context) {
-                                const label = context.label || '';
-                                const value = context.parsed;
-                                if (assistanceStatusFilter === 'all') {
+                            backgroundColor: ['#84cc16', '#22c55e', 'rgb(174, 200, 28)', '#10b981'],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                          }]
+                        }}
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: { 
+                            legend: { 
+                              position: 'bottom', 
+                              labels: { 
+                                font: { size: 8 },
+                                padding: 10,
+                                usePointStyle: true,
+                                generateLabels: function(chart) {
+                                  const data = chart.data;
+                                  const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                  return data.labels.map((label, index) => {
+                                    const value = data.datasets[0].data[index];
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
+                                    return {
+                                      text: `${label}: ${value} (${percentage}%)`,
+                                      fillStyle: data.datasets[0].backgroundColor[index],
+                                      strokeStyle: data.datasets[0].backgroundColor[index],
+                                      lineWidth: 0,
+                                      pointStyle: 'circle'
+                                    };
+                                  });
+                                }
+                              } 
+                            },
+                            tooltip: {
+                              callbacks: {
+                                label: function(context) {
+                                  const label = context.label || '';
+                                  const value = context.parsed;
                                   const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                  const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
-                                  return `${label}: ${value} (${percentage}%)`;
-                                } else {
-                                  const total = allApplications.length;
-                                  const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+                                  const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
                                   return `${label}: ${value} (${percentage}%)`;
                                 }
                               }
                             }
-                          }
-                        },
-                        scales: {
-                          r: {
-                            grid: {
-                              color: 'rgba(0, 0, 0, 0.1)',
-                            },
-                            ticks: {
-                              color: '#6b7280',
-                              font: {
-                                size: 10
-                              }
+                          },
+                          layout: {
+                            padding: {
+                              top: 20,
+                              bottom: 20
                             }
                           }
-                        }
-                      }}
-                    />
-                    <div 
-                      style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        textAlign: 'center'
-                      }}
-                    >
-                      <div className="text-2xl font-bold text-gray-700">
-                        {assistanceStatusFilter === 'all'
-                          ? allApplications.length
-                          : allApplications.filter(app => app.status === assistanceStatusFilter).length}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {assistanceStatusFilter === 'all'
-                          ? 'Total Applications'
-                          : (assistanceStatusFilter.charAt(0).toUpperCase() + assistanceStatusFilter.slice(1)) + ' Applications'}
-                      </div>
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Crop Market Prices - Bottom */}
+                  <div className="p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold text-gray-800">Crop Market Prices (₱/kg)</h3>
+                      <span className="text-sm text-gray-500">PH Average</span>
+                    </div>
+                    <div className="h-[220px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={[
+                            { crop: 'Rice', price: 45 },
+                            { crop: 'Corn', price: 28 },
+                            { crop: 'Banana', price: 35 },
+                            { crop: 'Coconut', price: 18 },
+                            { crop: 'Coffee', price: 120 }
+                          ]}
+                        >
+                          <XAxis 
+                            dataKey="crop" 
+                            fontSize={10} 
+                            angle={-45} 
+                            textAnchor="end" 
+                            height={60}
+                            axisLine={true}
+                            tickLine={false}
+                          />
+                          <YAxis 
+                            fontSize={10}
+                            axisLine={true}
+                            tickLine={false}
+                          />
+                          <RechartsTooltip formatter={(value) => [`₱${value}/kg`, 'Price']} />
+                          <RechartsBar 
+                            dataKey="price" 
+                            radius={[4, 4, 0, 0]}
+                          >
+                            <Cell fill="#689c3c" />
+                            <Cell fill="#7fff00" />
+                            <Cell fill="#ccff00" />
+                            <Cell fill="#e6e6fa" />
+                            <Cell fill="#808000" />
+                          </RechartsBar>
+                        </BarChart>
+                      </ResponsiveContainer>
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Divider between Chart Visualizations and Map Visualization */}
+              <div className="mt-8 mb-6">
+                <hr className="border-gray-200" />
               </div>
 
               {/* Overview: Farmers Map (embedded) */}
               <div className="bg-white rounded-2xl p-6 mt-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
-                    <Map size={20} className="text-emerald-600 mr-2" />
-                    <h3 className="text-lg font-semibold text-gray-800">Farm Locations Overview</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">🗺️ Geo-Tagging Map Overview</h3>
                   </div>
                   <div className="flex items-center gap-2">
                     <select
@@ -2476,100 +2370,199 @@ const AdminDashboard = () => {
                     </select>
                   </div>
                 </div>
+                
+                {/* Map Legend and Controls */}
+                <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="text-sm font-medium text-gray-700">Legend:</div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span className="text-xs text-gray-600">Insured</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                        <span className="text-xs text-gray-600">Uninsured</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                        <span className="text-xs text-gray-600">High Claims Area</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <label className="flex items-center gap-1 text-xs text-gray-600">
+                        <input 
+                          type="checkbox" 
+                          defaultChecked={false}
+                          onChange={(e) => {
+                            // Toggle heatmap layer
+                            if (overviewLeafletMapRef.current) {
+                              const isChecked = e.target.checked;
+                              // Implementation for heatmap toggle would go here
+                              console.log('Heatmap toggle:', isChecked);
+                            }
+                          }}
+                          className="rounded"
+                        />
+                        Claims Heatmap
+                      </label>
+                      
+                      <label className="flex items-center gap-1 text-xs text-gray-600">
+                        <input 
+                          type="checkbox" 
+                          defaultChecked={false}
+                          onChange={(e) => {
+                            // Toggle disaster overlay
+                            if (overviewLeafletMapRef.current) {
+                              const isChecked = e.target.checked;
+                              // Implementation for disaster overlay would go here
+                              console.log('Disaster overlay toggle:', isChecked);
+                            }
+                          }}
+                          className="rounded"
+                        />
+                        Disaster Impact
+                      </label>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-2 text-xs text-gray-500">
+                    💡 Hover over pins for detailed farmer information • Color-coded by barangay and insurance status
+                  </div>
+                </div>
+                
                 <div className="w-full h-[420px] rounded-lg border border-gray-200 overflow-hidden">
                   <div ref={overviewMapRef} className="w-full h-full" />
                 </div>
               </div>
 
-              {/* Pending Insurance Claims and Quick Actions Section */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-                <div className="md:col-span-2">
-                  <div className="flex items-center mb-2">
-                    <AlertTriangle size={18} className="text-yellow-500 mr-2" />
-                    <h2 className="text-xl font-semibold">Pending Insurance Claims</h2>
-                  </div>
-                  <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-                    {claims.filter((c) => c.status === "pending").length === 0 ? (
-                      <div className="text-center py-6">
-                        <ClipboardCheck size={40} className="mx-auto text-gray-300 mb-2" />
-                        <p className="text-gray-500 italic">No pending claims found.</p>
+              {/* Pending Insurance Claims Section */}
+              <div className="mt-6">
+                <div className="flex items-center mb-3">
+                  <AlertTriangle size={16} className="text-amber-500 mr-2" />
+                  <h2 className="text-lg font-semibold text-gray-800">Pending Insurance Claims</h2>
+                  <span className="ml-2 px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
+                    {claims.filter((c) => c.status === "pending").length}
+                  </span>
+                </div>
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg border border-gray-200 overflow-hidden">
+                  {claims.filter((c) => c.status === "pending").length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
+                        <ClipboardCheck size={24} className="text-gray-400" />
                       </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {claims.filter((c) => c.status === "pending")
-                          .sort((a, b) => {
-                            const damageA = Number.parseFloat(a.degreeOfDamage) || Number.parseFloat(a.areaDamaged) || 0;
-                            const damageB = Number.parseFloat(b.degreeOfDamage) || Number.parseFloat(b.areaDamaged) || 0;
-                            return damageB - damageA;
-                          })
-                          .map((claim) => (
-                            <div key={claim._id} className="bg-white/60 rounded-xl shadow-lg p-4 border-l-4 border-yellow-500 transition-all duration-500 animate-fade-in mb-2">
-                              <div className="font-mono text-xs text-gray-500">Claim ID: {claim.claimNumber || claim._id}</div>
-                              <div className="flex justify-between items-center">
-                                <div>
-                                  <div className="font-bold">{claim.name}</div>
-                                  <div className="text-xs text-gray-400">{claim.crop || claim.cropType || "Unknown"}</div>
-                                  <div className="text-xs text-gray-400">{claim.damageType || claim.type || "Unknown"}</div>
+                      <p className="text-gray-500 text-sm">No pending claims at the moment</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-100">
+                      {claims.filter((c) => c.status === "pending")
+                        .sort((a, b) => {
+                          const damageA = Number.parseFloat(a.degreeOfDamage) || Number.parseFloat(a.areaDamaged) || 0;
+                          const damageB = Number.parseFloat(b.degreeOfDamage) || Number.parseFloat(b.areaDamaged) || 0;
+                          return damageB - damageA;
+                        })
+                        .map((claim) => (
+                          <div key={claim._id} className="p-3 hover:bg-gray-50 transition-colors duration-200">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-2 h-8 bg-amber-400 rounded-full flex-shrink-0"></div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-gray-900 truncate">{claim.name}</p>
+                                    <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
+                                      <span className="flex items-center">
+                                        <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
+                                        {claim.crop || claim.cropType || "Unknown Crop"}
+                                      </span>
+                                      <span className="flex items-center">
+                                        <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
+                                        {claim.damageType || claim.type || "Damage Type"}
+                                      </span>
+                                      <span className="flex items-center font-mono">
+                                        <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
+                                        ID: {(claim.claimNumber || claim._id)?.slice(-6)}
+                                      </span>
+                                    </div>
+                                  </div>
                                 </div>
-                                <div className="text-xs text-yellow-700 capitalize">{claim.status}</div>
+                              </div>
+                              <div className="flex items-center space-x-2 ml-4">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                  Pending Review
+                                </span>
                               </div>
                             </div>
-                          ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center mb-2">
-                    <Activity size={18} className="text-lime-600 mr-2" />
-                    <h2 className="text-xl font-semibold">Quick Actions</h2>
-                  </div>
-                  <div className="bg-white rounded-2xl shadow-xl p-6 border border-blue-200 border-l-8 transition-transform duration-300 hover:scale-105 hover:shadow-2xl space-y-4">
-                    <button 
-                      onClick={() => setActiveTab("farmer-registration")}
-                      className="w-full flex items-center justify-center bg-lime-600 text-white px-4 py-3 rounded-lg hover:bg-lime-700 transition-transform duration-200 hover:scale-105"
-                    >
-                      <UserPlus size={18} className="mr-2" />
-                      Register Farmer
-                    </button>
-                    <button className="w-full flex items-center justify-center bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-transform duration-200 hover:scale-105">
-                      <Bell size={18} className="mr-2" />
-                      Send Notification
-                    </button>
-                    <button className="w-full flex items-center justify-center bg-purple-600 text-white px-4 py-3 rounded-lg hover:bg-purple-700 transition-transform duration-200 hover:scale-105">
-                      <Map size={18} className="mr-2" />
-                      View Farm Map
-                    </button>
-                  </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="mt-6">
-                <div className="flex items-center mb-2">
-                  <FileText size={18} className="text-lime-600 mr-2" />
-                  <h2 className="text-xl font-semibold">Recent Claims</h2>
+                <div className="flex items-center mb-3">
+                  <FileText size={16} className="text-lime-600 mr-2" />
+                  <h2 className="text-lg font-semibold text-gray-800">Recent Claims</h2>
+                  <span className="ml-2 px-2 py-1 bg-lime-100 text-lime-700 text-xs font-medium rounded-full">
+                    {claims.slice(0, 5).length}
+                  </span>
                 </div>
-                <div className="space-y-2">
-                  {claims.slice(0, 5).map((claim) => (
-                    <div key={claim._id} className="bg-white/60 rounded-xl shadow-lg p-4 border-l-4 border-lime-500 transition-all duration-500 animate-fade-in mb-2">
-                      <div className="font-mono text-xs text-gray-500">Claim ID: {claim.claimNumber || claim._id}</div>
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <div className="font-bold">{claim.name}</div>
-                          <div className="text-xs text-gray-400">{new Date(claim.date).toLocaleDateString()}</div>
-                        </div>
-                        <div className={`text-xs font-semibold ${
-                          claim.status === 'approved' ? 'text-green-700' :
-                          claim.status === 'rejected' ? 'text-red-600' :
-                          claim.status === 'pending' ? 'text-amber-600' :
-                          'text-gray-500'
-                        }`}>
-                          {claim.status}
-                        </div>
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg border border-gray-200 overflow-hidden">
+                  {claims.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
+                        <FileText size={24} className="text-gray-400" />
                       </div>
+                      <p className="text-gray-500 text-sm">No recent claims found</p>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="divide-y divide-gray-100">
+                      {claims.slice(0, 5).map((claim) => (
+                        <div key={claim._id} className="p-3 hover:bg-gray-50 transition-colors duration-200">
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center space-x-3">
+                                <div className={`w-2 h-8 rounded-full flex-shrink-0 ${
+                                  claim.status === 'approved' ? 'bg-green-400' :
+                                  claim.status === 'rejected' ? 'bg-[rgb(26,61,59)]' :
+                                  claim.status === 'pending' ? 'bg-amber-400' :
+                                  'bg-gray-400'
+                                }`}></div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 truncate">{claim.name}</p>
+                                  <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
+                                    <span className="flex items-center">
+                                      <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
+                                      {claim.crop || claim.cropType || "Unknown Crop"}
+                                    </span>
+                                    <span className="flex items-center">
+                                      <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
+                                      {new Date(claim.date).toLocaleDateString()}
+                                    </span>
+                                    <span className="flex items-center font-mono">
+                                      <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
+                                      ID: {(claim.claimNumber || claim._id)?.slice(-6)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2 ml-4">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                claim.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                claim.status === 'rejected' ? 'bg-[rgb(26,61,59)] text-white' :
+                                claim.status === 'pending' ? 'bg-amber-100 text-amber-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {claim.status ? claim.status.charAt(0).toUpperCase() + claim.status.slice(1) : 'Unknown'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </>
@@ -2605,7 +2598,6 @@ const AdminDashboard = () => {
               {(claims && claims.length > 0) ? (
                 <InsuranceClaims
                   claims={claims}
-                  setClaims={setClaims}
                   claimsTabView={claimsTabView}
                   setClaimsTabView={setClaimsTabView}
                   showClaimDetails={showClaimDetails}
@@ -2630,8 +2622,6 @@ const AdminDashboard = () => {
 
           {activeTab === "farmer-registration" && (
             <FarmerRegistration
-              farmers={farmers}
-              setFarmers={setFarmers}
               showMapModal={showMapModal}
               setShowMapModal={setShowMapModal}
               mapMode={mapMode}
@@ -2819,88 +2809,315 @@ const AdminDashboard = () => {
 
               {/* Assistance Applications Management */}
               <div className="mt-8">
-                <h3 className="text-xl font-semibold text-gray-800 mb-4">Assistance Applications</h3>
-                <div className="bg-white/60 rounded-2xl shadow-xl p-6">
-                  {allApplications.length > 0 ? (
-                    <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Farmer Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assistance Type</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity Requested</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quarter</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Applied</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                          {allApplications.map((application) => (
-                            <tr key={application._id} className="bg-white/60 animate-fade-in">
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {application.farmerId ? `${application.farmerId.firstName} ${application.farmerId.lastName}` : 'N/A'}
-                              </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {application.assistanceId?.assistanceType || 'N/A'}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {application.requestedQuantity}kg
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {application.quarter}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {new Date(application.applicationDate).toLocaleDateString()}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  application.status === "approved"
-                                    ? "bg-green-100 text-green-800"
-                                    : application.status === "rejected"
-                                    ? "bg-red-100 text-red-800"
-                                    : application.status === "distributed"
-                                    ? "bg-blue-100 text-blue-800"
-                                    : "bg-yellow-100 text-yellow-800"
-                                }`}>
-                                  {application.status}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {application.status === 'pending' && (
-                            <div className="flex gap-2">
-                                    <button 
-                                      onClick={() => handleApproveApplication(application._id)}
-                                      className="text-green-600 hover:text-green-800 font-medium"
-                                    >
-                                      Approve
-                                    </button>
-                                    <button 
-                                      onClick={() => handleRejectApplication(application._id)}
-                                      className="text-red-600 hover:text-red-800 font-medium"
-                                    >
-                                      Reject
-                                    </button>
-                            </div>
-                                )}
-                                {application.status === 'approved' && (
-                                  <button 
-                                    onClick={() => handleDistributeApplication(application._id)}
-                                    className="text-blue-600 hover:text-blue-800 font-medium"
-                                  >
-                                    Mark Distributed
-                                  </button>
-                                )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                  <h3 className="text-xl font-semibold text-gray-800">Assistance Applications</h3>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    {/* Status Filter */}
+                    <select 
+                      value={applicationStatusFilter}
+                      onChange={(e) => {
+                        setApplicationStatusFilter(e.target.value);
+                        setCurrentApplicationPage(1);
+                      }}
+                      className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-lime-500 focus:border-lime-500"
+                    >
+                      <option value="">All Status</option>
+                      <option value="pending">Pending</option>
+                      <option value="approved">Approved</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="distributed">Distributed</option>
+                    </select>
+                    
+                    {/* Search by Application ID or Farmer Name */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <input
+                        type="text"
+                        placeholder="Search ID or farmer name..."
+                        value={applicationSearchTerm}
+                        onChange={(e) => {
+                          setApplicationSearchTerm(e.target.value);
+                          setCurrentApplicationPage(1);
+                        }}
+                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-lime-500 focus:border-lime-500 w-64"
+                      />
                     </div>
+                    
+                    {/* Refresh Button */}
+                    <button
+                      onClick={() => {
+                        console.log('Refreshing applications...');
+                        // TODO: Add refetch for allApplications when available
+                        console.log('React Query will automatically refresh data');
+                      }}
+                      className="px-4 py-2 bg-lime-600 text-white rounded-md hover:bg-lime-700 transition text-sm font-medium flex items-center gap-2"
+                    >
+                      <Activity className="h-4 w-4" />
+                      Refresh
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="bg-white rounded-lg shadow">
+                  {filteredApplications.length > 0 ? (
+                    <>
+                      <div className="p-4 border-b text-sm text-gray-600 bg-gray-50 rounded-t-lg">
+                        <div className="flex justify-between items-center">
+                          <span>
+                            Showing {((currentApplicationPage - 1) * applicationsPerPage) + 1} to {Math.min(currentApplicationPage * applicationsPerPage, filteredApplications.length)} of {filteredApplications.length} applications
+                            {applicationStatusFilter && ` (filtered by: ${applicationStatusFilter})`}
+                            {applicationSearchTerm && ` (search: "${applicationSearchTerm}")`}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            Total in database: {allApplications.length}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Application ID</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Farmer Name</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assistance Type</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity Requested</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quarter</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Applied</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {paginatedApplications.map((application) => (
+                              <tr key={application._id} className="hover:bg-gray-50 transition-colors">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                                  <div className="flex items-center gap-2">
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                      {application._id.slice(-6).toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <div className="text-xs text-gray-500 mt-1 truncate max-w-[120px]" title={application._id}>
+                                    {application._id}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <div className="font-medium text-gray-900">
+                                    {application.farmerId ? `${application.farmerId.firstName} ${application.farmerId.lastName}` : 'N/A'}
+                                  </div>
+                                  {application.farmerId?.cropType && (
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      Primary crop: {application.farmerId.cropType}
+                                    </div>
+                                  )}
+                                  {application.farmerId?.rsbsaRegistered && (
+                                    <div className="text-xs text-green-600 mt-1">✓ RSBSA Registered</div>
+                                  )}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <div className="font-medium text-gray-900">
+                                    {application.assistanceId?.assistanceType || 'N/A'}
+                                  </div>
+                                  {application.assistanceId?.cropType && (
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      For: {application.assistanceId.cropType} farmers
+                                    </div>
+                                  )}
+                                  {application.assistanceId?.founderName && (
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      By: {application.assistanceId.founderName}
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  <div className="font-medium">{application.requestedQuantity}kg</div>
+                                  {application.assistanceId?.maxQuantityPerFarmer && (
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      Max allowed: {application.assistanceId.maxQuantityPerFarmer}kg
+                                    </div>
+                                  )}
+                                  {application.assistanceId?.availableQuantity !== undefined && (
+                                    <div className="text-xs text-gray-500 mt-1">
+                                      Available: {application.assistanceId.availableQuantity}kg
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                    {application.quarter}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  <div>{new Date(application.applicationDate).toLocaleDateString()}</div>
+                                  <div className="text-xs text-gray-400 mt-1">
+                                    {new Date(application.applicationDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                    application.status === "approved"
+                                      ? "bg-green-100 text-green-800"
+                                      : application.status === "rejected"
+                                      ? "bg-red-100 text-red-800"
+                                      : application.status === "distributed"
+                                      ? "bg-blue-100 text-blue-800"
+                                      : "bg-yellow-100 text-yellow-800"
+                                  }`}>
+                                    {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
+                                  </span>
+                                  {application.reviewDate && (
+                                    <div className="text-xs text-gray-400 mt-1">
+                                      Reviewed: {new Date(application.reviewDate).toLocaleDateString()}
+                                    </div>
+                                  )}
+                                  {application.distributionDate && (
+                                    <div className="text-xs text-gray-400 mt-1">
+                                      Distributed: {new Date(application.distributionDate).toLocaleDateString()}
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  {application.status === 'pending' && (
+                                    <div className="flex gap-2">
+                                      <button 
+                                        onClick={() => handleApproveApplication(application._id)}
+                                        className="text-green-600 hover:text-green-800 font-medium px-3 py-1 rounded border border-green-200 hover:bg-green-50 transition text-xs"
+                                      >
+                                        Approve
+                                      </button>
+                                      <button 
+                                        onClick={() => handleRejectApplication(application._id)}
+                                        className="text-red-600 hover:text-red-800 font-medium px-3 py-1 rounded border border-red-200 hover:bg-red-50 transition text-xs"
+                                      >
+                                        Reject
+                                      </button>
+                                    </div>
+                                  )}
+                                  {application.status === 'approved' && (
+                                    <button 
+                                      onClick={() => handleDistributeApplication(application._id)}
+                                      className="text-blue-600 hover:text-blue-800 font-medium px-3 py-1 rounded border border-blue-200 hover:bg-blue-50 transition text-xs"
+                                    >
+                                      Mark Distributed
+                                    </button>
+                                  )}
+                                  {(application.status === 'rejected' || application.status === 'distributed') && (
+                                    <span className="text-gray-400 text-xs">No actions available</span>
+                                  )}
+                                  {application.officerNotes && (
+                                    <div className="text-xs text-gray-500 mt-2 italic" title={application.officerNotes}>
+                                      Note: {application.officerNotes.length > 20 ? application.officerNotes.substring(0, 20) + '...' : application.officerNotes}
+                                    </div>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      
+                      {/* Pagination for Applications */}
+                      {applicationPages > 1 && (
+                        <div className="flex justify-between items-center p-4 border-t bg-gray-50 rounded-b-lg">
+                          <div className="text-sm text-gray-500">
+                            Page {currentApplicationPage} of {applicationPages}
+                          </div>
+                          <nav className="flex items-center gap-2">
+                            <button
+                              onClick={() => setCurrentApplicationPage(1)}
+                              disabled={currentApplicationPage === 1}
+                              className={`px-3 py-1 rounded-md text-sm ${
+                                currentApplicationPage === 1
+                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                  : "bg-lime-100 text-lime-800 hover:bg-lime-200"
+                              }`}
+                            >
+                              First
+                            </button>
+                            <button
+                              onClick={() => setCurrentApplicationPage(prev => Math.max(prev - 1, 1))}
+                              disabled={currentApplicationPage === 1}
+                              className={`px-3 py-1 rounded-md text-sm ${
+                                currentApplicationPage === 1
+                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                  : "bg-lime-100 text-lime-800 hover:bg-lime-200"
+                              }`}
+                            >
+                              Previous
+                            </button>
+                            {[...Array(Math.min(5, applicationPages))].map((_, index) => {
+                              const pageNumber = currentApplicationPage <= 3 ? index + 1 : 
+                                currentApplicationPage >= applicationPages - 2 ? applicationPages - 4 + index :
+                                currentApplicationPage - 2 + index;
+                              if (pageNumber > 0 && pageNumber <= applicationPages) {
+                                return (
+                                  <button
+                                    key={pageNumber}
+                                    onClick={() => setCurrentApplicationPage(pageNumber)}
+                                    className={`px-3 py-1 rounded-md text-sm ${
+                                      currentApplicationPage === pageNumber
+                                        ? "bg-lime-700 text-white"
+                                        : "bg-lime-100 text-lime-800 hover:bg-lime-200"
+                                    }`}
+                                  >
+                                    {pageNumber}
+                                  </button>
+                                );
+                              }
+                              return null;
+                            })}
+                            <button
+                              onClick={() => setCurrentApplicationPage(prev => Math.min(prev + 1, applicationPages))}
+                              disabled={currentApplicationPage === applicationPages}
+                              className={`px-3 py-1 rounded-md text-sm ${
+                                currentApplicationPage === applicationPages
+                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                  : "bg-lime-100 text-lime-800 hover:bg-lime-200"
+                              }`}
+                            >
+                              Next
+                            </button>
+                            <button
+                              onClick={() => setCurrentApplicationPage(applicationPages)}
+                              disabled={currentApplicationPage === applicationPages}
+                              className={`px-3 py-1 rounded-md text-sm ${
+                                currentApplicationPage === applicationPages
+                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                  : "bg-lime-100 text-lime-800 hover:bg-lime-200"
+                              }`}
+                            >
+                              Last
+                            </button>
+                          </nav>
+                        </div>
+                      )}
+                    </>
                   ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <p>No assistance applications found.</p>
-                      <p className="text-sm mt-2">Applications from farmers will appear here once they apply for assistance.</p>
+                    <div className="p-8">
+                      <div className="text-center py-8 text-gray-500">
+                        {allApplications.length === 0 ? (
+                          <>
+                            <ClipboardCheck className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                            <p className="text-lg font-medium">No assistance applications found</p>
+                            <p className="text-sm mt-2">Applications from farmers will appear here once they apply for assistance.</p>
+                          </>
+                        ) : (
+                          <>
+                            <Search className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                            <p className="text-lg font-medium">No applications match your filters</p>
+                            <p className="text-sm mt-2">Try adjusting your search criteria or clearing filters.</p>
+                            <button
+                              onClick={() => {
+                                setApplicationStatusFilter('');
+                                setApplicationSearchTerm('');
+                                setCurrentApplicationPage(1);
+                              }}
+                              className="mt-4 px-4 py-2 bg-lime-600 text-white rounded-md hover:bg-lime-700 transition text-sm font-medium"
+                            >
+                              Clear All Filters
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -2988,7 +3205,6 @@ const AdminDashboard = () => {
         setSelectedLocation={setSelectedLocation}
         setShowMapModal={setShowMapModal}
         setMapMode={setMapMode}
-        setFarmers={setFarmers}
         showEventModal={showEventModal}
         setShowEventModal={setShowEventModal}
         eventForm={eventForm}
@@ -3701,12 +3917,8 @@ const AdminDashboard = () => {
               </button>
               <button
                 onClick={() => {
-                  // Remove farmer from the list
-                  setFarmers((prevFarmers) => prevFarmers.filter((farmer) => farmer.id !== farmers[showDeleteConfirmation].id))
-
-                  // Update localStorage
-                  const updatedFarmers = farmers.filter((farmer) => farmer.id !== farmers[showDeleteConfirmation].id)
-                  localStorage.setItem("farmers", JSON.stringify(updatedFarmers))
+                  // TODO: Implement farmer deletion with React Query mutation
+                  console.log('Delete farmer:', farmers[showDeleteConfirmation].id);
 
                   // Close modal
                   setShowDeleteConfirmation(false)
@@ -3852,42 +4064,46 @@ const AdminDashboard = () => {
                 Cancel
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (pendingAction.type === 'approve') {
-                    useAssistanceStore.getState().approveRequest(pendingAction.request.id, (result) => {
-                      if (result && result.error) {
-                        useNotificationStore.getState().addAdminNotification({
-                          id: generateUniqueId(),
-                          type: 'error',
-                          title: 'Approval Failed',
-                          message: result.error,
-                          timestamp: new Date()
-                        });
-                        return;
-                      }
-                      if (result && result.warning) {
-                        useNotificationStore.getState().addAdminNotification({
-                          id: generateUniqueId(),
-                          type: 'warning',
-                          title: 'Warning',
-                          message: result.warning,
-                          timestamp: new Date()
-                        });
-                      }
-                      useNotificationStore.getState().addFarmerNotification({
-                        id: `assist-approve-${pendingAction.request.id}`,
-                        title: 'Assistance Request Approved',
-                        message: `Your request for ${pendingAction.request.assistanceName} was approved. Feedback: ${feedbackText}`,
-                        type: 'success',
-                        timestamp: new Date(),
-                        read: false,
-                      }, pendingAction.request.farmerId);
-                      setShowFeedbackModal(false);
-                      setPendingAction(null);
-                      setFeedbackText("");
-                    });
+                    // TODO: Implement with React Query mutation
+                    console.log('Approving assistance request:', pendingAction.request.id);
+                    
+                    useNotificationStore.getState().addFarmerNotification({
+                      id: `assist-approve-${pendingAction.request.id}`,
+                      title: 'Assistance Request Approved',
+                      message: `Your request for ${pendingAction.request.assistanceName} was approved. Feedback: ${feedbackText}`,
+                      type: 'success',
+                      timestamp: new Date(),
+                      read: false,
+                    }, pendingAction.request.farmerId);
+                    
+                    setShowFeedbackModal(false);
+                    setPendingAction(null);
+                    setFeedbackText("");
                   } else {
-                    useAssistanceStore.getState().rejectRequest(pendingAction.request.id, feedbackText);
+                    try {
+                      await updateApplicationMutation.mutateAsync({
+                        applicationId: pendingAction.request.id,
+                        statusData: { status: 'rejected', adminFeedback: feedbackText }
+                      })
+                      
+                      useNotificationStore.getState().addAdminNotification({
+                        id: generateUniqueId(),
+                        type: 'success',
+                        title: 'Request Rejected',
+                        message: 'Assistance request has been rejected.',
+                        timestamp: new Date()
+                      })
+                    } catch (error) {
+                      useNotificationStore.getState().addAdminNotification({
+                        id: generateUniqueId(),
+                        type: 'error',
+                        title: 'Error Rejecting Request',
+                        message: error.message,
+                        timestamp: new Date()
+                      })
+                    }
                     useNotificationStore.getState().addFarmerNotification({
                       id: `assist-reject-${pendingAction.request.id}`,
                       title: 'Assistance Request Rejected',

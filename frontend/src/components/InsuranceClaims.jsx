@@ -147,7 +147,7 @@ const InsuranceClaims = ({
       {/* Charts Section - Status Comparison Over Time and Claims Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Status Comparison Over Time - Grouped Bar Chart */}
-        <div className="bg-white p-6">
+        <div className="p-6">
           <div className="flex items-center mb-4">
             <BarChart3 size={20} className="text-emerald-600 mr-2" />
             <h3 className="text-lg font-semibold text-gray-800">Status Comparison Over Time</h3>
@@ -258,7 +258,7 @@ const InsuranceClaims = ({
                     },
                     beginAtZero: true,
                     grid: {
-                      color: 'rgba(0, 0, 0, 0.1)'
+                      display: false
                     }
                   }
                 }
@@ -268,7 +268,7 @@ const InsuranceClaims = ({
         </div>
 
         {/* Claims Distribution Donut Chart */}
-        <div className="bg-white p-6">
+        <div className="p-6">
           <div className="flex items-center mb-4">
             <PieChart size={20} className="text-emerald-600 mr-2" />
             <h3 className="text-lg font-semibold text-gray-800">Claims Distribution</h3>
@@ -382,7 +382,7 @@ const InsuranceClaims = ({
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+      <div className="p-6">
         {/* Filter and Search */}
         <div className="flex items-center justify-between mb-6 gap-4">
           <h3 className="text-lg font-medium">

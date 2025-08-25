@@ -366,7 +366,7 @@ const DistributionRecords = ({ claims, approvedClaims, generateAnalytics, analyt
         <h1 className="text-2xl font-bold text-gray-800">Distribution Records</h1>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+      <div className="p-6">
         {/* Filter & Search */}
         <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
           {/* Left side - KPI Blocks */}
@@ -475,7 +475,7 @@ const DistributionRecords = ({ claims, approvedClaims, generateAnalytics, analyt
         {/* --- Analytics Charts Row --- */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           {/* Quarterly Forecast Chart */}
-          <div className="bg-white rounded-xl p-4 w-full max-w-md h-64 flex flex-col">
+          <div className="rounded-xl p-4 w-full max-w-md h-64 flex flex-col">
             <h4 className="text-sm font-semibold text-lime-800 mb-2">Claims Forecast (Quarterly)</h4>
             <div className="flex-1">
               <Line
@@ -538,7 +538,7 @@ const DistributionRecords = ({ claims, approvedClaims, generateAnalytics, analyt
                         }
                       },
                       grid: {
-                        display: true,
+                        display: false,
                         color: 'rgba(0,0,0,0.1)'
                       }
                     },
@@ -557,7 +557,7 @@ const DistributionRecords = ({ claims, approvedClaims, generateAnalytics, analyt
                         }
                       },
                       grid: {
-                        display: true,
+                        display: false,
                         color: 'rgba(0,0,0,0.1)'
                       }
                     },
@@ -572,7 +572,7 @@ const DistributionRecords = ({ claims, approvedClaims, generateAnalytics, analyt
             </div>
           </div>
           {/* Monthly Trends Line Chart */}
-          <div className="bg-white rounded-xl p-4 w-full max-w-md h-64 flex flex-col">
+          <div className="rounded-xl p-4 w-full max-w-md h-64 flex flex-col">
             <h4 className="text-sm font-semibold text-blue-800 mb-2">Claims Trends (Monthly)</h4>
             <div className="flex-1">
               <Line
@@ -635,7 +635,7 @@ const DistributionRecords = ({ claims, approvedClaims, generateAnalytics, analyt
                         }
                       },
                       grid: {
-                        display: true,
+                        display: false,
                         color: 'rgba(0,0,0,0.1)'
                       }
                     },
@@ -654,7 +654,7 @@ const DistributionRecords = ({ claims, approvedClaims, generateAnalytics, analyt
                         }
                       },
                       grid: {
-                        display: true,
+                        display: false,
                         color: 'rgba(0,0,0,0.1)'
                       }
                     },
@@ -669,7 +669,7 @@ const DistributionRecords = ({ claims, approvedClaims, generateAnalytics, analyt
             </div>
           </div>
           {/* Government Support Doughnut Chart */}
-          <div className="bg-white rounded-xl p-4 w-full max-w-md h-64 flex flex-col">
+          <div className="rounded-xl p-4 w-full max-w-md h-64 flex flex-col">
             <h4 className="text-sm font-semibold text-purple-800 mb-2">Assistance Application Status</h4>
             <div className="flex-1 flex items-center justify-center">
               <Doughnut
@@ -745,7 +745,8 @@ const DistributionRecords = ({ claims, approvedClaims, generateAnalytics, analyt
             <table className="w-full text-left border-separate border-spacing-y-2">
               <thead>
                 <tr>
-                  <th className="p-3 bg-gray-50 rounded-l-lg font-semibold text-gray-600">Farmer Name</th>
+                  <th className="p-3 bg-gray-50 rounded-l-lg font-semibold text-gray-600">Claim ID</th>
+                  <th className="p-3 bg-gray-50 font-semibold text-gray-600">Farmer Name</th>
                   <th className="p-3 bg-gray-50 font-semibold text-gray-600">Crop Type</th>
                   <th className="p-3 bg-gray-50 font-semibold text-gray-600">Distribution Date</th>
                   <th className="p-3 bg-gray-50 font-semibold text-gray-600">Status</th>
@@ -760,8 +761,9 @@ const DistributionRecords = ({ claims, approvedClaims, generateAnalytics, analyt
                       c.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                       c.crop?.toLowerCase().includes(searchQuery.toLowerCase()),
                   )
-                  .map(claim => (
-                    <tr key={claim.id || claim.name} className="hover:bg-gray-50">
+                  .map((claim, index) => (
+                    <tr key={claim._id || claim.id || `${claim.name}-${claim.date}-${index}`} className="hover:bg-gray-50">
+                      <td className="p-3 border-b border-gray-200 font-mono text-sm">{claim.claimNumber || `DIST-${new Date(claim.date).getFullYear()}-${String(index + 1).padStart(4, '0')}`}</td>
                       <td className="p-3 border-b border-gray-200 font-medium">{claim.name}</td>
                       <td className="p-3 border-b border-gray-200">{claim.crop}</td>
                       <td className="p-3 border-b border-gray-200">{new Date(claim.date).toLocaleDateString()}</td>
