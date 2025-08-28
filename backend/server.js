@@ -22,8 +22,8 @@ const server = createServer(app)
 const io = new Server(server, {
   cors: {
     origin: process.env.NODE_ENV === 'production' 
-      ? [process.env.FRONTEND_URL, 'https://ya-m-i.github.io'] 
-      : ['http://localhost:3000', 'http://localhost:5173', 'https://ya-m-i.github.io'],
+      ? [process.env.FRONTEND_URL, 'https://ya-m-i.github.io', 'https://agri-chain.onrender.com'] 
+      : ['http://localhost:3000', 'http://localhost:5173', 'https://ya-m-i.github.io', 'https://agri-chain.onrender.com'],
     methods: ['GET', 'POST'],
     credentials: true
   },
@@ -33,8 +33,8 @@ const io = new Server(server, {
 // Manual CORS configuration for React Query
 app.use((req, res, next) => {
     const allowedOrigins = process.env.NODE_ENV === 'production' 
-        ? [process.env.FRONTEND_URL, 'https://ya-m-i.github.io'] 
-        : ['http://localhost:3000', 'http://localhost:5173', 'https://ya-m-i.github.io']
+        ? [process.env.FRONTEND_URL, 'https://ya-m-i.github.io', 'https://agri-chain.onrender.com'] 
+        : ['http://localhost:3000', 'http://localhost:5173', 'https://ya-m-i.github.io', 'https://agri-chain.onrender.com']
     
     const origin = req.headers.origin
     if (allowedOrigins.includes(origin)) {
