@@ -49,6 +49,20 @@ const createClaim = async (req, res) => {
     const claim = await Claim.create({ ...req.body, claimNumber });
     console.log('Backend: Claim created successfully:', claim);
     
+    // Emit Socket.IO event for real-time updates
+    const io = req.app.get('io');
+    if (io) {
+      // Emit to admin room
+      io.to('admin-room').emit('claim-created', claim);
+      
+      // Emit to specific farmer room
+      if (claim.farmerId) {
+        io.to(`farmer-${claim.farmerId}`).emit('claim-created', claim);
+      }
+      
+      console.log('Socket event emitted: claim-created');
+    }
+    
     res.status(201).json(claim);
   } catch (error) {
     console.error('Backend: Error creating claim:', error);
@@ -105,6 +119,21 @@ const updateClaim = async (req, res) => {
     }
     
     await claim.save();
+    
+    // Emit Socket.IO event for real-time updates
+    const io = req.app.get('io');
+    if (io) {
+      // Emit to admin room
+      io.to('admin-room').emit('claim-updated', claim);
+      
+      // Emit to specific farmer room
+      if (claim.farmerId) {
+        io.to(`farmer-${claim.farmerId}`).emit('claim-updated', claim);
+      }
+      
+      console.log('Socket event emitted: claim-updated');
+    }
+    
     res.json(claim);
   } catch (error) {
     res.status(400).json({ message: error.message })

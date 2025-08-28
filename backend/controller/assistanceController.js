@@ -8,6 +8,15 @@ const Farmer = require('../models/farmerModel');
 const createAssistance = async (req, res) => {
   try {
     const assistance = await Assistance.create(req.body);
+    
+    // Emit Socket.IO event for real-time updates
+    const io = req.app.get('io');
+    if (io) {
+      // Emit to admin room
+      io.to('admin-room').emit('assistance-created', assistance);
+      console.log('Socket event emitted: assistance-created');
+    }
+    
     res.status(201).json(assistance);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -139,6 +148,18 @@ const applyForAssistance = async (req, res) => {
       quarter,
       status: 'pending'
     });
+    
+    // Emit Socket.IO event for real-time updates
+    const io = req.app.get('io');
+    if (io) {
+      // Emit to admin room
+      io.to('admin-room').emit('application-created', application);
+      
+      // Emit to specific farmer room
+      io.to(`farmer-${farmerId}`).emit('application-created', application);
+      
+      console.log('Socket event emitted: application-created');
+    }
 
     res.status(201).json({
       message: 'Application submitted successfully',
@@ -231,6 +252,20 @@ const updateApplicationStatus = async (req, res) => {
     }
 
     await application.save();
+    
+    // Emit Socket.IO event for real-time updates
+    const io = req.app.get('io');
+    if (io) {
+      // Emit to admin room
+      io.to('admin-room').emit('application-updated', application);
+      
+      // Emit to specific farmer room
+      if (application.farmerId) {
+        io.to(`farmer-${application.farmerId}`).emit('application-updated', application);
+      }
+      
+      console.log('Socket event emitted: application-updated');
+    }
 
     // TODO: Send notification to farmer about status update
     // This would typically be done through a notification service
