@@ -74,7 +74,6 @@ Before running this project, make sure you have:
 - **npm** or **yarn** - Package manager
 - **MongoDB Atlas Account** - [Sign up here](https://www.mongodb.com/atlas)
 - **Git** - Version control system
-- **ngrok** (for development) - [Download here](https://ngrok.com/)
 
 ## 🔧 Installation
 
@@ -121,27 +120,32 @@ Before running this project, make sure you have:
    - Frontend: http://localhost:5173
    - Backend API: http://localhost:5000
 
-### Using ngrok for Testing
+## 🚀 Deployment
 
-1. **Install ngrok globally**
-   ```bash
-   npm install -g ngrok
-   ```
+### Backend Deployment (Render)
 
-2. **Start your backend server**
-   ```bash
-   npm run server
-   ```
+1. **Push your code to GitHub** (if not already done)
 
-3. **In a new terminal, expose the backend with ngrok**
-   ```bash
-   ngrok http 5000
-   ```
+2. **Go to [Render](https://render.com)**
+   - Sign up using your GitHub account
+   - Click "New" → "Web Service"
+   - Connect your GitHub repository
 
-4. **Update your frontend environment**
-   - Copy the ngrok URL (e.g., `https://abc123.ngrok.io`)
-   - Update `VITE_API_URL` in your frontend `.env` file
-   - Restart your frontend development server
+3. **Configure your service:**
+   - Name: `agri-chain-backend`
+   - Region: Choose closest to you
+   - Branch: `main`
+   - Root Directory: `backend`
+   - Build Command: `npm install`
+   - Start Command: `npm start`
+
+4. **Add Environment Variables in Render:**
+   - `NODE_ENV=production`
+   - `MONGO_URI=your_mongodb_atlas_connection_string`
+   - `JWT_SECRET=your_jwt_secret_key`
+   - `FRONTEND_URL=https://ya-m-i.github.io`
+
+5. **Deploy and get your backend URL** (e.g., `https://agri-chain-backend.onrender.com`)
 
 ## ⚙️ Environment Configuration
 
@@ -180,39 +184,16 @@ JWT_SECRET=your_production_jwt_secret
 
 ## 🚀 Deployment
 
-### Frontend Deployment (GitHub Pages / Vercel / Netlify)
+### Frontend Deployment (GitHub Pages)
 
-1. **Build the frontend**
-   ```bash
-   cd frontend
-   npm run build
-   ```
+1. **Update frontend environment variables** with your Render backend URL
+2. **Build and deploy** to GitHub Pages
 
-2. **Deploy to your chosen platform**
-   - **GitHub Pages**: Use GitHub Actions workflow
-   - **Vercel**: Connect your repository
-   - **Netlify**: Connect your repository or drag-and-drop build folder
+### Complete Production Setup
 
-### Backend Deployment (Heroku / Railway / DigitalOcean)
-
-1. **Ensure your environment variables are set**
-
-2. **Deploy using your chosen platform**
-   - **Heroku**: 
-     ```bash
-     heroku create your-app-name
-     heroku config:set NODE_ENV=production
-     git push heroku main
-     ```
-   - **Railway**: Connect your GitHub repository
-   - **DigitalOcean App Platform**: Connect your repository
-
-### Docker Deployment
-
-1. **Build and run with Docker Compose**
-   ```bash
-   docker-compose up --build
-   ```
+- **Frontend**: GitHub Pages (`https://ya-m-i.github.io`)
+- **Backend**: Render Web Service (`https://your-backend.onrender.com`)
+- **Database**: MongoDB Atlas
 
 ## 📚 API Documentation
 
@@ -322,14 +303,9 @@ agri-chain/
    - Check your network connection
 
 2. **Frontend can't connect to backend**
-   - Verify `VITE_API_URL` points to correct backend URL
-   - Ensure backend server is running
-   - Check for CORS issues
-
-3. **ngrok tunnel not working**
-   - Restart ngrok with `ngrok http 5000`
-   - Update frontend environment variables with new ngrok URL
-   - Restart frontend development server
+   - Verify `VITE_API_URL` points to your Render backend URL
+   - Ensure backend service is running on Render
+   - Check for CORS issues in Render logs
 
 ### Getting Help
 
