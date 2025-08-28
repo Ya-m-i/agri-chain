@@ -26,9 +26,9 @@
     <meta name="msapplication-navbutton-color" content="#22c55e" />
     
     <!-- Icons and Manifest -->
-    <link rel="icon" type="image/png" href="/FarmLogo.png" />
-    <link rel="apple-touch-icon" href="/FarmLogo.png" />
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/png" href="./FarmLogo.png" />
+    <link rel="apple-touch-icon" href="./FarmLogo.png" />
+    <link rel="manifest" href="./manifest.json" />
     
     <!-- Resource Hints for Performance -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com" />
@@ -103,8 +103,7 @@
       }
     </style>
     
-    <!-- Preload critical assets -->
-    <link rel="modulepreload" href="/src/main.jsx" />
+
   </head>
   <body>
     <!-- No-JS fallback -->
@@ -121,11 +120,13 @@
     <!-- Main application script -->
     <script type="module" src="/src/main.jsx"></script>
     
+
+    
     <!-- Service Worker Registration -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
+          navigator.serviceWorker.register('./sw.js')
             .then((registration) => {
               console.log('SW registered: ', registration);
             })

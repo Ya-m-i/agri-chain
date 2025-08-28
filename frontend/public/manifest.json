@@ -2,17 +2,17 @@
   "name": "AGRI-CHAIN Agricultural Management System",
   "short_name": "AGRI-CHAIN",
   "description": "Comprehensive agricultural management system for farmers and administrators",
-  "start_url": "/",
+  "start_url": "/agri-chain/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#22c55e",
   "orientation": "portrait-primary",
-  "scope": "/",
+  "scope": "/agri-chain/",
   "lang": "en",
   "categories": ["agriculture", "productivity", "business"],
   "icons": [
     {
-      "src": "/FarmLogo.png",
+      "src": "/agri-chain/FarmLogo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"

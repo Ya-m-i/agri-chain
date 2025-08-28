@@ -1,5 +1,3 @@
-"use client"
-
 import { useEffect, useState, Suspense, lazy } from "react"
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { Toaster } from "react-hot-toast"
@@ -46,10 +44,16 @@ function App() {
   
   // Initialize Socket.IO integration with React Query
   const { isConnected } = useSocketQuery({
-    serverUrl: import.meta.env.VITE_SERVER_URL || 'http://localhost:5000'
+    serverUrl: import.meta.env.VITE_SOCKET_URL || 'http://localhost:5001'
   })
 
   useEffect(() => {
+    console.log('App component mounting...');
+    console.log('Environment variables:', {
+      API_URL: import.meta.env.VITE_API_URL,
+      SOCKET_URL: import.meta.env.VITE_SOCKET_URL
+    });
+    
     // Initialize optimizations first
     initAssetOptimization()
     initImageOptimization()
@@ -70,6 +74,7 @@ function App() {
 
     // Simulate loading
     setTimeout(() => {
+      console.log('App loading complete');
       setLoading(false)
     }, 1000)
     
@@ -82,7 +87,7 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/agri-chain">
       <Toaster position="top-right" />
       <Suspense fallback={<PageLoader />}>
         <Routes>

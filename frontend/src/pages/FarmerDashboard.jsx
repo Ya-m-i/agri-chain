@@ -25,7 +25,7 @@ import { useNotificationStore } from "../store/notificationStore"
 
 import WeatherWidget from "../components/dashboard/weather-widget"
 import ClaimStatusTracker from "../components/dashboard/claim-status-tracker"
-import farmerLogoImage from "../assets/images/Farmlogo.png" // Update this path to your farmer logo
+import farmerLogoImage from "../assets/Images/FarmLogo.png" // Update this path to your farmer logo
 import FarmerCropInsurance from "../components/FarmerCropInsurance"
 import { calculateCompensation, getPaymentStatus, getExpectedPaymentDate, getDamageSeverity, getCoverageDetails } from "../utils/insuranceUtils"
 import { useClaims, useCropInsurance, useFarmerApplications, useAssistances, useApplyForAssistance } from '../hooks/useAPI'
