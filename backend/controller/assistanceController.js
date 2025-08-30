@@ -50,6 +50,18 @@ const applyForAssistance = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
+    // Validate ObjectIds
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(farmerId)) {
+      console.log('Backend: Invalid ObjectId format for farmer ID:', farmerId);
+      return res.status(400).json({ message: 'Invalid farmer ID format' });
+    }
+    
+    if (!mongoose.Types.ObjectId.isValid(assistanceId)) {
+      console.log('Backend: Invalid ObjectId format for assistance ID:', assistanceId);
+      return res.status(400).json({ message: 'Invalid assistance ID format' });
+    }
+
     // Get farmer and assistance details
     const farmer = await Farmer.findById(farmerId);
     const assistance = await Assistance.findById(assistanceId);
@@ -181,6 +193,13 @@ const getFarmerApplications = async (req, res) => {
     
     if (!farmerId) {
       return res.status(400).json({ message: 'Farmer ID is required' });
+    }
+
+    // Validate if farmerId is a valid ObjectId
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(farmerId)) {
+      console.log('Backend: Invalid ObjectId format for farmer ID:', farmerId);
+      return res.status(400).json({ message: 'Invalid farmer ID format' });
     }
 
     // Check if farmer exists
