@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
+import { socketManager } from "../utils/socket"
 
 export const useAuthStore = create(
   persist(
@@ -32,7 +33,31 @@ export const useAuthStore = create(
           user,
         });
       },
-      logout: () => set({ isAuthenticated: false, userType: null, user: null }),
+      logout: () => {
+        // Disconnect socket before clearing auth state
+        try {
+          const currentUser = useAuthStore.getState().user;
+          const currentUserType = useAuthStore.getState().userType;
+          
+          if (currentUser?.id && currentUserType) {
+            const room = currentUserType === 'admin' ? 'admin-room' : `farmer-${currentUser.id}`;
+            console.log('Logout: Leaving room:', room);
+            socketManager.leaveRoom(room);
+          }
+          
+          console.log('Logout: Disconnecting socket...');
+          socketManager.disconnect();
+        } catch (error) {
+          console.error('Error during socket cleanup on logout:', error);
+        }
+        
+        // Clear localStorage for backward compatibility
+        localStorage.removeItem("isAdmin");
+        localStorage.removeItem("isFarmer");
+        
+        // Clear auth state
+        set({ isAuthenticated: false, userType: null, user: null });
+      },
       updateUser: (userData) =>
         set((state) => ({
           user: state.user ? { ...state.user, ...userData } : userData,

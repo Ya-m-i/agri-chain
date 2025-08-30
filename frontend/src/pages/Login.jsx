@@ -36,7 +36,7 @@ const Login = () => {
     setErrorMsg("");
 
     // Clear any existing auth when switching modes
-    logout();
+    logout(); // This now includes socket disconnection
 
     if (isAdminMode) {
       // Dummy admin credentials

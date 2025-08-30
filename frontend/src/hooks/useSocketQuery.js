@@ -292,13 +292,21 @@ export const useSocketQuery = (options = {}) => {
         }
       });
       cleanupFunctionsRef.current = [];
+      
+      // Disconnect socket on component unmount if no user is authenticated
+      if (!user?.id && isInitializedRef.current) {
+        console.log('useSocketQuery: Component unmounting with no user, disconnecting socket...');
+        socketManager.disconnect();
+        isInitializedRef.current = false;
+      }
     };
   }, [
     initializeSocket,
     setupClaimsListeners,
     setupAssistanceListeners,
     setupFarmersListeners,
-    setupInsuranceListeners
+    setupInsuranceListeners,
+    user?.id
   ]);
 
   // Cleanup on user change
@@ -306,6 +314,13 @@ export const useSocketQuery = (options = {}) => {
     if (user?.id) {
       const room = userType === 'admin' ? 'admin-room' : `farmer-${user.id}`;
       socketManager.joinRoom(room);
+    } else {
+      // User logged out - disconnect socket
+      if (isInitializedRef.current) {
+        console.log('useSocketQuery: User logged out, disconnecting socket...');
+        socketManager.disconnect();
+        isInitializedRef.current = false;
+      }
     }
   }, [user?.id, userType]);
 

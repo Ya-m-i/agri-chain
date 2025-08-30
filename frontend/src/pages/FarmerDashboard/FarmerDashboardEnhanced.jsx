@@ -39,8 +39,9 @@ const FarmerDashboardEnhanced = () => {
   ])
 
   const handleLogout = () => {
-    logout()
-    navigate("/")
+    console.log('FarmerDashboardEnhanced: Logging out...');
+    logout(); // This now includes socket disconnection
+    navigate("/");
   }
 
   // Close sidebar when clicking outside on mobile

@@ -25,7 +25,7 @@ function FarmerDashboardEnhanced() {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [activeTab, setActiveTab] = useState("home")
-  const [claims, setClaims] = useState([
+  const [claims] = useState([
     {
       id: "CLM-2023-001",
       type: "Flood",
@@ -37,8 +37,11 @@ function FarmerDashboardEnhanced() {
   ])
 
   const handleLogout = () => {
-    localStorage.removeItem("isFarmer")
-    navigate("/")
+    console.log('FarmerDashboardEnhanced (component): Logging out...');
+    // Clear localStorage for backward compatibility
+    localStorage.removeItem("isFarmer");
+    // Navigate to login
+    navigate("/");
   }
 
   // Close sidebar when clicking outside on mobile

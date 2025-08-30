@@ -283,9 +283,9 @@ const FarmerDashboard = () => {
   const totalPages = Math.ceil((availableAssistanceItems?.length || 0) / itemsPerPage)
 
   const handleLogout = () => {
-    logout()
-    localStorage.removeItem("isFarmer") // For backward compatibility
-    navigate("/")
+    console.log('FarmerDashboard: Logging out...');
+    logout(); // This now includes socket disconnection
+    navigate("/");
   }
 
   // Function to open claim details modal

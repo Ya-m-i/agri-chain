@@ -7,6 +7,7 @@ import { useAuthStore } from "./store/authStore"
 import { initImageOptimization } from "./utils/imageOptimization"
 import { initAssetOptimization } from "./utils/assetOptimization"
 import { useSocketQuery } from "./hooks/useSocketQuery"
+import { useSocketAuth } from "./hooks/useSocketAuth"
 
 // Lazy load page components for better performance
 const Login = lazy(() => import("./pages/Login"))
@@ -47,6 +48,9 @@ function App() {
   const { isConnected } = useSocketQuery({
     serverUrl: import.meta.env.VITE_SOCKET_URL || 'https://agri-chain.onrender.com'
   })
+  
+  // Manage socket connection based on authentication state
+  const { currentRoom } = useSocketAuth()
 
   useEffect(() => {
     console.log('App component mounting...');
@@ -85,7 +89,8 @@ function App() {
     
     // Log socket connection status
     console.log('Socket.IO connection status:', isConnected ? 'Connected' : 'Disconnected')
-  }, [login, isConnected])
+    console.log('Socket.IO current room:', currentRoom || 'None')
+  }, [login, isConnected, currentRoom])
 
   if (loading) {
     return <Loading />

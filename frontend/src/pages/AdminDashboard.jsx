@@ -217,8 +217,9 @@ const AdminDashboard = () => {
   
   // Handle logout
   const handleLogout = () => {
-    logout()
-    navigate("/")
+    console.log('AdminDashboard: Logging out...');
+    logout(); // This now includes socket disconnection
+    navigate("/");
   }
 
   // Application filtering and pagination states (moved here before computed values)

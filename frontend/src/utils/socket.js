@@ -65,10 +65,19 @@ class SocketManager {
   // Disconnect socket
   disconnect() {
     if (this.socket) {
+      console.log('SocketManager: Disconnecting socket...');
+      
+      // Remove all listeners first
+      this.listeners.clear();
+      
+      // Disconnect the socket
       this.socket.disconnect();
       this.socket = null;
       this.isConnected = false;
-      this.listeners.clear();
+      
+      console.log('SocketManager: Socket disconnected successfully');
+    } else {
+      console.log('SocketManager: No socket to disconnect');
     }
   }
 
@@ -137,7 +146,27 @@ class SocketManager {
   // Leave a room
   leaveRoom(room) {
     if (this.socket && this.isConnected) {
+      console.log('SocketManager: Leaving room:', room);
       this.socket.emit('leave-room', room);
+    } else {
+      console.log('SocketManager: Cannot leave room - socket not connected');
+    }
+  }
+
+  // Handle user logout - comprehensive cleanup
+  handleUserLogout(userType, userId) {
+    try {
+      if (userId && userType) {
+        const room = userType === 'admin' ? 'admin-room' : `farmer-${userId}`;
+        this.leaveRoom(room);
+      }
+      
+      // Disconnect socket completely on logout
+      this.disconnect();
+      
+      console.log('SocketManager: User logout cleanup completed');
+    } catch (error) {
+      console.error('SocketManager: Error during logout cleanup:', error);
     }
   }
 }
