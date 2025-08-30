@@ -51,7 +51,11 @@ function App() {
     console.log('App component mounting...');
     console.log('Environment variables:', {
       API_URL: import.meta.env.VITE_API_URL,
-      SOCKET_URL: import.meta.env.VITE_SOCKET_URL
+      SOCKET_URL: import.meta.env.VITE_SOCKET_URL,
+      NODE_ENV: import.meta.env.NODE_ENV,
+      MODE: import.meta.env.MODE,
+      PROD: import.meta.env.PROD,
+      DEV: import.meta.env.DEV
     });
     
     // Initialize optimizations first

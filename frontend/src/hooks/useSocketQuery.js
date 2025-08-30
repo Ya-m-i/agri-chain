@@ -28,7 +28,7 @@ export const useSocketQuery = (options = {}) => {
     if (isInitializedRef.current) return;
     
     try {
-      socketManager.connect(options.serverUrl || 'http://localhost:5000');
+      socketManager.connect(options.serverUrl || import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000');
       isInitializedRef.current = true;
       
       // Join user-specific room for targeted updates

@@ -16,10 +16,18 @@ class SocketManager {
   }
 
   // Initialize socket connection
-  connect(url = 'http://localhost:5000') {
+  connect(url = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000') {
     if (this.socket && this.isConnected) {
       return this.socket;
     }
+
+    console.log('SocketManager: Attempting to connect to:', url);
+    console.log('SocketManager: Environment variables:', {
+      VITE_SOCKET_URL: import.meta.env.VITE_SOCKET_URL,
+      VITE_API_URL: import.meta.env.VITE_API_URL,
+      NODE_ENV: import.meta.env.NODE_ENV,
+      MODE: import.meta.env.MODE
+    });
 
     this.socket = io(url, {
       transports: ['websocket', 'polling'],
