@@ -1,7 +1,7 @@
 // Using built-in fetch (Node.js 18+)
 
 async function testAPI() {
-    const baseURL = 'http://localhost:5000/api';
+    const baseURL = 'https://agri-chain.onrender.com/api';
     
     try {
         // Test farmers endpoint

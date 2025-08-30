@@ -2,7 +2,7 @@
 // This test verifies that farmers can apply for assistance based on their insured crop types
 
 async function testCropTypeAssistanceFlow() {
-    const baseURL = 'http://localhost:5000/api';
+    const baseURL = 'https://agri-chain.onrender.com/api';
     
     console.log('🌾 Testing Crop Type Assistance Integration Flow');
     console.log('================================================');

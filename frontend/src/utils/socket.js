@@ -16,7 +16,7 @@ class SocketManager {
   }
 
   // Initialize socket connection
-  connect(url = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000') {
+  connect(url = import.meta.env.VITE_SOCKET_URL || 'https://agri-chain.onrender.com') {
     if (this.socket && this.isConnected) {
       return this.socket;
     }
