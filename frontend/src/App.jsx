@@ -14,6 +14,7 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard"))
 const FarmerDashboard = lazy(() => import("./pages/FarmerDashboard"))
 const FarmerForm = lazy(() => import("./pages/FarmerForm/FarmerForm"))
 const SocketTestComponent = lazy(() => import("./components/SocketTestComponent"))
+const ConnectionTestComponent = lazy(() => import("./components/ConnectionTestComponent"))
 const NotFound = lazy(() => import("./pages/NotFound"))
 
 // Preload critical routes for faster navigation
@@ -140,6 +141,11 @@ function App() {
                 <SocketTestComponent />
               </AuthRoute>
             }
+          />
+
+          <Route
+            path="/connection-test"
+            element={<ConnectionTestComponent />}
           />
 
           <Route path="*" element={<NotFound />} />

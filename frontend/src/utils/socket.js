@@ -31,9 +31,17 @@ class SocketManager {
 
     this.socket = io(url, {
       transports: ['websocket', 'polling'],
-      timeout: 5000,
-      retries: 3,
+      timeout: 10000, // Increased timeout for production
+      retries: 5, // More retries for reliability
       autoConnect: true,
+      forceNew: false,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      maxReconnectionAttempts: 5,
+      // Ensure secure connection for HTTPS
+      secure: true,
+      rejectUnauthorized: false
     });
 
     // Connection event handlers
