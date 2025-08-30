@@ -278,16 +278,49 @@ export const useClaimFormStore = create(
           // Send to backend
           const result = await createClaim(newClaim)
           console.log('ClaimFormStore: Claim submission result:', result);
+          
+          // Extract claimNumber from result (handle different response formats)
+          let claimNumber;
+          let claimId;
+          
+          console.log('ClaimFormStore: Raw backend response:', JSON.stringify(result, null, 2));
+          
+          // Try multiple ways to extract claimNumber
+          if (result.claimNumber) {
+            claimNumber = result.claimNumber;
+          } else if (result.data && result.data.claimNumber) {
+            claimNumber = result.data.claimNumber;
+          } else if (result.claim && result.claim.claimNumber) {
+            claimNumber = result.claim.claimNumber;
+          } else {
+            console.warn('ClaimFormStore: claimNumber not found in expected locations, using fallback');
+            claimNumber = 'Unknown';
+          }
+          
+          // Try multiple ways to extract ID
+          if (result._id) {
+            claimId = result._id;
+          } else if (result.data && result.data._id) {
+            claimId = result.data._id;
+          } else if (result.claim && result.claim._id) {
+            claimId = result.claim._id;
+          } else {
+            claimId = null;
+          }
+          
+          console.log('ClaimFormStore: Extracted claimNumber:', claimNumber);
+          console.log('ClaimFormStore: Extracted claimId:', claimId);
+          
           set({ isSubmitting: false })
           get().resetForm()
           
           // Add notification for successful claim submission
           if (user && user.id) {
             useNotificationStore.getState().addFarmerNotification({
-              id: `claim-submitted-${result._id}`,
+              id: `claim-submitted-${claimId || Date.now()}`,
               type: 'success',
               title: 'Claim Submitted Successfully',
-              message: `Your claim for ${newClaim.crop} has been submitted with claim number ${result.claimNumber}.`,
+              message: `Your claim for ${newClaim.crop} has been submitted with claim number ${claimNumber}.`,
               timestamp: new Date()
             }, user.id);
           }
@@ -297,7 +330,11 @@ export const useClaimFormStore = create(
           setTimeout(() => {
             // Dispatch a custom event to notify other components
             window.dispatchEvent(new CustomEvent('claimSubmitted', { 
-              detail: { claimId: result._id } 
+              detail: { 
+                claimId: claimId,
+                claimNumber: claimNumber,
+                crop: newClaim.crop 
+              } 
             }));
           }, 1000);
           

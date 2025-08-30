@@ -39,6 +39,7 @@ import {
 } from "lucide-react"
 import { useAuthStore } from "../store/authStore"
 import { useNotificationStore } from "../store/notificationStore"
+import { useSocketQuery } from "../hooks/useSocketQuery"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 // Use a relative path that matches your project structure
@@ -156,6 +157,31 @@ const AdminDashboard = () => {
   const { data: assistanceItems = [], isLoading: assistanceLoading, error: assistanceError } = useAssistances()
   // eslint-disable-next-line no-unused-vars
   const { data: allApplications = [], isLoading: applicationsLoading } = useAllApplications()
+  
+  // Initialize Socket.IO for real-time updates across devices
+  // eslint-disable-next-line no-unused-vars
+  const { isConnected, socket } = useSocketQuery({
+    enableClaimsListener: true, // Enable claim event listeners
+    enableApplicationsListener: true, // Enable application event listeners
+    onClaimCreated: (newClaim) => {
+      console.log('AdminDashboard: New claim received via socket:', newClaim);
+      // Refetch claims to update the UI immediately
+      refetchClaims();
+      // Add notification for admin
+      useNotificationStore.getState().addNotification({
+        id: generateUniqueId(),
+        type: 'info',
+        title: 'New Claim Submitted',
+        message: `New claim ${newClaim.claimNumber || 'pending'} submitted for ${newClaim.crop}`,
+        timestamp: new Date()
+      });
+    },
+    onClaimUpdated: (updatedClaim) => {
+      console.log('AdminDashboard: Claim updated via socket:', updatedClaim);
+      // Refetch claims to update the UI immediately
+      refetchClaims();
+    }
+  });
   
   // React Query mutations
   const updateClaimMutation = useUpdateClaim()
@@ -1646,6 +1672,16 @@ const AdminDashboard = () => {
               >
                 ↻
               </button>
+            </div>
+
+            {/* Socket Connection Status */}
+            <div className={`flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+              isConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`} title={`Real-time updates: ${isConnected ? 'Connected' : 'Disconnected'}`}>
+              <div className={`w-2 h-2 rounded-full mr-2 ${
+                isConnected ? 'bg-green-500' : 'bg-red-500'
+              }`} />
+              {isConnected ? 'Live' : 'Offline'}
             </div>
 
             {/* Notification Bell */}

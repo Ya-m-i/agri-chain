@@ -49,21 +49,42 @@ const createClaim = async (req, res) => {
     const claim = await Claim.create({ ...req.body, claimNumber });
     console.log('Backend: Claim created successfully:', claim);
     
-    // Emit Socket.IO event for real-time updates
+    // Emit Socket.IO event for real-time updates to ALL connected devices
     const io = req.app.get('io');
     if (io) {
-      // Emit to admin room
-      io.to('admin-room').emit('claim-created', claim);
+      console.log('Emitting socket events for claim:', claim.claimNumber);
       
-      // Emit to specific farmer room
+      // Emit to ALL admin devices (broadcast to admin room)
+      io.to('admin-room').emit('claim-created', claim);
+      console.log('Socket event emitted to admin-room: claim-created');
+      
+      // Emit to specific farmer room for the claim creator
       if (claim.farmerId) {
         io.to(`farmer-${claim.farmerId}`).emit('claim-created', claim);
+        console.log(`Socket event emitted to farmer-${claim.farmerId}: claim-created`);
       }
       
-      console.log('Socket event emitted: claim-created');
+      // Also emit a global newClaim event for backward compatibility
+      io.emit('newClaim', {
+        claimNumber: claim.claimNumber,
+        farmerId: claim.farmerId,
+        crop: claim.crop,
+        status: claim.status,
+        _id: claim._id
+      });
+      console.log('Global newClaim event emitted');
+    } else {
+      console.log('Socket.IO instance not available');
     }
     
-    res.status(201).json(claim);
+    // Return the complete claim with claimNumber
+    res.status(201).json({
+      success: true,
+      message: 'Claim submitted successfully',
+      claimNumber: claim.claimNumber,
+      _id: claim._id,
+      ...claim.toObject()
+    });
   } catch (error) {
     console.error('Backend: Error creating claim:', error);
     
