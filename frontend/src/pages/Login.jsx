@@ -35,25 +35,30 @@ const Login = () => {
     e.preventDefault()
     setErrorMsg("");
 
-    // Clear any existing auth when switching modes
-    logout(); // This now includes socket disconnection
+    // Clear any existing auth state when switching modes or logging in
+    console.log('Login: Clearing existing auth state before new login');
+    logout();
 
     if (isAdminMode) {
       // Dummy admin credentials
       if (form.username === "admin" && form.password === "admin123") {
         localStorage.setItem("isAdmin", "true") // For backward compatibility
         localStorage.removeItem("isFarmer") // Clear farmer auth
+        console.log('Login: Admin credentials validated, logging in...');
         login("admin")
         console.log("Admin login successful, navigating to /admin")
         navigate("/admin")
       } else {
-        alert("Invalid admin credentials")
+        setErrorMsg("Invalid admin credentials");
       }
     } else {
       try {
+        console.log('Login: Attempting farmer login...');
         const farmer = await loginFarmer(form.username, form.password);
+        
         localStorage.setItem("isFarmer", "true");
         localStorage.removeItem("isAdmin") // Clear admin auth
+        
         // Map backend farmer data to auth store structure
         const userData = {
           ...farmer,
@@ -61,10 +66,12 @@ const Login = () => {
           name: `${farmer.firstName || ''} ${farmer.middleName || ''} ${farmer.lastName || ''}`.replace(/  +/g, ' ').trim(),
           phone: farmer.contactNum,
         };
+        
         console.log("Farmer login successful, userData:", userData);
         login("farmer", userData);
         navigate("/farmer-dashboard");
       } catch (err) {
+        console.error('Login: Farmer login failed:', err);
         setErrorMsg(err.message || "Invalid farmer credentials");
       }
     }

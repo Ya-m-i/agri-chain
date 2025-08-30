@@ -42,7 +42,7 @@ const PageLoader = () => (
 
 function App() {
   const [loading, setLoading] = useState(true)
-  const { isAuthenticated, userType, login } = useAuthStore()
+  const { isAuthenticated, userType, isInitialized, initializeAuth } = useAuthStore()
   
   // Initialize Socket.IO integration with React Query
   const { isConnected } = useSocketQuery({
@@ -67,30 +67,47 @@ function App() {
     initAssetOptimization()
     initImageOptimization()
     
-    // Check localStorage for legacy authentication
-    const isAdmin = localStorage.getItem("isAdmin") === "true"
-    const isFarmer = localStorage.getItem("isFarmer") === "true"
+    // Initialize authentication state from storage
+    if (!isInitialized) {
+      console.log('App: Initializing auth from storage...');
+      initializeAuth();
+    }
+    
+    // Handle legacy authentication migration (only if not already initialized)
+    if (!isAuthenticated && !isInitialized) {
+      const isAdmin = localStorage.getItem("isAdmin") === "true"
+      const isFarmer = localStorage.getItem("isFarmer") === "true"
 
-    // Migrate old auth to Zustand store
-    if (isAdmin) {
-      login("admin")
-    } else if (isFarmer) {
-      login("farmer")
+      // Migrate old auth to Zustand store
+      if (isAdmin) {
+        console.log('App: Migrating legacy admin auth...');
+        const { login } = useAuthStore.getState();
+        login("admin");
+      } else if (isFarmer) {
+        console.log('App: Found legacy farmer auth, but missing user data. Clearing...');
+        // Clear invalid farmer auth that lacks user data
+        localStorage.removeItem("isFarmer");
+      }
     }
 
     // Preload critical routes for faster navigation
     preloadRoutes()
 
-    // Simulate loading
-    setTimeout(() => {
+    // Simulate loading only if auth is not already initialized
+    const loadingTimeout = setTimeout(() => {
       console.log('App loading complete');
-      setLoading(false)
-    }, 1000)
+      setLoading(false);
+    }, isInitialized ? 100 : 1000); // Faster loading if already initialized
     
-    // Log socket connection status
+    return () => clearTimeout(loadingTimeout);
+  }, [isInitialized, initializeAuth, isAuthenticated])
+  
+  // Additional effect to log socket status changes
+  useEffect(() => {
     console.log('Socket.IO connection status:', isConnected ? 'Connected' : 'Disconnected')
     console.log('Socket.IO current room:', currentRoom || 'None')
-  }, [login, isConnected, currentRoom])
+    console.log('Auth state:', { isAuthenticated, userType, isInitialized })
+  }, [isConnected, currentRoom, isAuthenticated, userType, isInitialized])
 
   if (loading) {
     return <Loading />

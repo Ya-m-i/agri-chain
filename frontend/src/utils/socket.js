@@ -18,7 +18,15 @@ class SocketManager {
   // Initialize socket connection
   connect(url = import.meta.env.VITE_SOCKET_URL || 'https://agri-chain.onrender.com') {
     if (this.socket && this.isConnected) {
+      console.log('SocketManager: Already connected, reusing existing connection');
       return this.socket;
+    }
+
+    // If socket exists but not connected, disconnect first
+    if (this.socket && !this.isConnected) {
+      console.log('SocketManager: Found disconnected socket, cleaning up...');
+      this.socket.disconnect();
+      this.socket = null;
     }
 
     console.log('SocketManager: Attempting to connect to:', url);
@@ -34,11 +42,11 @@ class SocketManager {
       timeout: 10000, // Increased timeout for production
       retries: 5, // More retries for reliability
       autoConnect: true,
-      forceNew: false,
+      forceNew: true, // Force new connection to avoid stale connections
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      maxReconnectionAttempts: 5,
+      maxReconnectionAttempts: 10, // Increased for better reliability
       // Ensure secure connection for HTTPS
       secure: true,
       rejectUnauthorized: false
@@ -47,16 +55,36 @@ class SocketManager {
     // Connection event handlers
     this.socket.on('connect', () => {
       this.isConnected = true;
-      console.log('Socket.IO connected successfully');
+      console.log('Socket.IO connected successfully, ID:', this.socket.id);
     });
 
     this.socket.on('disconnect', (reason) => {
       this.isConnected = false;
       console.log('Socket.IO disconnected:', reason);
+      
+      // Only attempt reconnection for unexpected disconnects
+      if (reason === 'io server disconnect') {
+        console.log('Socket.IO: Server disconnected, will attempt reconnection...');
+      }
+    });
+
+    this.socket.on('reconnect', (attemptNumber) => {
+      console.log('Socket.IO reconnected after', attemptNumber, 'attempts');
+      this.isConnected = true;
+    });
+
+    this.socket.on('reconnect_attempt', (attemptNumber) => {
+      console.log('Socket.IO reconnection attempt:', attemptNumber);
+    });
+
+    this.socket.on('reconnect_failed', () => {
+      console.error('Socket.IO reconnection failed after maximum attempts');
+      this.isConnected = false;
     });
 
     this.socket.on('connect_error', (error) => {
       console.error('Socket.IO connection error:', error);
+      this.isConnected = false;
     });
 
     return this.socket;
@@ -139,7 +167,23 @@ class SocketManager {
   // Join a room (useful for farmer-specific updates)
   joinRoom(room) {
     if (this.socket && this.isConnected) {
+      console.log('SocketManager: Joining room:', room);
       this.socket.emit('join-room', room);
+    } else {
+      console.warn('SocketManager: Cannot join room - socket not connected. Room:', room);
+      // Attempt to connect and then join room
+      try {
+        this.connect();
+        // Wait a bit for connection to establish, then try joining
+        setTimeout(() => {
+          if (this.socket && this.isConnected) {
+            console.log('SocketManager: Retrying join room after connection:', room);
+            this.socket.emit('join-room', room);
+          }
+        }, 1000);
+      } catch (error) {
+        console.error('SocketManager: Error connecting to join room:', error);
+      }
     }
   }
 

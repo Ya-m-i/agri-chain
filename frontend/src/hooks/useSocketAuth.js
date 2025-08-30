@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { socketManager } from '../utils/socket';
 
@@ -7,35 +7,99 @@ import { socketManager } from '../utils/socket';
  * Handles connection, room management, and disconnection on logout
  */
 export const useSocketAuth = () => {
-  const { isAuthenticated, user, userType } = useAuthStore();
+  const { isAuthenticated, user, userType, isInitialized } = useAuthStore();
   const prevAuthStateRef = useRef(isAuthenticated);
   const currentRoomRef = useRef(null);
+  const [connectionStatus, setConnectionStatus] = useState(false);
+  const reconnectTimeoutRef = useRef(null);
+
+  // Update connection status
+  useEffect(() => {
+    const updateStatus = () => {
+      const status = socketManager.getConnectionStatus();
+      setConnectionStatus(status);
+    };
+
+    // Initial status check
+    updateStatus();
+
+    // Listen for connection changes
+    const socket = socketManager.getSocket();
+    if (socket) {
+      socket.on('connect', updateStatus);
+      socket.on('disconnect', updateStatus);
+      
+      return () => {
+        socket.off('connect', updateStatus);
+        socket.off('disconnect', updateStatus);
+      };
+    }
+  }, []);
 
   useEffect(() => {
-    // Check if authentication state changed
+    // Only proceed if auth has been initialized
+    if (!isInitialized) {
+      console.log('useSocketAuth: Waiting for auth initialization...');
+      return;
+    }
+
     const wasAuthenticated = prevAuthStateRef.current;
     const isNowAuthenticated = isAuthenticated;
 
+    console.log('useSocketAuth: Auth state change detected', {
+      wasAuthenticated,
+      isNowAuthenticated,
+      user: user?.id,
+      userType
+    });
+
     if (isNowAuthenticated && user?.id && userType) {
-      // User just logged in or is authenticated
-      console.log('useSocketAuth: User authenticated, connecting socket...');
+      // User is authenticated - ensure socket connection
+      console.log('useSocketAuth: User authenticated, ensuring socket connection...');
       
       try {
-        // Connect socket
-        socketManager.connect();
+        // Connect socket if not already connected
+        if (!socketManager.getConnectionStatus()) {
+          socketManager.connect();
+        }
         
         // Join appropriate room
         const room = userType === 'admin' ? 'admin-room' : `farmer-${user.id}`;
-        socketManager.joinRoom(room);
-        currentRoomRef.current = room;
         
-        console.log(`useSocketAuth: Connected and joined room: ${room}`);
+        // Only join room if it's different from current room
+        if (currentRoomRef.current !== room) {
+          // Leave previous room if exists
+          if (currentRoomRef.current) {
+            socketManager.leaveRoom(currentRoomRef.current);
+          }
+          
+          // Join new room
+          socketManager.joinRoom(room);
+          currentRoomRef.current = room;
+          
+          console.log(`useSocketAuth: Joined room: ${room}`);
+        }
+        
       } catch (error) {
         console.error('useSocketAuth: Error during socket connection:', error);
+        
+        // Retry connection after a delay
+        if (reconnectTimeoutRef.current) {
+          clearTimeout(reconnectTimeoutRef.current);
+        }
+        
+        reconnectTimeoutRef.current = setTimeout(() => {
+          console.log('useSocketAuth: Retrying socket connection...');
+          try {
+            socketManager.connect();
+          } catch (retryError) {
+            console.error('useSocketAuth: Retry connection failed:', retryError);
+          }
+        }, 2000);
       }
       
     } else if (wasAuthenticated && !isNowAuthenticated) {
-      // User just logged out
+      // User logged out - clean up socket
       console.log('useSocketAuth: User logged out, cleaning up socket...');
       
       try {
@@ -57,23 +121,28 @@ export const useSocketAuth = () => {
     // Update previous auth state
     prevAuthStateRef.current = isNowAuthenticated;
 
-  }, [isAuthenticated, user?.id, userType]);
+  }, [isAuthenticated, user?.id, userType, isInitialized]);
 
   // Cleanup on component unmount
   useEffect(() => {
     return () => {
-      if (currentRoomRef.current) {
-        socketManager.leaveRoom(currentRoomRef.current);
+      // Clear any pending reconnect timeouts
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
       }
-      // Only disconnect if user is not authenticated
+      
+      // Only cleanup if user is not authenticated
       if (!isAuthenticated) {
+        if (currentRoomRef.current) {
+          socketManager.leaveRoom(currentRoomRef.current);
+        }
         socketManager.disconnect();
       }
     };
   }, [isAuthenticated]);
 
   return {
-    isConnected: socketManager.getConnectionStatus(),
+    isConnected: connectionStatus,
     currentRoom: currentRoomRef.current
   };
 };
