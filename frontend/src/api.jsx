@@ -1,7 +1,7 @@
 import { fetchWithRetry } from "./utils/fetchWithRetry";
 
 // API Base URL configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://agri-chain.onrender.com';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // Helper function to build full API URLs
 const apiUrl = (endpoint) => `${API_BASE_URL}${endpoint}`;
@@ -210,6 +210,121 @@ export const fetchDashboardData = async (farmerId = null) => {
     data: result.status === 'fulfilled' ? result.value : null,
     error: result.status === 'rejected' ? result.reason : null,
   }));
+};
+
+// Blockchain Claims Logs API Functions
+export const getBlockchainClaims = async () => {
+    const response = await fetch(apiUrl('/api/blockchain-claims'), {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    return response.json();
+};
+
+export const createBlockchainClaim = async (claimLogData) => {
+    const response = await fetch(apiUrl('/api/blockchain-claims'), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(claimLogData),
+    });
+    return response.json();
+};
+
+export const updateBlockchainClaim = async (id, claimLogData) => {
+    const response = await fetch(apiUrl(`/api/blockchain-claims/${id}`), {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(claimLogData),
+    });
+    return response.json();
+};
+
+export const getBlockchainClaimsStats = async () => {
+    const response = await fetch(apiUrl('/api/blockchain-claims/stats'), {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    return response.json();
+};
+
+export const getBlockchainClaimsByFarmer = async (farmerId) => {
+    const response = await fetch(apiUrl(`/api/blockchain-claims/farmer/${farmerId}`), {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    return response.json();
+};
+
+export const getBlockchainClaimsByStatus = async (status) => {
+    const response = await fetch(apiUrl(`/api/blockchain-claims/status/${status}`), {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    return response.json();
+};
+
+// Distribution Records API Functions (Real Blockchain)
+export const getDistributionRecords = async () => {
+    const response = await fetch(apiUrl('/api/distribution-records'), {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    return response.json();
+};
+
+export const getDistributionRecordsByFarmer = async (farmerName) => {
+    const response = await fetch(apiUrl(`/api/distribution-records/farmer/${farmerName}`), {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    return response.json();
+};
+
+export const getDistributionRecordsByStatus = async (status) => {
+    const response = await fetch(apiUrl(`/api/distribution-records/status/${status}`), {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    return response.json();
+};
+
+export const getDistributionRecordsStats = async () => {
+    const response = await fetch(apiUrl('/api/distribution-records/stats'), {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
+    return response.json();
+};
+
+export const logClaimToDistribution = async (claimData) => {
+    const response = await fetch(apiUrl('/api/distribution-records/log'), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(claimData),
+    });
+    return response.json();
 };
 
 // Removed preload function as caching is disabled

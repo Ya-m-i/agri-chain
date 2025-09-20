@@ -1,9 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Truck, Search, Layers, ChevronDown, BarChart, CheckCircle, X, Calendar, TrendingUp, Filter as FilterIcon } from "lucide-react"
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler } from 'chart.js'
 import { Line, Bar, Doughnut } from 'react-chartjs-2'
+import { getBlockchainClaims } from '../api'
+import { useDistributionStore } from '../store/distributionStore'
 
 // Register ChartJS components
 ChartJS.register(
@@ -28,6 +30,37 @@ const DistributionRecords = ({ claims, approvedClaims, generateAnalytics, analyt
   const [predictionPeriod, setPredictionPeriod] = useState("quarterly")
   const [showFilterDrawer, setShowFilterDrawer] = useState(false);
   const [selectedCrops, setSelectedCrops] = useState([]);
+  
+  // Real blockchain distribution records
+  const {
+    records: blockchainRecords,
+    stats: blockchainStats,
+    loading: blockchainLoading,
+    error: blockchainError,
+    searchTerm,
+    statusFilter: blockchainStatusFilter,
+    setSearchTerm,
+    setStatusFilter: setBlockchainStatusFilter,
+    fetchRecords,
+    fetchStats,
+    getFilteredRecords,
+    clearError
+  } = useDistributionStore()
+
+  // Fetch real blockchain distribution records on component mount
+  useEffect(() => {
+    console.log('🔄 DistributionRecords: Fetching real blockchain distribution records...')
+    fetchRecords()
+    fetchStats()
+  }, [fetchRecords, fetchStats])
+
+  // Clear error when component unmounts
+  useEffect(() => {
+    return () => {
+      clearError()
+    }
+  }, [clearError])
+
   // Combine cash assistance claims and seed assistance applications
   const combinedData = [
     // Cash assistance claims
@@ -361,9 +394,23 @@ const DistributionRecords = ({ claims, approvedClaims, generateAnalytics, analyt
   return (
     <div className="mt-6">
       {/* Outside Title */}
-      <div className="flex items-center mb-4">
-        <Truck size={24} className="text-lime-600 mr-2" />
-        <h1 className="text-2xl font-bold text-gray-800">Distribution Records</h1>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
+          <Truck size={24} className="text-lime-600 mr-2" />
+          <h1 className="text-2xl font-bold text-gray-800">Distribution Records</h1>
+          <span className="ml-3 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+            🔗 Blockchain
+          </span>
+        </div>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700 transition-colors flex items-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Refresh
+        </button>
       </div>
 
       <div className="p-6">
@@ -389,15 +436,15 @@ const DistributionRecords = ({ claims, approvedClaims, generateAnalytics, analyt
 
               {showFilterPanel && (
                 <div className="absolute z-10 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg">
-                  {["all", "approved", "rejected", "completed"].map((status) => (
+                  {["all", "approved", "pending", "rejected", "completed"].map((status) => (
                     <button
                       key={status}
                       onClick={() => {
-                        setStatusFilter(status)
+                        setBlockchainStatusFilter(status)
                         setShowFilterPanel(false)
                       }}
                       className={`block w-full text-left px-4 py-2 hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg ${
-                        statusFilter === status ? "bg-green-50 text-lime-700 font-medium" : ""
+                        blockchainStatusFilter === status ? "bg-green-50 text-lime-700 font-medium" : ""
                       }`}
                     >
                       {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -465,9 +512,9 @@ const DistributionRecords = ({ claims, approvedClaims, generateAnalytics, analyt
             </div>
             <input
               type="text"
-              placeholder="Search by name or crop..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search blockchain records..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full md:w-64 shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500"
             />
           </div>
@@ -734,11 +781,33 @@ const DistributionRecords = ({ claims, approvedClaims, generateAnalytics, analyt
           </div>
         </div>
 
-        {/* Records Table */}
-        {approvedClaims === 0 ? (
+        {/* Blockchain Claims Table */}
+        {blockchainLoading ? (
+          <div className="text-center py-10">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lime-600 mx-auto mb-3"></div>
+            <p className="text-gray-500 italic">Loading blockchain distribution records...</p>
+            <p className="text-sm text-gray-400 mt-2">Connecting to Hyperledger Fabric via Cloudflare tunnel...</p>
+          </div>
+        ) : blockchainError ? (
+          <div className="text-center py-10">
+            <Truck size={48} className="mx-auto text-red-300 mb-3" />
+            <p className="text-red-500 italic">Error loading blockchain records: {blockchainError}</p>
+            <p className="text-sm text-gray-400 mb-4">Failed to connect to blockchain at api.kapalongagrichain.site</p>
+            <button 
+              onClick={() => {
+                clearError()
+                fetchRecords()
+              }} 
+              className="mt-2 px-4 py-2 bg-lime-600 text-white rounded hover:bg-lime-700"
+            >
+              Retry Connection
+            </button>
+          </div>
+        ) : getFilteredRecords().length === 0 ? (
           <div className="text-center py-10">
             <Truck size={48} className="mx-auto text-gray-300 mb-3" />
-            <p className="text-gray-500 italic">No distribution records available.</p>
+            <p className="text-gray-500 italic">No blockchain distribution records available.</p>
+            <p className="text-sm text-gray-400 mt-2">Records will appear here when claims are processed and logged to the blockchain.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -748,29 +817,39 @@ const DistributionRecords = ({ claims, approvedClaims, generateAnalytics, analyt
                   <th className="p-3 bg-gray-50 rounded-l-lg font-semibold text-gray-600">Claim ID</th>
                   <th className="p-3 bg-gray-50 font-semibold text-gray-600">Farmer Name</th>
                   <th className="p-3 bg-gray-50 font-semibold text-gray-600">Crop Type</th>
-                  <th className="p-3 bg-gray-50 font-semibold text-gray-600">Distribution Date</th>
+                  <th className="p-3 bg-gray-50 font-semibold text-gray-600">Timestamp</th>
                   <th className="p-3 bg-gray-50 font-semibold text-gray-600">Status</th>
+                  <th className="p-3 bg-gray-50 font-semibold text-gray-600">Action</th>
                   <th className="p-3 bg-gray-50 rounded-r-lg font-semibold text-gray-600">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {claims
-                  .filter((c) => (statusFilter === "all" ? true : c.status.toLowerCase() === statusFilter))
-                  .filter(
-                    (c) =>
-                      c.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      c.crop?.toLowerCase().includes(searchQuery.toLowerCase()),
-                  )
+                {getFilteredRecords()
                   .map((claim, index) => (
-                    <tr key={claim._id || claim.id || `${claim.name}-${claim.date}-${index}`} className="hover:bg-gray-50">
-                      <td className="p-3 border-b border-gray-200 font-mono text-sm">{claim.claimNumber || `DIST-${new Date(claim.date).getFullYear()}-${String(index + 1).padStart(4, '0')}`}</td>
-                      <td className="p-3 border-b border-gray-200 font-medium">{claim.name}</td>
-                      <td className="p-3 border-b border-gray-200">{claim.crop}</td>
-                      <td className="p-3 border-b border-gray-200">{new Date(claim.date).toLocaleDateString()}</td>
+                    <tr key={claim.claimId || `${claim.farmerName}-${claim.timestamp}-${index}`} className="hover:bg-gray-50">
+                      <td className="p-3 border-b border-gray-200 font-mono text-sm">{claim.claimId}</td>
+                      <td className="p-3 border-b border-gray-200 font-medium">{claim.farmerName}</td>
+                      <td className="p-3 border-b border-gray-200">{claim.cropType}</td>
+                      <td className="p-3 border-b border-gray-200">{new Date(claim.timestamp).toLocaleString()}</td>
                       <td className="p-3 border-b border-gray-200">
-                        <span className="px-2 py-1 bg-green-100 text-lime-800 rounded-full text-xs font-medium inline-flex items-center">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium inline-flex items-center ${
+                          claim.status === 'approved' 
+                            ? 'bg-green-100 text-green-800' 
+                            : claim.status === 'pending'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
                           <CheckCircle size={12} className="mr-1" />
-                          Completed
+                          {claim.status.charAt(0).toUpperCase() + claim.status.slice(1)}
+                        </span>
+                      </td>
+                      <td className="p-3 border-b border-gray-200">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          claim.action === 'processed' 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {claim.action || 'processed'}
                         </span>
                       </td>
                       <td className="p-3 border-b border-gray-200">
@@ -805,23 +884,39 @@ const DistributionRecords = ({ claims, approvedClaims, generateAnalytics, analyt
             <div className="p-6">
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <h3 className="font-medium text-gray-700 mb-2">Farmer Information</h3>
+                  <h3 className="font-medium text-gray-700 mb-2">Blockchain Claim Information</h3>
                   <div className="space-y-2">
-                    <p><span className="text-gray-500">Name:</span> {selectedClaim.name}</p>
-                    <p><span className="text-gray-500">Contact:</span> {selectedClaim.phone || 'N/A'}</p>
-                    <p><span className="text-gray-500">Address:</span> {selectedClaim.address || 'N/A'}</p>
+                    <p><span className="text-gray-500">Claim ID:</span> {selectedClaim.claimId}</p>
+                    <p><span className="text-gray-500">Farmer Name:</span> {selectedClaim.farmerName}</p>
+                    <p><span className="text-gray-500">Crop Type:</span> {selectedClaim.cropType}</p>
                   </div>
                 </div>
                 <div>
-                  <h3 className="font-medium text-gray-700 mb-2">Distribution Information</h3>
+                  <h3 className="font-medium text-gray-700 mb-2">Blockchain Details</h3>
                   <div className="space-y-2">
-                    <p><span className="text-gray-500">Crop Type:</span> {selectedClaim.crop}</p>
-                    <p><span className="text-gray-500">Date:</span> {new Date(selectedClaim.date).toLocaleDateString()}</p>
-                    <p><span className="text-gray-500">Status:</span> Completed</p>
+                    <p><span className="text-gray-500">Timestamp:</span> {new Date(selectedClaim.timestamp).toLocaleString()}</p>
+                    <p><span className="text-gray-500">Status:</span> 
+                      <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                        selectedClaim.status === 'approved' 
+                          ? 'bg-green-100 text-green-800' 
+                          : selectedClaim.status === 'pending'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-blue-100 text-blue-800'
+                      }`}>
+                        {selectedClaim.status.charAt(0).toUpperCase() + selectedClaim.status.slice(1)}
+                      </span>
+                    </p>
+                    <p><span className="text-gray-500">Source:</span> Hyperledger Fabric</p>
                   </div>
                 </div>
               </div>
-              {/* Add more details as needed */}
+              <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-medium text-blue-800 mb-2">🔗 Blockchain Information</h4>
+                <p className="text-sm text-blue-700">
+                  This claim log is stored immutably on the Hyperledger Fabric blockchain network. 
+                  The data cannot be modified or deleted, ensuring complete transparency and auditability.
+                </p>
+              </div>
             </div>
           </div>
         </div>

@@ -1,5 +1,47 @@
 const Claim = require('../models/claimModel')
+const Farmer = require('../models/farmerModel')
 const { calculateCompensation } = require('../utils/compensationUtils')
+const axios = require('axios')
+
+// Configuration for hosted Hyperledger Fabric (Cloudflare tunnel)
+const FABRIC_SERVICE_URL = process.env.FABRIC_SERVICE_URL || 'https://api.kapalongagrichain.site'
+
+// Helper function to log claim to hosted blockchain
+const logClaimToBlockchain = async (claim) => {
+    try {
+        // Get farmer's full name from farmer record
+        let farmerName = claim.name; // fallback to claim name
+        if (claim.farmerId) {
+            try {
+                const farmer = await Farmer.findById(claim.farmerId);
+                if (farmer) {
+                    farmerName = `${farmer.firstName} ${farmer.middleName ? farmer.middleName + ' ' : ''}${farmer.lastName}`.trim();
+                }
+            } catch (farmerError) {
+                console.warn('⚠️ Could not fetch farmer details, using claim name:', farmerError.message);
+            }
+        }
+
+        const claimLogData = {
+            claimId: claim.claimNumber || claim._id.toString(),
+            farmerName: farmerName,
+            cropType: claim.crop,
+            timestamp: new Date().toISOString(),
+            status: claim.status || 'pending'
+        };
+
+        console.log('📝 Logging claim to hosted blockchain:', claimLogData);
+        
+        // Send to real blockchain via Cloudflare tunnel
+        const response = await axios.post(`${FABRIC_SERVICE_URL}/api/claims-logs`, claimLogData);
+        console.log('✅ Successfully logged claim to hosted blockchain:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('❌ Failed to log claim to hosted blockchain:', error.message);
+        // Don't throw error - blockchain logging failure shouldn't break claim creation
+        return null;
+    }
+}
 
 // @desc    Create a new claim
 // @route   POST /api/claims
@@ -48,6 +90,9 @@ const createClaim = async (req, res) => {
     
     const claim = await Claim.create({ ...req.body, claimNumber });
     console.log('Backend: Claim created successfully:', claim);
+    
+    // Log claim to hosted blockchain
+    await logClaimToBlockchain(claim);
     
     // Emit Socket.IO event for real-time updates to ALL connected devices
     const io = req.app.get('io');
@@ -141,6 +186,9 @@ const updateClaim = async (req, res) => {
     
     await claim.save();
     
+    // Log claim status update to hosted blockchain
+    await logClaimToBlockchain(claim);
+    
     // Emit Socket.IO event for real-time updates
     const io = req.app.get('io');
     if (io) {
@@ -183,4 +231,4 @@ module.exports = {
   createClaim,
   getClaims,
   updateClaim
-} 
+}
