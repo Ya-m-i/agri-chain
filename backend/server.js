@@ -8,12 +8,13 @@ const { errorHandler } = require('./middleware/errorMiddleware')
 const connectDB = require('./config/db')
 const port = process.env.PORT || 5000
 
-console.log('🚀 Starting AGRI-CHAIN server with environment:', {
+console.log('�� Starting AGRI-CHAIN server with environment:', {
     NODE_ENV: process.env.NODE_ENV,
     PORT: process.env.PORT,
     MONGO_URI: process.env.MONGO_URI ? 'SET ✅' : 'NOT SET ❌',
     FRONTEND_URL: process.env.FRONTEND_URL || 'Not specified',
-    JWT_SECRET: process.env.JWT_SECRET ? 'SET ✅' : 'NOT SET ❌'
+    JWT_SECRET: process.env.JWT_SECRET ? 'SET ✅' : 'NOT SET ❌',
+    FABRIC_SERVICE_URL: process.env.FABRIC_SERVICE_URL ? 'SET ✅' : 'NOT SET ❌'
 })
 
 connectDB()
@@ -66,7 +67,7 @@ const corsOptions = {
           'https://agri-chain.onrender.com'
         ]
     
-    console.log('🔍 CORS Origin Check:', { origin, allowedOrigins })
+    console.log('�� CORS Origin Check:', { origin, allowedOrigins })
     
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true)
@@ -223,10 +224,9 @@ app.set('io', io)
 
 app.use(errorHandler)
 
-
 server.listen(port, '0.0.0.0', () => {
   console.log(`✅ AGRI-CHAIN Server running on port: ${port}`.green.bold)
-  console.log(`🌍 Server URL: ${process.env.NODE_ENV === 'production' ? 'https://agri-chain.onrender.com' : `http://localhost:${port}`}`.cyan)
+  console.log(`�� Server URL: ${process.env.NODE_ENV === 'production' ? 'https://agri-chain.onrender.com' : `http://localhost:${port}`}`.cyan)
   console.log(`🔌 Socket.IO server initialized`.cyan)
   console.log(`🌐 CORS enabled for GitHub Pages (ya-m-i.github.io)`.green)
   console.log(`📊 Health check available at: /api/health`.yellow)
@@ -235,9 +235,6 @@ server.listen(port, '0.0.0.0', () => {
   if (process.env.NODE_ENV === 'production') {
     console.log(`🚀 Production mode - GitHub Pages integration active`.green.bold)
   } else {
-    console.log(`🔧 Development mode - Local development active`.blue.bold)
+    console.log(`�� Development mode - Local development active`.blue.bold)
   }
 })
-
-
-
