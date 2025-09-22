@@ -10,7 +10,7 @@
   "author": "Ashton Mark",
   "license": "MIT",
   "dependencies": {
-    "axios": "^1.11.0",
+    "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
     "colors": "^1.4.0",
     "dotenv": "^17.2.0",
