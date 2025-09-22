@@ -255,8 +255,8 @@ export const getBlockchainClaimsStats = async () => {
     return response.json();
 };
 
-export const getBlockchainClaimsByFarmer = async (farmerId) => {
-    const response = await fetch(apiUrl(`/api/blockchain-claims/farmer/${farmerId}`), {
+export const getBlockchainClaimsByFarmer = async (farmerName) => {
+    const response = await fetch(apiUrl(`/api/blockchain-claims/farmer/${farmerName}`), {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',

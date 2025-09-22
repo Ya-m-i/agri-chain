@@ -11,7 +11,7 @@ const FABRIC_SERVICE_URL = process.env.FABRIC_SERVICE_URL || 'https://api.kapalo
 const getDistributionRecords = async (req, res) => {
     try {
         console.log('🔍 Fetching distribution records from blockchain...');
-        const response = await axios.get(`${FABRIC_SERVICE_URL}/api/claims-logs`);
+        const response = await axios.get(`${FABRIC_SERVICE_URL}/api/claims-logs/org1`);
         console.log('✅ Successfully fetched distribution records from blockchain');
         res.status(200).json({
             success: true,
@@ -38,7 +38,7 @@ const getDistributionRecordsByFarmer = async (req, res) => {
         console.log(`🔍 Fetching distribution records for farmer: ${farmerName}`);
         
         // Get all records and filter by farmer name
-        const response = await axios.get(`${FABRIC_SERVICE_URL}/api/claims-logs`);
+        const response = await axios.get(`${FABRIC_SERVICE_URL}/api/claims-logs/org1`);
         const allRecords = response.data;
         const farmerRecords = allRecords.filter(record => 
             record.farmerName && record.farmerName.toLowerCase().includes(farmerName.toLowerCase())
@@ -69,7 +69,7 @@ const getDistributionRecordsByStatus = async (req, res) => {
         console.log(`🔍 Fetching distribution records with status: ${status}`);
         
         // Get all records and filter by status
-        const response = await axios.get(`${FABRIC_SERVICE_URL}/api/claims-logs`);
+        const response = await axios.get(`${FABRIC_SERVICE_URL}/api/claims-logs/org1`);
         const allRecords = response.data;
         const statusRecords = allRecords.filter(record => 
             record.status && record.status.toLowerCase() === status.toLowerCase()
@@ -97,7 +97,7 @@ const getDistributionRecordsByStatus = async (req, res) => {
 const getDistributionRecordsStats = async (req, res) => {
     try {
         console.log('📊 Fetching distribution records statistics from blockchain...');
-        const response = await axios.get(`${FABRIC_SERVICE_URL}/api/claims-logs`);
+        const response = await axios.get(`${FABRIC_SERVICE_URL}/api/claims-logs/org1`);
         const allRecords = response.data;
         
         // Calculate statistics
@@ -170,7 +170,7 @@ const logClaimToDistribution = async (req, res) => {
         };
         
         console.log('📝 Logging claim to distribution records (blockchain):', distributionLog);
-        const response = await axios.post(`${FABRIC_SERVICE_URL}/api/claims-logs`, distributionLog);
+        const response = await axios.post(`${FABRIC_SERVICE_URL}/api/claims-logs/org1`, distributionLog);
         console.log('✅ Successfully logged claim to distribution records');
         
         res.status(201).json({

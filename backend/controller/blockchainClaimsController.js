@@ -9,9 +9,14 @@ const FABRIC_SERVICE_URL = process.env.FABRIC_SERVICE_URL || 'https://api.kapalo
 const getBlockchainClaims = async (req, res) => {
     try {
         console.log('🔍 Fetching claims logs from blockchain...');
-        const response = await axios.get(`${FABRIC_SERVICE_URL}/api/claims-logs`);
+        const response = await axios.get(`${FABRIC_SERVICE_URL}/api/claims-logs/org1`);
         console.log('✅ Successfully fetched claims logs from blockchain');
-        res.status(200).json(response.data);
+        res.status(200).json({
+            success: true,
+            data: response.data,
+            count: response.data.length,
+            source: 'blockchain'
+        });
     } catch (error) {
         console.error('❌ Error fetching claims logs from blockchain:', error.message);
         res.status(500).json({
@@ -80,14 +85,26 @@ const updateBlockchainClaim = async (req, res) => {
 };
 
 // @desc    Get claims logs by farmer from blockchain
-// @route   GET /api/blockchain-claims/farmer/:farmerId
+// @route   GET /api/blockchain-claims/farmer/:farmerName
 // @access  Private (Admin only)
 const getBlockchainClaimsByFarmer = async (req, res) => {
     try {
-        const { farmerId } = req.params;
-        console.log(`🔍 Fetching claims logs for farmer ${farmerId} from blockchain...`);
-        const response = await axios.get(`${FABRIC_SERVICE_URL}/api/claims-logs/farmer/${farmerId}`);
-        res.status(200).json(response.data);
+        const { farmerName } = req.params;
+        console.log(`🔍 Fetching claims logs for farmer ${farmerName} from blockchain...`);
+        
+        // Get all logs and filter by farmer name since the Fabric server doesn't have this endpoint
+        const response = await axios.get(`${FABRIC_SERVICE_URL}/api/claims-logs/org1`);
+        const allLogs = response.data;
+        const farmerLogs = allLogs.filter(log => 
+            log.farmerName && log.farmerName.toLowerCase().includes(farmerName.toLowerCase())
+        );
+        
+        res.status(200).json({
+            success: true,
+            data: farmerLogs,
+            count: farmerLogs.length,
+            source: 'blockchain'
+        });
     } catch (error) {
         console.error('❌ Error fetching claims logs by farmer from blockchain:', error.message);
         res.status(500).json({
@@ -105,8 +122,20 @@ const getBlockchainClaimsByStatus = async (req, res) => {
     try {
         const { status } = req.params;
         console.log(`🔍 Fetching claims logs with status ${status} from blockchain...`);
-        const response = await axios.get(`${FABRIC_SERVICE_URL}/api/claims-logs/status/${status}`);
-        res.status(200).json(response.data);
+        
+        // Get all logs and filter by status since the Fabric server doesn't have this endpoint
+        const response = await axios.get(`${FABRIC_SERVICE_URL}/api/claims-logs/org1`);
+        const allLogs = response.data;
+        const statusLogs = allLogs.filter(log => 
+            log.status && log.status.toLowerCase() === status.toLowerCase()
+        );
+        
+        res.status(200).json({
+            success: true,
+            data: statusLogs,
+            count: statusLogs.length,
+            source: 'blockchain'
+        });
     } catch (error) {
         console.error('❌ Error fetching claims logs by status from blockchain:', error.message);
         res.status(500).json({
@@ -123,8 +152,45 @@ const getBlockchainClaimsByStatus = async (req, res) => {
 const getBlockchainClaimsStats = async (req, res) => {
     try {
         console.log('📊 Fetching claims logs statistics from blockchain...');
-        const response = await axios.get(`${FABRIC_SERVICE_URL}/api/claims-logs/stats`);
-        res.status(200).json(response.data);
+        
+        // Get all logs and compute stats since the Fabric server doesn't have this endpoint
+        const response = await axios.get(`${FABRIC_SERVICE_URL}/api/claims-logs/org1`);
+        const allLogs = response.data;
+        
+        const stats = {
+            totalLogs: allLogs.length,
+            statusCounts: {
+                pending: 0,
+                approved: 0,
+                rejected: 0,
+                completed: 0
+            },
+            cropTypeCounts: {},
+            farmerCounts: {}
+        };
+        
+        allLogs.forEach(log => {
+            // Count by status
+            if (stats.statusCounts[log.status]) {
+                stats.statusCounts[log.status]++;
+            }
+            
+            // Count by crop type
+            if (log.cropType) {
+                stats.cropTypeCounts[log.cropType] = (stats.cropTypeCounts[log.cropType] || 0) + 1;
+            }
+            
+            // Count by farmer
+            if (log.farmerName) {
+                stats.farmerCounts[log.farmerName] = (stats.farmerCounts[log.farmerName] || 0) + 1;
+            }
+        });
+        
+        res.status(200).json({
+            success: true,
+            data: stats,
+            source: 'blockchain'
+        });
     } catch (error) {
         console.error('❌ Error fetching claims logs statistics from blockchain:', error.message);
         res.status(500).json({

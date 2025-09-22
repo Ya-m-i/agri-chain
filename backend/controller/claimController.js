@@ -27,13 +27,14 @@ const logClaimToBlockchain = async (claim) => {
             farmerName: farmerName,
             cropType: claim.crop,
             timestamp: new Date().toISOString(),
-            status: claim.status || 'pending'
+            status: claim.status || 'pending',
+            createdAt: new Date().toISOString()
         };
 
         console.log('📝 Logging claim to hosted blockchain:', claimLogData);
         
-        // Send to real blockchain via Cloudflare tunnel
-        const response = await axios.post(`${FABRIC_SERVICE_URL}/api/claims-logs`, claimLogData);
+        // Send to real blockchain via Cloudflare tunnel with org1 parameter
+        const response = await axios.post(`${FABRIC_SERVICE_URL}/api/claims-logs/org1`, claimLogData);
         console.log('✅ Successfully logged claim to hosted blockchain:', response.data);
         return response.data;
     } catch (error) {
