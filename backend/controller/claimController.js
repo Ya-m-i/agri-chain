@@ -89,7 +89,11 @@ const createClaim = async (req, res) => {
     
     console.log('Backend: Generated unique claim number:', claimNumber);
     
-    const claim = await Claim.create({ ...req.body, claimNumber });
+    const claim = await Claim.create({ 
+      ...req.body, 
+      claimNumber,
+      filedBy: req.body.filedBy || 'farmer' // Default to farmer if not specified
+    });
     console.log('Backend: Claim created successfully:', claim);
     
     // Log claim to hosted blockchain

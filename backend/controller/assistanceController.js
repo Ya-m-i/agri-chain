@@ -158,7 +158,8 @@ const applyForAssistance = async (req, res) => {
       requestedQuantity,
       eligibilityCheck,
       quarter,
-      status: 'pending'
+      status: 'pending',
+      filedBy: req.body.filedBy || 'farmer' // Default to farmer if not specified
     });
     
     // Emit Socket.IO event for real-time updates

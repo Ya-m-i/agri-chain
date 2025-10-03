@@ -34,6 +34,7 @@ const claimSchema = mongoose.Schema({
     4: { north: String, south: String, east: String, west: String },
   },
   claimNumber: { type: String, unique: true },
+  filedBy: { type: String, default: 'farmer', enum: ['farmer', 'admin'] }, // Track who filed the claim
 }, { timestamps: true })
 
 module.exports = mongoose.model('Claim', claimSchema) 

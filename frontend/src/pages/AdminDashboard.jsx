@@ -36,6 +36,7 @@ import {
   Filter as FilterIcon,
   PieChart,
   Shield,
+  HandHeart,
 } from "lucide-react"
 import { useAuthStore } from "../store/authStore"
 import { useNotificationStore } from "../store/notificationStore"
@@ -52,6 +53,8 @@ import AdminSettings from "../components/AdminSettings"
 import InsuranceClaims from "../components/InsuranceClaims"
 import AdminModals from "../components/AdminModals"
 import CropInsuranceManagement from "../components/CropInsuranceManagement"
+import AdminClaimFiling from "../components/AdminClaimFiling"
+import AdminAssistanceFiling from "../components/AdminAssistanceFiling"
 
 import {
   Chart as ChartJS,
@@ -146,6 +149,8 @@ const AdminDashboard = () => {
   const [notificationOpen, setNotificationOpen] = useState(false)
   const [showViewModal, setShowViewModal] = useState(false)
   const [selectedAssistance, setSelectedAssistance] = useState(null)
+  const [showAdminClaimFiling, setShowAdminClaimFiling] = useState(false)
+  const [showAdminAssistanceFiling, setShowAdminAssistanceFiling] = useState(false)
 
   // React Query hooks for data management
   // eslint-disable-next-line no-unused-vars
@@ -1947,6 +1952,21 @@ const AdminDashboard = () => {
                   Crop Insurance
                 </button>
               </li>
+              <li>
+                <button
+                  onClick={() => {
+                    setActiveTab("admin-filing")
+                    setSidebarOpen(false)
+                  }}
+                  className={`flex items-center w-full p-2 rounded-lg ${
+                    activeTab === "admin-filing" ? "text-lime-800 font-bold" : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                  style={activeTab === "admin-filing" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+                >
+                  <FileText size={24} className="mr-3" />
+                  File for Farmers
+                </button>
+              </li>
             </ul>
           </nav>
         </div>
@@ -2065,6 +2085,20 @@ const AdminDashboard = () => {
             >
               <ClipboardCheck size={24} className="flex-shrink-0" />
               {sidebarExpanded && <span>Assistance Inventory</span>}
+            </button>
+
+            <button
+              onClick={() => setActiveTab("admin-filing")}
+              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
+                activeTab === "admin-filing"
+                  ? "text-lime-800 font-bold"
+                  : "text-gray-700 hover:bg-gray-50"
+              }`}
+              style={activeTab === "admin-filing" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+              title={!sidebarExpanded ? "File for Farmers" : ""}
+            >
+              <FileText size={24} className="flex-shrink-0" />
+              {sidebarExpanded && <span>File for Farmers</span>}
             </button>
 
             {sidebarExpanded && (
@@ -3256,6 +3290,81 @@ const AdminDashboard = () => {
             </div>
           )}
 
+          {activeTab === "admin-filing" && (
+            <div className="p-6">
+              <div className="max-w-6xl mx-auto">
+                <div className="mb-8">
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">File for Farmers</h1>
+                  <p className="text-gray-600">
+                    File insurance claims and assistance applications on behalf of farmers who don't have mobile phones.
+                    This feature allows DA staff to help farmers who visit the office directly.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* File Claim Card */}
+                  <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+                    <div className="flex items-center mb-4">
+                      <div className="p-3 bg-blue-100 rounded-lg mr-4">
+                        <FileText className="h-8 w-8 text-blue-600" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-semibold text-gray-900">File Insurance Claim</h2>
+                        <p className="text-gray-600 text-sm">Submit insurance claims for farmers</p>
+                      </div>
+                    </div>
+                    <p className="text-gray-600 mb-6">
+                      Help farmers file insurance claims when they visit the DA office. 
+                      Select the farmer and fill out the claim form with all necessary details.
+                    </p>
+                    <button
+                      onClick={() => setShowAdminClaimFiling(true)}
+                      className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <FileText className="h-5 w-5" />
+                      <span>File Claim for Farmer</span>
+                    </button>
+                  </div>
+
+                  {/* File Assistance Card */}
+                  <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
+                    <div className="flex items-center mb-4">
+                      <div className="p-3 bg-green-100 rounded-lg mr-4">
+                        <HandHeart className="h-8 w-8 text-green-600" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-semibold text-gray-900">File Assistance Application</h2>
+                        <p className="text-gray-600 text-sm">Submit government assistance applications</p>
+                      </div>
+                    </div>
+                    <p className="text-gray-600 mb-6">
+                      Help farmers apply for government assistance programs when they visit the DA office.
+                      Check eligibility and submit applications on their behalf.
+                    </p>
+                    <button
+                      onClick={() => setShowAdminAssistanceFiling(true)}
+                      className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <HandHeart className="h-5 w-5" />
+                      <span>File Assistance for Farmer</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Instructions */}
+                <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-3">Instructions for DA Staff</h3>
+                  <div className="space-y-2 text-yellow-700">
+                    <p>• <strong>For Claims:</strong> Select the farmer from the database, fill out the claim form with damage details, and submit. The farmer will need to sign the printed claim form.</p>
+                    <p>• <strong>For Assistance:</strong> Check farmer eligibility, select appropriate assistance program, and submit application. Ensure farmer meets all requirements.</p>
+                    <p>• <strong>Documentation:</strong> Always verify farmer identity and collect necessary signatures before submitting applications.</p>
+                    <p>• <strong>Follow-up:</strong> Keep track of submitted applications and inform farmers about status updates.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {activeTab === "settings" && <AdminSettings />}
         </main>
       </div>
@@ -3304,6 +3413,41 @@ const AdminDashboard = () => {
         farmers={farmers}
         feedbackText={feedbackText}
         setFeedbackText={setFeedbackText}
+      />
+
+      {/* Admin Filing Modals */}
+      <AdminClaimFiling
+        isOpen={showAdminClaimFiling}
+        onClose={() => setShowAdminClaimFiling(false)}
+        onSuccess={(result) => {
+          console.log('Claim filed successfully:', result)
+          // Refresh claims data
+          refetchClaims()
+          // Show success notification
+          useNotificationStore.getState().addNotification({
+            id: generateUniqueId(),
+            type: 'success',
+            title: 'Claim Filed Successfully',
+            message: `Claim ${result.claimNumber} has been filed for the farmer`,
+            timestamp: new Date()
+          })
+        }}
+      />
+
+      <AdminAssistanceFiling
+        isOpen={showAdminAssistanceFiling}
+        onClose={() => setShowAdminAssistanceFiling(false)}
+        onSuccess={(result) => {
+          console.log('Assistance application filed successfully:', result)
+          // Show success notification
+          useNotificationStore.getState().addNotification({
+            id: generateUniqueId(),
+            type: 'success',
+            title: 'Assistance Application Filed',
+            message: 'Assistance application has been submitted for the farmer',
+            timestamp: new Date()
+          })
+        }}
       />
 
       {/* Analytics Modal */}

@@ -44,7 +44,8 @@ const assistanceApplicationSchema = mongoose.Schema({
   },
   quarter: { 
     type: String // Q1, Q2, Q3, Q4 + year
-  }
+  },
+  filedBy: { type: String, default: 'farmer', enum: ['farmer', 'admin'] } // Track who filed the application
 }, { timestamps: true });
 
 // Index for efficient queries
