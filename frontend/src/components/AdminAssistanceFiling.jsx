@@ -66,6 +66,7 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
       const insuranceRecords = await fetchCropInsurance(farmer._id)
       const now = new Date()
       const crops = []
+      const activeCrops = []
       
       insuranceRecords.forEach(record => {
         const cropType = record.cropType
@@ -74,19 +75,37 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
         const daysSincePlanting = Math.floor((now - plantingDate) / (1000 * 60 * 60 * 24))
         const daysLeft = dayLimit - daysSincePlanting
         
+        // Add all crops (both active and inactive)
+        crops.push(cropType)
+        
+        // Add only active crops (within insurance period)
         if (daysLeft >= 0) {
-          crops.push(cropType)
+          activeCrops.push(cropType)
         }
       })
       
-      setFarmerCropData({
+      // Create comprehensive farmer data
+      const farmerData = {
         ...farmer,
-        insuredCropTypes: crops,
-        cropType: crops.length > 0 ? crops[0] : farmer.cropType
-      })
+        // All crops from insurance records
+        allCropTypes: [...new Set(crops)], // Remove duplicates
+        // Only active crops (within insurance period)
+        insuredCropTypes: [...new Set(activeCrops)],
+        // Primary crop type (from farmer registration or first active crop)
+        cropType: farmer.cropType || (activeCrops.length > 0 ? activeCrops[0] : crops[0])
+      }
+      
+      setFarmerCropData(farmerData)
+      console.log('Farmer crop data loaded:', farmerData)
     } catch (error) {
       console.error('Error loading crop insurance data:', error)
-      setFarmerCropData(farmer)
+      // Fallback to basic farmer data
+      setFarmerCropData({
+        ...farmer,
+        allCropTypes: farmer.cropType ? [farmer.cropType] : [],
+        insuredCropTypes: farmer.cropType ? [farmer.cropType] : [],
+        cropType: farmer.cropType
+      })
     }
   }
 
@@ -121,13 +140,30 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
       ['pending', 'approved', 'distributed'].includes(app.status)
     )
 
-    // Check crop type match (supports insuredCropTypes array or single cropType)
-    const farmerCrops = (farmer.insuredCropTypes && Array.isArray(farmer.insuredCropTypes) && farmer.insuredCropTypes.length > 0)
-      ? farmer.insuredCropTypes.map(c => String(c).toLowerCase())
-      : (farmer.cropType ? [String(farmer.cropType).toLowerCase()] : []);
+    // Check crop type match (supports multiple crop sources)
+    const farmerCrops = []
+    
+    // Add crops from insurance records (active crops)
+    if (farmer.insuredCropTypes && Array.isArray(farmer.insuredCropTypes)) {
+      farmerCrops.push(...farmer.insuredCropTypes.map(c => String(c).toLowerCase()))
+    }
+    
+    // Add crops from all insurance records
+    if (farmer.allCropTypes && Array.isArray(farmer.allCropTypes)) {
+      farmerCrops.push(...farmer.allCropTypes.map(c => String(c).toLowerCase()))
+    }
+    
+    // Add crop from farmer registration
+    if (farmer.cropType) {
+      farmerCrops.push(String(farmer.cropType).toLowerCase())
+    }
+    
+    // Remove duplicates
+    const uniqueCrops = [...new Set(farmerCrops)]
+    
     const cropTypeMatch = Boolean(
-      assistance.cropType && farmerCrops.length > 0 &&
-      farmerCrops.includes(String(assistance.cropType).toLowerCase())
+      assistance.cropType && uniqueCrops.length > 0 &&
+      uniqueCrops.includes(String(assistance.cropType).toLowerCase())
     )
 
     // Check RSBSA registration
@@ -298,7 +334,8 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
                             {farmer.firstName} {farmer.middleName || ''} {farmer.lastName}
                           </div>
                           <div className="text-sm text-gray-500">
-                            Username: {farmer.username} | Crop: {farmer.cropType || 'Not specified'} | 
+                            Username: {farmer.username} | 
+                            Crop: {farmer.cropType || 'Not specified'} | 
                             RSBSA: {farmer.rsbsaRegistered ? 'Yes' : 'No'} | 
                             Certified: {farmer.isCertified ? 'Yes' : 'No'}
                           </div>
@@ -436,6 +473,19 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
                     Crop Type Match: {farmerCropData?.insuredCropTypes?.join(', ') || selectedFarmer.cropType || 'None'} vs {selectedAssistance.cropType}
                   </span>
                 </div>
+                
+                {/* Additional crop information */}
+                {farmerCropData && (
+                  <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                    <h4 className="text-sm font-medium text-blue-800 mb-2">Farmer's Crop Information</h4>
+                    <div className="space-y-1 text-xs text-blue-700">
+                      <p><strong>Registration Crop:</strong> {selectedFarmer.cropType || 'Not specified'}</p>
+                      <p><strong>Active Insured Crops:</strong> {farmerCropData.insuredCropTypes?.length > 0 ? farmerCropData.insuredCropTypes.join(', ') : 'None'}</p>
+                      <p><strong>All Insurance Crops:</strong> {farmerCropData.allCropTypes?.length > 0 ? farmerCropData.allCropTypes.join(', ') : 'None'}</p>
+                      <p><strong>Required for Assistance:</strong> {selectedAssistance.cropType}</p>
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center space-x-2">
                   {parseInt(formData.requestedQuantity) <= selectedAssistance.availableQuantity ? (
                     <CheckCircle className="h-4 w-4 text-green-600" />

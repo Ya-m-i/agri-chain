@@ -311,6 +311,48 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
     setIsSubmitting(true)
     
     try {
+      // Convert File objects to base64 strings for damagePhotos
+      const damagePhotoStrings = []
+      for (const photo of formData.damagePhotos) {
+        if (photo instanceof File) {
+          const base64 = await new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result)
+            reader.readAsDataURL(photo)
+          })
+          damagePhotoStrings.push(base64)
+        } else if (typeof photo === 'string') {
+          damagePhotoStrings.push(photo)
+        }
+      }
+
+      // Convert File objects to base64 strings for documents
+      const documentStrings = []
+      for (const doc of formData.documents) {
+        if (doc instanceof File) {
+          const base64 = await new Promise((resolve) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result)
+            reader.readAsDataURL(doc)
+          })
+          documentStrings.push(base64)
+        } else if (typeof doc === 'string') {
+          documentStrings.push(doc)
+        }
+      }
+
+      // Convert sketch file to base64 string
+      let sketchFileString = null
+      if (formData.sketchFile instanceof File) {
+        sketchFileString = await new Promise((resolve) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result)
+          reader.readAsDataURL(formData.sketchFile)
+        })
+      } else if (typeof formData.sketchFile === 'string') {
+        sketchFileString = formData.sketchFile
+      }
+
       // Prepare claim data
       const claimData = {
         ...formData,
@@ -319,9 +361,13 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
         degreeOfDamage: parseFloat(formData.degreeOfDamage) || 0,
         plantingDate: formData.plantingDate ? new Date(formData.plantingDate) : null,
         lossDate: formData.lossDate ? new Date(formData.lossDate) : null,
+        expectedHarvest: formData.expectedHarvest ? new Date(formData.expectedHarvest) : null,
         date: new Date(),
         status: 'pending',
-        filedBy: 'admin' // Mark as admin-filed
+        filedBy: 'admin', // Mark as admin-filed
+        damagePhotos: damagePhotoStrings,
+        documents: documentStrings,
+        sketchFile: sketchFileString
       }
 
       console.log('Admin filing claim for farmer:', claimData)
