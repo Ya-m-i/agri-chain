@@ -53,7 +53,7 @@ import AdminSettings from "../components/AdminSettings"
 import InsuranceClaims from "../components/InsuranceClaims"
 import AdminModals from "../components/AdminModals"
 import CropInsuranceManagement from "../components/CropInsuranceManagement"
-import AdminClaimFiling from "../components/AdminClaimFiling"
+import AdminClaimFilingEnhanced from "../components/AdminClaimFilingEnhanced"
 import AdminAssistanceFiling from "../components/AdminAssistanceFiling"
 
 import {
@@ -3416,7 +3416,7 @@ const AdminDashboard = () => {
       />
 
       {/* Admin Filing Modals */}
-      <AdminClaimFiling
+      <AdminClaimFilingEnhanced
         isOpen={showAdminClaimFiling}
         onClose={() => setShowAdminClaimFiling(false)}
         onSuccess={(result) => {
