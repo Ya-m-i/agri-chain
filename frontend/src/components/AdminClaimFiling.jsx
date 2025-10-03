@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, User, FileText, MapPin, Calendar, AlertTriangle, CheckCircle, Upload, Search } from "lucide-react"
+import { X, User, FileText, MapPin, Calendar, AlertTriangle, CheckCircle, Upload, Search, ChevronDown } from "lucide-react"
 import { createClaim } from '../api'
 import { useFarmers } from '../hooks/useAPI'
 
