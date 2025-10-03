@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { X, User, HandHeart, Search, AlertTriangle, CheckCircle } from "lucide-react"
-import { applyForAssistance } from '../api'
-import { useFarmers, useAssistances } from '../hooks/useAPI'
+import { applyForAssistance, fetchCropInsurance } from '../api'
+import { useFarmers, useAssistances, useFarmerApplications } from '../hooks/useAPI'
 
 const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -19,10 +19,13 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
   const [showFarmerSearch, setShowFarmerSearch] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState({})
+  const [farmerCropData, setFarmerCropData] = useState(null)
+  const [eligibilityResults, setEligibilityResults] = useState({})
 
   // Get farmers and assistance data
   const { data: farmers = [], isLoading: farmersLoading } = useFarmers()
   const { data: assistanceItems = [], isLoading: assistanceLoading } = useAssistances()
+  const { data: farmerApplications = [] } = useFarmerApplications(selectedFarmer?._id)
 
   // Filter farmers based on search term
   const filteredFarmers = farmers.filter(farmer => {
@@ -48,7 +51,7 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
     }
   }, [isOpen])
 
-  const handleFarmerSelect = (farmer) => {
+  const handleFarmerSelect = async (farmer) => {
     setSelectedFarmer(farmer)
     setFormData(prev => ({
       ...prev,
@@ -57,6 +60,34 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
     }))
     setShowFarmerSearch(false)
     setSearchTerm('')
+    
+    // Load farmer's crop insurance data
+    try {
+      const insuranceRecords = await fetchCropInsurance(farmer._id)
+      const now = new Date()
+      const crops = []
+      
+      insuranceRecords.forEach(record => {
+        const cropType = record.cropType
+        const plantingDate = new Date(record.plantingDate)
+        const dayLimit = parseInt(record.insuranceDayLimit)
+        const daysSincePlanting = Math.floor((now - plantingDate) / (1000 * 60 * 60 * 24))
+        const daysLeft = dayLimit - daysSincePlanting
+        
+        if (daysLeft >= 0) {
+          crops.push(cropType)
+        }
+      })
+      
+      setFarmerCropData({
+        ...farmer,
+        insuredCropTypes: crops,
+        cropType: crops.length > 0 ? crops[0] : farmer.cropType
+      })
+    } catch (error) {
+      console.error('Error loading crop insurance data:', error)
+      setFarmerCropData(farmer)
+    }
   }
 
   const handleInputChange = (e) => {
@@ -76,12 +107,67 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
     }
   }
 
+  const checkEligibility = (farmer, assistance) => {
+    if (!farmer || !assistance) return { eligible: false, reasons: {} }
+    
+    const now = new Date()
+    const currentQuarter = `Q${Math.floor(now.getMonth() / 3) + 1}-${now.getFullYear()}`
+    
+    // Check if already applied this quarter
+    const alreadyApplied = farmerApplications.some(app => 
+      app.farmerId === farmer._id && 
+      app.assistanceId === assistance._id && 
+      app.quarter === currentQuarter &&
+      ['pending', 'approved', 'distributed'].includes(app.status)
+    )
+
+    // Check crop type match (supports insuredCropTypes array or single cropType)
+    const farmerCrops = (farmer.insuredCropTypes && Array.isArray(farmer.insuredCropTypes) && farmer.insuredCropTypes.length > 0)
+      ? farmer.insuredCropTypes.map(c => String(c).toLowerCase())
+      : (farmer.cropType ? [String(farmer.cropType).toLowerCase()] : []);
+    const cropTypeMatch = Boolean(
+      assistance.cropType && farmerCrops.length > 0 &&
+      farmerCrops.includes(String(assistance.cropType).toLowerCase())
+    )
+
+    // Check RSBSA registration
+    const rsbsaEligible = !assistance.requiresRSBSA || farmer.rsbsaRegistered
+
+    // Check certification (for cash assistance)
+    const certificationEligible = !assistance.requiresCertification || farmer.isCertified
+
+    // Check stock availability
+    const stockAvailable = assistance.availableQuantity > 0
+
+    return {
+      eligible: !alreadyApplied && cropTypeMatch && rsbsaEligible && certificationEligible && stockAvailable,
+      alreadyApplied,
+      cropTypeMatch,
+      rsbsaEligible,
+      certificationEligible,
+      stockAvailable,
+      reasons: {
+        alreadyApplied: alreadyApplied ? 'Already applied this quarter' : null,
+        cropTypeMismatch: !cropTypeMatch ? `Only for ${assistance.cropType} farmers` : null,
+        rsbsaRequired: !rsbsaEligible ? 'RSBSA registration required' : null,
+        certificationRequired: !certificationEligible ? 'Certification required' : null,
+        outOfStock: !stockAvailable ? 'Out of stock' : null
+      }
+    }
+  }
+
   const handleAssistanceSelect = (assistance) => {
     setSelectedAssistance(assistance)
     setFormData(prev => ({
       ...prev,
       assistanceId: assistance._id
     }))
+    
+    // Check eligibility
+    if (farmerCropData) {
+      const eligibility = checkEligibility(farmerCropData, assistance)
+      setEligibilityResults(eligibility)
+    }
   }
 
   const validateForm = () => {
@@ -212,7 +298,7 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
                             {farmer.firstName} {farmer.middleName || ''} {farmer.lastName}
                           </div>
                           <div className="text-sm text-gray-500">
-                            Username: {farmer.username} | Crop: {farmer.cropType || 'N/A'} | 
+                            Username: {farmer.username} | Crop: {farmer.cropType || 'Not specified'} | 
                             RSBSA: {farmer.rsbsaRegistered ? 'Yes' : 'No'} | 
                             Certified: {farmer.isCertified ? 'Yes' : 'No'}
                           </div>
@@ -341,13 +427,13 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  {selectedFarmer.cropType?.toLowerCase() === selectedAssistance.cropType?.toLowerCase() ? (
+                  {eligibilityResults.cropTypeMatch ? (
                     <CheckCircle className="h-4 w-4 text-green-600" />
                   ) : (
                     <AlertTriangle className="h-4 w-4 text-red-600" />
                   )}
-                  <span className={selectedFarmer.cropType?.toLowerCase() === selectedAssistance.cropType?.toLowerCase() ? 'text-green-700' : 'text-red-700'}>
-                    Crop Type Match: {selectedFarmer.cropType} vs {selectedAssistance.cropType}
+                  <span className={eligibilityResults.cropTypeMatch ? 'text-green-700' : 'text-red-700'}>
+                    Crop Type Match: {farmerCropData?.insuredCropTypes?.join(', ') || selectedFarmer.cropType || 'None'} vs {selectedAssistance.cropType}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { X, User, FileText, MapPin, Calendar, AlertTriangle, CheckCircle, Upload, Search, ChevronDown, ArrowLeft, ArrowRight, Camera, Trash2, Plus } from "lucide-react"
-import { createClaim } from '../api'
+import { createClaim, fetchCropInsurance } from '../api'
 import { useFarmers } from '../hooks/useAPI'
 
 const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
@@ -16,10 +16,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
     crop: '',
     otherCropText: '',
     areaInsured: '',
-    varietyPlanted: '',
     plantingDate: '',
-    cicNumber: '',
-    underwriter: '',
     program: [],
     otherProgramText: '',
     sketchFile: null,
@@ -46,6 +43,10 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
   const [lots, setLots] = useState([1])
+  const [insuredCrops, setInsuredCrops] = useState([])
+  const [cropLimits, setCropLimits] = useState({})
+  const [cropWarnings, setCropWarnings] = useState({})
+  const [selectedCropInsurance, setSelectedCropInsurance] = useState(null)
 
   // Get farmers data
   const { data: farmers = [], isLoading: farmersLoading } = useFarmers()
@@ -101,7 +102,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
     }
   }, [isOpen])
 
-  const handleFarmerSelect = (farmer) => {
+  const handleFarmerSelect = async (farmer) => {
     setSelectedFarmer(farmer)
     setFormData(prev => ({
       ...prev,
@@ -114,6 +115,61 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
     }))
     setShowFarmerSearch(false)
     setSearchTerm('')
+    
+    // Load farmer's crop insurance data
+    try {
+      const insuranceRecords = await fetchCropInsurance(farmer._id)
+      const now = new Date()
+      const crops = []
+      const limits = {}
+      const warnings = {}
+      
+      insuranceRecords.forEach(record => {
+        const cropType = record.cropType
+        const plantingDate = new Date(record.plantingDate)
+        const dayLimit = parseInt(record.insuranceDayLimit)
+        const daysSincePlanting = Math.floor((now - plantingDate) / (1000 * 60 * 60 * 24))
+        const daysLeft = dayLimit - daysSincePlanting
+        
+        if (daysLeft >= 0) {
+          crops.push({
+            cropType,
+            daysLeft,
+            plantingDate: record.plantingDate,
+            expectedHarvestDate: record.expectedHarvestDate,
+            areaInsured: record.cropArea,
+            insuranceDayLimit: record.insuranceDayLimit
+          })
+          limits[cropType] = daysLeft
+          if (daysLeft <= 5) {
+            warnings[cropType] = daysLeft === 0
+              ? `Claim period for ${cropType} is over!`
+              : `Only ${daysLeft} day(s) left to file a claim for ${cropType}!`
+          }
+        } else {
+          warnings[cropType] = `Claim period for ${cropType} is over!`
+        }
+      })
+      
+      setInsuredCrops(crops)
+      setCropLimits(limits)
+      setCropWarnings(warnings)
+      
+      // Auto-select first available crop if only one
+      if (crops.length === 1) {
+        const crop = crops[0]
+        setFormData(prev => ({
+          ...prev,
+          crop: crop.cropType,
+          areaInsured: crop.areaInsured.toString(),
+          plantingDate: crop.plantingDate.split('T')[0],
+          expectedHarvest: crop.expectedHarvestDate ? new Date(crop.expectedHarvestDate).toISOString().split('T')[0] : ''
+        }))
+        setSelectedCropInsurance(crop)
+      }
+    } catch (error) {
+      console.error('Error loading crop insurance data:', error)
+    }
   }
 
   const handleInputChange = (field, value) => {
@@ -129,6 +185,17 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
         [field]: ''
       }))
     }
+  }
+
+  const handleCropSelect = (crop) => {
+    setSelectedCropInsurance(crop)
+    setFormData(prev => ({
+      ...prev,
+      crop: crop.cropType,
+      areaInsured: crop.areaInsured.toString(),
+      plantingDate: crop.plantingDate.split('T')[0],
+      expectedHarvest: crop.expectedHarvestDate ? new Date(crop.expectedHarvestDate).toISOString().split('T')[0] : ''
+    }))
   }
 
   const handleFileUpload = (field, files) => {
@@ -465,30 +532,73 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
               {/* Crop Information */}
               <div className="space-y-4">
                 <h4 className="text-lg font-semibold text-gray-800">Crop Information</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                {insuredCrops.length > 0 ? (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Crop Type *
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Select Insured Crop *
                     </label>
-                    <select
-                      value={formData.crop}
-                      onChange={(e) => handleInputChange('crop', e.target.value)}
-                      onBlur={() => setFieldTouched('crop')}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    >
-                      <option value="">Select crop type</option>
-                      <option value="Rice">Rice</option>
-                      <option value="Corn">Corn</option>
-                      <option value="Vegetables">Vegetables</option>
-                      <option value="Fruits">Fruits</option>
-                      <option value="Other">Other</option>
-                    </select>
+                    <div className="space-y-2">
+                      {insuredCrops.map((crop, index) => (
+                        <div
+                          key={index}
+                          onClick={() => handleCropSelect(crop)}
+                          className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                            selectedCropInsurance?.cropType === crop.cropType
+                              ? 'border-blue-500 bg-blue-50'
+                              : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h5 className="font-semibold text-gray-900">{crop.cropType}</h5>
+                              <p className="text-sm text-gray-600">
+                                Area: {crop.areaInsured} hectares | 
+                                Planted: {new Date(crop.plantingDate).toLocaleDateString()}
+                              </p>
+                              {crop.expectedHarvestDate && (
+                                <p className="text-sm text-gray-600">
+                                  Expected Harvest: {new Date(crop.expectedHarvestDate).toLocaleDateString()}
+                                </p>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                crop.daysLeft <= 0 
+                                  ? 'bg-red-100 text-red-800'
+                                  : crop.daysLeft <= 5
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-green-100 text-green-800'
+                              }`}>
+                                {crop.daysLeft <= 0 ? 'Expired' : `${crop.daysLeft} days left`}
+                              </div>
+                            </div>
+                          </div>
+                          {cropWarnings[crop.cropType] && (
+                            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm text-yellow-800">
+                              <AlertTriangle className="inline h-4 w-4 mr-1" />
+                              {cropWarnings[crop.cropType]}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                     {errors.crop && (
                       <p className="mt-1 text-sm text-red-600">{errors.crop}</p>
                     )}
                   </div>
+                ) : (
+                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                      <p className="text-yellow-800">
+                        No active crop insurance found for this farmer. Please ensure the farmer has registered for crop insurance first.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Area Insured (hectares) *
@@ -510,18 +620,6 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Variety Planted
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.varietyPlanted}
-                      onChange={(e) => handleInputChange('varietyPlanted', e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Planting Date
                     </label>
                     <input
@@ -536,40 +634,14 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
 
               {/* Insurance Information */}
               <div className="space-y-4">
-                <h4 className="text-lg font-semibold text-gray-800">Insurance Information</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      CIC Number
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.cicNumber}
-                      onChange={(e) => handleInputChange('cicNumber', e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Underwriter
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.underwriter}
-                      onChange={(e) => handleInputChange('underwriter', e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-
+                <h4 className="text-lg font-semibold text-gray-800">Insurance Programs</h4>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Insurance Programs
+                    Select applicable programs
                   </label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {['PCIC', 'RSBSA', 'Crop Insurance', 'Other'].map((program) => (
-                      <label key={program} className="flex items-center space-x-2">
+                      <label key={program} className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={formData.program.includes(program)}
@@ -582,18 +654,20 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                           }}
                           className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
-                        <span className="text-sm text-gray-700">{program}</span>
+                        <span className="text-sm text-gray-700 font-medium">{program}</span>
                       </label>
                     ))}
                   </div>
                   {formData.program.includes('Other') && (
-                    <input
-                      type="text"
-                      value={formData.otherProgramText}
-                      onChange={(e) => handleInputChange('otherProgramText', e.target.value)}
-                      placeholder="Specify other program"
-                      className="mt-2 w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    <div className="mt-3">
+                      <input
+                        type="text"
+                        value={formData.otherProgramText}
+                        onChange={(e) => handleInputChange('otherProgramText', e.target.value)}
+                        placeholder="Specify other program"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
                   )}
                 </div>
               </div>
@@ -780,14 +854,19 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Expected Harvest
+                    Expected Harvest Date
                   </label>
                   <input
-                    type="text"
+                    type="date"
                     value={formData.expectedHarvest}
                     onChange={(e) => handleInputChange('expectedHarvest', e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                  {selectedCropInsurance?.expectedHarvestDate && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      From insurance: {new Date(selectedCropInsurance.expectedHarvestDate).toLocaleDateString()}
+                    </p>
+                  )}
                 </div>
               </div>
 
