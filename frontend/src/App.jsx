@@ -46,28 +46,20 @@ function App() {
   
   // Handle GitHub Pages SPA redirect
   useEffect(() => {
-    // Check for hash-based redirect (from 404.html)
-    const hash = window.location.hash
-    if (hash && hash !== '#/') {
-      // Remove the # and navigate to the route
-      const route = hash.substring(1) // Remove the #
-      console.log('GitHub Pages hash redirect detected:', { hash, route })
-      
-      // Replace the current URL with the route
-      window.history.replaceState(null, '', route)
-    }
-    
-    // Also check for query parameter redirect (fallback)
+    // Check for query parameter redirect (from 404.html)
     const urlParams = new URLSearchParams(window.location.search)
     const redirectPath = urlParams.get('/')
     
     if (redirectPath) {
       // Decode the path and navigate to it
       const decodedPath = redirectPath.replace(/~and~/g, '&')
-      console.log('GitHub Pages query redirect detected:', { redirectPath, decodedPath })
+      console.log('GitHub Pages redirect detected:', { redirectPath, decodedPath })
       
       // Replace the current URL with the decoded path
       window.history.replaceState(null, '', decodedPath)
+      
+      // Force a reload to ensure React Router picks up the new path
+      window.location.reload()
     }
   }, [])
   
