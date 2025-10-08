@@ -56,7 +56,9 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
     setFormData(prev => ({
       ...prev,
       farmerId: farmer._id,
-      farmerData: farmer
+      farmerData: farmer,
+      // Include crop type in form data
+      farmerCropType: farmer.cropType || 'Unknown'
     }))
     setShowFarmerSearch(false)
     setSearchTerm('')
@@ -96,16 +98,31 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
       }
       
       setFarmerCropData(farmerData)
+      
+      // Update form data with the determined crop type
+      setFormData(prev => ({
+        ...prev,
+        farmerCropType: farmerData.cropType
+      }))
+      
       console.log('Farmer crop data loaded:', farmerData)
     } catch (error) {
       console.error('Error loading crop insurance data:', error)
       // Fallback to basic farmer data
-      setFarmerCropData({
+      const fallbackData = {
         ...farmer,
         allCropTypes: farmer.cropType ? [farmer.cropType] : [],
         insuredCropTypes: farmer.cropType ? [farmer.cropType] : [],
-        cropType: farmer.cropType
-      })
+        cropType: farmer.cropType || 'Unknown'
+      }
+      
+      setFarmerCropData(fallbackData)
+      
+      // Update form data with fallback crop type
+      setFormData(prev => ({
+        ...prev,
+        farmerCropType: fallbackData.cropType
+      }))
     }
   }
 
@@ -230,12 +247,17 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
     
     try {
       console.log('Admin filing assistance application for farmer:', formData)
+      console.log('Farmer crop data:', farmerCropData)
       
-      // Add filedBy field to mark as admin-filed
+      // Add filedBy field and ensure crop type is included
       const assistanceData = {
         ...formData,
-        filedBy: 'admin'
+        filedBy: 'admin',
+        // Ensure crop type is included from farmer data
+        farmerCropType: farmerCropData?.cropType || selectedFarmer?.cropType || 'Unknown'
       }
+      
+      console.log('Assistance data being sent:', assistanceData)
       
       const result = await applyForAssistance(assistanceData)
       

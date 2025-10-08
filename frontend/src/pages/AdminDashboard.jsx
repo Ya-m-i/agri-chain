@@ -2022,18 +2022,6 @@ const AdminDashboard = () => {
                 className={`transition-all duration-300 overflow-hidden ${showFarmLocationsDropdown && sidebarExpanded ? "max-h-40" : "max-h-0"}`}
               >
                 <button
-                  onClick={() => {
-                    setShowMapModal(true)
-                    setMapMode("view")
-                  }}
-                  className={`flex items-center ${sidebarExpanded ? 'gap-3 pl-10' : 'justify-center px-2'} py-2 rounded-lg hover:bg-gray-50 w-full text-left transition-colors ${showMapModal ? "text-lime-800 font-bold" : "text-gray-600"}`}
-                  style={showMapModal ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
-                  title={!sidebarExpanded ? "View Farm Locations" : ""}
-                >
-                  <Map size={24} className="flex-shrink-0" />
-                  {sidebarExpanded && <span>View Farm Locations</span>}
-                </button>
-                <button
                   onClick={() => setActiveTab("crop-insurance")}
                   className={`flex items-center ${sidebarExpanded ? 'gap-3 pl-10' : 'justify-center px-2'} py-2 rounded-lg hover:bg-gray-50 w-full text-left transition-colors ${activeTab === 'crop-insurance' ? "text-lime-800 font-bold" : "text-gray-600"}`}
                   style={activeTab === 'crop-insurance' ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
