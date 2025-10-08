@@ -44,6 +44,18 @@ function App() {
   const [loading, setLoading] = useState(true)
   const { isAuthenticated, userType, isInitialized, initializeAuth } = useAuthStore()
   
+  // Handle GitHub Pages SPA redirect
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const redirectPath = urlParams.get('/')
+    
+    if (redirectPath) {
+      // Decode the path and navigate to it
+      const decodedPath = redirectPath.replace(/~and~/g, '&')
+      window.history.replaceState(null, '', decodedPath)
+    }
+  }, [])
+  
   // Initialize Socket.IO integration with React Query
   const { isConnected } = useSocketQuery({
     serverUrl: import.meta.env.VITE_SOCKET_URL || 'https://agri-chain.onrender.com'
