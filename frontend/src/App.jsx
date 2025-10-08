@@ -52,6 +52,9 @@ function App() {
     if (redirectPath) {
       // Decode the path and navigate to it
       const decodedPath = redirectPath.replace(/~and~/g, '&')
+      console.log('GitHub Pages redirect detected:', { redirectPath, decodedPath })
+      
+      // Replace the current URL with the decoded path
       window.history.replaceState(null, '', decodedPath)
     }
   }, [])
