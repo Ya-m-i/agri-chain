@@ -86,6 +86,22 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
         }
       })
       
+      // Determine the best crop type to use
+      let primaryCropType = 'Unknown'
+      
+      // Priority 1: Use active insured crops
+      if (activeCrops.length > 0) {
+        primaryCropType = activeCrops[0]
+      }
+      // Priority 2: Use any insured crops
+      else if (crops.length > 0) {
+        primaryCropType = crops[0]
+      }
+      // Priority 3: Use farmer registration crop type
+      else if (farmer.cropType && farmer.cropType.trim() !== '') {
+        primaryCropType = farmer.cropType
+      }
+      
       // Create comprehensive farmer data
       const farmerData = {
         ...farmer,
@@ -93,8 +109,8 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
         allCropTypes: [...new Set(crops)], // Remove duplicates
         // Only active crops (within insurance period)
         insuredCropTypes: [...new Set(activeCrops)],
-        // Primary crop type (from farmer registration or first active crop)
-        cropType: farmer.cropType || (activeCrops.length > 0 ? activeCrops[0] : crops[0])
+        // Primary crop type (determined by priority)
+        cropType: primaryCropType
       }
       
       setFarmerCropData(farmerData)
@@ -102,10 +118,11 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
       // Update form data with the determined crop type
       setFormData(prev => ({
         ...prev,
-        farmerCropType: farmerData.cropType
+        farmerCropType: primaryCropType
       }))
       
       console.log('Farmer crop data loaded:', farmerData)
+      console.log('Primary crop type determined:', primaryCropType)
     } catch (error) {
       console.error('Error loading crop insurance data:', error)
       // Fallback to basic farmer data
@@ -248,15 +265,33 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
     try {
       console.log('Admin filing assistance application for farmer:', formData)
       console.log('Farmer crop data:', farmerCropData)
+      console.log('Selected farmer:', selectedFarmer)
+      
+      // Determine the best crop type to use
+      let finalCropType = 'Unknown'
+      
+      // Priority 1: Use farmerCropData crop type
+      if (farmerCropData?.cropType && farmerCropData.cropType !== 'Unknown') {
+        finalCropType = farmerCropData.cropType
+      }
+      // Priority 2: Use form data crop type
+      else if (formData.farmerCropType && formData.farmerCropType !== 'Unknown') {
+        finalCropType = formData.farmerCropType
+      }
+      // Priority 3: Use selected farmer crop type
+      else if (selectedFarmer?.cropType && selectedFarmer.cropType.trim() !== '') {
+        finalCropType = selectedFarmer.cropType
+      }
       
       // Add filedBy field and ensure crop type is included
       const assistanceData = {
         ...formData,
         filedBy: 'admin',
         // Ensure crop type is included from farmer data
-        farmerCropType: farmerCropData?.cropType || selectedFarmer?.cropType || 'Unknown'
+        farmerCropType: finalCropType
       }
       
+      console.log('Final crop type determined:', finalCropType)
       console.log('Assistance data being sent:', assistanceData)
       
       const result = await applyForAssistance(assistanceData)
@@ -504,6 +539,7 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
                       <p><strong>Registration Crop:</strong> {selectedFarmer.cropType || 'Not specified'}</p>
                       <p><strong>Active Insured Crops:</strong> {farmerCropData.insuredCropTypes?.length > 0 ? farmerCropData.insuredCropTypes.join(', ') : 'None'}</p>
                       <p><strong>All Insurance Crops:</strong> {farmerCropData.allCropTypes?.length > 0 ? farmerCropData.allCropTypes.join(', ') : 'None'}</p>
+                      <p><strong>Selected Crop Type:</strong> <span className="font-bold text-green-700">{farmerCropData.cropType}</span></p>
                       <p><strong>Required for Assistance:</strong> {selectedAssistance.cropType}</p>
                     </div>
                   </div>
