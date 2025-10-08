@@ -173,7 +173,7 @@ const AdminDashboard = () => {
       // Refetch claims to update the UI immediately
       refetchClaims();
       // Add notification for admin
-      useNotificationStore.getState().addNotification({
+      useNotificationStore.getState().addAdminNotification({
         id: generateUniqueId(),
         type: 'info',
         title: 'New Claim Submitted',
@@ -3424,7 +3424,7 @@ const AdminDashboard = () => {
           // Refresh claims data
           refetchClaims()
           // Show success notification
-          useNotificationStore.getState().addNotification({
+          useNotificationStore.getState().addAdminNotification({
             id: generateUniqueId(),
             type: 'success',
             title: 'Claim Filed Successfully',
@@ -3440,7 +3440,7 @@ const AdminDashboard = () => {
         onSuccess={(result) => {
           console.log('Assistance application filed successfully:', result)
           // Show success notification
-          useNotificationStore.getState().addNotification({
+          useNotificationStore.getState().addAdminNotification({
             id: generateUniqueId(),
             type: 'success',
             title: 'Assistance Application Filed',

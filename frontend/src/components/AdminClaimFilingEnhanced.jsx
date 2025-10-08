@@ -41,10 +41,8 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
   const [showFarmerSearch, setShowFarmerSearch] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState({})
-  const [touched, setTouched] = useState({})
   const [lots, setLots] = useState([1])
   const [insuredCrops, setInsuredCrops] = useState([])
-  const [cropLimits, setCropLimits] = useState({})
   const [cropWarnings, setCropWarnings] = useState({})
   const [selectedCropInsurance, setSelectedCropInsurance] = useState(null)
 
@@ -96,21 +94,43 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
       setSearchTerm('')
       setShowFarmerSearch(false)
       setErrors({})
-      setTouched({})
       setStep(1)
       setLots([1])
     }
   }, [isOpen])
 
+  const reverseGeocode = async (lat, lng) => {
+    try {
+      const response = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`)
+      const data = await response.json()
+      if (data.localityInfo && data.localityInfo.administrative) {
+        const admin = data.localityInfo.administrative
+        const locality = data.localityInfo.locality
+        return `${admin[0]?.name || ''}, ${locality[0]?.name || ''}, ${data.countryName || ''}`.replace(/^,\s*|,\s*$/g, '')
+      }
+      return `${lat}, ${lng}`
+    } catch (error) {
+      console.error('Reverse geocoding error:', error)
+      return `${lat}, ${lng}`
+    }
+  }
+
   const handleFarmerSelect = async (farmer) => {
     setSelectedFarmer(farmer)
+    
+    // Get location string from coordinates
+    let locationString = ''
+    if (farmer.location && farmer.location.lat && farmer.location.lng) {
+      locationString = await reverseGeocode(farmer.location.lat, farmer.location.lng)
+    }
+    
     setFormData(prev => ({
       ...prev,
       farmerId: farmer._id,
       name: `${farmer.firstName} ${farmer.middleName || ''} ${farmer.lastName}`.trim(),
       address: farmer.address || '',
       phone: farmer.contactNum || '',
-      farmerLocation: farmer.location ? `${farmer.location.lat}, ${farmer.location.lng}` : '',
+      farmerLocation: locationString || (farmer.location ? `${farmer.location.lat}, ${farmer.location.lng}` : ''),
       crop: farmer.cropType || ''
     }))
     setShowFarmerSearch(false)
@@ -121,7 +141,6 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
       const insuranceRecords = await fetchCropInsurance(farmer._id)
       const now = new Date()
       const crops = []
-      const limits = {}
       const warnings = {}
       
       insuranceRecords.forEach(record => {
@@ -140,7 +159,6 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
             areaInsured: record.cropArea,
             insuranceDayLimit: record.insuranceDayLimit
           })
-          limits[cropType] = daysLeft
           if (daysLeft <= 5) {
             warnings[cropType] = daysLeft === 0
               ? `Claim period for ${cropType} is over!`
@@ -152,7 +170,6 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
       })
       
       setInsuredCrops(crops)
-      setCropLimits(limits)
       setCropWarnings(warnings)
       
       // Auto-select first available crop if only one
@@ -266,11 +283,8 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
     }
   }
 
-  const setFieldTouched = (field) => {
-    setTouched(prev => ({
-      ...prev,
-      [field]: true
-    }))
+  const setFieldTouched = () => {
+    // Field touched tracking removed for simplicity
   }
 
   const validateStep = (stepNumber) => {
@@ -399,8 +413,8 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <FileText className="h-6 w-6 text-blue-600" />
+            <div className="p-2 bg-green-100 rounded-lg">
+              <FileText className="h-6 w-6 text-green-600" />
             </div>
             <div>
               <h2 className="text-xl font-semibold text-gray-900">File Claim for Farmer</h2>
@@ -419,7 +433,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
         <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
           <div className="w-full bg-gray-300 rounded-full h-3 mb-4">
             <div
-              className="bg-blue-600 h-3 rounded-full transition-all duration-500 ease-in-out"
+              className="bg-green-600 h-3 rounded-full transition-all duration-500 ease-in-out"
               style={{ width: `${progressPercentage}%` }}
             ></div>
           </div>
@@ -429,9 +443,9 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
               <button
                 key={navStep}
                 onClick={() => setStep(navStep)}
-                className={`px-6 py-2 rounded-full shadow-lg font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-all duration-200 ${
+                className={`px-6 py-2 rounded-full shadow-lg font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 transition-all duration-200 ${
                   step === navStep
-                    ? "bg-blue-700 text-white transform scale-105"
+                    ? "bg-green-700 text-white transform scale-105"
                     : "bg-gray-300 text-gray-700 hover:bg-gray-400"
                 }`}
               >
@@ -529,7 +543,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     onBlur={() => setFieldTouched('name')}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     required
                   />
                   {errors.name && (
@@ -545,7 +559,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
 
@@ -557,7 +571,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     type="text"
                     value={formData.address}
                     onChange={(e) => handleInputChange('address', e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
 
@@ -570,7 +584,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     value={formData.farmerLocation}
                     onChange={(e) => handleInputChange('farmerLocation', e.target.value)}
                     placeholder="e.g., 7.1907, 125.4551"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
               </div>
@@ -591,7 +605,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                           onClick={() => handleCropSelect(crop)}
                           className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                             selectedCropInsurance?.cropType === crop.cropType
-                              ? 'border-blue-500 bg-blue-50'
+                              ? 'border-green-500 bg-green-50'
                               : 'border-gray-200 hover:border-gray-300'
                           }`}
                         >
@@ -656,7 +670,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                       onBlur={() => setFieldTouched('areaInsured')}
                       step="0.01"
                       min="0"
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                       required
                     />
                     {errors.areaInsured && (
@@ -672,7 +686,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                       type="date"
                       value={formData.plantingDate}
                       onChange={(e) => handleInputChange('plantingDate', e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                   </div>
                 </div>
@@ -685,9 +699,9 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Select applicable programs
                   </label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {['PCIC', 'RSBSA', 'Crop Insurance', 'Other'].map((program) => (
-                      <label key={program} className="flex items-center space-x-2 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {["Regular", "Sikat Saka", "RSBA", "APCP-CAP-PBD", "PUNA", "Cooperative Rice Farming"].map((program) => (
+                      <label key={program} className="inline-flex items-center space-x-2 p-3 border border-gray-200 rounded-lg hover:bg-green-50 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={formData.program.includes(program)}
@@ -698,7 +712,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                               handleInputChange('program', formData.program.filter(p => p !== program))
                             }
                           }}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="form-checkbox h-5 w-5 text-green-600 focus:ring-green-500"
                         />
                         <span className="text-sm text-gray-700 font-medium">{program}</span>
                       </label>
@@ -711,7 +725,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                         value={formData.otherProgramText}
                         onChange={(e) => handleInputChange('otherProgramText', e.target.value)}
                         placeholder="Specify other program"
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                       />
                     </div>
                   )}
@@ -813,7 +827,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     value={formData.damageType}
                     onChange={(e) => handleInputChange('damageType', e.target.value)}
                     onBlur={() => setFieldTouched('damageType')}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     required
                   >
                     <option value="">Select damage type</option>
@@ -839,7 +853,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     value={formData.lossDate}
                     onChange={(e) => handleInputChange('lossDate', e.target.value)}
                     onBlur={() => setFieldTouched('lossDate')}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     required
                   />
                   {errors.lossDate && (
@@ -858,7 +872,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     onBlur={() => setFieldTouched('areaDamaged')}
                     step="0.01"
                     min="0"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                     required
                   />
                   {errors.areaDamaged && (
@@ -876,7 +890,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     onChange={(e) => handleInputChange('degreeOfDamage', e.target.value)}
                     min="0"
                     max="100"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                 </div>
 
@@ -887,14 +901,12 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                   <select
                     value={formData.ageStage}
                     onChange={(e) => handleInputChange('ageStage', e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   >
-                    <option value="">Select age stage</option>
-                    <option value="Seedling">Seedling</option>
-                    <option value="Vegetative">Vegetative</option>
-                    <option value="Flowering">Flowering</option>
-                    <option value="Fruiting">Fruiting</option>
-                    <option value="Mature">Mature</option>
+                    <option value="">Select growth stage</option>
+                    <option value="Vegetative Stage">Vegetative Stage</option>
+                    <option value="Reproductive Stage">Reproductive Stage</option>
+                    <option value="Ripening/Grain Filling Stage">Ripening/Grain Filling Stage</option>
                   </select>
                 </div>
 
@@ -906,7 +918,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     type="date"
                     value={formData.expectedHarvest}
                     onChange={(e) => handleInputChange('expectedHarvest', e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                   />
                   {selectedCropInsurance?.expectedHarvestDate && (
                     <p className="mt-1 text-xs text-gray-500">
@@ -973,11 +985,11 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                 {lots.map((lot) => (
                   <div
                     key={lot}
-                    className="bg-blue-50 p-6 rounded-lg border border-blue-200"
+                    className="bg-green-50 p-6 rounded-lg border border-green-200"
                   >
                     <div className="flex justify-between items-center mb-4">
-                      <h4 className="text-lg font-semibold text-blue-800 flex items-center gap-2">
-                        <div className="bg-blue-700 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">
+                      <h4 className="text-lg font-semibold text-green-800 flex items-center gap-2">
+                        <div className="bg-green-700 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold text-sm">
                           {lot}
                         </div>
                         Lot {lot} Details
@@ -1003,7 +1015,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                           type="text"
                           value={formData.lotBoundaries[lot].north}
                           onChange={(e) => handleLotBoundaryChange(lot, 'north', e.target.value)}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                         />
                       </div>
                       <div>
@@ -1014,7 +1026,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                           type="text"
                           value={formData.lotBoundaries[lot].south}
                           onChange={(e) => handleLotBoundaryChange(lot, 'south', e.target.value)}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                         />
                       </div>
                       <div>
@@ -1025,7 +1037,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                           type="text"
                           value={formData.lotBoundaries[lot].east}
                           onChange={(e) => handleLotBoundaryChange(lot, 'east', e.target.value)}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                         />
                       </div>
                       <div>
@@ -1036,7 +1048,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                           type="text"
                           value={formData.lotBoundaries[lot].west}
                           onChange={(e) => handleLotBoundaryChange(lot, 'west', e.target.value)}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                         />
                       </div>
                     </div>
@@ -1046,7 +1058,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                 <button
                   type="button"
                   onClick={addLot}
-                  className="w-full p-4 border-2 border-dashed border-blue-300 rounded-lg text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center justify-center space-x-2"
+                  className="w-full p-4 border-2 border-dashed border-green-300 rounded-lg text-green-600 hover:border-green-400 hover:bg-green-50 transition-colors flex items-center justify-center space-x-2"
                 >
                   <Plus className="h-5 w-5" />
                   <span>Add Another Lot</span>
@@ -1092,7 +1104,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
               <button
                 type="button"
                 onClick={handleNext}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
               >
                 <span>Next</span>
                 <ArrowRight className="h-4 w-4" />
