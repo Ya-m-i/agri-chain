@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { X, User, HandHeart, Search, AlertTriangle, CheckCircle } from "lucide-react"
 import { applyForAssistance, fetchCropInsurance } from '../api'
-import { useFarmers, useAssistances, useFarmerApplications } from '../hooks/useAPI'
+import { useFarmers, useAssistances, useFarmerApplications, useCropInsurance } from '../hooks/useAPI'
 
 const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
@@ -26,6 +26,42 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
   const { data: farmers = [], isLoading: farmersLoading } = useFarmers()
   const { data: assistanceItems = [], isLoading: assistanceLoading } = useAssistances()
   const { data: farmerApplications = [] } = useFarmerApplications(selectedFarmer?._id)
+  const { data: cropInsuranceRecords = [] } = useCropInsurance()
+
+  // Create a map of farmer crop types from insurance records
+  const farmerCropMap = useMemo(() => {
+    const cropMap = {}
+    cropInsuranceRecords.forEach(record => {
+      const farmerId = record.farmerId?._id || record.farmerId
+      if (farmerId && record.cropType) {
+        if (!cropMap[farmerId]) {
+          cropMap[farmerId] = []
+        }
+        cropMap[farmerId].push(record.cropType)
+      }
+    })
+    
+    // Convert to unique crop types per farmer
+    Object.keys(cropMap).forEach(farmerId => {
+      cropMap[farmerId] = [...new Set(cropMap[farmerId])]
+    })
+    
+    return cropMap
+  }, [cropInsuranceRecords])
+
+  // Function to get farmer's crop information
+  const getFarmerCropInfo = (farmer) => {
+    const insuranceCrops = farmerCropMap[farmer._id] || []
+    const registrationCrop = farmer.cropType
+    
+    if (insuranceCrops.length > 0) {
+      return insuranceCrops.join(', ')
+    } else if (registrationCrop && registrationCrop.trim() !== '') {
+      return registrationCrop
+    } else {
+      return 'Not specified'
+    }
+  }
 
   // Filter farmers based on search term
   const filteredFarmers = farmers.filter(farmer => {
@@ -392,7 +428,7 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
                           </div>
                           <div className="text-sm text-gray-500">
                             Username: {farmer.username} | 
-                            Crop: {farmer.cropType || 'Not specified'} | 
+                            Crop: {getFarmerCropInfo(farmer)} | 
                             RSBSA: {farmer.rsbsaRegistered ? 'Yes' : 'No'} | 
                             Certified: {farmer.isCertified ? 'Yes' : 'No'}
                           </div>
