@@ -306,15 +306,23 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
       // Determine the best crop type to use
       let finalCropType = 'Unknown'
       
-      // Priority 1: Use farmerCropData crop type
+      // Priority 1: Use farmerCropData crop type (most reliable)
       if (farmerCropData?.cropType && farmerCropData.cropType !== 'Unknown') {
         finalCropType = farmerCropData.cropType
       }
-      // Priority 2: Use form data crop type
+      // Priority 2: Use active insured crops from farmerCropData
+      else if (farmerCropData?.insuredCropTypes && farmerCropData.insuredCropTypes.length > 0) {
+        finalCropType = farmerCropData.insuredCropTypes[0]
+      }
+      // Priority 3: Use all insurance crops from farmerCropData
+      else if (farmerCropData?.allCropTypes && farmerCropData.allCropTypes.length > 0) {
+        finalCropType = farmerCropData.allCropTypes[0]
+      }
+      // Priority 4: Use form data crop type
       else if (formData.farmerCropType && formData.farmerCropType !== 'Unknown') {
         finalCropType = formData.farmerCropType
       }
-      // Priority 3: Use selected farmer crop type
+      // Priority 5: Use selected farmer crop type
       else if (selectedFarmer?.cropType && selectedFarmer.cropType.trim() !== '') {
         finalCropType = selectedFarmer.cropType
       }
@@ -324,10 +332,22 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
         ...formData,
         filedBy: 'admin',
         // Ensure crop type is included from farmer data
-        farmerCropType: finalCropType
+        farmerCropType: finalCropType,
+        // Send farmer data with crop information for backend validation
+        farmerData: {
+          ...selectedFarmer,
+          cropType: finalCropType,
+          insuredCropTypes: farmerCropData?.insuredCropTypes || [],
+          allCropTypes: farmerCropData?.allCropTypes || []
+        }
       }
       
       console.log('Final crop type determined:', finalCropType)
+      console.log('FarmerCropData details:', {
+        cropType: farmerCropData?.cropType,
+        insuredCropTypes: farmerCropData?.insuredCropTypes,
+        allCropTypes: farmerCropData?.allCropTypes
+      })
       console.log('Assistance data being sent:', assistanceData)
       
       const result = await applyForAssistance(assistanceData)
