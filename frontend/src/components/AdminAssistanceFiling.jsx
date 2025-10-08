@@ -4,8 +4,10 @@ import { useState, useEffect, useMemo } from "react"
 import { X, User, HandHeart, Search, AlertTriangle, CheckCircle } from "lucide-react"
 import { applyForAssistance, fetchCropInsurance } from '../api'
 import { useFarmers, useAssistances, useFarmerApplications, useCropInsurance } from '../hooks/useAPI'
+import { useQueryClient } from '@tanstack/react-query'
 
 const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
+  const queryClient = useQueryClient()
   const [formData, setFormData] = useState({
     farmerId: '',
     assistanceId: '',
@@ -90,10 +92,24 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
     const insuranceCrops = farmerCropMap[farmer._id] || []
     const registrationCrop = farmer.cropType
     
+    // Combine all crop sources
+    const allCrops = []
+    
+    // Add insurance crops
     if (insuranceCrops.length > 0) {
-      return insuranceCrops.join(', ')
-    } else if (registrationCrop && registrationCrop.trim() !== '') {
-      return registrationCrop
+      allCrops.push(...insuranceCrops)
+    }
+    
+    // Add registration crop if not already included
+    if (registrationCrop && registrationCrop.trim() !== '' && !allCrops.includes(registrationCrop)) {
+      allCrops.push(registrationCrop)
+    }
+    
+    // Remove duplicates and return
+    const uniqueCrops = [...new Set(allCrops)]
+    
+    if (uniqueCrops.length > 0) {
+      return uniqueCrops.join(', ')
     } else {
       return 'Not specified'
     }
@@ -158,7 +174,7 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
         }
       })
       
-      // Determine the best crop type to use
+      // Determine the best crop type to use (use first active crop as primary)
       let primaryCropType = 'Unknown'
       
       // Priority 1: Use active insured crops
@@ -390,6 +406,11 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
       
       if (result.message) {
         console.log('Assistance application filed successfully:', result)
+        
+        // Invalidate and refetch the applications list to show the new application
+        queryClient.invalidateQueries({ queryKey: ['applications'] })
+        queryClient.invalidateQueries({ queryKey: ['assistance-applications'] })
+        
         onSuccess?.(result)
         onClose()
       } else {
