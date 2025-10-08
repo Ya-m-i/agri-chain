@@ -28,6 +28,42 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
   const { data: farmerApplications = [] } = useFarmerApplications(selectedFarmer?._id)
   const { data: cropInsuranceRecords = [] } = useCropInsurance()
 
+  // Filter assistance items based on selected farmer's crop type
+  const filteredAssistanceItems = useMemo(() => {
+    if (!selectedFarmer || !farmerCropData) {
+      return assistanceItems
+    }
+
+    // Get all possible crop types for the farmer
+    const farmerCrops = []
+    
+    // Add crops from insurance records (active crops)
+    if (farmerCropData.insuredCropTypes && Array.isArray(farmerCropData.insuredCropTypes)) {
+      farmerCrops.push(...farmerCropData.insuredCropTypes.map(c => String(c).toLowerCase()))
+    }
+    
+    // Add crops from all insurance records
+    if (farmerCropData.allCropTypes && Array.isArray(farmerCropData.allCropTypes)) {
+      farmerCrops.push(...farmerCropData.allCropTypes.map(c => String(c).toLowerCase()))
+    }
+    
+    // Add crop from farmer registration
+    if (selectedFarmer.cropType && selectedFarmer.cropType.trim() !== '') {
+      farmerCrops.push(String(selectedFarmer.cropType).toLowerCase())
+    }
+    
+    // Remove duplicates
+    const uniqueCrops = [...new Set(farmerCrops)]
+    
+    // Filter assistance items that match farmer's crop types
+    return assistanceItems.filter(assistance => {
+      if (!assistance.cropType) return true // Show items without crop type restriction
+      
+      const assistanceCrop = String(assistance.cropType).toLowerCase()
+      return uniqueCrops.includes(assistanceCrop)
+    })
+  }, [assistanceItems, selectedFarmer, farmerCropData])
+
   // Create a map of farmer crop types from insurance records
   const farmerCropMap = useMemo(() => {
     const cropMap = {}
@@ -467,46 +503,95 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
           {/* Assistance Program Selection */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select Assistance Program *
+              Select Assistance Program * {selectedFarmer && (
+                <span className="text-sm text-gray-500">
+                  (Filtered for {getFarmerCropInfo(selectedFarmer)} farmers)
+                </span>
+              )}
             </label>
             <div className="space-y-3">
               {assistanceLoading ? (
                 <div className="p-4 text-center text-gray-500">Loading assistance programs...</div>
-              ) : assistanceItems.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">No assistance programs available</div>
+              ) : filteredAssistanceItems.length === 0 ? (
+                <div className="p-4 text-center text-gray-500">
+                  {selectedFarmer ? 
+                    `No assistance programs available for ${getFarmerCropInfo(selectedFarmer)} farmers` : 
+                    'Please select a farmer first'
+                  }
+                </div>
               ) : (
-                assistanceItems.map((assistance) => (
-                  <div
-                    key={assistance._id}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                      selectedAssistance?._id === assistance._id
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                    onClick={() => handleAssistanceSelect(assistance)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">{assistance.assistanceType}</h3>
-                        <p className="text-sm text-gray-600 mt-1">{assistance.description}</p>
-                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                          <span>Crop: {assistance.cropType}</span>
-                          <span>Available: {assistance.availableQuantity}</span>
-                          <span>Unit: {assistance.unit}</span>
-                          {assistance.requiresRSBSA && (
-                            <span className="text-orange-600 font-medium">Requires RSBSA</span>
-                          )}
-                          {assistance.requiresCertification && (
-                            <span className="text-blue-600 font-medium">Requires Certification</span>
-                          )}
+                filteredAssistanceItems.map((assistance) => {
+                  const eligibility = farmerCropData ? checkEligibility(farmerCropData, assistance) : { eligible: false }
+                  
+                  return (
+                    <div
+                      key={assistance._id}
+                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                        selectedAssistance?._id === assistance._id
+                          ? 'border-green-500 bg-green-50'
+                          : eligibility.eligible
+                          ? 'border-gray-200 hover:border-gray-300'
+                          : 'border-gray-200 bg-gray-50 opacity-75'
+                      }`}
+                      onClick={() => handleAssistanceSelect(assistance)}
+                    >
+                      <div className="flex items-start gap-4">
+                        {/* Image */}
+                        {assistance.photo && (
+                          <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border">
+                            <img 
+                              src={assistance.photo} 
+                              alt={assistance.assistanceType} 
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        
+                        {/* Content */}
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h3 className="font-medium text-gray-900">{assistance.assistanceType}</h3>
+                              <p className="text-sm text-gray-600 mt-1">{assistance.description}</p>
+                              <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                                <span>Crop: {assistance.cropType}</span>
+                                <span>Available: {assistance.availableQuantity}</span>
+                                <span>Unit: {assistance.unit}</span>
+                                {assistance.requiresRSBSA && (
+                                  <span className="text-orange-600 font-medium">Requires RSBSA</span>
+                                )}
+                                {assistance.requiresCertification && (
+                                  <span className="text-blue-600 font-medium">Requires Certification</span>
+                                )}
+                              </div>
+                              
+                              {/* Eligibility Status */}
+                              {selectedFarmer && (
+                                <div className="mt-2">
+                                  {eligibility.eligible ? (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                      <CheckCircle className="h-3 w-3 mr-1" />
+                                      Eligible
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                      <AlertTriangle className="h-3 w-3 mr-1" />
+                                      {Object.values(eligibility.reasons || {}).find(reason => reason) || 'Not Eligible'}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            
+                            {selectedAssistance?._id === assistance._id && (
+                              <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                            )}
+                          </div>
                         </div>
                       </div>
-                      {selectedAssistance?._id === assistance._id && (
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                      )}
                     </div>
-                  </div>
-                ))
+                  )
+                })
               )}
             </div>
             {errors.assistanceId && (
