@@ -38,6 +38,9 @@ const cropPriceSchema = mongoose.Schema({
     },
     notes: {
         type: String
+    },
+    image: {
+        type: String // Base64 encoded image or URL
     }
 }, {
     timestamps: true,

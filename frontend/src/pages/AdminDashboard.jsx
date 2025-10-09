@@ -2360,7 +2360,7 @@ const AdminDashboard = () => {
                   {/* Crop Market Prices - Bottom */}
                   <div className="p-6">
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold text-gray-800">Crop Market Prices</h3>
+                      <h3 className="text-lg font-semibold text-gray-800">Kapalong Crop Market Prices</h3>
                       <button
                         onClick={() => setShowCropPriceManagement(true)}
                         className="flex items-center gap-2 px-3 py-1 bg-lime-600 text-white rounded-lg text-xs font-medium hover:bg-lime-700 transition-colors"
@@ -2392,7 +2392,8 @@ const AdminDashboard = () => {
                             data={cropPrices.slice(0, 8).map(crop => ({
                               crop: crop.cropType ? `${crop.cropName} (${crop.cropType})` : crop.cropName,
                               price: crop.pricePerKg,
-                              unit: crop.unit
+                              unit: crop.unit,
+                              cropName: crop.cropName
                             }))}
                           >
                             <XAxis 
@@ -2415,8 +2416,25 @@ const AdminDashboard = () => {
                             <RechartsBar 
                               dataKey="price" 
                               radius={[4, 4, 0, 0]}
-                              fill="#84cc16"
-                            />
+                            >
+                              {cropPrices.slice(0, 8).map((crop, index) => {
+                                const cropName = crop.cropName.toLowerCase();
+                                let fillColor = '#84cc16'; // default lime
+                                if (cropName.includes('rice') || cropName.includes('palay')) fillColor = '#22c55e'; // green
+                                else if (cropName.includes('corn')) fillColor = '#f59e0b'; // amber
+                                else if (cropName.includes('banana')) fillColor = '#facc15'; // yellow
+                                else if (cropName.includes('coconut')) fillColor = '#8b4513'; // brown
+                                else if (cropName.includes('coffee')) fillColor = '#6b4423'; // coffee brown
+                                else if (cropName.includes('cacao') || cropName.includes('cocoa')) fillColor = '#7b3f00'; // dark brown
+                                else if (cropName.includes('sugar')) fillColor = '#16a34a'; // green
+                                else if (cropName.includes('pineapple')) fillColor = '#fbbf24'; // pineapple yellow
+                                else if (cropName.includes('mango')) fillColor = '#fb923c'; // mango orange
+                                else if (cropName.includes('rubber')) fillColor = '#065f46'; // dark green
+                                else if (cropName.includes('vegetable')) fillColor = '#10b981'; // emerald
+                                else if (cropName.includes('tobacco')) fillColor = '#92400e'; // brown
+                                return <Cell key={`cell-${index}`} fill={fillColor} />;
+                              })}
+                            </RechartsBar>
                           </BarChart>
                         </ResponsiveContainer>
                       )}

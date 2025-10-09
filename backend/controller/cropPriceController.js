@@ -38,7 +38,7 @@ const getCropPrice = asyncHandler(async (req, res) => {
 // @access  Admin
 const createCropPrice = asyncHandler(async (req, res) => {
     try {
-        const { cropName, cropType, pricePerKg, unit, region, updatedBy, notes } = req.body
+        const { cropName, cropType, pricePerKg, unit, region, updatedBy, notes, image } = req.body
         
         // Validate required fields
         if (!cropName || !pricePerKg) {
@@ -65,6 +65,7 @@ const createCropPrice = asyncHandler(async (req, res) => {
             region: region || 'Philippines Average',
             updatedBy: updatedBy || 'Admin',
             notes,
+            image,
             lastUpdated: new Date()
         })
         
@@ -95,7 +96,7 @@ const updateCropPrice = asyncHandler(async (req, res) => {
         }
         
         // Update fields
-        const { cropName, cropType, pricePerKg, unit, region, updatedBy, status, notes } = req.body
+        const { cropName, cropType, pricePerKg, unit, region, updatedBy, status, notes, image } = req.body
         
         if (cropName !== undefined) cropPrice.cropName = cropName
         if (cropType !== undefined) cropPrice.cropType = cropType
@@ -105,6 +106,7 @@ const updateCropPrice = asyncHandler(async (req, res) => {
         if (updatedBy !== undefined) cropPrice.updatedBy = updatedBy
         if (status !== undefined) cropPrice.status = status
         if (notes !== undefined) cropPrice.notes = notes
+        if (image !== undefined) cropPrice.image = image
         
         cropPrice.lastUpdated = new Date()
         

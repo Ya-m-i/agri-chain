@@ -1,15 +1,25 @@
-import { TrendingUp, DollarSign, Package } from 'lucide-react'
+import { TrendingUp, DollarSign, Package, Image as ImageIcon } from 'lucide-react'
 import { useCropPrices } from '../hooks/useAPI'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 
 const FarmerCropPrices = () => {
   const { data: cropPrices = [], isLoading } = useCropPrices()
 
-  const getColorForPrice = (price) => {
-    if (price < 30) return '#84cc16' // lime
-    if (price < 60) return '#22c55e' // green
-    if (price < 100) return '#f59e0b' // amber
-    return '#ef4444' // red
+  const getColorForCrop = (cropName) => {
+    const crop = cropName.toLowerCase();
+    if (crop.includes('rice') || crop.includes('palay')) return '#22c55e'; // green
+    if (crop.includes('corn')) return '#f59e0b'; // amber
+    if (crop.includes('banana')) return '#facc15'; // yellow
+    if (crop.includes('coconut')) return '#8b4513'; // brown
+    if (crop.includes('coffee')) return '#6b4423'; // coffee brown
+    if (crop.includes('cacao') || crop.includes('cocoa')) return '#7b3f00'; // dark brown
+    if (crop.includes('sugar')) return '#16a34a'; // green
+    if (crop.includes('pineapple')) return '#fbbf24'; // pineapple yellow
+    if (crop.includes('mango')) return '#fb923c'; // mango orange
+    if (crop.includes('rubber')) return '#065f46'; // dark green
+    if (crop.includes('vegetable')) return '#10b981'; // emerald
+    if (crop.includes('tobacco')) return '#92400e'; // brown
+    return '#84cc16'; // default lime
   }
 
   if (isLoading) {
@@ -42,7 +52,7 @@ const FarmerCropPrices = () => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <TrendingUp className="h-6 w-6 text-lime-600" />
-          <h2 className="text-xl font-bold text-gray-800">Current Market Prices</h2>
+          <h2 className="text-xl font-bold text-gray-800">Kapalong Crop Market Prices</h2>
         </div>
         <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
           Updated: {new Date(cropPrices[0]?.lastUpdated).toLocaleDateString()}
@@ -91,7 +101,7 @@ const FarmerCropPrices = () => {
               radius={[8, 8, 0, 0]}
             >
               {cropPrices.map((crop, index) => (
-                <Cell key={`cell-${index}`} fill={getColorForPrice(crop.pricePerKg)} />
+                <Cell key={`cell-${index}`} fill={getColorForCrop(crop.cropName)} />
               ))}
             </Bar>
           </BarChart>
@@ -103,30 +113,45 @@ const FarmerCropPrices = () => {
         {cropPrices.map((crop) => (
           <div
             key={crop._id}
-            className="bg-gradient-to-br from-lime-50 to-white border border-lime-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+            className="bg-gradient-to-br from-lime-50 to-white border border-lime-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
           >
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <h3 className="font-bold text-gray-800 text-sm">{crop.cropName}</h3>
-                {crop.cropType && (
-                  <p className="text-xs text-gray-600">{crop.cropType}</p>
-                )}
+            {crop.image ? (
+              <div className="h-32 w-full bg-gray-100 overflow-hidden">
+                <img
+                  src={crop.image}
+                  alt={crop.cropName}
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <DollarSign className="h-5 w-5 text-lime-600" />
-            </div>
-            
-            <div className="flex items-baseline gap-2 mt-3">
-              <span className="text-2xl font-bold text-lime-600">
-                ₱{crop.pricePerKg}
-              </span>
-              <span className="text-sm text-gray-500">/ {crop.unit}</span>
-            </div>
-            
-            {crop.region && (
-              <p className="text-xs text-gray-500 mt-2">
-                {crop.region}
-              </p>
+            ) : (
+              <div className="h-32 w-full bg-gradient-to-br from-lime-100 to-lime-50 flex items-center justify-center">
+                <ImageIcon className="h-12 w-12 text-lime-300" />
+              </div>
             )}
+            <div className="p-4">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <h3 className="font-bold text-gray-800 text-sm">{crop.cropName}</h3>
+                  {crop.cropType && (
+                    <p className="text-xs text-gray-600">{crop.cropType}</p>
+                  )}
+                </div>
+                <DollarSign className="h-5 w-5 text-lime-600" />
+              </div>
+              
+              <div className="flex items-baseline gap-2 mt-3">
+                <span className="text-2xl font-bold text-lime-600">
+                  ₱{crop.pricePerKg}
+                </span>
+                <span className="text-sm text-gray-500">/ {crop.unit}</span>
+              </div>
+              
+              {crop.region && (
+                <p className="text-xs text-gray-500 mt-2">
+                  {crop.region}
+                </p>
+              )}
+            </div>
           </div>
         ))}
       </div>

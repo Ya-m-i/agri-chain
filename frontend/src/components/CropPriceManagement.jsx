@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Plus, Edit, Trash2, Save, TrendingUp, DollarSign } from 'lucide-react'
+import { X, Plus, Edit, Trash2, Save, TrendingUp, DollarSign, Upload, Image as ImageIcon } from 'lucide-react'
 import { useCropPrices, useCreateCropPrice, useUpdateCropPrice, useDeleteCropPrice } from '../hooks/useAPI'
 import { useNotificationStore } from '../store/notificationStore'
 
@@ -17,7 +17,8 @@ const CropPriceManagement = ({ isOpen, onClose }) => {
     pricePerKg: '',
     unit: 'kg',
     region: 'Philippines Average',
-    notes: ''
+    notes: '',
+    image: ''
   })
 
   // Common crop types for different crops
@@ -49,6 +50,41 @@ const CropPriceManagement = ({ isOpen, onClose }) => {
     }
   }
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      // Validate file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        useNotificationStore.getState().addAdminNotification({
+          id: generateUniqueId(),
+          type: 'error',
+          title: 'Image Too Large',
+          message: 'Please select an image smaller than 2MB',
+          timestamp: new Date()
+        })
+        return
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        useNotificationStore.getState().addAdminNotification({
+          id: generateUniqueId(),
+          type: 'error',
+          title: 'Invalid File Type',
+          message: 'Please select an image file',
+          timestamp: new Date()
+        })
+        return
+      }
+
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, image: reader.result }))
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -71,6 +107,7 @@ const CropPriceManagement = ({ isOpen, onClose }) => {
       unit: formData.unit,
       region: formData.region,
       notes: formData.notes || undefined,
+      image: formData.image || undefined,
       updatedBy: 'Admin'
     }
 
@@ -109,7 +146,8 @@ const CropPriceManagement = ({ isOpen, onClose }) => {
         pricePerKg: '',
         unit: 'kg',
         region: 'Philippines Average',
-        notes: ''
+        notes: '',
+        image: ''
       })
       setShowForm(false)
       setEditingCrop(null)
@@ -132,7 +170,8 @@ const CropPriceManagement = ({ isOpen, onClose }) => {
       pricePerKg: crop.pricePerKg.toString(),
       unit: crop.unit || 'kg',
       region: crop.region || 'Philippines Average',
-      notes: crop.notes || ''
+      notes: crop.notes || '',
+      image: crop.image || ''
     })
     setShowForm(true)
   }
@@ -172,7 +211,8 @@ const CropPriceManagement = ({ isOpen, onClose }) => {
       pricePerKg: '',
       unit: 'kg',
       region: 'Philippines Average',
-      notes: ''
+      notes: '',
+      image: ''
     })
   }
 
@@ -316,6 +356,56 @@ const CropPriceManagement = ({ isOpen, onClose }) => {
                   />
                 </div>
 
+                {/* Image Upload */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Crop Image
+                  </label>
+                  <div className="flex items-start gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center justify-center w-full">
+                        <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            {formData.image ? (
+                              <ImageIcon className="w-10 h-10 mb-2 text-lime-600" />
+                            ) : (
+                              <Upload className="w-10 h-10 mb-2 text-gray-400" />
+                            )}
+                            <p className="mb-2 text-sm text-gray-500">
+                              <span className="font-semibold">Click to upload</span> or drag and drop
+                            </p>
+                            <p className="text-xs text-gray-500">PNG, JPG or JPEG (MAX. 2MB)</p>
+                          </div>
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                    {formData.image && (
+                      <div className="flex-shrink-0">
+                        <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-lime-200">
+                          <img
+                            src={formData.image}
+                            alt="Crop preview"
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, image: '' }))}
+                            className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Notes */}
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -370,49 +460,60 @@ const CropPriceManagement = ({ isOpen, onClose }) => {
                 {cropPrices.map((crop) => (
                   <div
                     key={crop._id}
-                    className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-shadow"
+                    className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
                   >
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h4 className="text-lg font-bold text-gray-800">{crop.cropName}</h4>
-                        {crop.cropType && (
-                          <p className="text-sm text-gray-600">{crop.cropType}</p>
+                    {crop.image && (
+                      <div className="h-32 w-full bg-gray-100 overflow-hidden">
+                        <img
+                          src={crop.image}
+                          alt={crop.cropName}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h4 className="text-lg font-bold text-gray-800">{crop.cropName}</h4>
+                          {crop.cropType && (
+                            <p className="text-sm text-gray-600">{crop.cropType}</p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEdit(crop)}
+                            className="text-blue-600 hover:bg-blue-50 p-2 rounded transition-colors"
+                            title="Edit"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(crop._id, crop.cropName)}
+                            className="text-red-600 hover:bg-red-50 p-2 rounded transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-3xl font-bold text-lime-600">₱{crop.pricePerKg}</span>
+                          <span className="text-gray-500 text-sm">/ {crop.unit}</span>
+                        </div>
+                        
+                        <div className="text-xs text-gray-500">
+                          <p>Region: {crop.region}</p>
+                          <p>Updated: {new Date(crop.lastUpdated).toLocaleDateString()}</p>
+                        </div>
+                        
+                        {crop.notes && (
+                          <p className="text-xs text-gray-600 italic mt-2 border-t pt-2">
+                            {crop.notes}
+                          </p>
                         )}
                       </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(crop)}
-                          className="text-blue-600 hover:bg-blue-50 p-2 rounded transition-colors"
-                          title="Edit"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(crop._id, crop.cropName)}
-                          className="text-red-600 hover:bg-red-50 p-2 rounded transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-bold text-lime-600">₱{crop.pricePerKg}</span>
-                        <span className="text-gray-500 text-sm">/ {crop.unit}</span>
-                      </div>
-                      
-                      <div className="text-xs text-gray-500">
-                        <p>Region: {crop.region}</p>
-                        <p>Updated: {new Date(crop.lastUpdated).toLocaleDateString()}</p>
-                      </div>
-                      
-                      {crop.notes && (
-                        <p className="text-xs text-gray-600 italic mt-2 border-t pt-2">
-                          {crop.notes}
-                        </p>
-                      )}
                     </div>
                   </div>
                 ))}
