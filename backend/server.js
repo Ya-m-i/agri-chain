@@ -198,6 +198,7 @@ app.use('/api/assistance', require('./routes/assistanceRoutes'))
 app.use('/api/crop-insurance', require('./routes/cropInsuranceRoutes'))
 app.use('/api/blockchain-claims', require('./routes/blockchainClaimsRoutes'))
 app.use('/api/distribution-records', require('./routes/distributionRoutes'))
+app.use('/api/crop-prices', require('./routes/cropPriceRoutes'))
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {

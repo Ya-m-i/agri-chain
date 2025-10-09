@@ -55,6 +55,7 @@ import AdminModals from "../components/AdminModals"
 import CropInsuranceManagement from "../components/CropInsuranceManagement"
 import AdminClaimFilingEnhanced from "../components/AdminClaimFilingEnhanced"
 import AdminAssistanceFiling from "../components/AdminAssistanceFiling"
+import CropPriceManagement from "../components/CropPriceManagement"
 
 import {
   Chart as ChartJS,
@@ -132,7 +133,8 @@ import {
   useCreateAssistance,
   useDeleteAssistance,
   useRegisterFarmer,
-  useDeleteFarmer
+  useDeleteFarmer,
+  useCropPrices
 } from '../hooks/useAPI'
 
 // Utility: Moving Average
@@ -151,6 +153,7 @@ const AdminDashboard = () => {
   const [selectedAssistance, setSelectedAssistance] = useState(null)
   const [showAdminClaimFiling, setShowAdminClaimFiling] = useState(false)
   const [showAdminAssistanceFiling, setShowAdminAssistanceFiling] = useState(false)
+  const [showCropPriceManagement, setShowCropPriceManagement] = useState(false)
 
   // React Query hooks for data management
   // eslint-disable-next-line no-unused-vars
@@ -162,6 +165,7 @@ const AdminDashboard = () => {
   const { data: assistanceItems = [], isLoading: assistanceLoading, error: assistanceError } = useAssistances()
   // eslint-disable-next-line no-unused-vars
   const { data: allApplications = [], isLoading: applicationsLoading } = useAllApplications()
+  const { data: cropPrices = [], isLoading: cropPricesLoading } = useCropPrices()
   
   // Initialize Socket.IO for real-time updates across devices
   // eslint-disable-next-line no-unused-vars
@@ -2356,47 +2360,66 @@ const AdminDashboard = () => {
                   {/* Crop Market Prices - Bottom */}
                   <div className="p-6">
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold text-gray-800">Crop Market Prices (₱/kg)</h3>
-                      <span className="text-sm text-gray-500">PH Average</span>
+                      <h3 className="text-lg font-semibold text-gray-800">Crop Market Prices</h3>
+                      <button
+                        onClick={() => setShowCropPriceManagement(true)}
+                        className="flex items-center gap-2 px-3 py-1 bg-lime-600 text-white rounded-lg text-xs font-medium hover:bg-lime-700 transition-colors"
+                      >
+                        <Settings size={14} />
+                        Manage Prices
+                      </button>
                     </div>
                     <div className="h-[220px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                          data={[
-                            { crop: 'Rice', price: 45 },
-                            { crop: 'Corn', price: 28 },
-                            { crop: 'Banana', price: 35 },
-                            { crop: 'Coconut', price: 18 },
-                            { crop: 'Coffee', price: 120 }
-                          ]}
-                        >
-                          <XAxis 
-                            dataKey="crop" 
-                            fontSize={10} 
-                            angle={-45} 
-                            textAnchor="end" 
-                            height={60}
-                            axisLine={true}
-                            tickLine={false}
-                          />
-                          <YAxis 
-                            fontSize={10}
-                            axisLine={true}
-                            tickLine={false}
-                          />
-                          <RechartsTooltip formatter={(value) => [`₱${value}/kg`, 'Price']} />
-                          <RechartsBar 
-                            dataKey="price" 
-                            radius={[4, 4, 0, 0]}
+                      {cropPricesLoading ? (
+                        <div className="flex items-center justify-center h-full text-gray-500">
+                          Loading prices...
+                        </div>
+                      ) : cropPrices.length === 0 ? (
+                        <div className="flex items-center justify-center h-full text-gray-500 text-sm">
+                          <div className="text-center">
+                            <p>No crop prices set yet</p>
+                            <button
+                              onClick={() => setShowCropPriceManagement(true)}
+                              className="mt-2 text-lime-600 hover:underline"
+                            >
+                              Click to add prices
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={cropPrices.slice(0, 8).map(crop => ({
+                              crop: crop.cropType ? `${crop.cropName} (${crop.cropType})` : crop.cropName,
+                              price: crop.pricePerKg,
+                              unit: crop.unit
+                            }))}
                           >
-                            <Cell fill="#689c3c" />
-                            <Cell fill="#7fff00" />
-                            <Cell fill="#ccff00" />
-                            <Cell fill="#e6e6fa" />
-                            <Cell fill="#808000" />
-                          </RechartsBar>
-                        </BarChart>
-                      </ResponsiveContainer>
+                            <XAxis 
+                              dataKey="crop" 
+                              fontSize={10} 
+                              angle={-45} 
+                              textAnchor="end" 
+                              height={60}
+                              axisLine={true}
+                              tickLine={false}
+                            />
+                            <YAxis 
+                              fontSize={10}
+                              axisLine={true}
+                              tickLine={false}
+                            />
+                            <RechartsTooltip 
+                              formatter={(value, name, props) => [`₱${value}/${props.payload.unit}`, 'Price']} 
+                            />
+                            <RechartsBar 
+                              dataKey="price" 
+                              radius={[4, 4, 0, 0]}
+                              fill="#84cc16"
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -4350,6 +4373,12 @@ const AdminDashboard = () => {
           </span>
         </div>
       )}
+
+      {/* Crop Price Management Modal */}
+      <CropPriceManagement
+        isOpen={showCropPriceManagement}
+        onClose={() => setShowCropPriceManagement(false)}
+      />
     </div>
   )
 }

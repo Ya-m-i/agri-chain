@@ -327,4 +327,43 @@ export const logClaimToDistribution = async (claimData) => {
     return response.json();
 };
 
+// Crop Prices API Functions
+export const getCropPrices = async () => {
+    return await fetchWithRetry(apiUrl('/api/crop-prices'));
+};
+
+export const getCropPrice = async (id) => {
+    return await fetchWithRetry(apiUrl(`/api/crop-prices/${id}`));
+};
+
+export const createCropPrice = async (cropPriceData) => {
+    return await fetchWithRetry(apiUrl('/api/crop-prices'), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(cropPriceData),
+    });
+};
+
+export const updateCropPrice = async (id, cropPriceData) => {
+    return await fetchWithRetry(apiUrl(`/api/crop-prices/${id}`), {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(cropPriceData),
+    });
+};
+
+export const deleteCropPrice = async (id) => {
+    return await fetchWithRetry(apiUrl(`/api/crop-prices/${id}`), {
+        method: 'DELETE',
+    });
+};
+
+export const getCropPriceStats = async () => {
+    return await fetchWithRetry(apiUrl('/api/crop-prices/stats/overview'));
+};
+
 // Removed preload function as caching is disabled

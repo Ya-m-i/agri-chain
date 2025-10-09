@@ -19,6 +19,7 @@ import {
   Bell,
   MessageSquare,
   Shield,
+  TrendingUp,
 } from "lucide-react"
 import { useAuthStore } from "../store/authStore"
 import { useNotificationStore } from "../store/notificationStore"
@@ -27,6 +28,7 @@ import WeatherWidget from "../components/dashboard/weather-widget"
 import ClaimStatusTracker from "../components/dashboard/claim-status-tracker"
 import farmerLogoImage from "../assets/Images/FarmLogo.png" // Update this path to your farmer logo
 import FarmerCropInsurance from "../components/FarmerCropInsurance"
+import FarmerCropPrices from "../components/FarmerCropPrices"
 import { calculateCompensation, getPaymentStatus, getExpectedPaymentDate, getDamageSeverity, getCoverageDetails } from "../utils/insuranceUtils"
 import { useClaims, useCropInsurance, useFarmerApplications, useAssistances, useApplyForAssistance } from '../hooks/useAPI'
 import { Doughnut } from 'react-chartjs-2';
@@ -766,6 +768,20 @@ const FarmerDashboard = () => {
                   Crop Insurance
                 </button>
               </li>
+              <li>
+                <button
+                  onClick={() => {
+                    setActiveTab("crop-prices")
+                    setSidebarOpen(false)
+                  }}
+                  className={`flex items-center w-full p-2 rounded-lg ${
+                    activeTab === "crop-prices" ? "bg-lime-100 text-lime-700" : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <TrendingUp size={20} className="mr-3" />
+                  Market Prices
+                </button>
+              </li>
             </ul>
           </nav>
         </div>
@@ -827,6 +843,17 @@ const FarmerDashboard = () => {
                 >
                   <Shield size={20} className="mr-3" />
                   Crop Insurance
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setActiveTab("crop-prices")}
+                  className={`flex items-center w-full p-2 rounded-lg ${
+                    activeTab === "crop-prices" ? "bg-lime-100 text-lime-700" : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  <TrendingUp size={20} className="mr-3" />
+                  Market Prices
                 </button>
               </li>
             </ul>
@@ -1636,6 +1663,12 @@ const FarmerDashboard = () => {
           {activeTab === "crop-insurance" && (
             <div className="p-6">
               <FarmerCropInsurance />
+            </div>
+          )}
+
+          {activeTab === "crop-prices" && (
+            <div className="p-4 sm:p-6">
+              <FarmerCropPrices />
             </div>
           )}
 

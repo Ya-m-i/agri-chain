@@ -14,6 +14,9 @@ export const QUERY_KEYS = {
   FARMER_CROP_INSURANCE: (farmerId) => [SOCKET_QUERY_KEYS.CROP_INSURANCE, farmerId],
   CROP_INSURANCE_STATS: 'cropInsuranceStats',
   DASHBOARD_DATA: (farmerId) => ['dashboardData', farmerId],
+  CROP_PRICES: 'cropPrices',
+  CROP_PRICE: (id) => ['cropPrice', id],
+  CROP_PRICE_STATS: 'cropPriceStats',
 }
 
 // ============ FARMERS ============
@@ -209,5 +212,61 @@ export const useDashboardData = (farmerId = null) => {
   return useQuery({
     queryKey: QUERY_KEYS.DASHBOARD_DATA(farmerId),
     queryFn: () => api.fetchDashboardData(farmerId),
+  })
+}
+
+// ============ CROP PRICES ============
+export const useCropPrices = () => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.CROP_PRICES],
+    queryFn: api.getCropPrices,
+  })
+}
+
+export const useCropPrice = (id) => {
+  return useQuery({
+    queryKey: QUERY_KEYS.CROP_PRICE(id),
+    queryFn: () => api.getCropPrice(id),
+    enabled: !!id,
+  })
+}
+
+export const useCreateCropPrice = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: api.createCropPrice,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CROP_PRICES] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CROP_PRICE_STATS] })
+    },
+  })
+}
+
+export const useUpdateCropPrice = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, cropPriceData }) => api.updateCropPrice(id, cropPriceData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CROP_PRICES] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CROP_PRICE_STATS] })
+    },
+  })
+}
+
+export const useDeleteCropPrice = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: api.deleteCropPrice,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CROP_PRICES] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.CROP_PRICE_STATS] })
+    },
+  })
+}
+
+export const useCropPriceStats = () => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.CROP_PRICE_STATS],
+    queryFn: api.getCropPriceStats,
   })
 }
