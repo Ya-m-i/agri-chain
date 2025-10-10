@@ -18,7 +18,8 @@ export const generateClaimPDF = (claim, farmerData = null) => {
   
   // Helper function to draw underlined field
   const drawField = (x, y, value, width = 40) => {
-    const displayValue = value || ''
+    // Convert value to string and handle null/undefined
+    const displayValue = value !== null && value !== undefined ? String(value) : ''
     doc.text(displayValue, x, y)
     doc.line(x, y + 0.5, x + width, y + 0.5)
   }
@@ -233,7 +234,7 @@ export const generateClaimPDF = (claim, farmerData = null) => {
   drawField(50, y, claim.areaDamaged || claim.damageArea || '', 35)
   
   doc.text('% of Damage:', 90, y)
-  drawField(115, y, claim.degreeOfDamage || '', 20)
+  drawField(115, y, String(claim.degreeOfDamage || ''), 20)
   doc.text('%', 137, y)
   
   doc.text('Estimated Yield Loss (bags/ha):', 145, y)
@@ -243,7 +244,8 @@ export const generateClaimPDF = (claim, farmerData = null) => {
   // Cause of Loss/Damage
   doc.text('Cause of Loss/Damage:', 15, y)
   y += 4
-  const causeLines = doc.splitTextToSize(claim.causeOfLoss || claim.damageType || '', 180)
+  const causeText = String(claim.causeOfLoss || claim.damageType || '')
+  const causeLines = doc.splitTextToSize(causeText, 180)
   doc.text(causeLines, 15, y)
   y += Math.max(causeLines.length * 4, 8)
   doc.line(15, y, 195, y)
@@ -252,7 +254,7 @@ export const generateClaimPDF = (claim, farmerData = null) => {
   // Description of Damage
   doc.text('Detailed Description of Damage:', 15, y)
   y += 4
-  const description = claim.description || claim.damageDescription || ''
+  const description = String(claim.description || claim.damageDescription || '')
   const descLines = doc.splitTextToSize(description, 180)
   doc.text(descLines, 15, y)
   y += Math.max(descLines.length * 4, 12)
@@ -320,7 +322,7 @@ export const generateClaimPDF = (claim, farmerData = null) => {
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(6)
   
-  const declaration = 'I hereby declare that the foregoing information are true and correct to the best of my knowledge and belief. I understand that any false statement may result in the denial of this claim and/or cancellation of my insurance policy.'
+  const declaration = String('I hereby declare that the foregoing information are true and correct to the best of my knowledge and belief. I understand that any false statement may result in the denial of this claim and/or cancellation of my insurance policy.')
   const declLines = doc.splitTextToSize(declaration, 180)
   doc.text(declLines, 15, y)
   y += declLines.length * 3 + 8
@@ -347,10 +349,10 @@ export const generateClaimPDF = (claim, farmerData = null) => {
   drawField(45, y, new Date(claim.date || claim.createdAt).toLocaleDateString(), 40)
   
   doc.text('Received by:', 90, y)
-  drawField(110, y, claim.reviewedBy || '', 45)
+  drawField(110, y, String(claim.reviewedBy || ''), 45)
   
   doc.text('Claim No.:', 160, y)
-  drawField(175, y, claim.claimNumber || claim._id?.slice(-8) || '', 25)
+  drawField(175, y, String(claim.claimNumber || claim._id?.slice(-8) || ''), 25)
   y += 6
   
   doc.text('Date Inspected:', 15, y)
@@ -360,14 +362,14 @@ export const generateClaimPDF = (claim, farmerData = null) => {
   drawField(110, y, '', 45)
   
   doc.text('Status:', 160, y)
-  drawField(175, y, (claim.status || '').toUpperCase(), 25)
+  drawField(175, y, String(claim.status || '').toUpperCase(), 25)
   y += 8
   
   // Assessment
   doc.text('Assessment/Remarks:', 15, y)
   y += 4
-  const feedback = claim.adminFeedback || ''
-  if (feedback) {
+  const feedback = String(claim.adminFeedback || '')
+  if (feedback && feedback.trim()) {
     const feedbackLines = doc.splitTextToSize(feedback, 180)
     doc.text(feedbackLines, 15, y)
     y += feedbackLines.length * 4 + 4
@@ -382,7 +384,7 @@ export const generateClaimPDF = (claim, farmerData = null) => {
   // Compensation
   doc.text('Approved Indemnity/Compensation:', 15, y)
   doc.text('PHP', 60, y)
-  drawField(68, y, claim.compensation ? claim.compensation.toLocaleString() : '', 40)
+  drawField(68, y, claim.compensation ? String(claim.compensation.toLocaleString()) : '', 40)
   y += 8
   
   // Approval signatures
@@ -404,7 +406,9 @@ export const generateClaimPDF = (claim, farmerData = null) => {
   doc.text('Page 1 of 1', 195, 285, { align: 'right' })
   
   // Generate filename
-  const filename = `PCIC_Claim_${claim.claimNumber || claim._id?.slice(-8) || 'Form'}_${claimantName.replace(/\s+/g, '_') || 'Claimant'}.pdf`
+  const claimNum = String(claim.claimNumber || claim._id?.slice(-8) || 'Form')
+  const safeName = String(claimantName || 'Claimant').replace(/\s+/g, '_')
+  const filename = `PCIC_Claim_${claimNum}_${safeName}.pdf`
   
   // Save the PDF
   doc.save(filename)
