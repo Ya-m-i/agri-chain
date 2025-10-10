@@ -15,10 +15,12 @@ import {
   Camera,
   BarChart3,
   PieChart,
+  Download,
 } from "lucide-react"
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js'
 import { Doughnut, Bar } from 'react-chartjs-2'
 import { calculateCompensation, getPaymentStatus, getExpectedPaymentDate, getDamageSeverity, getCoverageDetails } from "../utils/insuranceUtils"
+import { generateClaimPDF } from "../utils/claimPdfGenerator"
 
 // Register ChartJS components
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
@@ -39,6 +41,30 @@ const InsuranceClaims = ({
   initiateStatusUpdate = () => {},
   confirmStatusUpdate = () => {},
 }) => {
+  // Handler for downloading claim PDF
+  const handleDownloadPDF = (claim) => {
+    try {
+      // Find farmer data from claim if available
+      const farmerData = claim.farmerId ? {
+        firstName: claim.farmerId.firstName,
+        middleName: claim.farmerId.middleName,
+        lastName: claim.farmerId.lastName,
+        address: claim.farmerId.address,
+        contactNum: claim.farmerId.contactNum,
+        cropArea: claim.farmerId.cropArea,
+        lotNumber: claim.farmerId.lotNumber,
+        periodFrom: claim.farmerId.periodFrom,
+        periodTo: claim.farmerId.periodTo,
+        agency: claim.farmerId.agency,
+      } : null
+      
+      generateClaimPDF(claim, farmerData)
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Failed to generate PDF. Please try again.')
+    }
+  }
+
   // Defensive: if claims is undefined or not an array, fallback to empty array
   if (!Array.isArray(claims) || claims.length === 0) {
     return (
@@ -470,11 +496,19 @@ const InsuranceClaims = ({
                         >
                           View
                         </button>
+                        <button
+                          onClick={() => handleDownloadPDF(claim)}
+                          className="bg-lime-600 text-white px-3 py-1 rounded hover:bg-lime-700 text-sm inline-flex items-center"
+                          title="Download Claim Form PDF"
+                        >
+                          <Download size={14} className="mr-1" />
+                          PDF
+                        </button>
                         {claim.status === "pending" && (
                           <>
                             <button
                               onClick={() => initiateStatusUpdate(claim._id, "approved", claim.farmerId)}
-                              className="bg-green-600 text-white px-3 py-1 rounded hover:bg-lime-700 text-sm inline-flex items-center"
+                              className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm inline-flex items-center"
                             >
                               <CheckCircle size={14} className="mr-1" />
                               Approve
