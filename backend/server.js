@@ -30,7 +30,8 @@ const io = new Server(server, {
           'https://ya-m-i.github.io',
           'https://ya-m-i.github.io/agri-chain',
           process.env.FRONTEND_URL,
-          'https://agri-chain.onrender.com'
+          'https://agri-chain.onrender.com',
+          'https://agri-chain-frontend.onrender.com'
         ].filter(Boolean)
       : [
           'http://localhost:3000', 
@@ -38,7 +39,8 @@ const io = new Server(server, {
           'http://localhost:5174',
           'https://ya-m-i.github.io',
           'https://ya-m-i.github.io/agri-chain', 
-          'https://agri-chain.onrender.com'
+          'https://agri-chain.onrender.com',
+          'https://agri-chain-frontend.onrender.com'
         ],
     methods: ['GET', 'POST'],
     credentials: true,
@@ -56,7 +58,8 @@ const corsOptions = {
           'https://ya-m-i.github.io',
           'https://ya-m-i.github.io/agri-chain',
           process.env.FRONTEND_URL,
-          'https://agri-chain.onrender.com'
+          'https://agri-chain.onrender.com',
+          'https://agri-chain-frontend.onrender.com'
         ].filter(Boolean)
       : [
           'http://localhost:3000', 
@@ -64,7 +67,8 @@ const corsOptions = {
           'http://localhost:5174',
           'https://ya-m-i.github.io',
           'https://ya-m-i.github.io/agri-chain',
-          'https://agri-chain.onrender.com'
+          'https://agri-chain.onrender.com',
+          'https://agri-chain-frontend.onrender.com'
         ]
     
     console.log('�� CORS Origin Check:', { origin, allowedOrigins })
@@ -98,7 +102,8 @@ app.use((req, res, next) => {
             'https://ya-m-i.github.io', 
             'https://ya-m-i.github.io/agri-chain',
             process.env.FRONTEND_URL,
-            'https://agri-chain.onrender.com'
+            'https://agri-chain.onrender.com',
+            'https://agri-chain-frontend.onrender.com'
           ].filter(Boolean) // Remove undefined values
         : [
             'http://localhost:3000', 
@@ -106,7 +111,8 @@ app.use((req, res, next) => {
             'http://localhost:5174',
             'https://ya-m-i.github.io',
             'https://ya-m-i.github.io/agri-chain',
-            'https://agri-chain.onrender.com'
+            'https://agri-chain.onrender.com',
+            'https://agri-chain-frontend.onrender.com'
           ]
     
     const origin = req.headers.origin

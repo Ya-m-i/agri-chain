@@ -128,7 +128,7 @@ function App() {
   }
 
   return (
-    <BrowserRouter basename="/agri-chain">
+    <BrowserRouter basename="/">
       <Toaster position="top-right" />
       <Suspense fallback={<PageLoader />}>
         <Routes>

@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/agri-chain/',
+  base: '/',
   plugins: [react(), tailwindcss()],
   optimizeDeps: {
     include: ["react", "react-dom", "react-router-dom"]
