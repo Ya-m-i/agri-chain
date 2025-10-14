@@ -161,7 +161,7 @@ export const addResourceHints = () => {
 export const registerServiceWorker = async () => {
   if ('serviceWorker' in navigator) {
     try {
-      const registration = await navigator.serviceWorker.register('/agri-chain/sw.js');
+      const registration = await navigator.serviceWorker.register('/sw.js');
       console.log('ServiceWorker registered:', registration);
       
       // Listen for updates

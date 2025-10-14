@@ -6,9 +6,9 @@ const API_CACHE = `${CACHE_VERSION}-api`;
 
 // Assets to cache immediately
 const STATIC_ASSETS = [
-  '/agri-chain/',
-  '/agri-chain/index.html',
-  '/agri-chain/manifest.json',
+  '/',
+  '/index.html',
+  '/manifest.json',
   // Add other critical static assets
 ];
 
