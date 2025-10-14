@@ -44,14 +44,14 @@ function App() {
   const [loading, setLoading] = useState(true)
   const { isAuthenticated, userType, isInitialized, initializeAuth } = useAuthStore()
   
-  // Handle GitHub Pages SPA redirect
+  // Handle SPA redirect from 404.html
   useEffect(() => {
     // Check for hash-based redirect (from 404.html)
     const hash = window.location.hash
     if (hash && hash !== '#/') {
       // Remove the # and navigate to the route
       const route = hash.substring(1) // Remove the #
-      console.log('GitHub Pages hash redirect detected:', { hash, route })
+      console.log('SPA hash redirect detected:', { hash, route })
       
       // Replace the current URL with the route
       window.history.replaceState(null, '', route)
