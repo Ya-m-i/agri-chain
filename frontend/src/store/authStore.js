@@ -70,9 +70,30 @@ export const useAuthStore = create(
           }
         },
         
-        logout: () => {
+        logout: async () => {
           const currentState = get();
           console.log('Auth Store: Logging out user...', currentState);
+          
+          // Call backend logout API for farmers
+          try {
+            if (currentState.userType === 'farmer' && currentState.user?.id) {
+              const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/farmers/logout`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ farmerId: currentState.user.id }),
+              });
+              
+              if (response.ok) {
+                console.log('Auth Store: Backend logout successful');
+              } else {
+                console.warn('Auth Store: Backend logout failed, but continuing with local logout');
+              }
+            }
+          } catch (error) {
+            console.error('Auth Store: Error calling backend logout:', error);
+          }
           
           // Disconnect socket before clearing auth state
           try {

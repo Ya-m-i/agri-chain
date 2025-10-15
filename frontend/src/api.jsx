@@ -33,6 +33,10 @@ export const fetchFarmers = async () => {
   return await fetchWithRetry(apiUrl('/api/farmers'));
 };
 
+export const fetchActiveFarmers = async () => {
+  return await fetchWithRetry(apiUrl('/api/farmers/active'));
+};
+
 export const loginFarmer = async (username, password) => {
   return await fetchWithRetry(apiUrl('/api/farmers/login'), {
     method: 'POST',

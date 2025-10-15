@@ -27,6 +27,14 @@ export const useFarmers = () => {
   })
 }
 
+export const useActiveFarmers = () => {
+  return useQuery({
+    queryKey: ['activeFarmers'],
+    queryFn: api.fetchActiveFarmers,
+    refetchInterval: 30000, // Refetch every 30 seconds for real-time updates
+  })
+}
+
 export const useRegisterFarmer = () => {
   const queryClient = useQueryClient()
   return useMutation({

@@ -36,17 +36,30 @@ const getFarmers = async (req, res) => {
 // @route   POST /api/farmers/login
 // @access  Public
 const loginFarmer = async (req, res) => {
-    const { username, password } = req.body;
-    const farmer = await Farmer.findOne({ username });
-    if (farmer && await bcrypt.compare(password, farmer.password)) {
-        // Exclude password from response
-        const { password, ...farmerData } = farmer.toObject();
-        res.json({
-            ...farmerData,
-            token: generateToken(farmer._id)
-        });
-    } else {
-        res.status(400).json({ message: 'Invalid credentials' });
+    try {
+        const { username, password } = req.body;
+        const farmer = await Farmer.findOne({ username });
+        
+        if (farmer && await bcrypt.compare(password, farmer.password)) {
+            // Update lastLogin and isOnline status
+            await Farmer.findByIdAndUpdate(farmer._id, {
+                lastLogin: new Date(),
+                isOnline: true
+            });
+            
+            // Exclude password from response
+            const { password, ...farmerData } = farmer.toObject();
+            res.json({
+                ...farmerData,
+                lastLogin: new Date(),
+                isOnline: true,
+                token: generateToken(farmer._id)
+            });
+        } else {
+            res.status(400).json({ message: 'Invalid credentials' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };
 
@@ -69,6 +82,46 @@ const deleteFarmer = async (req, res) => {
     }
 };
 
+// @desc    Get active farmers (logged in within last 24 hours)
+// @route   GET /api/farmers/active
+// @access  Public
+const getActiveFarmers = async (req, res) => {
+    try {
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        
+        const activeFarmers = await Farmer.find({
+            lastLogin: { $gte: twentyFourHoursAgo },
+            isOnline: true
+        }).select('-password');
+        
+        res.status(200).json({
+            activeCount: activeFarmers.length,
+            farmers: activeFarmers
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Farmer logout
+// @route   POST /api/farmers/logout
+// @access  Public
+const logoutFarmer = async (req, res) => {
+    try {
+        const { farmerId } = req.body;
+        
+        if (farmerId) {
+            await Farmer.findByIdAndUpdate(farmerId, {
+                isOnline: false
+            });
+        }
+        
+        res.status(200).json({ message: 'Logged out successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 function generateToken(id) {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 }
@@ -77,5 +130,7 @@ module.exports = {
     createFarmer,
     getFarmers,
     loginFarmer,
-    deleteFarmer
+    deleteFarmer,
+    getActiveFarmers,
+    logoutFarmer
 } 

@@ -23,7 +23,9 @@ const farmerSchema = mongoose.Schema({
     location: {
         lat: { type: Number },
         lng: { type: Number }
-    }
+    },
+    lastLogin: { type: Date, default: null },
+    isOnline: { type: Boolean, default: false }
 }, {
     timestamps: true,
 })

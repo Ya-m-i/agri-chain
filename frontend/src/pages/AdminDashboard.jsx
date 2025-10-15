@@ -129,6 +129,7 @@ import {
   useClaims, 
   useUpdateClaim, 
   useFarmers, 
+  useActiveFarmers,
   useCropInsurance, 
   useAssistances, 
   useAllApplications,
@@ -218,6 +219,8 @@ const AdminDashboard = () => {
   const { data: claims = [], isLoading: claimsLoading, refetch: refetchClaims } = useClaims()
   // eslint-disable-next-line no-unused-vars
   const { data: farmers = [], isLoading: farmersLoading } = useFarmers()
+  // eslint-disable-next-line no-unused-vars
+  const { data: activeFarmersData = { activeCount: 0, farmers: [] }, isLoading: activeFarmersLoading } = useActiveFarmers()
   // eslint-disable-next-line no-unused-vars
   const { data: cropInsuranceRecords = [], isLoading: insuranceLoading } = useCropInsurance()
   const { data: assistanceItems = [], isLoading: assistanceLoading, error: assistanceError } = useAssistances()
@@ -2215,15 +2218,15 @@ const AdminDashboard = () => {
                     <Activity className="h-5 w-5 text-green-600" />
                     <div className="text-sm font-bold text-black">Active</div>
                   </div>
-                  <div className="text-2xl font-bold text-gray-800 mb-1">{farmers.filter(f => f.lastLogin && new Date(f.lastLogin) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length}</div>
+                  <div className="text-2xl font-bold text-gray-800 mb-1">{activeFarmersData.activeCount || 0}</div>
                   <div className="text-xs text-gray-600 mb-2">Online Today</div>
                   {/* Analytics Mini Chart */}
                   <div className="w-full h-8 bg-gray-100 rounded-lg overflow-hidden">
                     <div className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-lg" 
-                         style={{ width: `${Math.min((farmers.filter(f => f.lastLogin && new Date(f.lastLogin) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length / totalFarmers) * 100, 100)}%` }}>
+                         style={{ width: `${Math.min(((activeFarmersData.activeCount || 0) / Math.max(totalFarmers, 1)) * 100, 100)}%` }}>
                     </div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">Active Rate: {Math.round((farmers.filter(f => f.lastLogin && new Date(f.lastLogin) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length / totalFarmers) * 100)}%</div>
+                  <div className="text-xs text-gray-500 mt-1">Active Rate: {Math.round(((activeFarmersData.activeCount || 0) / Math.max(totalFarmers, 1)) * 100)}%</div>
                 </div>
 
                 {/* Pending Block */}
