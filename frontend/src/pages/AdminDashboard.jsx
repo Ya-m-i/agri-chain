@@ -50,6 +50,13 @@ import "leaflet/dist/leaflet.css"
 // If you're unsure about the exact path, you can use a placeholder or comment it out temporarily
 // import adminLogoImage from "../assets/images/AgriLogo.png"
 import adminLogoImage from "../assets/Images/AgriLogo.png" // Fallback to a placeholder if image can't be found
+
+// Import custom KPI block images
+import totalFarmerImage from "../assets/Images/TotalFarmer.png"
+import activeImage from "../assets/Images/Active.png"
+import pendingImage from "../assets/Images/pending.png"
+import assistedImage from "../assets/Images/Assisted.png"
+import climateImage from "../assets/Images/climate.png"
 import DistributionRecords from "../components/DistributionRecords"
 import FarmerRegistration from "../components/FarmerRegistration"
 import AdminSettings from "../components/AdminSettings"
@@ -174,7 +181,7 @@ const WeatherKPIBlock = () => {
     return (
       <div className="bg-white rounded-xl border border-gray-600 p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300">
         <div className="flex items-center gap-2 mb-2">
-          <Cloud className="h-5 w-5 text-sky-600" />
+          <img src={climateImage} alt="Today's Weather" className="h-5 w-5" />
           <div className="text-sm font-bold text-black">Todays Weather</div>
         </div>
         <div className="text-2xl font-bold text-gray-800 mb-1">--°C</div>
@@ -188,7 +195,7 @@ const WeatherKPIBlock = () => {
   return (
     <div className="bg-white rounded-xl border border-gray-600 p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300">
       <div className="flex items-center gap-2 mb-2">
-        <Cloud className="h-5 w-5 text-sky-600" />
+        <img src={climateImage} alt="Today's Weather" className="h-5 w-5" />
         <div className="text-sm font-bold text-black">Todays Weather</div>
       </div>
       <div className="text-2xl font-bold text-gray-800 mb-1">{weather?.temperature || 28}°C</div>
@@ -2198,7 +2205,7 @@ const AdminDashboard = () => {
                 {/* Farmers Block */}
                 <div className="bg-white rounded-xl border border-gray-600 p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300">
                   <div className="flex items-center gap-2 mb-2">
-                    <Users className="h-5 w-5 text-lime-600" />
+                    <img src={totalFarmerImage} alt="Total Farmers" className="h-5 w-5" />
                     <div className="text-sm font-bold text-black">Farmers</div>
                   </div>
                   <div className="text-2xl font-bold text-gray-800 mb-1">{totalFarmers}</div>
@@ -2215,7 +2222,7 @@ const AdminDashboard = () => {
                 {/* Active Block */}
                 <div className="bg-white rounded-xl border border-gray-600 p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300">
                   <div className="flex items-center gap-2 mb-2">
-                    <Activity className="h-5 w-5 text-green-600" />
+                    <img src={activeImage} alt="Active Farmers" className="h-5 w-5" />
                     <div className="text-sm font-bold text-black">Active</div>
                   </div>
                   <div className="text-2xl font-bold text-gray-800 mb-1">{activeFarmersData.activeCount || 0}</div>
@@ -2232,7 +2239,7 @@ const AdminDashboard = () => {
                 {/* Pending Block */}
                 <div className="bg-white rounded-xl border border-gray-600 p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300">
                   <div className="flex items-center gap-2 mb-2">
-                    <Clock className="h-5 w-5 text-orange-600" />
+                    <img src={pendingImage} alt="Pending Claims" className="h-5 w-5" />
                     <div className="text-sm font-bold text-black">Pending</div>
                   </div>
                   <div className="text-2xl font-bold text-gray-800 mb-1">{pendingClaims}</div>
@@ -2249,7 +2256,7 @@ const AdminDashboard = () => {
                 {/* Farmer Assisted Block */}
                 <div className="bg-white rounded-xl border border-gray-600 p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300">
                   <div className="flex items-center gap-2 mb-2">
-                    <HandHeart className="h-5 w-5 text-blue-600" />
+                    <img src={assistedImage} alt="Farmer Assisted" className="h-5 w-5" />
                     <div className="text-sm font-bold text-black">Farmer Assisted</div>
                   </div>
                   <div className="text-2xl font-bold text-gray-800 mb-1">{(() => {
