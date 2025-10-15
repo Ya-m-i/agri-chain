@@ -179,7 +179,7 @@ const WeatherKPIBlock = () => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl border border-gray-600 p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300">
+      <div className="bg-white rounded-xl p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
         <div className="flex items-center gap-2 mb-2">
           <img src={climateImage} alt="Today's Weather" className="h-5 w-5" />
           <div className="text-sm font-bold text-black">Todays Weather</div>
@@ -193,7 +193,7 @@ const WeatherKPIBlock = () => {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-600 p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300">
+    <div className="bg-white rounded-xl p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
       <div className="flex items-center gap-2 mb-2">
         <img src={climateImage} alt="Today's Weather" className="h-5 w-5" />
         <div className="text-sm font-bold text-black">Todays Weather</div>
@@ -2203,7 +2203,7 @@ const AdminDashboard = () => {
 
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4 mb-8">
                 {/* Farmers Block */}
-                <div className="bg-white rounded-xl border border-gray-600 p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300">
+                <div className="bg-white rounded-xl p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
                     <img src={totalFarmerImage} alt="Total Farmers" className="h-5 w-5" />
                     <div className="text-sm font-bold text-black">Farmers</div>
@@ -2220,7 +2220,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Active Block */}
-                <div className="bg-white rounded-xl border border-gray-600 p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300">
+                <div className="bg-white rounded-xl p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
                     <img src={activeImage} alt="Active Farmers" className="h-5 w-5" />
                     <div className="text-sm font-bold text-black">Active</div>
@@ -2237,7 +2237,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Pending Block */}
-                <div className="bg-white rounded-xl border border-gray-600 p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300">
+                <div className="bg-white rounded-xl p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
                     <img src={pendingImage} alt="Pending Claims" className="h-5 w-5" />
                     <div className="text-sm font-bold text-black">Pending</div>
@@ -2254,7 +2254,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Farmer Assisted Block */}
-                <div className="bg-white rounded-xl border border-gray-600 p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300">
+                <div className="bg-white rounded-xl p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
                     <img src={assistedImage} alt="Farmer Assisted" className="h-5 w-5" />
                     <div className="text-sm font-bold text-black">Farmer Assisted</div>
