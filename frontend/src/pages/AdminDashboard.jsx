@@ -184,30 +184,31 @@ const WeatherKPIBlock = () => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
-        <div className="flex items-center gap-2 mb-2">
-          <img src={climateImage} alt="Today's Weather" className="h-5 w-5" />
-          <div className="text-sm font-bold text-black">Todays Weather</div>
+      <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
+        <div className="flex-1">
+          <div className="text-sm font-bold text-black mb-1">Todays Weather</div>
+          <div className="text-2xl font-bold text-gray-800 mb-1">--°C</div>
+          <div className="text-xs text-gray-600 mb-2">Loading...</div>
+          <div className="text-xs text-gray-500 mt-1">Please wait</div>
         </div>
-        <div className="text-2xl font-bold text-gray-800 mb-1">--°C</div>
-        <div className="text-xs text-gray-600 mb-2">Loading...</div>
-        <div className="text-2xl mb-2">⏳</div>
-        <div className="text-xs text-gray-500 mt-1">Please wait</div>
+        <div className="flex-shrink-0 ml-3">
+          <img src={climateImage} alt="Today's Weather" className="h-12 w-12" />
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-xl p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
-      <div className="flex items-center gap-2 mb-2">
-        <img src={climateImage} alt="Today's Weather" className="h-5 w-5" />
-        <div className="text-sm font-bold text-black">Todays Weather</div>
+    <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
+      <div className="flex-1">
+        <div className="text-sm font-bold text-black mb-1">Todays Weather</div>
+        <div className="text-2xl font-bold text-gray-800 mb-1">{weather?.temperature || 28}°C</div>
+        <div className="text-xs text-gray-600 mb-2">Kapalong, Davao</div>
+        <div className="text-xs text-gray-500 mt-1">{weather?.condition || "Partly Cloudy"}</div>
       </div>
-      <div className="text-2xl font-bold text-gray-800 mb-1">{weather?.temperature || 28}°C</div>
-      <div className="text-xs text-gray-600 mb-2">Kapalong, Davao</div>
-      {/* Weather Icon */}
-      <div className="text-2xl mb-2">{weather?.icon || "🌤️"}</div>
-      <div className="text-xs text-gray-500 mt-1">{weather?.condition || "Partly Cloudy"}</div>
+      <div className="flex-shrink-0 ml-3">
+        <img src={climateImage} alt="Today's Weather" className="h-12 w-12" />
+      </div>
     </div>
   )
 }
@@ -2049,11 +2050,17 @@ const AdminDashboard = () => {
 
         {/* Desktop Sidebar */}
         <aside 
-          className={`hidden md:block ${sidebarExpanded ? 'w-64' : 'w-16'} shadow-lg text-black space-y-6 border-r border-gray-100 sticky top-0 h-screen overflow-y-auto bg-white transition-all duration-300 ease-in-out group`}
+          className={`hidden md:block ${sidebarExpanded ? 'w-64' : 'w-16'} shadow-lg text-black space-y-6 border-r border-gray-100 fixed top-0 left-0 h-screen overflow-y-auto bg-white transition-all duration-300 ease-in-out group z-20`}
           onMouseEnter={() => setSidebarExpanded(true)}
           onMouseLeave={() => setSidebarExpanded(false)}
         >
-          <br></br>
+          {/* Admin Logo Section */}
+          <div className="p-4 bg-lime-800 text-white">
+            <div className="flex items-center gap-3">
+              <img src={adminLogoImage || "/placeholder.svg"} alt="Admin Logo" className="h-8 w-8" />
+              {sidebarExpanded && <h2 className="text-lg font-bold">Admin Panel</h2>}
+            </div>
+          </div>
 
           <div className="space-y-1 px-3">
             <button
@@ -2199,7 +2206,7 @@ const AdminDashboard = () => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 bg-gradient-to-b from-zinc-50 to-white">
+        <main className="flex-1 p-4 bg-gradient-to-b from-zinc-50 to-white md:ml-16">
           {activeTab === "home" && (
             <>
               {/* --- Analytics Filters --- */}
@@ -2208,89 +2215,97 @@ const AdminDashboard = () => {
 
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4 mb-8">
                 {/* Farmers Block */}
-                <div className="bg-white rounded-xl p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
-                  <div className="flex items-center gap-2 mb-2">
-                    <img src={totalFarmerImage} alt="Total Farmers" className="h-5 w-5" />
-                    <div className="text-sm font-bold text-black">Farmers</div>
-                  </div>
-                  <div className="text-2xl font-bold text-gray-800 mb-1">{totalFarmers}</div>
-                  <div className="text-xs text-gray-600 mb-2">Total Registered</div>
-                  {/* Analytics Mini Chart */}
-                  <div className="w-full h-8 bg-gray-100 rounded-lg overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-lime-400 to-lime-600 rounded-lg" 
-                         style={{ width: `${Math.min((totalFarmers / 1000) * 100, 100)}%` }}>
+                <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
+                  <div className="flex-1">
+                    <div className="text-sm font-bold text-black mb-1">Farmers</div>
+                    <div className="text-2xl font-bold text-gray-800 mb-1">{totalFarmers}</div>
+                    <div className="text-xs text-gray-600 mb-2">Total Registered</div>
+                    {/* Analytics Mini Chart */}
+                    <div className="w-full h-6 bg-gray-100 rounded-lg overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-lime-400 to-lime-600 rounded-lg" 
+                           style={{ width: `${Math.min((totalFarmers / 1000) * 100, 100)}%` }}>
+                      </div>
                     </div>
+                    <div className="text-xs text-gray-500 mt-1">Growth: +{Math.floor(totalFarmers * 0.05)} this month</div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">Growth: +{Math.floor(totalFarmers * 0.05)} this month</div>
+                  <div className="flex-shrink-0 ml-3">
+                    <img src={totalFarmerImage} alt="Total Farmers" className="h-12 w-12" />
+                  </div>
                 </div>
 
                 {/* Active Block */}
-                <div className="bg-white rounded-xl p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
-                  <div className="flex items-center gap-2 mb-2">
-                    <img src={activeImage} alt="Active Farmers" className="h-5 w-5" />
-                    <div className="text-sm font-bold text-black">Active</div>
-                  </div>
-                  <div className="text-2xl font-bold text-gray-800 mb-1">{activeFarmersData.activeCount || 0}</div>
-                  <div className="text-xs text-gray-600 mb-2">Online Today</div>
-                  {/* Analytics Mini Chart */}
-                  <div className="w-full h-8 bg-gray-100 rounded-lg overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-lg" 
-                         style={{ width: `${Math.min(((activeFarmersData.activeCount || 0) / Math.max(totalFarmers, 1)) * 100, 100)}%` }}>
+                <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
+                  <div className="flex-1">
+                    <div className="text-sm font-bold text-black mb-1">Active</div>
+                    <div className="text-2xl font-bold text-gray-800 mb-1">{activeFarmersData.activeCount || 0}</div>
+                    <div className="text-xs text-gray-600 mb-2">Online Today</div>
+                    {/* Analytics Mini Chart */}
+                    <div className="w-full h-6 bg-gray-100 rounded-lg overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-lg" 
+                           style={{ width: `${Math.min(((activeFarmersData.activeCount || 0) / Math.max(totalFarmers, 1)) * 100, 100)}%` }}>
+                      </div>
                     </div>
+                    <div className="text-xs text-gray-500 mt-1">Active Rate: {Math.round(((activeFarmersData.activeCount || 0) / Math.max(totalFarmers, 1)) * 100)}%</div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">Active Rate: {Math.round(((activeFarmersData.activeCount || 0) / Math.max(totalFarmers, 1)) * 100)}%</div>
+                  <div className="flex-shrink-0 ml-3">
+                    <img src={activeImage} alt="Active Farmers" className="h-12 w-12" />
+                  </div>
                 </div>
 
                 {/* Pending Block */}
-                <div className="bg-white rounded-xl p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
-                  <div className="flex items-center gap-2 mb-2">
-                    <img src={pendingImage} alt="Pending Claims" className="h-5 w-5" />
-                    <div className="text-sm font-bold text-black">Pending</div>
-                  </div>
-                  <div className="text-2xl font-bold text-gray-800 mb-1">{pendingClaims}</div>
-                  <div className="text-xs text-gray-600 mb-2">Insurance Claims</div>
-                  {/* Analytics Mini Chart */}
-                  <div className="w-full h-8 bg-gray-100 rounded-lg overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-lg" 
-                         style={{ width: `${Math.min((pendingClaims / Math.max(totalFarmers, 1)) * 100, 100)}%` }}>
+                <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
+                  <div className="flex-1">
+                    <div className="text-sm font-bold text-black mb-1">Pending</div>
+                    <div className="text-2xl font-bold text-gray-800 mb-1">{pendingClaims}</div>
+                    <div className="text-xs text-gray-600 mb-2">Insurance Claims</div>
+                    {/* Analytics Mini Chart */}
+                    <div className="w-full h-6 bg-gray-100 rounded-lg overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-lg" 
+                           style={{ width: `${Math.min((pendingClaims / Math.max(totalFarmers, 1)) * 100, 100)}%` }}>
+                      </div>
                     </div>
+                    <div className="text-xs text-gray-500 mt-1">Processing: {Math.round((pendingClaims / Math.max(claims.length, 1)) * 100)}%</div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">Processing: {Math.round((pendingClaims / Math.max(claims.length, 1)) * 100)}%</div>
+                  <div className="flex-shrink-0 ml-3">
+                    <img src={pendingImage} alt="Pending Claims" className="h-12 w-12" />
+                  </div>
                 </div>
 
                 {/* Farmer Assisted Block */}
-                <div className="bg-white rounded-xl p-4 flex flex-col items-center text-center text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
-                  <div className="flex items-center gap-2 mb-2">
-                    <img src={assistedImage} alt="Farmer Assisted" className="h-5 w-5" />
-                    <div className="text-sm font-bold text-black">Farmer Assisted</div>
-                  </div>
-                  <div className="text-2xl font-bold text-gray-800 mb-1">{(() => {
-                    const currentMonth = new Date().getMonth();
-                    const currentYear = new Date().getFullYear();
-                    return allApplications.filter(app => {
-                      const appDate = new Date(app.createdAt || app.date);
-                      return (app.status === 'distributed' || app.status === 'approved') && 
-                             appDate.getMonth() === currentMonth && 
-                             appDate.getFullYear() === currentYear;
-                    }).length;
-                  })()}</div>
-                  <div className="text-xs text-gray-600 mb-2">This Month</div>
-                  {/* Analytics Mini Chart */}
-                  <div className="w-full h-8 bg-gray-100 rounded-lg overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg" 
-                         style={{ width: `${Math.min(((() => {
-                           const currentMonth = new Date().getMonth();
-                           const currentYear = new Date().getFullYear();
-                           return allApplications.filter(app => {
-                             const appDate = new Date(app.createdAt || app.date);
-                             return (app.status === 'distributed' || app.status === 'approved') && 
-                                    appDate.getMonth() === currentMonth && 
-                                    appDate.getFullYear() === currentYear;
-                           }).length;
-                         })() / Math.max(totalFarmers, 1)) * 100, 100)}%` }}>
+                <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
+                  <div className="flex-1">
+                    <div className="text-sm font-bold text-black mb-1">Farmer Assisted</div>
+                    <div className="text-2xl font-bold text-gray-800 mb-1">{(() => {
+                      const currentMonth = new Date().getMonth();
+                      const currentYear = new Date().getFullYear();
+                      return allApplications.filter(app => {
+                        const appDate = new Date(app.createdAt || app.date);
+                        return (app.status === 'distributed' || app.status === 'approved') && 
+                               appDate.getMonth() === currentMonth && 
+                               appDate.getFullYear() === currentYear;
+                      }).length;
+                    })()}</div>
+                    <div className="text-xs text-gray-600 mb-2">This Month</div>
+                    {/* Analytics Mini Chart */}
+                    <div className="w-full h-6 bg-gray-100 rounded-lg overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg" 
+                           style={{ width: `${Math.min(((() => {
+                             const currentMonth = new Date().getMonth();
+                             const currentYear = new Date().getFullYear();
+                             return allApplications.filter(app => {
+                               const appDate = new Date(app.createdAt || app.date);
+                               return (app.status === 'distributed' || app.status === 'approved') && 
+                                      appDate.getMonth() === currentMonth && 
+                                      appDate.getFullYear() === currentYear;
+                             }).length;
+                           })() / Math.max(totalFarmers, 1)) * 100, 100)}%` }}>
+                      </div>
                     </div>
+                    <div className="text-xs text-gray-500 mt-1">Monthly Target: {Math.floor(totalFarmers * 0.1)}</div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">Monthly Target: {Math.floor(totalFarmers * 0.1)}</div>
+                  <div className="flex-shrink-0 ml-3">
+                    <img src={assistedImage} alt="Farmer Assisted" className="h-12 w-12" />
+                  </div>
                 </div>
 
                 {/* Todays Weather Block */}
