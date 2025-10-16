@@ -46,8 +46,6 @@ import { useSocketQuery } from "../hooks/useSocketQuery"
 import { getWeatherForKapalong } from "../utils/weatherUtils"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
-import "leaflet-draw/dist/leaflet.draw.css"
-import "leaflet-draw"
 // Use a relative path that matches your project structure
 // If you're unsure about the exact path, you can use a placeholder or comment it out temporarily
 // import adminLogoImage from "../assets/images/AgriLogo.png"
@@ -377,8 +375,6 @@ const AdminDashboard = () => {
   const overviewMapRef = useRef(null)
   const overviewLeafletMapRef = useRef(null)
   const overviewMarkersLayerRef = useRef(null)
-  const overviewDrawingLayerRef = useRef(null)
-  const overviewDrawControlRef = useRef(null)
   const [showFarmLocationsDropdown, setShowFarmLocationsDropdown] = useState(false)
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
   const [confirmationAction, setConfirmationAction] = useState({ type: "", claimId: "" })
@@ -414,25 +410,6 @@ const AdminDashboard = () => {
   const [mapMode, setMapMode] = useState("view") // view or add
   const [mapCenter, setMapCenter] = useState([7.6167, 125.7]) // Default to Kapalong, Davao del Norte
   const [mapZoom, setMapZoom] = useState(12) // Increased zoom to focus on Kapalong area
-  
-  // Fill mode states
-  const [fillMode, setFillMode] = useState(false)
-  const [selectedFillColor, setSelectedFillColor] = useState('#22c55e') // Default green
-  const [drawnPolygons, setDrawnPolygons] = useState([])
-  
-  // Color options for fill
-  const fillColorOptions = [
-    { name: 'Green', value: '#22c55e', description: 'Rice, Vegetables' },
-    { name: 'Yellow', value: '#f59e0b', description: 'Corn, Pineapple' },
-    { name: 'Blue', value: '#3b82f6', description: 'Water, Irrigation' },
-    { name: 'Red', value: '#ef4444', description: 'High Priority' },
-    { name: 'Purple', value: '#8b5cf6', description: 'Special Crops' },
-    { name: 'Orange', value: '#f97316', description: 'Fruits, Mango' },
-    { name: 'Pink', value: '#ec4899', description: 'Flowers, Ornamental' },
-    { name: 'Teal', value: '#14b8a6', description: 'Aquaculture' },
-    { name: 'Lime', value: '#84cc16', description: 'Grass, Pasture' },
-    { name: 'Indigo', value: '#6366f1', description: 'Research Areas' }
-  ]
   // (removed duplicate overview map refs)
 
   // Overview map filters (must be declared before map callbacks that depend on them)
@@ -1623,15 +1600,9 @@ const AdminDashboard = () => {
     // If leaving dashboard, destroy the map so it re-initializes cleanly on return
     if (activeTab !== 'home') {
       if (overviewLeafletMapRef.current) {
-        // Clean up drawing controls
-        if (overviewDrawControlRef.current) {
-          overviewLeafletMapRef.current.removeControl(overviewDrawControlRef.current)
-          overviewDrawControlRef.current = null
-        }
         overviewLeafletMapRef.current.remove()
         overviewLeafletMapRef.current = null
         overviewMarkersLayerRef.current = null
-        overviewDrawingLayerRef.current = null
       }
       return
     }
@@ -1655,126 +1626,6 @@ const AdminDashboard = () => {
     addFarmersToOverviewMap()
   }, [activeTab, farmers, mapCenter, addFarmersToOverviewMap])
 
-  // Function to toggle fill mode
-  const toggleFillMode = () => {
-    setFillMode(!fillMode)
-    
-    if (overviewLeafletMapRef.current) {
-      if (!fillMode) {
-        // Enable drawing mode
-        enableDrawingMode()
-      } else {
-        // Disable drawing mode
-        disableDrawingMode()
-      }
-    }
-  }
-
-  // Function to enable drawing mode
-  const enableDrawingMode = () => {
-    if (!overviewLeafletMapRef.current) return
-
-    // Create drawing layer if it doesn't exist
-    if (!overviewDrawingLayerRef.current) {
-      overviewDrawingLayerRef.current = L.layerGroup().addTo(overviewLeafletMapRef.current)
-    }
-
-    // Create draw control if it doesn't exist
-    if (!overviewDrawControlRef.current) {
-      const drawControl = new L.Control.Draw({
-        position: 'topright',
-        draw: {
-          polygon: {
-            allowIntersection: false,
-            showArea: true,
-            drawError: {
-              color: '#e1e100',
-              message: '<strong>Error:</strong> shape edges cannot cross!'
-            },
-            shapeOptions: {
-              color: selectedFillColor,
-              fillColor: selectedFillColor,
-              fillOpacity: 0.3
-            }
-          },
-          polyline: false,
-          circle: false,
-          rectangle: false,
-          marker: false,
-          circlemarker: false
-        },
-        edit: {
-          featureGroup: overviewDrawingLayerRef.current,
-          remove: true
-        }
-      })
-      
-      overviewDrawControlRef.current = drawControl
-      overviewLeafletMapRef.current.addControl(drawControl)
-    }
-
-    // Add event listeners
-    overviewLeafletMapRef.current.on(L.Draw.Event.CREATED, handlePolygonCreated)
-    overviewLeafletMapRef.current.on(L.Draw.Event.EDITED, handlePolygonEdited)
-    overviewLeafletMapRef.current.on(L.Draw.Event.DELETED, handlePolygonDeleted)
-  }
-
-  // Function to disable drawing mode
-  const disableDrawingMode = () => {
-    if (overviewDrawControlRef.current && overviewLeafletMapRef.current) {
-      overviewLeafletMapRef.current.removeControl(overviewDrawControlRef.current)
-      overviewDrawControlRef.current = null
-    }
-
-    // Remove event listeners
-    if (overviewLeafletMapRef.current) {
-      overviewLeafletMapRef.current.off(L.Draw.Event.CREATED, handlePolygonCreated)
-      overviewLeafletMapRef.current.off(L.Draw.Event.EDITED, handlePolygonEdited)
-      overviewLeafletMapRef.current.off(L.Draw.Event.DELETED, handlePolygonDeleted)
-    }
-  }
-
-  // Handle polygon creation
-  const handlePolygonCreated = (e) => {
-    const { layer } = e
-    const polygon = {
-      id: Date.now(),
-      layer: layer,
-      color: selectedFillColor,
-      area: L.GeometryUtil.geodesicArea(layer.getLatLngs()[0])
-    }
-    
-    setDrawnPolygons(prev => [...prev, polygon])
-    overviewDrawingLayerRef.current.addLayer(layer)
-  }
-
-  // Handle polygon editing
-  const handlePolygonEdited = (e) => {
-    const layers = e.layers
-    layers.eachLayer((layer) => {
-      const polygon = drawnPolygons.find(p => p.layer === layer)
-      if (polygon) {
-        polygon.area = L.GeometryUtil.geodesicArea(layer.getLatLngs()[0])
-      }
-    })
-    setDrawnPolygons([...drawnPolygons])
-  }
-
-  // Handle polygon deletion
-  const handlePolygonDeleted = (e) => {
-    const layers = e.layers
-    layers.eachLayer((layer) => {
-      setDrawnPolygons(prev => prev.filter(p => p.layer !== layer))
-    })
-  }
-
-  // Function to clear all drawn polygons
-  const clearAllFills = () => {
-    if (overviewDrawingLayerRef.current) {
-      overviewDrawingLayerRef.current.clearLayers()
-    }
-    setDrawnPolygons([])
-  }
 
   // Function to search for a location on the map
   const searchLocation = () => {
@@ -2747,64 +2598,6 @@ const AdminDashboard = () => {
                     <h3 className="text-lg font-semibold text-gray-800">Geo-Tagging Map Overview</h3>
                   </div>
                   <div className="flex items-center gap-2">
-                    {/* Set Fill Button */}
-                    <div className="relative">
-                      <button
-                        onClick={toggleFillMode}
-                        className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                          fillMode 
-                            ? 'bg-lime-600 text-white' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                        title="Toggle fill mode for hectares"
-                      >
-                        {fillMode ? 'Exit Fill Mode' : 'Set Fill'}
-                      </button>
-                      
-                      {/* Color Picker Dropdown */}
-                      {fillMode && (
-                        <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                          <div className="p-3">
-                            <h4 className="text-sm font-medium text-gray-800 mb-2">Select Fill Color</h4>
-                            <div className="grid grid-cols-2 gap-2">
-                              {fillColorOptions.map((color) => (
-                                <button
-                                  key={color.value}
-                                  onClick={() => {
-                                    setSelectedFillColor(color.value)
-                                  }}
-                                  className={`p-2 rounded-md text-xs text-left transition-colors ${
-                                    selectedFillColor === color.value
-                                      ? 'ring-2 ring-lime-500 bg-lime-50'
-                                      : 'hover:bg-gray-50'
-                                  }`}
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <div 
-                                      className="w-4 h-4 rounded border border-gray-300"
-                                      style={{ backgroundColor: color.value }}
-                                    ></div>
-                                    <div>
-                                      <div className="font-medium">{color.name}</div>
-                                      <div className="text-gray-500">{color.description}</div>
-                                    </div>
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
-                            <div className="mt-3 pt-2 border-t border-gray-200">
-                              <button
-                                onClick={clearAllFills}
-                                className="w-full px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
-                              >
-                                Clear All Fills
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
                     <select
                       value={cropFilter}
                       onChange={(e) => setCropFilter(e.target.value)}
@@ -2908,52 +2701,12 @@ const AdminDashboard = () => {
                   
                   <div className="mt-2 text-xs text-gray-500">
                     💡 Hover over pins for detailed farmer information • Color-coded by barangay and insurance status
-                    {fillMode && (
-                      <span className="ml-2 text-lime-600 font-medium">
-                        • Fill mode active - Click and drag to draw areas
-                      </span>
-                    )}
                   </div>
                 </div>
                 
                 <div className="w-full h-[420px] rounded-lg border border-gray-200 overflow-hidden relative">
                   <div ref={overviewMapRef} className="w-full h-full z-10" />
                 </div>
-
-                {/* Fill Areas Summary */}
-                {drawnPolygons.length > 0 && (
-                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-800 mb-2">Drawn Areas Summary</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
-                      <div className="text-gray-600">
-                        <span className="font-medium">Total Areas:</span> {drawnPolygons.length}
-                      </div>
-                      <div className="text-gray-600">
-                        <span className="font-medium">Total Area:</span> {drawnPolygons.reduce((sum, p) => sum + p.area, 0).toFixed(2)} m²
-                      </div>
-                      <div className="text-gray-600">
-                        <span className="font-medium">Hectares:</span> {(drawnPolygons.reduce((sum, p) => sum + p.area, 0) / 10000).toFixed(2)} ha
-                      </div>
-                    </div>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {drawnPolygons.map((polygon, index) => (
-                        <div
-                          key={polygon.id}
-                          className="flex items-center gap-1 px-2 py-1 bg-white rounded border text-xs"
-                        >
-                          <div 
-                            className="w-3 h-3 rounded border border-gray-300"
-                            style={{ backgroundColor: polygon.color }}
-                          ></div>
-                          <span>Area {index + 1}</span>
-                          <span className="text-gray-500">
-                            ({(polygon.area / 10000).toFixed(2)} ha)
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Pending Insurance Claims Section */}
