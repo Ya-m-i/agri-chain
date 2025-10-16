@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Plus,
   Search,
@@ -20,6 +20,8 @@ import {
   Users,
   Crop,
   Timer,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import {
   useFarmers,
@@ -48,6 +50,8 @@ const CropInsuranceManagement = () => {
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [selectedRecord, setSelectedRecord] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(5)
   const [formData, setFormData] = useState({
     farmerId: "",
     cropType: "",
@@ -255,8 +259,19 @@ const CropInsuranceManagement = () => {
     return farmerName.includes(searchLower) || cropType.includes(searchLower)
   })
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredRecords.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedRecords = filteredRecords.slice(startIndex, endIndex)
+
+  // Reset to first page when search query changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery])
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-white rounded-lg p-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -274,7 +289,7 @@ const CropInsuranceManagement = () => {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Total Crops</p>
@@ -283,7 +298,7 @@ const CropInsuranceManagement = () => {
             <Crop className="text-green-600" size={24} />
           </div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Insured Crops</p>
@@ -292,7 +307,7 @@ const CropInsuranceManagement = () => {
             <Shield className="text-green-600" size={24} />
           </div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Uninsured Crops</p>
@@ -301,7 +316,7 @@ const CropInsuranceManagement = () => {
             <AlertTriangle className="text-yellow-600" size={24} />
           </div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Insurance Rate</p>
@@ -313,7 +328,7 @@ const CropInsuranceManagement = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white p-4 rounded-lg shadow">
+      <div className="p-4">
         <div className="flex items-center gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -360,7 +375,7 @@ const CropInsuranceManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredRecords.map((record) => (
+              {paginatedRecords.map((record) => (
                 <tr key={record._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
@@ -443,6 +458,73 @@ const CropInsuranceManagement = () => {
             </tbody>
           </table>
         </div>
+        
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+            <div className="flex-1 flex justify-between sm:hidden">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-gray-700">
+                  Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
+                  <span className="font-medium">{Math.min(endIndex, filteredRecords.length)}</span> of{' '}
+                  <span className="font-medium">{filteredRecords.length}</span> results
+                </p>
+              </div>
+              <div>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="sr-only">Previous</span>
+                    <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                  
+                  {/* Page numbers */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                        page === currentPage
+                          ? 'z-10 bg-green-50 border-green-500 text-green-600'
+                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="sr-only">Next</span>
+                    <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </nav>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Add New Crop Modal */}
