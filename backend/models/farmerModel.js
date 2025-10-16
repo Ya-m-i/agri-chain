@@ -25,7 +25,8 @@ const farmerSchema = mongoose.Schema({
         lng: { type: Number }
     },
     lastLogin: { type: Date, default: null },
-    isOnline: { type: Boolean, default: false }
+    isOnline: { type: Boolean, default: false },
+    profileImage: { type: String } // Base64 encoded image or URL
 }, {
     timestamps: true,
 })

@@ -27,6 +27,10 @@ import {
   useDeleteFarmer,
   useCropInsurance
 } from '../hooks/useAPI'
+import { 
+  saveFarmerProfileImage, 
+  getAllFarmerProfileImages 
+} from '../api'
 import { useNotificationStore } from '../store/notificationStore'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts'
 import { Doughnut } from 'react-chartjs-2'
@@ -335,12 +339,28 @@ const FarmerRegistration = ({
     setCurrentPage(1)
   }, [formData.cropType, formData.barangay, formData.isCertified, searchQuery])
 
+  // Load profile images from MongoDB on component mount
+  useEffect(() => {
+    const loadProfileImages = async () => {
+      try {
+        const response = await getAllFarmerProfileImages();
+        if (response.success && response.profileImages) {
+          setProfileImages(response.profileImages);
+        }
+      } catch (error) {
+        console.error('Error loading profile images:', error);
+      }
+    };
+    
+    loadProfileImages();
+  }, [])
+
   return (
     <div className="mt-6">
       {/* Register Farmer Button */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
-          <img src={registerIcon} alt="Register" className="h-8 w-8 mr-3" />
+          <img src={registerIcon} alt="Register" className="h-10 w-10 mr-3" />
           <h2 className="text-2xl font-bold text-gray-800">Farmer Registration</h2>
         </div>
         <div className="flex gap-4">
@@ -378,7 +398,7 @@ const FarmerRegistration = ({
           {/* Crop Type Filter */}
           <div className="flex flex-col">
             <label className="text-sm font-medium text-gray-700 mb-2 flex items-center justify-center">
-              <img src={cropsIcon} alt="Crops" className="h-6 w-6 mr-2" />
+              <img src={cropsIcon} alt="Crops" className="h-8 w-8 mr-2" />
               Crop Type
             </label>
             <select
@@ -396,7 +416,7 @@ const FarmerRegistration = ({
           {/* Barangay Filter */}
           <div className="flex flex-col">
             <label className="text-sm font-medium text-gray-700 mb-2 flex items-center justify-center">
-              <img src={barangayIcon} alt="Barangay" className="h-6 w-6 mr-2" />
+              <img src={barangayIcon} alt="Barangay" className="h-8 w-8 mr-2" />
               Barangay
             </label>
             <select
@@ -414,7 +434,7 @@ const FarmerRegistration = ({
           {/* Certification Filter */}
           <div className="flex flex-col">
             <label className="text-sm font-medium text-gray-700 mb-2 flex items-center justify-center">
-              <img src={certIcon} alt="Certification" className="h-6 w-6 mr-2" />
+              <img src={certIcon} alt="Certification" className="h-8 w-8 mr-2" />
               Certification
             </label>
             <select
@@ -1260,15 +1280,46 @@ const FarmerRegistration = ({
                     Cancel
                   </button>
                   <button
-                    onClick={() => {
-                      setShowProfileModal(false);
-                      useNotificationStore.getState().addAdminNotification({
-                        id: generateUniqueId(),
-                        type: 'success',
-                        title: 'Profile Updated',
-                        message: `Profile picture has been set for ${selectedFarmerForProfile.farmerName || selectedFarmerForProfile.firstName + ' ' + selectedFarmerForProfile.lastName}`,
-                        timestamp: new Date()
-                      });
+                    onClick={async () => {
+                      try {
+                        const farmerId = selectedFarmerForProfile._id || selectedFarmerForProfile.id;
+                        const currentProfileImage = profileImages[farmerId];
+                        
+                        if (currentProfileImage) {
+                          // Save to MongoDB
+                          const response = await saveFarmerProfileImage(farmerId, currentProfileImage);
+                          
+                          if (response.success) {
+                            setShowProfileModal(false);
+                            useNotificationStore.getState().addAdminNotification({
+                              id: generateUniqueId(),
+                              type: 'success',
+                              title: 'Profile Updated',
+                              message: `Profile picture has been saved for ${selectedFarmerForProfile.farmerName || selectedFarmerForProfile.firstName + ' ' + selectedFarmerForProfile.lastName}`,
+                              timestamp: new Date()
+                            });
+                          } else {
+                            throw new Error('Failed to save profile image');
+                          }
+                        } else {
+                          useNotificationStore.getState().addAdminNotification({
+                            id: generateUniqueId(),
+                            type: 'error',
+                            title: 'No Image Selected',
+                            message: 'Please select an image before saving',
+                            timestamp: new Date()
+                          });
+                        }
+                      } catch (error) {
+                        console.error('Error saving profile image:', error);
+                        useNotificationStore.getState().addAdminNotification({
+                          id: generateUniqueId(),
+                          type: 'error',
+                          title: 'Save Failed',
+                          message: 'Failed to save profile image. Please try again.',
+                          timestamp: new Date()
+                        });
+                      }
                     }}
                     className="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700 transition-colors"
                   >

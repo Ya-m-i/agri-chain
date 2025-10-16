@@ -367,7 +367,26 @@ export const deleteCropPrice = async (id) => {
 };
 
 export const getCropPriceStats = async () => {
-    return await fetchWithRetry(apiUrl('/api/crop-prices/stats/overview'));
+  return await fetchWithRetry(apiUrl('/api/crop-prices/stats/overview'));
+};
+
+// Profile Image API Functions
+export const saveFarmerProfileImage = async (farmerId, profileImage) => {
+  return await fetchWithRetry(apiUrl('/api/farmers/profile-image'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ farmerId, profileImage }),
+  });
+};
+
+export const getFarmerProfileImage = async (farmerId) => {
+  return await fetchWithRetry(apiUrl(`/api/farmers/profile-image/${farmerId}`));
+};
+
+export const getAllFarmerProfileImages = async () => {
+  return await fetchWithRetry(apiUrl('/api/farmers/profile-images'));
 };
 
 // Removed preload function as caching is disabled

@@ -122,6 +122,82 @@ const logoutFarmer = async (req, res) => {
     }
 };
 
+// @desc    Save farmer profile image
+// @route   POST /api/farmers/profile-image
+// @access  Public
+const saveFarmerProfileImage = async (req, res) => {
+    try {
+        const { farmerId, profileImage } = req.body;
+        
+        if (!farmerId || !profileImage) {
+            return res.status(400).json({ message: 'Farmer ID and profile image are required' });
+        }
+        
+        // Update farmer with profile image
+        const farmer = await Farmer.findByIdAndUpdate(
+            farmerId,
+            { profileImage },
+            { new: true }
+        );
+        
+        if (!farmer) {
+            return res.status(404).json({ message: 'Farmer not found' });
+        }
+        
+        res.json({
+            success: true,
+            message: 'Profile image saved successfully',
+            farmer: farmer
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get farmer profile image
+// @route   GET /api/farmers/profile-image/:farmerId
+// @access  Public
+const getFarmerProfileImage = async (req, res) => {
+    try {
+        const { farmerId } = req.params;
+        
+        const farmer = await Farmer.findById(farmerId).select('profileImage');
+        
+        if (!farmer) {
+            return res.status(404).json({ message: 'Farmer not found' });
+        }
+        
+        res.json({
+            success: true,
+            profileImage: farmer.profileImage || null
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get all farmer profile images
+// @route   GET /api/farmers/profile-images
+// @access  Public
+const getAllFarmerProfileImages = async (req, res) => {
+    try {
+        const farmers = await Farmer.find({ profileImage: { $exists: true, $ne: null } })
+            .select('_id profileImage firstName lastName farmerName');
+        
+        const profileImages = {};
+        farmers.forEach(farmer => {
+            profileImages[farmer._id] = farmer.profileImage;
+        });
+        
+        res.json({
+            success: true,
+            profileImages: profileImages
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 function generateToken(id) {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 }
@@ -132,5 +208,8 @@ module.exports = {
     loginFarmer,
     deleteFarmer,
     getActiveFarmers,
-    logoutFarmer
+    logoutFarmer,
+    saveFarmerProfileImage,
+    getFarmerProfileImage,
+    getAllFarmerProfileImages
 } 
