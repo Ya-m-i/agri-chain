@@ -2055,11 +2055,16 @@ const AdminDashboard = () => {
           {/* Admin Logo Section */}
           <div className="p-6 bg-white">
             <div className="flex justify-center">
-              <img 
-                src={adminLogoImage || "/placeholder.svg"} 
-                alt="Admin Logo" 
-                className={`h-16 w-16 transition-opacity duration-300 ${sidebarExpanded ? 'opacity-100' : 'opacity-0'}`}
-              />
+              <button 
+                onClick={() => setActiveTab("home")}
+                className="transition-opacity duration-300 hover:scale-105 focus:outline-none"
+              >
+                <img 
+                  src={adminLogoImage || "/placeholder.svg"} 
+                  alt="Admin Logo" 
+                  className={`h-16 w-16 transition-opacity duration-300 ${sidebarExpanded ? 'opacity-100' : 'opacity-0'}`}
+                />
+              </button>
             </div>
           </div>
 
@@ -2689,15 +2694,15 @@ const AdminDashboard = () => {
                   </div>
                 </div>
                 
-                <div className="w-full h-[420px] rounded-lg border border-gray-200 overflow-hidden">
-                  <div ref={overviewMapRef} className="w-full h-full" />
+                <div className="w-full h-[420px] rounded-lg border border-gray-200 overflow-hidden relative">
+                  <div ref={overviewMapRef} className="w-full h-full z-10" />
                 </div>
               </div>
 
               {/* Pending Insurance Claims Section */}
               <div className="mt-6">
                 <div className="flex items-center mb-3">
-                  <img src={insuranceImage} alt="Pending Insurance Claims" className="h-6 w-6 mr-2" />
+                  <img src={insuranceImage} alt="Pending Insurance Claims" className="h-12 w-12 mr-3" />
                   <h2 className="text-lg font-semibold text-gray-800">Pending Insurance Claims</h2>
                   <span className="ml-2 px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
                     {claims.filter((c) => c.status === "pending").length}
@@ -2759,7 +2764,7 @@ const AdminDashboard = () => {
 
               <div className="mt-6">
                 <div className="flex items-center mb-3">
-                  <img src={recentImage} alt="Recent Claims" className="h-6 w-6 mr-2" />
+                  <img src={recentImage} alt="Recent Claims" className="h-12 w-12 mr-3" />
                   <h2 className="text-lg font-semibold text-gray-800">Recent Claims</h2>
                   <span className="ml-2 px-2 py-1 bg-lime-100 text-lime-700 text-xs font-medium rounded-full">
                     {claims.slice(0, 5).length}
