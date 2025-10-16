@@ -71,6 +71,7 @@ const FarmerRegistration = ({
   const [showCropFilter, setShowCropFilter] = useState(false)
   const [showBarangayFilter, setShowBarangayFilter] = useState(false)
   const [showCertFilter, setShowCertFilter] = useState(false)
+  const [showSearchFilter, setShowSearchFilter] = useState(false)
 
   // Generate unique notification ID
   const generateUniqueId = () => {
@@ -375,6 +376,7 @@ const FarmerRegistration = ({
         setShowCropFilter(false);
         setShowBarangayFilter(false);
         setShowCertFilter(false);
+        setShowSearchFilter(false);
       }
     };
 
@@ -462,7 +464,7 @@ const FarmerRegistration = ({
                     {crop}
                   </div>
                 ))}
-              </div>
+          </div>
             )}
           </div>
           
@@ -492,7 +494,7 @@ const FarmerRegistration = ({
                 >
                   All Barangays
                 </div>
-                {[...new Set(farmers.map((f) => f.address?.split(",")[0]?.trim()).filter(Boolean))].map((barangay, i) => (
+              {[...new Set(farmers.map((f) => f.address?.split(",")[0]?.trim()).filter(Boolean))].map((barangay, i) => (
                   <div
                     key={i}
                     className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
@@ -504,7 +506,7 @@ const FarmerRegistration = ({
                     {barangay}
                   </div>
                 ))}
-              </div>
+          </div>
             )}
           </div>
           
@@ -533,7 +535,7 @@ const FarmerRegistration = ({
                   }}
                 >
                   All Certifications
-                </div>
+          </div>
                 <div
                   className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                   onClick={() => {
@@ -542,7 +544,7 @@ const FarmerRegistration = ({
                   }}
                 >
                   Certified
-                </div>
+          </div>
                 <div
                   className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                   onClick={() => {
@@ -557,20 +559,53 @@ const FarmerRegistration = ({
           </div>
           
           {/* Search Filter */}
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center justify-center">
+          <div className="relative">
+            <button
+              onClick={() => setShowSearchFilter(!showSearchFilter)}
+              className="w-full bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 flex items-center justify-center transition-colors"
+            >
               <Search className="h-6 w-6 text-gray-600 mr-2" />
-              Search
-            </label>
-            <input
-              type="text"
-              className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm text-center"
-              placeholder="Search by name"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+              <span className="text-sm font-medium text-gray-700">
+                {searchQuery || "Search by name"}
+              </span>
+              <svg className="ml-2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {showSearchFilter && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+                <div className="p-3">
+                  <input
+                    type="text"
+                    className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm"
+                    placeholder="Search by name"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    autoFocus
+                  />
+                  <div className="flex justify-end mt-2 space-x-2">
+                    <button
+                      onClick={() => {
+                        setSearchQuery("");
+                        setShowSearchFilter(false);
+                      }}
+                      className="px-3 py-1 text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      Clear
+                    </button>
+                    <button
+                      onClick={() => setShowSearchFilter(false)}
+                      className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                    >
+                      Done
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+            </div>
       </div>
 
       {/* Chart Visualizations Section */}
@@ -689,7 +724,7 @@ const FarmerRegistration = ({
       {/* Farm List Title */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
-          <img src={farmersIcon} alt="Farmers" className="h-6 w-6 mr-2" />
+          <img src={farmersIcon} alt="Farmers" className="h-8 w-8 mr-3" />
           <h2 className="text-xl font-semibold text-gray-800">Farm List</h2>
         </div>
         <div className="text-sm text-gray-500">
