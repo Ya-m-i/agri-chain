@@ -2055,10 +2055,9 @@ const AdminDashboard = () => {
           onMouseLeave={() => setSidebarExpanded(false)}
         >
           {/* Admin Logo Section */}
-          <div className="p-4 bg-lime-800 text-white">
-            <div className="flex items-center gap-3">
-              <img src={adminLogoImage || "/placeholder.svg"} alt="Admin Logo" className="h-8 w-8" />
-              {sidebarExpanded && <h2 className="text-lg font-bold">Admin Panel</h2>}
+          <div className="p-4 bg-white">
+            <div className="flex justify-center">
+              <img src={adminLogoImage || "/placeholder.svg"} alt="Admin Logo" className="h-12 w-12" />
             </div>
           </div>
 
