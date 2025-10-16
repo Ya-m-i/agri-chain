@@ -23,6 +23,12 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
+
+// Import custom KPI icons
+import totalCropsIcon from '../assets/Images/totalcrops.png'
+import insuredIcon from '../assets/Images/insured.png'
+import uninsuredIcon from '../assets/Images/uninsured.png'
+import rateIcon from '../assets/Images/rate.png'
 import {
   useFarmers,
   useCropInsurance,
@@ -295,7 +301,7 @@ const CropInsuranceManagement = () => {
               <p className="text-sm text-gray-600">Total Crops</p>
               <p className="text-2xl font-bold text-gray-800">{stats.totalCrops || 0}</p>
             </div>
-            <Crop className="text-green-600" size={24} />
+            <img src={totalCropsIcon} alt="Total Crops" className="h-12 w-12" />
           </div>
         </div>
         <div className="p-4">
@@ -304,7 +310,7 @@ const CropInsuranceManagement = () => {
               <p className="text-sm text-gray-600">Insured Crops</p>
               <p className="text-2xl font-bold text-green-600">{stats.insuredCrops || 0}</p>
             </div>
-            <Shield className="text-green-600" size={24} />
+            <img src={insuredIcon} alt="Insured Crops" className="h-12 w-12" />
           </div>
         </div>
         <div className="p-4">
@@ -313,7 +319,7 @@ const CropInsuranceManagement = () => {
               <p className="text-sm text-gray-600">Uninsured Crops</p>
               <p className="text-2xl font-bold text-yellow-600">{stats.uninsuredCrops || 0}</p>
             </div>
-            <AlertTriangle className="text-yellow-600" size={24} />
+            <img src={uninsuredIcon} alt="Uninsured Crops" className="h-12 w-12" />
           </div>
         </div>
         <div className="p-4">
@@ -322,7 +328,7 @@ const CropInsuranceManagement = () => {
               <p className="text-sm text-gray-600">Insurance Rate</p>
               <p className="text-2xl font-bold text-blue-600">{stats.insuranceRate || 0}%</p>
             </div>
-            <TrendingUp className="text-blue-600" size={24} />
+            <img src={rateIcon} alt="Insurance Rate" className="h-12 w-12" />
           </div>
         </div>
       </div>
