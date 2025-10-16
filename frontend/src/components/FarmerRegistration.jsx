@@ -20,6 +20,7 @@ import registerIcon from '../assets/Images/register.png'
 import cropsIcon from '../assets/Images/crops.png'
 import barangayIcon from '../assets/Images/barangay.png'
 import certIcon from '../assets/Images/cert.png'
+import farmersIcon from '../assets/Images/farmers.png'
 import {
   useRegisterFarmer,
   useFarmers,
@@ -56,6 +57,11 @@ const FarmerRegistration = ({
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(5)
+  
+  // Profile image state
+  const [profileImages, setProfileImages] = useState({})
+  const [showProfileModal, setShowProfileModal] = useState(false)
+  const [selectedFarmerForProfile, setSelectedFarmerForProfile] = useState(null)
 
   // Generate unique notification ID
   const generateUniqueId = () => {
@@ -334,7 +340,7 @@ const FarmerRegistration = ({
       {/* Register Farmer Button */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
-          <img src={registerIcon} alt="Register" className="h-6 w-6 mr-2" />
+          <img src={registerIcon} alt="Register" className="h-8 w-8 mr-3" />
           <h2 className="text-2xl font-bold text-gray-800">Farmer Registration</h2>
         </div>
         <div className="flex gap-4">
@@ -371,12 +377,12 @@ const FarmerRegistration = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {/* Crop Type Filter */}
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-              <img src={cropsIcon} alt="Crops" className="h-4 w-4 mr-2" />
+            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center justify-center">
+              <img src={cropsIcon} alt="Crops" className="h-6 w-6 mr-2" />
               Crop Type
             </label>
             <select
-              className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-lime-500 text-sm"
+              className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-lime-500 text-sm text-center"
               value={formData.cropType || ""}
               onChange={e => setFormData(prev => ({ ...prev, cropType: e.target.value }))}
             >
@@ -389,12 +395,12 @@ const FarmerRegistration = ({
           
           {/* Barangay Filter */}
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-              <img src={barangayIcon} alt="Barangay" className="h-4 w-4 mr-2" />
+            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center justify-center">
+              <img src={barangayIcon} alt="Barangay" className="h-6 w-6 mr-2" />
               Barangay
             </label>
             <select
-              className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-center"
               value={formData.barangay || ""}
               onChange={(e) => setFormData((prev) => ({ ...prev, barangay: e.target.value }))}
             >
@@ -407,12 +413,12 @@ const FarmerRegistration = ({
           
           {/* Certification Filter */}
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-              <img src={certIcon} alt="Certification" className="h-4 w-4 mr-2" />
+            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center justify-center">
+              <img src={certIcon} alt="Certification" className="h-6 w-6 mr-2" />
               Certification
             </label>
             <select
-              className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+              className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm text-center"
               value={formData.isCertified === true ? "yes" : formData.isCertified === false ? "no" : ""}
               onChange={(e) => {
                 const val = e.target.value === "yes" ? true : e.target.value === "no" ? false : "";
@@ -427,13 +433,13 @@ const FarmerRegistration = ({
           
           {/* Search Filter */}
           <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-              <Search className="h-4 w-4 text-gray-600 mr-2" />
+            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center justify-center">
+              <Search className="h-6 w-6 text-gray-600 mr-2" />
               Search
             </label>
             <input
               type="text"
-              className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm"
+              className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm text-center"
               placeholder="Search by name"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -558,7 +564,7 @@ const FarmerRegistration = ({
       {/* Farm List Title */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
-          <Users size={20} className="text-blue-600 mr-2" />
+          <img src={farmersIcon} alt="Farmers" className="h-6 w-6 mr-2" />
           <h2 className="text-xl font-semibold text-gray-800">Farm List</h2>
         </div>
         <div className="text-sm text-gray-500">
@@ -573,7 +579,8 @@ const FarmerRegistration = ({
           <table className="min-w-full divide-y divide-gray-200 table-auto">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 rounded-tl-lg whitespace-normal break-words">Name</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 rounded-tl-lg whitespace-normal break-words">Profile</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 whitespace-normal break-words">Name</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 whitespace-normal break-words">Address</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 whitespace-normal break-words">Crop</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 whitespace-normal break-words">Lot No.</th>
@@ -586,6 +593,19 @@ const FarmerRegistration = ({
             <tbody className="bg-white divide-y divide-gray-100">
               {paginatedFarmers.map((farmer, index) => (
                 <tr key={index} className="hover:bg-gray-50">
+                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">
+                    {profileImages[farmer._id || farmer.id] ? (
+                      <img 
+                        src={profileImages[farmer._id || farmer.id]} 
+                        alt="Profile" 
+                        className="h-12 w-12 rounded-full object-cover border-2 border-gray-200"
+                      />
+                    ) : (
+                      <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+                        <User className="h-6 w-6 text-gray-400" />
+                      </div>
+                    )}
+                  </td>
                   <td className="px-4 py-4 whitespace-normal break-words text-sm font-medium text-gray-900">{
                     farmer.farmerName || `${farmer.firstName || ''} ${farmer.middleName || ''} ${farmer.lastName || ''}`.replace(/  +/g, ' ').trim()
                   }</td>
@@ -603,7 +623,36 @@ const FarmerRegistration = ({
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.lotArea}</td>
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.isCertified ? (<span className="px-2 py-1 bg-green-100 text-lime-800 rounded-full text-xs font-medium"><CheckCircle size={12} className="inline mr-1" /> Yes</span>) : (<span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">No</span>)}</td>
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.location ? (<button className="text-blue-600 hover:text-blue-800 flex items-center"><MapPin className="h-4 w-4 mr-1" />View</button>) : (<button className="text-gray-500 hover:text-gray-700 flex items-center"><Plus className="h-4 w-4 mr-1" />Add</button>)}</td>
-                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500"><div className="flex space-x-2"><button onClick={() => { setSelectedFarmer(farmer); setShowFarmerDetails(true); }} className="text-blue-600 hover:text-blue-800 font-medium flex items-center"><User size={14} className="mr-1" />View</button><button onClick={() => { console.log('Delete button clicked for farmer:', farmer); setFarmerToDelete(farmer); setShowDeleteConfirmation(true); console.log('Modal should be open now'); }} className="text-red-600 hover:text-red-800 font-medium flex items-center"><X size={14} className="mr-1" />Delete</button></div></td>
+                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">
+                    <div className="flex space-x-2">
+                      <button 
+                        onClick={() => { setSelectedFarmer(farmer); setShowFarmerDetails(true); }} 
+                        className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
+                      >
+                        <User size={14} className="mr-1" />View
+                      </button>
+                      <button 
+                        onClick={() => { 
+                          setSelectedFarmerForProfile(farmer); 
+                          setShowProfileModal(true); 
+                        }} 
+                        className="text-green-600 hover:text-green-800 font-medium flex items-center"
+                      >
+                        <UserPlus size={14} className="mr-1" />Set Profile
+                      </button>
+                      <button 
+                        onClick={() => { 
+                          console.log('Delete button clicked for farmer:', farmer); 
+                          setFarmerToDelete(farmer); 
+                          setShowDeleteConfirmation(true); 
+                          console.log('Modal should be open now'); 
+                        }} 
+                        className="text-red-600 hover:text-red-800 font-medium flex items-center"
+                      >
+                        <X size={14} className="mr-1" />Delete
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -1136,6 +1185,97 @@ const FarmerRegistration = ({
                 <X size={16} className="mr-1" />
                 Delete
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Set Profile Modal */}
+      {showProfileModal && selectedFarmerForProfile && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-30 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+            <div className="sticky top-0 bg-lime-700 text-white p-4 rounded-t-xl flex justify-between items-center">
+              <h2 className="text-xl font-bold">Set Profile Picture</h2>
+              <button
+                onClick={() => setShowProfileModal(false)}
+                className="text-white hover:text-gray-200 focus:outline-none"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="text-center mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                  {selectedFarmerForProfile.farmerName || 
+                   `${selectedFarmerForProfile.firstName || ''} ${selectedFarmerForProfile.middleName || ''} ${selectedFarmerForProfile.lastName || ''}`.replace(/  +/g, ' ').trim()}
+                </h3>
+                <p className="text-gray-600">Upload a profile picture for this farmer</p>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex justify-center">
+                  {profileImages[selectedFarmerForProfile._id || selectedFarmerForProfile.id] ? (
+                    <img 
+                      src={profileImages[selectedFarmerForProfile._id || selectedFarmerForProfile.id]} 
+                      alt="Current Profile" 
+                      className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
+                    />
+                  ) : (
+                    <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center">
+                      <User className="h-12 w-12 text-gray-400" />
+                    </div>
+                  )}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Choose Profile Image
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          const farmerId = selectedFarmerForProfile._id || selectedFarmerForProfile.id;
+                          setProfileImages(prev => ({
+                            ...prev,
+                            [farmerId]: event.target.result
+                          }));
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                  />
+                </div>
+                
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={() => setShowProfileModal(false)}
+                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowProfileModal(false);
+                      useNotificationStore.getState().addAdminNotification({
+                        id: generateUniqueId(),
+                        type: 'success',
+                        title: 'Profile Updated',
+                        message: `Profile picture has been set for ${selectedFarmerForProfile.farmerName || selectedFarmerForProfile.firstName + ' ' + selectedFarmerForProfile.lastName}`,
+                        timestamp: new Date()
+                      });
+                    }}
+                    className="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700 transition-colors"
+                  >
+                    Save Profile
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
