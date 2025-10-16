@@ -2563,7 +2563,7 @@ const AdminDashboard = () => {
               <div className="bg-white rounded-2xl p-6 mt-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
-                    <img src={locationImage} alt="Geo-Tagging Map" className="h-5 w-5 mr-2" />
+                    <img src={locationImage} alt="Geo-Tagging Map" className="h-7 w-7 mr-2" />
                     <h3 className="text-lg font-semibold text-gray-800">Geo-Tagging Map Overview</h3>
                   </div>
                   <div className="flex items-center gap-2">
@@ -2613,7 +2613,7 @@ const AdminDashboard = () => {
                 </div>
                 
                 {/* Map Legend and Controls */}
-                <div className="mb-4 p-3 bg-white rounded-lg shadow-sm">
+                <div className="mb-4 p-3 bg-white rounded-lg">
                   <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                       <div className="text-sm font-medium text-gray-700">Legend:</div>
@@ -2681,7 +2681,7 @@ const AdminDashboard = () => {
               {/* Pending Insurance Claims Section */}
               <div className="mt-6">
                 <div className="flex items-center mb-3">
-                  <img src={insuranceImage} alt="Pending Insurance Claims" className="h-4 w-4 mr-2" />
+                  <img src={insuranceImage} alt="Pending Insurance Claims" className="h-6 w-6 mr-2" />
                   <h2 className="text-lg font-semibold text-gray-800">Pending Insurance Claims</h2>
                   <span className="ml-2 px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
                     {claims.filter((c) => c.status === "pending").length}
@@ -2743,7 +2743,7 @@ const AdminDashboard = () => {
 
               <div className="mt-6">
                 <div className="flex items-center mb-3">
-                  <img src={recentImage} alt="Recent Claims" className="h-4 w-4 mr-2" />
+                  <img src={recentImage} alt="Recent Claims" className="h-6 w-6 mr-2" />
                   <h2 className="text-lg font-semibold text-gray-800">Recent Claims</h2>
                   <span className="ml-2 px-2 py-1 bg-lime-100 text-lime-700 text-xs font-medium rounded-full">
                     {claims.slice(0, 5).length}
