@@ -15,6 +15,11 @@ import {
   Layers,
   AlertTriangle,
 } from "lucide-react"
+// Import image assets
+import registerIcon from '../assets/Images/register.png'
+import cropsIcon from '../assets/Images/crops.png'
+import barangayIcon from '../assets/Images/barangay.png'
+import certIcon from '../assets/Images/cert.png'
 import {
   useRegisterFarmer,
   useFarmers,
@@ -47,6 +52,10 @@ const FarmerRegistration = ({
   const [searchQuery, setSearchQuery] = useState("")
   const [timePeriod, setTimePeriod] = useState("monthly") // monthly or quarterly
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(5)
 
   // Generate unique notification ID
   const generateUniqueId = () => {
@@ -301,13 +310,6 @@ const FarmerRegistration = ({
       const farmerBarangay = (farmer.address || '').split(",")[0]?.trim();
       if (farmerBarangay !== formData.barangay) return false;
     }
-    // Availed Items
-    if (formData.availedItems && formData.availedItems !== "") {
-      const availed = Array.isArray(farmer.availedItems) ? farmer.availedItems : (typeof farmer.availedItems === 'string' ? [farmer.availedItems] : []);
-      if (!availed.includes(formData.availedItems) && !(farmer.insuranceType || '').toLowerCase().includes((formData.availedItems || '').toLowerCase())) {
-        return false;
-      }
-    }
     // Search
     if (searchQuery && searchQuery !== "") {
       const farmerName = farmer.farmerName || `${farmer.firstName || ''} ${farmer.middleName || ''} ${farmer.lastName || ''}`.replace(/  +/g, ' ').trim();
@@ -316,12 +318,23 @@ const FarmerRegistration = ({
     return true;
   });
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredFarmers.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedFarmers = filteredFarmers.slice(startIndex, endIndex)
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [formData.cropType, formData.barangay, formData.isCertified, searchQuery])
+
   return (
     <div className="mt-6">
       {/* Register Farmer Button */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
-          <UserPlus size={24} className="text-lime-600 mr-2" />
+          <img src={registerIcon} alt="Register" className="h-6 w-6 mr-2" />
           <h2 className="text-2xl font-bold text-gray-800">Farmer Registration</h2>
         </div>
         <div className="flex gap-4">
@@ -349,83 +362,84 @@ const FarmerRegistration = ({
       </div>
 
 
-      {/* Filters as KPI Cards */}
-      <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-        {/* Crop Type Filter KPI */}
-        <div className="bg-gradient-to-br from-lime-50 to-white rounded-xl shadow-lg p-4 flex flex-col items-center text-center border border-lime-100">
-          <Layers className="h-6 w-6 text-lime-600 mb-2" />
-          <span className="text-xs font-semibold text-lime-700 mb-1">Crop Type</span>
+      {/* Combined Filters Widget */}
+      <div className="w-full bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+          <Search className="h-5 w-5 text-gray-600 mr-2" />
+          Filter Farmers
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Crop Type Filter */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+              <img src={cropsIcon} alt="Crops" className="h-4 w-4 mr-2" />
+              Crop Type
+            </label>
             <select
-            className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-lime-500 text-sm"
-            value={formData.cropType || ""}
-            onChange={e => setFormData(prev => ({ ...prev, cropType: e.target.value }))}
+              className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-lime-500 text-sm"
+              value={formData.cropType || ""}
+              onChange={e => setFormData(prev => ({ ...prev, cropType: e.target.value }))}
             >
               <option value="">All Crops</option>
-            {[...new Set(farmers.map((f) => f.cropType))].filter(Boolean).map((crop, i) => (
-              <option key={i} value={crop}>{crop}</option>
+              {[...new Set(farmers.map((f) => f.cropType))].filter(Boolean).map((crop, i) => (
+                <option key={i} value={crop}>{crop}</option>
               ))}
             </select>
           </div>
-        {/* Barangay Filter KPI */}
-        <div className="bg-gradient-to-br from-blue-50 to-white rounded-xl shadow-lg p-4 flex flex-col items-center text-center border border-blue-100">
-          <MapPin className="h-6 w-6 text-blue-600 mb-2" />
-          <span className="text-xs font-semibold text-blue-700 mb-1">Barangay</span>
+          
+          {/* Barangay Filter */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+              <img src={barangayIcon} alt="Barangay" className="h-4 w-4 mr-2" />
+              Barangay
+            </label>
             <select
-            className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-            value={formData.barangay || ""}
-            onChange={(e) => setFormData((prev) => ({ ...prev, barangay: e.target.value }))}
+              className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              value={formData.barangay || ""}
+              onChange={(e) => setFormData((prev) => ({ ...prev, barangay: e.target.value }))}
             >
               <option value="">All Barangays</option>
               {[...new Set(farmers.map((f) => f.address?.split(",")[0]?.trim()).filter(Boolean))].map((barangay, i) => (
-              <option key={i} value={barangay}>{barangay}</option>
+                <option key={i} value={barangay}>{barangay}</option>
               ))}
             </select>
           </div>
-        {/* Availed Items Filter KPI */}
-        <div className="bg-gradient-to-br from-yellow-50 to-white rounded-xl shadow-lg p-4 flex flex-col items-center text-center border border-yellow-100">
-          <FileText className="h-6 w-6 text-yellow-600 mb-2" />
-          <span className="text-xs font-semibold text-yellow-700 mb-1">Availed Items</span>
+          
+          {/* Certification Filter */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+              <img src={certIcon} alt="Certification" className="h-4 w-4 mr-2" />
+              Certification
+            </label>
             <select
-            className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 text-sm"
-              value={formData.availedItems || ""}
-              onChange={(e) => setFormData((prev) => ({ ...prev, availedItems: e.target.value }))}
-            >
-              <option value="">All Items</option>
-              <option value="seeds">Seeds</option>
-              <option value="fertilizer">Fertilizer</option>
-              <option value="pesticides">Pesticides</option>
-              <option value="equipment">Equipment</option>
-            </select>
-          </div>
-        {/* Certification Filter KPI */}
-        <div className="bg-gradient-to-br from-emerald-50 to-white rounded-xl shadow-lg p-4 flex flex-col items-center text-center border border-emerald-100">
-          <CheckCircle className="h-6 w-6 text-emerald-600 mb-2" />
-          <span className="text-xs font-semibold text-emerald-700 mb-1">Certification</span>
-            <select
-            className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
-            value={formData.isCertified === true ? "yes" : formData.isCertified === false ? "no" : ""}
-            onChange={(e) => {
-              const val = e.target.value === "yes" ? true : e.target.value === "no" ? false : "";
-              setFormData((prev) => ({ ...prev, isCertified: val }));
-            }}
+              className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
+              value={formData.isCertified === true ? "yes" : formData.isCertified === false ? "no" : ""}
+              onChange={(e) => {
+                const val = e.target.value === "yes" ? true : e.target.value === "no" ? false : "";
+                setFormData((prev) => ({ ...prev, isCertified: val }));
+              }}
             >
               <option value="">All Certifications</option>
               <option value="yes">Certified</option>
               <option value="no">Not Certified</option>
             </select>
           </div>
-        {/* Search Filter KPI */}
-        <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl shadow-lg p-4 flex flex-col items-center text-center border border-gray-100">
-          <Search className="h-6 w-6 text-gray-600 mb-2" />
-          <span className="text-xs font-semibold text-gray-700 mb-1">Search</span>
-              <input
-                type="text"
-            className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm"
-                placeholder="Search by name"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+          
+          {/* Search Filter */}
+          <div className="flex flex-col">
+            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+              <Search className="h-4 w-4 text-gray-600 mr-2" />
+              Search
+            </label>
+            <input
+              type="text"
+              className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm"
+              placeholder="Search by name"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Chart Visualizations Section */}
@@ -570,7 +584,7 @@ const FarmerRegistration = ({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
-              {filteredFarmers.map((farmer, index) => (
+              {paginatedFarmers.map((farmer, index) => (
                 <tr key={index} className="hover:bg-gray-50">
                   <td className="px-4 py-4 whitespace-normal break-words text-sm font-medium text-gray-900">{
                     farmer.farmerName || `${farmer.firstName || ''} ${farmer.middleName || ''} ${farmer.lastName || ''}`.replace(/  +/g, ' ').trim()
@@ -599,7 +613,52 @@ const FarmerRegistration = ({
         <div className="p-10 text-center mb-6">
           <UserPlus size={48} className="mx-auto text-gray-300 mb-3" />
           <p className="text-gray-500 italic">No farmers match the current filters.</p>
-          <button className="mt-4 bg-lime-600 text-white px-4 py-2 rounded-lg hover:bg-lime-700 transition-colors" onClick={() => { setFormData({ ...formData, isCertified: "", cropType: "", address: "", availedItems: "" }); setSearchQuery(""); }}>Reset Filters</button>
+          <button className="mt-4 bg-lime-600 text-white px-4 py-2 rounded-lg hover:bg-lime-700 transition-colors" onClick={() => { setFormData({ ...formData, isCertified: "", cropType: "", barangay: "" }); setSearchQuery(""); }}>Reset Filters</button>
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {filteredFarmers.length > itemsPerPage && (
+        <div className="flex items-center justify-between mt-6 px-4 py-3 bg-white border-t border-gray-200">
+          <div className="flex items-center text-sm text-gray-700">
+            <span>
+              Showing {startIndex + 1} to {Math.min(endIndex, filteredFarmers.length)} of {filteredFarmers.length} results
+            </span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            
+            {/* Page Numbers */}
+            <div className="flex space-x-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-3 py-1 text-sm border rounded-md ${
+                    currentPage === page
+                      ? 'bg-lime-600 text-white border-lime-600'
+                      : 'border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+            
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
 
