@@ -319,44 +319,35 @@ const FarmerRegistration = ({
   return (
     <div className="mt-6">
       {/* Register Farmer Button */}
-      <div className="flex items-center mb-4">
-        <UserPlus size={24} className="text-lime-600 mr-2" />
-        <h2 className="text-2xl font-bold text-gray-800">Farmer Registration</h2>
-      </div>
-
-      <div className="flex flex-wrap gap-4 mb-6">
-        <button
-          className="bg-lime-600 text-white px-4 py-2 rounded-lg hover:bg-lime-700 transition-colors flex items-center justify-center shadow-sm"
-          onClick={() => setShowRegisterForm(true)}
-        >
-          <UserPlus className="mr-2 h-5 w-5" />
-          Register New Farmer
-        </button>
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center shadow-sm"
-          onClick={() => {
-            console.log('Manual refresh triggered')
-            refetchFarmers()
-          }}
-          disabled={farmersLoading || cropInsuranceLoading}
-        >
-          <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          {farmersLoading || cropInsuranceLoading ? 'Refreshing...' : 'Refresh Data'}
-        </button>
-      </div>
-
-      {/* Farm List Title */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
-          <Users size={20} className="text-blue-600 mr-2" />
-          <h2 className="text-xl font-semibold text-gray-800">Farm List</h2>
+          <UserPlus size={24} className="text-lime-600 mr-2" />
+          <h2 className="text-2xl font-bold text-gray-800">Farmer Registration</h2>
         </div>
-        <div className="text-sm text-gray-500">
-          Total: <span className="font-semibold">{farmers.length}</span> farmers
+        <div className="flex gap-4">
+          <button
+            className="bg-lime-600 text-white px-4 py-2 rounded-lg hover:bg-lime-700 transition-colors flex items-center justify-center shadow-sm"
+            onClick={() => setShowRegisterForm(true)}
+          >
+            <UserPlus className="mr-2 h-5 w-5" />
+            Register New Farmer
+          </button>
+          <button
+            className="text-lime-600 px-4 py-2 rounded-lg hover:bg-lime-50 transition-colors flex items-center justify-center border border-lime-600"
+            onClick={() => {
+              console.log('Manual refresh triggered')
+              refetchFarmers()
+            }}
+            disabled={farmersLoading || cropInsuranceLoading}
+          >
+            <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            {farmersLoading || cropInsuranceLoading ? 'Refreshing...' : 'Refresh Data'}
+          </button>
         </div>
       </div>
+
 
       {/* Filters as KPI Cards */}
       <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
@@ -547,6 +538,17 @@ const FarmerRegistration = ({
               }}
             />
           </div>
+        </div>
+      </div>
+
+      {/* Farm List Title */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
+          <Users size={20} className="text-blue-600 mr-2" />
+          <h2 className="text-xl font-semibold text-gray-800">Farm List</h2>
+        </div>
+        <div className="text-sm text-gray-500">
+          Total: <span className="font-semibold">{farmers.length}</span> farmers
         </div>
       </div>
 

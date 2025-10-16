@@ -1723,6 +1723,15 @@ const AdminDashboard = () => {
     <div className="admin-lato min-h-screen bg-gradient-to-b from-lime-50 to-white relative flex flex-col" style={{ fontFamily: "'Lato', sans-serif" }}>
       <style>{scrollbarStyle}</style>
       <style>{`.admin-lato, .admin-lato * { font-family: 'Lato', sans-serif !important; }`}</style>
+      <style>{`
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
       {/* Top Navbar */}
       <header style={{ backgroundColor: 'rgb(39, 78, 19)' }} className={`text-black transition-all duration-300 ease-in-out ${sidebarExpanded ? 'md:ml-64' : 'md:ml-16'}`}>
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
@@ -2048,7 +2057,7 @@ const AdminDashboard = () => {
 
         {/* Desktop Sidebar */}
         <aside 
-          className={`hidden md:block ${sidebarExpanded ? 'w-64' : 'w-16'} shadow-lg text-black space-y-6 border-r border-gray-100 fixed top-0 left-0 h-screen overflow-y-auto bg-white transition-all duration-300 ease-in-out group z-20`}
+          className={`hidden md:block ${sidebarExpanded ? 'w-64' : 'w-16'} shadow-lg text-black space-y-6 border-r border-gray-100 fixed top-0 left-0 h-screen overflow-y-auto bg-white transition-all duration-300 ease-in-out group z-20 scrollbar-hide`}
           onMouseEnter={() => setSidebarExpanded(true)}
           onMouseLeave={() => setSidebarExpanded(false)}
         >
