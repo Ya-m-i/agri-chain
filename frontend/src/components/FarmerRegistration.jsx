@@ -66,6 +66,11 @@ const FarmerRegistration = ({
   const [profileImages, setProfileImages] = useState({})
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [selectedFarmerForProfile, setSelectedFarmerForProfile] = useState(null)
+  
+  // Filter dropdown state
+  const [showCropFilter, setShowCropFilter] = useState(false)
+  const [showBarangayFilter, setShowBarangayFilter] = useState(false)
+  const [showCertFilter, setShowCertFilter] = useState(false)
 
   // Generate unique notification ID
   const generateUniqueId = () => {
@@ -139,6 +144,14 @@ const FarmerRegistration = ({
     const insuredCrops = [...new Set(insuranceRecords.map(record => record.cropType))];
     console.log('Insured crops for this farmer:', insuredCrops);
     return insuredCrops.join(", ");
+  };
+
+  // Function to get all available crop types from both farmers and crop insurance
+  const getAllCropTypes = () => {
+    const farmerCrops = farmers.map(f => f.cropType).filter(Boolean);
+    const insuranceCrops = allCropInsurance.map(ci => ci.cropType).filter(Boolean);
+    const allCrops = [...new Set([...farmerCrops, ...insuranceCrops])];
+    return allCrops.sort();
   };
 
   // Generate time-based data for the chart
@@ -355,8 +368,24 @@ const FarmerRegistration = ({
     loadProfileImages();
   }, [])
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.relative')) {
+        setShowCropFilter(false);
+        setShowBarangayFilter(false);
+        setShowCertFilter(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [])
+
   return (
-    <div className="mt-6">
+    <div className="mt-6 bg-white rounded-lg p-6">
       {/* Register Farmer Button */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
@@ -396,59 +425,135 @@ const FarmerRegistration = ({
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           {/* Crop Type Filter */}
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center justify-center">
-              <img src={cropsIcon} alt="Crops" className="h-8 w-8 mr-2" />
-              Crop Type
-            </label>
-            <select
-              className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-lime-500 text-sm text-center"
-              value={formData.cropType || ""}
-              onChange={e => setFormData(prev => ({ ...prev, cropType: e.target.value }))}
+          <div className="relative">
+            <button
+              onClick={() => setShowCropFilter(!showCropFilter)}
+              className="w-full bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-lime-500 flex items-center justify-center transition-colors"
             >
-              <option value="">All Crops</option>
-              {[...new Set(farmers.map((f) => f.cropType))].filter(Boolean).map((crop, i) => (
-                <option key={i} value={crop}>{crop}</option>
-              ))}
-            </select>
+              <img src={cropsIcon} alt="Crops" className="h-6 w-6 mr-2" />
+              <span className="text-sm font-medium text-gray-700">
+                {formData.cropType || "All Crops"}
+              </span>
+              <svg className="ml-2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {showCropFilter && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                <div
+                  className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, cropType: "" }));
+                    setShowCropFilter(false);
+                  }}
+                >
+                  All Crops
+                </div>
+                {getAllCropTypes().map((crop, i) => (
+                  <div
+                    key={i}
+                    className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, cropType: crop }));
+                      setShowCropFilter(false);
+                    }}
+                  >
+                    {crop}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           
           {/* Barangay Filter */}
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center justify-center">
-              <img src={barangayIcon} alt="Barangay" className="h-8 w-8 mr-2" />
-              Barangay
-            </label>
-            <select
-              className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm text-center"
-              value={formData.barangay || ""}
-              onChange={(e) => setFormData((prev) => ({ ...prev, barangay: e.target.value }))}
+          <div className="relative">
+            <button
+              onClick={() => setShowBarangayFilter(!showBarangayFilter)}
+              className="w-full bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center transition-colors"
             >
-              <option value="">All Barangays</option>
-              {[...new Set(farmers.map((f) => f.address?.split(",")[0]?.trim()).filter(Boolean))].map((barangay, i) => (
-                <option key={i} value={barangay}>{barangay}</option>
-              ))}
-            </select>
+              <img src={barangayIcon} alt="Barangay" className="h-6 w-6 mr-2" />
+              <span className="text-sm font-medium text-gray-700">
+                {formData.barangay || "All Barangays"}
+              </span>
+              <svg className="ml-2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {showBarangayFilter && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                <div
+                  className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, barangay: "" }));
+                    setShowBarangayFilter(false);
+                  }}
+                >
+                  All Barangays
+                </div>
+                {[...new Set(farmers.map((f) => f.address?.split(",")[0]?.trim()).filter(Boolean))].map((barangay, i) => (
+                  <div
+                    key={i}
+                    className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, barangay: barangay }));
+                      setShowBarangayFilter(false);
+                    }}
+                  >
+                    {barangay}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           
           {/* Certification Filter */}
-          <div className="flex flex-col">
-            <label className="text-sm font-medium text-gray-700 mb-2 flex items-center justify-center">
-              <img src={certIcon} alt="Certification" className="h-8 w-8 mr-2" />
-              Certification
-            </label>
-            <select
-              className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm text-center"
-              value={formData.isCertified === true ? "yes" : formData.isCertified === false ? "no" : ""}
-              onChange={(e) => {
-                const val = e.target.value === "yes" ? true : e.target.value === "no" ? false : "";
-                setFormData((prev) => ({ ...prev, isCertified: val }));
-              }}
+          <div className="relative">
+            <button
+              onClick={() => setShowCertFilter(!showCertFilter)}
+              className="w-full bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 flex items-center justify-center transition-colors"
             >
-              <option value="">All Certifications</option>
-              <option value="yes">Certified</option>
-              <option value="no">Not Certified</option>
-            </select>
+              <img src={certIcon} alt="Certification" className="h-6 w-6 mr-2" />
+              <span className="text-sm font-medium text-gray-700">
+                {formData.isCertified === true ? "Certified" : formData.isCertified === false ? "Not Certified" : "All Certifications"}
+              </span>
+              <svg className="ml-2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {showCertFilter && (
+              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+                <div
+                  className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, isCertified: "" }));
+                    setShowCertFilter(false);
+                  }}
+                >
+                  All Certifications
+                </div>
+                <div
+                  className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, isCertified: true }));
+                    setShowCertFilter(false);
+                  }}
+                >
+                  Certified
+                </div>
+                <div
+                  className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, isCertified: false }));
+                    setShowCertFilter(false);
+                  }}
+                >
+                  Not Certified
+                </div>
+              </div>
+            )}
           </div>
           
           {/* Search Filter */}
@@ -595,8 +700,8 @@ const FarmerRegistration = ({
       {/* Farm List Table */}
       {/* 2. Render the table with full responsiveness and no overflow */}
       {filteredFarmers.length > 0 ? (
-        <div className="w-full overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 table-auto">
+        <div className="w-full overflow-x-auto bg-white rounded-lg">
+          <table className="min-w-full divide-y divide-gray-200 table-auto bg-white">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 rounded-tl-lg whitespace-normal break-words">Profile</th>
@@ -688,7 +793,7 @@ const FarmerRegistration = ({
 
       {/* Pagination Controls */}
       {filteredFarmers.length > itemsPerPage && (
-        <div className="flex items-center justify-between mt-6 px-4 py-3 bg-white border-t border-gray-200">
+        <div className="flex items-center justify-between mt-6 px-4 py-3 bg-white border-t border-gray-200 rounded-lg">
           <div className="flex items-center text-sm text-gray-700">
             <span>
               Showing {startIndex + 1} to {Math.min(endIndex, filteredFarmers.length)} of {filteredFarmers.length} results
