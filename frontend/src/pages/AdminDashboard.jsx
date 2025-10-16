@@ -187,9 +187,9 @@ const WeatherKPIBlock = () => {
       <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
         <div className="flex-1">
           <div className="text-sm font-bold text-black mb-1">Todays Weather</div>
-          <div className="text-2xl font-bold text-gray-800 mb-1">--°C</div>
-          <div className="text-xs text-gray-600 mb-2">Loading...</div>
-          <div className="text-xs text-gray-500 mt-1">Please wait</div>
+        <div className="text-2xl font-bold text-gray-800 mb-1">--°C</div>
+        <div className="text-xs text-gray-600 mb-2">Loading...</div>
+        <div className="text-xs text-gray-500 mt-1">Please wait</div>
         </div>
         <div className="flex-shrink-0 ml-3">
           <img src={climateImage} alt="Today's Weather" className="h-12 w-12" />
@@ -202,9 +202,9 @@ const WeatherKPIBlock = () => {
     <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
       <div className="flex-1">
         <div className="text-sm font-bold text-black mb-1">Todays Weather</div>
-        <div className="text-2xl font-bold text-gray-800 mb-1">{weather?.temperature || 28}°C</div>
-        <div className="text-xs text-gray-600 mb-2">Kapalong, Davao</div>
-        <div className="text-xs text-gray-500 mt-1">{weather?.condition || "Partly Cloudy"}</div>
+      <div className="text-2xl font-bold text-gray-800 mb-1">{weather?.temperature || 28}°C</div>
+      <div className="text-xs text-gray-600 mb-2">Kapalong, Davao</div>
+      <div className="text-xs text-gray-500 mt-1">{weather?.condition || "Partly Cloudy"}</div>
       </div>
       <div className="flex-shrink-0 ml-3">
         <img src={climateImage} alt="Today's Weather" className="h-12 w-12" />
@@ -1724,14 +1724,12 @@ const AdminDashboard = () => {
       <style>{scrollbarStyle}</style>
       <style>{`.admin-lato, .admin-lato * { font-family: 'Lato', sans-serif !important; }`}</style>
       {/* Top Navbar */}
-      <header style={{ backgroundColor: 'rgb(39, 78, 19)' }} className="text-black">
+      <header style={{ backgroundColor: 'rgb(39, 78, 19)' }} className={`text-black transition-all duration-300 ease-in-out ${sidebarExpanded ? 'md:ml-64' : 'md:ml-16'}`}>
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center">
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="mr-4 md:hidden" aria-label="Toggle menu">
               {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            {/* Add logo here */}
-            <img src={adminLogoImage || "/placeholder.svg"} alt="Admin Logo" className="h-15 w-auto mr-3" />
             <h1 className="text-xl font-sans font-semibold tracking-wide text-white">ADMIN DASHBOARD</h1>
           </div>
 
@@ -2055,13 +2053,17 @@ const AdminDashboard = () => {
           onMouseLeave={() => setSidebarExpanded(false)}
         >
           {/* Admin Logo Section */}
-          <div className="p-4 bg-white">
+          <div className="p-6 bg-white">
             <div className="flex justify-center">
-              <img src={adminLogoImage || "/placeholder.svg"} alt="Admin Logo" className="h-12 w-12" />
+              <img 
+                src={adminLogoImage || "/placeholder.svg"} 
+                alt="Admin Logo" 
+                className={`h-16 w-16 transition-opacity duration-300 ${sidebarExpanded ? 'opacity-100' : 'opacity-0'}`}
+              />
             </div>
           </div>
 
-          <div className="space-y-1 px-3">
+          <div className="space-y-1 px-3 mt-4">
             <button
               onClick={() => setActiveTab("home")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
@@ -2205,7 +2207,7 @@ const AdminDashboard = () => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 bg-gradient-to-b from-zinc-50 to-white md:ml-16">
+        <main className={`flex-1 p-4 bg-gradient-to-b from-zinc-50 to-white transition-all duration-300 ease-in-out ${sidebarExpanded ? 'md:ml-64' : 'md:ml-16'}`}>
           {activeTab === "home" && (
             <>
               {/* --- Analytics Filters --- */}
@@ -2217,15 +2219,15 @@ const AdminDashboard = () => {
                 <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
                   <div className="flex-1">
                     <div className="text-sm font-bold text-black mb-1">Farmers</div>
-                    <div className="text-2xl font-bold text-gray-800 mb-1">{totalFarmers}</div>
-                    <div className="text-xs text-gray-600 mb-2">Total Registered</div>
-                    {/* Analytics Mini Chart */}
+                  <div className="text-2xl font-bold text-gray-800 mb-1">{totalFarmers}</div>
+                  <div className="text-xs text-gray-600 mb-2">Total Registered</div>
+                  {/* Analytics Mini Chart */}
                     <div className="w-full h-6 bg-gray-100 rounded-lg overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-lime-400 to-lime-600 rounded-lg" 
-                           style={{ width: `${Math.min((totalFarmers / 1000) * 100, 100)}%` }}>
-                      </div>
+                    <div className="h-full bg-gradient-to-r from-lime-400 to-lime-600 rounded-lg" 
+                         style={{ width: `${Math.min((totalFarmers / 1000) * 100, 100)}%` }}>
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">Growth: +{Math.floor(totalFarmers * 0.05)} this month</div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">Growth: +{Math.floor(totalFarmers * 0.05)} this month</div>
                   </div>
                   <div className="flex-shrink-0 ml-3">
                     <img src={totalFarmerImage} alt="Total Farmers" className="h-12 w-12" />
@@ -2236,15 +2238,15 @@ const AdminDashboard = () => {
                 <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
                   <div className="flex-1">
                     <div className="text-sm font-bold text-black mb-1">Active</div>
-                    <div className="text-2xl font-bold text-gray-800 mb-1">{activeFarmersData.activeCount || 0}</div>
-                    <div className="text-xs text-gray-600 mb-2">Online Today</div>
-                    {/* Analytics Mini Chart */}
+                  <div className="text-2xl font-bold text-gray-800 mb-1">{activeFarmersData.activeCount || 0}</div>
+                  <div className="text-xs text-gray-600 mb-2">Online Today</div>
+                  {/* Analytics Mini Chart */}
                     <div className="w-full h-6 bg-gray-100 rounded-lg overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-lg" 
-                           style={{ width: `${Math.min(((activeFarmersData.activeCount || 0) / Math.max(totalFarmers, 1)) * 100, 100)}%` }}>
-                      </div>
+                    <div className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-lg" 
+                         style={{ width: `${Math.min(((activeFarmersData.activeCount || 0) / Math.max(totalFarmers, 1)) * 100, 100)}%` }}>
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">Active Rate: {Math.round(((activeFarmersData.activeCount || 0) / Math.max(totalFarmers, 1)) * 100)}%</div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">Active Rate: {Math.round(((activeFarmersData.activeCount || 0) / Math.max(totalFarmers, 1)) * 100)}%</div>
                   </div>
                   <div className="flex-shrink-0 ml-3">
                     <img src={activeImage} alt="Active Farmers" className="h-12 w-12" />
@@ -2255,15 +2257,15 @@ const AdminDashboard = () => {
                 <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
                   <div className="flex-1">
                     <div className="text-sm font-bold text-black mb-1">Pending</div>
-                    <div className="text-2xl font-bold text-gray-800 mb-1">{pendingClaims}</div>
-                    <div className="text-xs text-gray-600 mb-2">Insurance Claims</div>
-                    {/* Analytics Mini Chart */}
+                  <div className="text-2xl font-bold text-gray-800 mb-1">{pendingClaims}</div>
+                  <div className="text-xs text-gray-600 mb-2">Insurance Claims</div>
+                  {/* Analytics Mini Chart */}
                     <div className="w-full h-6 bg-gray-100 rounded-lg overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-lg" 
-                           style={{ width: `${Math.min((pendingClaims / Math.max(totalFarmers, 1)) * 100, 100)}%` }}>
-                      </div>
+                    <div className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-lg" 
+                         style={{ width: `${Math.min((pendingClaims / Math.max(totalFarmers, 1)) * 100, 100)}%` }}>
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">Processing: {Math.round((pendingClaims / Math.max(claims.length, 1)) * 100)}%</div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">Processing: {Math.round((pendingClaims / Math.max(claims.length, 1)) * 100)}%</div>
                   </div>
                   <div className="flex-shrink-0 ml-3">
                     <img src={pendingImage} alt="Pending Claims" className="h-12 w-12" />
@@ -2274,33 +2276,33 @@ const AdminDashboard = () => {
                 <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
                   <div className="flex-1">
                     <div className="text-sm font-bold text-black mb-1">Farmer Assisted</div>
-                    <div className="text-2xl font-bold text-gray-800 mb-1">{(() => {
-                      const currentMonth = new Date().getMonth();
-                      const currentYear = new Date().getFullYear();
-                      return allApplications.filter(app => {
-                        const appDate = new Date(app.createdAt || app.date);
-                        return (app.status === 'distributed' || app.status === 'approved') && 
-                               appDate.getMonth() === currentMonth && 
-                               appDate.getFullYear() === currentYear;
-                      }).length;
-                    })()}</div>
-                    <div className="text-xs text-gray-600 mb-2">This Month</div>
-                    {/* Analytics Mini Chart */}
+                  <div className="text-2xl font-bold text-gray-800 mb-1">{(() => {
+                    const currentMonth = new Date().getMonth();
+                    const currentYear = new Date().getFullYear();
+                    return allApplications.filter(app => {
+                      const appDate = new Date(app.createdAt || app.date);
+                      return (app.status === 'distributed' || app.status === 'approved') && 
+                             appDate.getMonth() === currentMonth && 
+                             appDate.getFullYear() === currentYear;
+                    }).length;
+                  })()}</div>
+                  <div className="text-xs text-gray-600 mb-2">This Month</div>
+                  {/* Analytics Mini Chart */}
                     <div className="w-full h-6 bg-gray-100 rounded-lg overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg" 
-                           style={{ width: `${Math.min(((() => {
-                             const currentMonth = new Date().getMonth();
-                             const currentYear = new Date().getFullYear();
-                             return allApplications.filter(app => {
-                               const appDate = new Date(app.createdAt || app.date);
-                               return (app.status === 'distributed' || app.status === 'approved') && 
-                                      appDate.getMonth() === currentMonth && 
-                                      appDate.getFullYear() === currentYear;
-                             }).length;
-                           })() / Math.max(totalFarmers, 1)) * 100, 100)}%` }}>
-                      </div>
+                    <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg" 
+                         style={{ width: `${Math.min(((() => {
+                           const currentMonth = new Date().getMonth();
+                           const currentYear = new Date().getFullYear();
+                           return allApplications.filter(app => {
+                             const appDate = new Date(app.createdAt || app.date);
+                             return (app.status === 'distributed' || app.status === 'approved') && 
+                                    appDate.getMonth() === currentMonth && 
+                                    appDate.getFullYear() === currentYear;
+                           }).length;
+                         })() / Math.max(totalFarmers, 1)) * 100, 100)}%` }}>
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">Monthly Target: {Math.floor(totalFarmers * 0.1)}</div>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">Monthly Target: {Math.floor(totalFarmers * 0.1)}</div>
                   </div>
                   <div className="flex-shrink-0 ml-3">
                     <img src={assistedImage} alt="Farmer Assisted" className="h-12 w-12" />
