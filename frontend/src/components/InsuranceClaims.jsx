@@ -1,4 +1,5 @@
 "use client"
+import { useState, useEffect } from "react"
 import {
   FileText,
   Search,
@@ -16,7 +17,14 @@ import {
   BarChart3,
   PieChart,
   Download,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
+
+// Import custom KPI icons
+import claimsIcon from '../assets/Images/claims.png'
+import approveIcon from '../assets/Images/approve.png'
+import rejectedIcon from '../assets/Images/rejected.png'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js'
 import { Doughnut, Bar } from 'react-chartjs-2'
 import { calculateCompensation, getPaymentStatus, getExpectedPaymentDate, getDamageSeverity, getCoverageDetails } from "../utils/insuranceUtils"
@@ -41,6 +49,9 @@ const InsuranceClaims = ({
   initiateStatusUpdate = () => {},
   confirmStatusUpdate = () => {},
 }) => {
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(5)
   // Handler for downloading claim PDF
   const handleDownloadPDF = (claim) => {
     try {
@@ -81,6 +92,17 @@ const InsuranceClaims = ({
     return matchesStatus && (searchQuery.trim() === '' || matchesSearch);
   });
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredClaims.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedClaims = filteredClaims.slice(startIndex, endIndex)
+
+  // Reset to first page when search query or tab view changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, claimsTabView])
+
   return (
     <div className="mt-6">
       {/* Outside Title */}
@@ -92,83 +114,59 @@ const InsuranceClaims = ({
       {/* Claims Overview Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {/* Pending Claims KPI Card */}
-        <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-3 rounded-lg shadow-md border border-yellow-200 h-24">
-          <div className="flex items-center justify-between mb-1">
-              <div>
-              <p className="text-xs text-yellow-700 font-medium">Pending Claims</p>
-              <h3 className="text-lg font-bold text-yellow-800">
-                  {claims.filter(claim => claim.status === "pending").length}
-                </h3>
-              </div>
-            <div className="p-1.5 bg-yellow-200 rounded-full">
-              <AlertTriangle size={16} className="text-yellow-700" />
-              </div>
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="text-sm text-gray-600">Pending Claims</p>
+              <h3 className="text-2xl font-bold text-gray-800">
+                {claims.filter(claim => claim.status === "pending").length}
+              </h3>
+              <p className="text-xs text-gray-500 mt-1">
+                {claims.length > 0 ? ((claims.filter(claim => claim.status === "pending").length / claims.length) * 100).toFixed(1) : "0.0"}% of total
+              </p>
             </div>
-          <div className="h-1 bg-yellow-200 rounded-full overflow-hidden">
-              <div 
-              className="h-full bg-yellow-600 rounded-full transition-all duration-300"
-                style={{ 
-                  width: `${(claims.filter(claim => claim.status === "pending").length / claims.length) * 100}%` 
-                }}
-              />
+            <div className="ml-4">
+              <img src={claimsIcon} alt="Pending Claims" className="h-12 w-12" />
             </div>
-          <p className="text-xs text-yellow-700 mt-1 font-medium">
-            {claims.length > 0 ? ((claims.filter(claim => claim.status === "pending").length / claims.length) * 100).toFixed(1) : "0.0"}% of total
-            </p>
-          </div>
-
-        {/* Approved Claims KPI Card */}
-        <div className="bg-gradient-to-br from-green-50 to-green-100 p-3 rounded-lg shadow-md border border-green-200 h-24">
-          <div className="flex items-center justify-between mb-1">
-              <div>
-              <p className="text-xs text-green-700 font-medium">Approved Claims</p>
-              <h3 className="text-lg font-bold text-green-800">
-                  {claims.filter(claim => claim.status === "approved").length}
-                </h3>
-              </div>
-            <div className="p-1.5 bg-green-200 rounded-full">
-              <CheckCircle size={16} className="text-green-700" />
-              </div>
-            </div>
-          <div className="h-1 bg-green-200 rounded-full overflow-hidden">
-              <div 
-              className="h-full bg-green-600 rounded-full transition-all duration-300"
-                style={{ 
-                  width: `${(claims.filter(claim => claim.status === "approved").length / claims.length) * 100}%` 
-                }}
-              />
-            </div>
-          <p className="text-xs text-green-700 mt-1 font-medium">
-            {claims.length > 0 ? ((claims.filter(claim => claim.status === "approved").length / claims.length) * 100).toFixed(1) : "0.0"}% of total
-            </p>
-          </div>
-
-        {/* Rejected Claims KPI Card */}
-        <div className="bg-gradient-to-br from-red-50 to-red-100 p-3 rounded-lg shadow-md border border-red-200 h-24">
-          <div className="flex items-center justify-between mb-1">
-              <div>
-              <p className="text-xs text-red-700 font-medium">Rejected Claims</p>
-              <h3 className="text-lg font-bold text-red-800">
-                  {claims.filter(claim => claim.status === "rejected").length}
-                </h3>
-              </div>
-            <div className="p-1.5 bg-red-200 rounded-full">
-              <XCircle size={16} className="text-red-700" />
-              </div>
-            </div>
-          <div className="h-1 bg-red-200 rounded-full overflow-hidden">
-              <div 
-              className="h-full bg-red-600 rounded-full transition-all duration-300"
-                style={{ 
-                  width: `${(claims.filter(claim => claim.status === "rejected").length / claims.length) * 100}%` 
-                }}
-              />
-            </div>
-          <p className="text-xs text-red-700 mt-1 font-medium">
-            {claims.length > 0 ? ((claims.filter(claim => claim.status === "rejected").length / claims.length) * 100).toFixed(1) : "0.0"}% of total
-            </p>
           </div>
         </div>
+
+        {/* Approved Claims KPI Card */}
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="text-sm text-gray-600">Approved Claims</p>
+              <h3 className="text-2xl font-bold text-green-600">
+                {claims.filter(claim => claim.status === "approved").length}
+              </h3>
+              <p className="text-xs text-gray-500 mt-1">
+                {claims.length > 0 ? ((claims.filter(claim => claim.status === "approved").length / claims.length) * 100).toFixed(1) : "0.0"}% of total
+              </p>
+            </div>
+            <div className="ml-4">
+              <img src={approveIcon} alt="Approved Claims" className="h-12 w-12" />
+            </div>
+          </div>
+        </div>
+
+        {/* Rejected Claims KPI Card */}
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <p className="text-sm text-gray-600">Rejected Claims</p>
+              <h3 className="text-2xl font-bold text-red-600">
+                {claims.filter(claim => claim.status === "rejected").length}
+              </h3>
+              <p className="text-xs text-gray-500 mt-1">
+                {claims.length > 0 ? ((claims.filter(claim => claim.status === "rejected").length / claims.length) * 100).toFixed(1) : "0.0"}% of total
+              </p>
+            </div>
+            <div className="ml-4">
+              <img src={rejectedIcon} alt="Rejected Claims" className="h-12 w-12" />
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Charts Section - Status Comparison Over Time and Claims Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -383,23 +381,23 @@ const InsuranceClaims = ({
             <button
               onClick={() => setClaimsTabView("pending")}
               className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                claimsTabView === "pending" ? "bg-lime-100 text-lime-800" : "text-gray-600 hover:bg-gray-100"
+                claimsTabView === "pending" ? "bg-lime-600 text-white" : "text-gray-600 hover:bg-gray-100"
               }`}
             >
               Pending Claims
             </button>
             <button
               onClick={() => setClaimsTabView("approved")}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                claimsTabView === "approved" ? "bg-green-100 text-green-800" : "text-gray-600 hover:bg-gray-100"
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors border-2 ${
+                claimsTabView === "approved" ? "border-lime-600 text-lime-600" : "border-transparent text-gray-600 hover:bg-gray-100"
               }`}
             >
               Approved Claims
             </button>
             <button
               onClick={() => setClaimsTabView("rejected")}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                claimsTabView === "rejected" ? "bg-red-100 text-red-800" : "text-gray-600 hover:bg-gray-100"
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors border-2 ${
+                claimsTabView === "rejected" ? "border-lime-600 text-lime-600" : "border-transparent text-gray-600 hover:bg-gray-100"
               }`}
             >
               Rejected Claims
@@ -433,7 +431,7 @@ const InsuranceClaims = ({
         </div>
 
         {/* Claims Table */}
-        {filteredClaims.length === 0 ? (
+        {paginatedClaims.length === 0 ? (
           <div className="text-center py-10">
             <FileText size={48} className="mx-auto text-gray-300 mb-3" />
             <p className="text-gray-500 italic">No claims available matching your filters.</p>
@@ -452,7 +450,7 @@ const InsuranceClaims = ({
                 </tr>
               </thead>
               <tbody>
-                {filteredClaims
+                {paginatedClaims
                   .sort((a, b) => {
                     // First sort by date (newest first)
                     const dateComparison = new Date(b.date) - new Date(a.date)
@@ -527,6 +525,73 @@ const InsuranceClaims = ({
                   ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4">
+            <div className="flex-1 flex justify-between sm:hidden">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-gray-700">
+                  Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
+                  <span className="font-medium">{Math.min(endIndex, filteredClaims.length)}</span> of{' '}
+                  <span className="font-medium">{filteredClaims.length}</span> results
+                </p>
+              </div>
+              <div>
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="sr-only">Previous</span>
+                    <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                  
+                  {/* Page numbers */}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                        page === currentPage
+                          ? 'z-10 bg-lime-50 border-lime-500 text-lime-600'
+                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="sr-only">Next</span>
+                    <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </nav>
+              </div>
+            </div>
           </div>
         )}
       </div>
