@@ -57,6 +57,11 @@ import activeImage from "../assets/Images/Active.png"
 import pendingImage from "../assets/Images/pending.png"
 import assistedImage from "../assets/Images/Assisted.png"
 import climateImage from "../assets/Images/climate.png"
+
+// Import additional icons for dashboard sections
+import locationImage from "../assets/Images/location.png"
+import insuranceImage from "../assets/Images/insurance.png"
+import recentImage from "../assets/Images/recent.png"
 import DistributionRecords from "../components/DistributionRecords"
 import FarmerRegistration from "../components/FarmerRegistration"
 import AdminSettings from "../components/AdminSettings"
@@ -403,7 +408,7 @@ const AdminDashboard = () => {
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [mapMode, setMapMode] = useState("view") // view or add
   const [mapCenter, setMapCenter] = useState([7.6167, 125.7]) // Default to Kapalong, Davao del Norte
-  const [mapZoom, setMapZoom] = useState(7)
+  const [mapZoom, setMapZoom] = useState(12) // Increased zoom to focus on Kapalong area
   // (removed duplicate overview map refs)
 
   // Overview map filters (must be declared before map callbacks that depend on them)
@@ -2317,7 +2322,6 @@ const AdminDashboard = () => {
                             const monthClaims = claims.filter(c => new Date(c.date).getMonth() === index && new Date(c.date).getFullYear() === distributionYearFilter);
                             return {
                               month,
-                              filed: monthClaims.length,
                               approved: monthClaims.filter(c => c.status === 'approved').length,
                               rejected: monthClaims.filter(c => c.status === 'rejected').length
                             };
@@ -2326,10 +2330,6 @@ const AdminDashboard = () => {
                         margin={{ top: 30, right: 40, left: 30, bottom: 80 }}
                       >
                         <defs>
-                          <linearGradient id="filedGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.4}/>
-                            <stop offset="95%" stopColor="#14b8a6" stopOpacity={0.1}/>
-                          </linearGradient>
                           <linearGradient id="approvedGradient" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#2f7d32" stopOpacity={0.4}/>
                             <stop offset="95%" stopColor="#2f7d32" stopOpacity={0.1}/>
@@ -2355,7 +2355,6 @@ const AdminDashboard = () => {
                         <RechartsTooltip 
                           formatter={(value, name) => {
                             const labels = {
-                              filed: 'Filed Claims',
                               approved: 'Approved Claims', 
                               rejected: 'Rejected Claims'
                             };
@@ -2367,7 +2366,6 @@ const AdminDashboard = () => {
                           height={36}
                           formatter={(value) => {
                             const labels = {
-                              filed: 'Filed Claims',
                               approved: 'Approved Claims',
                               rejected: 'Rejected Claims'
                             };
@@ -2376,18 +2374,9 @@ const AdminDashboard = () => {
                         />
                         <Area 
                           type="monotone" 
-                          dataKey="filed" 
-                          stroke="#14b8a6" 
-                          strokeWidth={3}
-                          fill="url(#filedGradient)" 
-                          fillOpacity={1}
-                          dot={false}
-                        />
-                        <Area 
-                          type="monotone" 
                           dataKey="approved" 
                           stroke="#2f7d32" 
-                          strokeWidth={3}
+                          strokeWidth={1.5}
                           fill="url(#approvedGradient)" 
                           fillOpacity={1}
                           dot={false}
@@ -2396,7 +2385,7 @@ const AdminDashboard = () => {
                           type="monotone" 
                           dataKey="rejected" 
                           stroke="rgb(174, 200, 28)" 
-                          strokeWidth={3}
+                          strokeWidth={1.5}
                           fill="url(#rejectedGradient)" 
                           fillOpacity={1}
                           dot={false}
@@ -2574,7 +2563,8 @@ const AdminDashboard = () => {
               <div className="bg-white rounded-2xl p-6 mt-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
-                    <h3 className="text-lg font-semibold text-gray-800">🗺️ Geo-Tagging Map Overview</h3>
+                    <img src={locationImage} alt="Geo-Tagging Map" className="h-5 w-5 mr-2" />
+                    <h3 className="text-lg font-semibold text-gray-800">Geo-Tagging Map Overview</h3>
                   </div>
                   <div className="flex items-center gap-2">
                     <select
@@ -2623,7 +2613,7 @@ const AdminDashboard = () => {
                 </div>
                 
                 {/* Map Legend and Controls */}
-                <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                <div className="mb-4 p-3 bg-white rounded-lg shadow-sm">
                   <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                       <div className="text-sm font-medium text-gray-700">Legend:</div>
@@ -2691,13 +2681,13 @@ const AdminDashboard = () => {
               {/* Pending Insurance Claims Section */}
               <div className="mt-6">
                 <div className="flex items-center mb-3">
-                  <AlertTriangle size={16} className="text-amber-500 mr-2" />
+                  <img src={insuranceImage} alt="Pending Insurance Claims" className="h-4 w-4 mr-2" />
                   <h2 className="text-lg font-semibold text-gray-800">Pending Insurance Claims</h2>
                   <span className="ml-2 px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
                     {claims.filter((c) => c.status === "pending").length}
                   </span>
                 </div>
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg border border-gray-200 overflow-hidden">
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg border border-gray-200 overflow-hidden shadow-sm">
                   {claims.filter((c) => c.status === "pending").length === 0 ? (
                     <div className="text-center py-8">
                       <div className="w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
@@ -2753,13 +2743,13 @@ const AdminDashboard = () => {
 
               <div className="mt-6">
                 <div className="flex items-center mb-3">
-                  <FileText size={16} className="text-lime-600 mr-2" />
+                  <img src={recentImage} alt="Recent Claims" className="h-4 w-4 mr-2" />
                   <h2 className="text-lg font-semibold text-gray-800">Recent Claims</h2>
                   <span className="ml-2 px-2 py-1 bg-lime-100 text-lime-700 text-xs font-medium rounded-full">
                     {claims.slice(0, 5).length}
                   </span>
                 </div>
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg border border-gray-200 overflow-hidden">
+                <div className="bg-white/70 backdrop-blur-sm rounded-lg border border-gray-200 overflow-hidden shadow-sm">
                   {claims.length === 0 ? (
                     <div className="text-center py-8">
                       <div className="w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
