@@ -312,6 +312,34 @@ const FarmerRegistration = ({
     }
   }
 
+  // Handle location view - navigate to dashboard map
+  const handleLocationView = (farmer) => {
+    // Store farmer location data for dashboard map
+    const farmerLocationData = {
+      farmerId: farmer._id || farmer.id,
+      farmerName: farmer.farmerName || `${farmer.firstName || ''} ${farmer.middleName || ''} ${farmer.lastName || ''}`.replace(/  +/g, ' ').trim(),
+      location: farmer.location,
+      cropType: farmer.cropType,
+      address: farmer.address
+    }
+    
+    // Store in localStorage for dashboard to access
+    localStorage.setItem('selectedFarmerLocation', JSON.stringify(farmerLocationData))
+    
+    // Show notification
+    useNotificationStore.getState().addAdminNotification({
+      id: generateUniqueId(),
+      type: 'info',
+      title: 'Location View',
+      message: `Viewing location for ${farmerLocationData.farmerName} on dashboard map`,
+      timestamp: new Date()
+    })
+    
+    // Navigate to dashboard (this will be handled by the parent component)
+    // The dashboard will check for selectedFarmerLocation in localStorage
+    console.log('Location view requested for farmer:', farmerLocationData)
+  }
+
   useEffect(() => {
     if (selectedLocation) {
       // Optionally, trigger reverse geocode here if not handled by parent
@@ -782,7 +810,7 @@ const FarmerRegistration = ({
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.lotNumber}</td>
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.lotArea}</td>
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.isCertified ? (<span className="px-2 py-1 bg-green-100 text-lime-800 rounded-full text-xs font-medium"><CheckCircle size={12} className="inline mr-1" /> Yes</span>) : (<span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">No</span>)}</td>
-                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.location ? (<button className="text-blue-600 hover:text-blue-800 flex items-center"><MapPin className="h-4 w-4 mr-1" />View</button>) : (<button className="text-gray-500 hover:text-gray-700 flex items-center"><Plus className="h-4 w-4 mr-1" />Add</button>)}</td>
+                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.location ? (<button onClick={() => handleLocationView(farmer)} className="text-blue-600 hover:text-blue-800 flex items-center"><MapPin className="h-4 w-4 mr-1" />View</button>) : (<button className="text-gray-500 hover:text-gray-700 flex items-center"><Plus className="h-4 w-4 mr-1" />Add</button>)}</td>
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">
                     <div className="flex space-x-2">
                       <button 
@@ -874,7 +902,7 @@ const FarmerRegistration = ({
       {/* Register Farmer Modal */}
       {showRegisterForm && (
         <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar">
+          <div className="bg-white rounded-[5px] shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar">
             <div className="sticky top-0 text-white p-5 rounded-t-xl flex justify-between items-center" style={{ backgroundColor: 'rgb(43, 158, 102)' }}>
               <h2 className="text-2xl font-semibold">Register a New Farmer</h2>
               <button
@@ -1352,8 +1380,8 @@ const FarmerRegistration = ({
 
       {/* Set Profile Modal */}
       {showProfileModal && selectedFarmerForProfile && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-30 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full">
+        <div className="fixed inset-0 z-50 bg-transparent flex items-center justify-center p-4">
+          <div className="bg-white rounded-[5px] shadow-xl max-w-md w-full">
             <div className="sticky top-0 bg-lime-700 text-white p-4 rounded-t-xl flex justify-between items-center">
               <h2 className="text-xl font-bold">Set Profile Picture</h2>
               <button

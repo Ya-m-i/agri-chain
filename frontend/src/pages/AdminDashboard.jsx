@@ -1624,6 +1624,45 @@ const AdminDashboard = () => {
     }, 100)
 
     addFarmersToOverviewMap()
+    
+    // Check for selected farmer location from farmer registration
+    const selectedFarmerLocation = localStorage.getItem('selectedFarmerLocation')
+    if (selectedFarmerLocation) {
+      try {
+        const farmerData = JSON.parse(selectedFarmerLocation)
+        if (farmerData.location && farmerData.location.lat && farmerData.location.lng) {
+          // Focus map on the selected farmer's location
+          const farmerLatLng = [farmerData.location.lat, farmerData.location.lng]
+          overviewLeafletMapRef.current.setView(farmerLatLng, 15)
+          
+          // Add a special marker for the selected farmer
+          const selectedMarker = L.marker(farmerLatLng, {
+            icon: L.divIcon({
+              className: 'selected-farmer-marker',
+              html: `<div style="background-color: #ff6b6b; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">📍</div>`,
+              iconSize: [20, 20],
+              iconAnchor: [10, 10]
+            })
+          })
+          
+          selectedMarker.bindPopup(`
+            <div style="text-align: center;">
+              <h3 style="margin: 0 0 8px 0; color: #ff6b6b; font-weight: bold;">${farmerData.farmerName}</h3>
+              <p style="margin: 0; color: #666; font-size: 12px;">📍 Selected Location</p>
+              <p style="margin: 4px 0 0 0; color: #888; font-size: 11px;">${farmerData.address || 'No address provided'}</p>
+            </div>
+          `)
+          
+          selectedMarker.addTo(overviewMarkersLayerRef.current)
+          
+          // Clear the selected farmer location from localStorage
+          localStorage.removeItem('selectedFarmerLocation')
+        }
+      } catch (error) {
+        console.error('Error parsing selected farmer location:', error)
+        localStorage.removeItem('selectedFarmerLocation')
+      }
+    }
   }, [activeTab, farmers, mapCenter, addFarmersToOverviewMap])
 
 
@@ -2962,19 +3001,14 @@ const AdminDashboard = () => {
                     currentItems.map((item, index) => (
                       <div
                         key={item._id || index}
-                        className="relative group rounded-2xl shadow-xl p-0 bg-gradient-to-br from-lime-100 via-white to-lime-50 border-2 border-lime-200 hover:shadow-2xl transition-all duration-300 flex flex-col items-stretch min-h-[260px]"
+                        className="relative group rounded-[5px] shadow-xl p-0 bg-gradient-to-br from-lime-100 via-white to-lime-50 border-2 border-lime-200 hover:shadow-2xl transition-all duration-300 flex items-stretch min-h-[260px]"
                       >
                         {/* KPI Ribbon */}
-                        <div className="absolute top-0 right-0 px-4 py-1 rounded-bl-2xl text-xs font-bold tracking-wider z-10 bg-lime-600 text-white shadow-md">
+                        <div className="absolute top-0 right-0 px-4 py-1 rounded-bl-[5px] text-xs font-bold tracking-wider z-10 bg-lime-600 text-white shadow-md">
                           {item.assistanceType}
                         </div>
-                        {/* Photo */}
-                        {item.photo && (
-                          <div className="flex items-center justify-center w-full h-32 rounded-t-2xl border-b border-lime-100 overflow-hidden">
-                            <img src={item.photo} alt="Assistance Logo" className="object-contain w-full h-full" />
-                          </div>
-                        )}
-                        {/* KPI Content */}
+                        
+                        {/* Left Section - Text Content */}
                         <div className="flex-1 flex flex-col justify-between p-5 gap-2">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 mb-1">
@@ -3007,24 +3041,31 @@ const AdminDashboard = () => {
                           <div className="flex gap-2 mt-4">
                             <button
                               onClick={() => handleViewAssistance(item)}
-                              className="flex-1 flex items-center justify-center gap-1 bg-blue-600 text-white px-3 py-2 rounded-lg font-semibold shadow hover:bg-blue-700 transition"
+                              className="flex-1 flex items-center justify-center gap-1 bg-transparent text-blue-600 px-3 py-2 rounded-[5px] font-semibold border border-blue-600 hover:bg-blue-50 transition"
                             >
                               View
                             </button>
                             <button
                               onClick={() => handleEditEvent(index)}
-                              className="flex-1 flex items-center justify-center gap-1 bg-lime-600 text-white px-3 py-2 rounded-lg font-semibold shadow hover:bg-lime-700 transition"
+                              className="flex-1 flex items-center justify-center gap-1 bg-transparent text-lime-600 px-3 py-2 rounded-[5px] font-semibold border border-lime-600 hover:bg-lime-50 transition"
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => handleDeleteEvent(index)}
-                              className="flex-1 flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2 rounded-lg font-semibold shadow hover:bg-red-700 transition"
+                              className="flex-1 flex items-center justify-center gap-1 bg-transparent text-red-600 px-3 py-2 rounded-[5px] font-semibold border border-red-600 hover:bg-red-50 transition"
                             >
                               Delete
                             </button>
                           </div>
                         </div>
+                        
+                        {/* Right Section - Image */}
+                        {item.photo && (
+                          <div className="flex items-center justify-center w-32 h-32 rounded-r-[5px] border-l border-lime-100 overflow-hidden flex-shrink-0">
+                            <img src={item.photo} alt="Assistance Logo" className="object-contain w-full h-full" />
+                          </div>
+                        )}
                       </div>
                     ))
                   ) : (

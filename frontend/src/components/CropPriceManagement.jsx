@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, Plus, Edit, Trash2, Save, TrendingUp, DollarSign, Upload, Image as ImageIcon } from 'lucide-react'
+import { X, Plus, Edit, Trash2, Save, TrendingUp, DollarSign, Upload, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCropPrices, useCreateCropPrice, useUpdateCropPrice, useDeleteCropPrice } from '../hooks/useAPI'
 import { useNotificationStore } from '../store/notificationStore'
 
@@ -11,6 +11,8 @@ const CropPriceManagement = ({ isOpen, onClose }) => {
 
   const [showForm, setShowForm] = useState(false)
   const [editingCrop, setEditingCrop] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(3)
   const [formData, setFormData] = useState({
     cropName: '',
     cropType: '',
@@ -216,11 +218,21 @@ const CropPriceManagement = ({ isOpen, onClose }) => {
     })
   }
 
+  // Pagination logic
+  const totalPages = Math.ceil(cropPrices.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentCropPrices = cropPrices.slice(startIndex, endIndex)
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page)
+  }
+
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 bg-transparent flex items-center justify-center p-4">
+      <div className="bg-white rounded-[5px] shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="bg-gradient-to-r from-lime-600 to-lime-700 text-white p-6 flex justify-between items-center">
           <div className="flex items-center gap-3">
@@ -456,67 +468,111 @@ const CropPriceManagement = ({ isOpen, onClose }) => {
                 <p className="text-gray-400 text-sm mt-2">Click "Add New Crop Price" to get started</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {cropPrices.map((crop) => (
+              <div className="space-y-4">
+                {currentCropPrices.map((crop) => (
                   <div
                     key={crop._id}
-                    className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+                    className="bg-white border border-gray-200 rounded-[5px] overflow-hidden hover:shadow-lg transition-shadow"
                   >
-                    {crop.image && (
-                      <div className="h-32 w-full bg-gray-100 overflow-hidden">
-                        <img
-                          src={crop.image}
-                          alt={crop.cropName}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                    <div className="p-4">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h4 className="text-lg font-bold text-gray-800">{crop.cropName}</h4>
-                          {crop.cropType && (
-                            <p className="text-sm text-gray-600">{crop.cropType}</p>
-                          )}
+                    <div className="flex">
+                      {/* Left Section - Text Content */}
+                      <div className="flex-1 p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <h4 className="text-lg font-bold text-gray-800">{crop.cropName}</h4>
+                            {crop.cropType && (
+                              <p className="text-sm text-gray-600">{crop.cropType}</p>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEdit(crop)}
+                              className="text-blue-600 hover:bg-blue-50 p-2 rounded transition-colors"
+                              title="Edit"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(crop._id, crop.cropName)}
+                              className="text-red-600 hover:bg-red-50 p-2 rounded transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEdit(crop)}
-                            className="text-blue-600 hover:bg-blue-50 p-2 rounded transition-colors"
-                            title="Edit"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(crop._id, crop.cropName)}
-                            className="text-red-600 hover:bg-red-50 p-2 rounded transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                        
+                        <div className="space-y-2">
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-3xl font-bold text-lime-600">₱{crop.pricePerKg}</span>
+                            <span className="text-gray-500 text-sm">/ {crop.unit}</span>
+                          </div>
+                          
+                          <div className="text-xs text-gray-500">
+                            <p>Region: {crop.region}</p>
+                            <p>Updated: {new Date(crop.lastUpdated).toLocaleDateString()}</p>
+                          </div>
+                          
+                          {crop.notes && (
+                            <p className="text-xs text-gray-600 italic mt-2 border-t pt-2">
+                              {crop.notes}
+                            </p>
+                          )}
                         </div>
                       </div>
                       
-                      <div className="space-y-2">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-3xl font-bold text-lime-600">₱{crop.pricePerKg}</span>
-                          <span className="text-gray-500 text-sm">/ {crop.unit}</span>
+                      {/* Right Section - Image */}
+                      {crop.image && (
+                        <div className="w-32 h-32 bg-gray-100 overflow-hidden flex-shrink-0">
+                          <img
+                            src={crop.image}
+                            alt={crop.cropName}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
-                        
-                        <div className="text-xs text-gray-500">
-                          <p>Region: {crop.region}</p>
-                          <p>Updated: {new Date(crop.lastUpdated).toLocaleDateString()}</p>
-                        </div>
-                        
-                        {crop.notes && (
-                          <p className="text-xs text-gray-600 italic mt-2 border-t pt-2">
-                            {crop.notes}
-                          </p>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
                 ))}
+                
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-6">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="flex items-center gap-1 px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <ChevronLeft size={16} />
+                      Previous
+                    </button>
+                    
+                    <div className="flex gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`px-3 py-2 text-sm rounded-lg transition-colors ${
+                            currentPage === page
+                              ? 'bg-lime-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="flex items-center gap-1 px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Next
+                      <ChevronRight size={16} />
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
