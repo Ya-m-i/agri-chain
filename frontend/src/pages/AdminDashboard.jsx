@@ -2286,7 +2286,7 @@ const AdminDashboard = () => {
             <div className="flex flex-col items-center">
               <button 
                 onClick={() => setActiveTab("home")}
-                className="transition-all duration-300 hover:scale-105 focus:outline-none mb-3"
+                className={`transition-all duration-300 hover:scale-105 focus:outline-none mb-3 ${sidebarExpanded ? 'opacity-100' : 'opacity-0'}`}
               >
                 <img 
                   src={adminLogoImage || "/placeholder.svg"} 
