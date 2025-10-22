@@ -184,7 +184,7 @@ const WeatherKPIBlock = () => {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
+      <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm border border-gray-200">
         <div className="flex-1">
           <div className="text-sm font-bold text-black mb-1">Todays Weather</div>
         <div className="text-2xl font-bold text-gray-800 mb-1">--°C</div>
@@ -199,7 +199,7 @@ const WeatherKPIBlock = () => {
   }
 
   return (
-    <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
+    <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm border border-gray-200">
       <div className="flex-1">
         <div className="text-sm font-bold text-black mb-1">Todays Weather</div>
       <div className="text-2xl font-bold text-gray-800 mb-1">{weather?.temperature || 28}°C</div>
@@ -2462,7 +2462,7 @@ const AdminDashboard = () => {
 
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4 mb-8">
                 {/* Farmers Block */}
-                <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
+                <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm border border-gray-200">
                   <div className="flex-1">
                     <div className="text-sm font-bold text-black mb-1">Farmers</div>
                   <div className="text-2xl font-bold text-gray-800 mb-1">{totalFarmers}</div>
@@ -2481,7 +2481,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Active Block */}
-                <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
+                <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm border border-gray-200">
                   <div className="flex-1">
                     <div className="text-sm font-bold text-black mb-1">Active</div>
                   <div className="text-2xl font-bold text-gray-800 mb-1">{activeFarmersData.activeCount || 0}</div>
@@ -2500,7 +2500,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Pending Block */}
-                <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
+                <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm border border-gray-200">
                   <div className="flex-1">
                     <div className="text-sm font-bold text-black mb-1">Pending</div>
                   <div className="text-2xl font-bold text-gray-800 mb-1">{pendingClaims}</div>
@@ -2519,7 +2519,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Farmer Assisted Block */}
-                <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm">
+                <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm border border-gray-200">
                   <div className="flex-1">
                     <div className="text-sm font-bold text-black mb-1">Farmer Assisted</div>
                   <div className="text-2xl font-bold text-gray-800 mb-1">{(() => {
@@ -2562,7 +2562,7 @@ const AdminDashboard = () => {
               {/* Chart Visualizations Section */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
                 {/* Claims Trend Over Time - Left side, larger */}
-                <div className="lg:col-span-2 p-8">
+                <div className="lg:col-span-2 p-8 border border-gray-200 rounded-lg">
                   <div className="flex items-center gap-4 mb-4">
                     <h3 className="text-xl font-semibold text-gray-800">Claims Trend Over Time</h3>
                     <select
@@ -2660,7 +2660,7 @@ const AdminDashboard = () => {
                 {/* Right side - Two charts stacked */}
                 <div className="lg:col-span-1 space-y-8">
                   {/* Assistance Application Breakdown - Top */}
-                  <div className="p-6">
+                  <div className="p-6 border border-gray-200 rounded-lg">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">Assistance Application Breakdown</h3>
                     <div className="h-[220px] relative">
                       <Pie
@@ -2729,7 +2729,7 @@ const AdminDashboard = () => {
                   </div>
 
                   {/* Crop Market Prices - Bottom */}
-                  <div className="p-6">
+                  <div className="p-6 border border-gray-200 rounded-lg">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-lg font-semibold text-gray-800">Kapalong Crop Market Prices</h3>
                       <button
