@@ -92,7 +92,7 @@ Chart.register(...registerables);
 
 // Recharts imports
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar as RechartsBar, LineChart, Line as RechartsLine, Legend as RechartsLegend, Cell } from 'recharts';
-import { showLoading, hideLoading, showError } from "../utils/feedbackUtils"
+import { showError } from "../utils/feedbackUtils"
 // Using dynamic import for jsPDF to avoid build issues
 // const jsPDF = (() => {
 //   let jsPDFModule
@@ -155,6 +155,20 @@ import {
 
 // Utility: Moving Average
 // Utility: Find Peaks
+
+// Loading Overlay Component
+const LoadingOverlay = ({ isVisible, message = "Loading..." }) => {
+  if (!isVisible) return null;
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-8 flex flex-col items-center space-y-4 shadow-xl">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lime-600"></div>
+        <p className="text-gray-700 font-medium">{message}</p>
+      </div>
+    </div>
+  );
+};
 
 // Weather KPI Block Component
 const WeatherKPIBlock = () => {
@@ -226,6 +240,21 @@ const AdminDashboard = () => {
   const [showAdminClaimFiling, setShowAdminClaimFiling] = useState(false)
   const [showAdminAssistanceFiling, setShowAdminAssistanceFiling] = useState(false)
   const [showCropPriceManagement, setShowCropPriceManagement] = useState(false)
+  const [isTabLoading, setIsTabLoading] = useState(false)
+
+  // Function to handle tab switching with loading
+  const handleTabSwitch = (newTab) => {
+    if (newTab === activeTab) return;
+    
+    setIsTabLoading(true);
+    setActiveTab(newTab);
+    setSidebarOpen(false);
+    
+    // Simulate loading time (you can adjust this duration)
+    setTimeout(() => {
+      setIsTabLoading(false);
+    }, 800);
+  };
 
   // React Query hooks for data management
   // eslint-disable-next-line no-unused-vars
@@ -949,14 +978,15 @@ const AdminDashboard = () => {
         // Load claims function using React Query
         const loadClaims = useCallback(async () => {
   try {
-    showLoading("Loading claims...");
+    // Hide the loading popup but keep functionality
+    // showLoading("Loading claims...");
     setIsRefreshing(true);
     await refetchClaims();
   } catch (err) {
     console.error('Failed to load claims from the server:', err);
     showError("Failed to load claims from the server.");
   } finally {
-    hideLoading();
+    // hideLoading();
     setIsRefreshing(false);
   }
 }, [refetchClaims]);
@@ -1935,6 +1965,12 @@ const AdminDashboard = () => {
           display: none;
         }
       `}</style>
+      
+      {/* Tab Loading Overlay */}
+      <LoadingOverlay 
+        isVisible={isTabLoading} 
+        message="Loading tab..." 
+      />
       {/* Top Navbar */}
       <header style={{ backgroundColor: 'rgb(39, 78, 19)' }} className={`text-black transition-all duration-300 ease-in-out ${sidebarExpanded ? 'md:ml-64' : 'md:ml-16'}`}>
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
@@ -2132,7 +2168,7 @@ const AdminDashboard = () => {
             <div className="flex flex-col items-center">
               <button 
                 onClick={() => {
-                  setActiveTab("home")
+                  handleTabSwitch("home")
                   setSidebarOpen(false)
                 }}
                 className="transition-all duration-300 hover:scale-105 focus:outline-none mb-3"
@@ -2152,10 +2188,7 @@ const AdminDashboard = () => {
             <ul className="space-y-2">
               <li>
                 <button
-                  onClick={() => {
-                    setActiveTab("home")
-                    setSidebarOpen(false)
-                  }}
+                  onClick={() => handleTabSwitch("home")}
                   className={`flex items-center w-full p-2 rounded-lg ${
                     activeTab === "home" ? "text-lime-800 font-bold" : "text-gray-700 hover:bg-gray-100"
                   }`}
@@ -2167,10 +2200,7 @@ const AdminDashboard = () => {
               </li>
               <li>
                 <button
-                  onClick={() => {
-                    setActiveTab("farmer-registration")
-                    setSidebarOpen(false)
-                  }}
+                  onClick={() => handleTabSwitch("farmer-registration")}
                   className={`flex items-center w-full p-2 rounded-lg ${
                     activeTab === "farmer-registration"
                       ? "text-lime-800 font-bold"
@@ -2199,7 +2229,7 @@ const AdminDashboard = () => {
               <li>
                 <button
                   onClick={() => {
-                    setActiveTab("claims")
+                    handleTabSwitch("claims")
                     setSidebarOpen(false)
                   }}
                   className={`flex items-center w-full p-2 rounded-lg ${
@@ -2214,7 +2244,7 @@ const AdminDashboard = () => {
               <li>
                 <button
                   onClick={() => {
-                    setActiveTab("distribution")
+                    handleTabSwitch("distribution")
                     setSidebarOpen(false)
                   }}
                   className={`flex items-center w-full p-2 rounded-lg ${
@@ -2285,7 +2315,7 @@ const AdminDashboard = () => {
           <div className="p-6 bg-white border-b border-gray-200">
             <div className="flex flex-col items-center">
               <button 
-                onClick={() => setActiveTab("home")}
+                onClick={() => handleTabSwitch("home")}
                 className={`transition-all duration-300 hover:scale-105 focus:outline-none mb-3 ${sidebarExpanded ? 'opacity-100' : 'opacity-0'}`}
               >
                 <img 
@@ -2305,7 +2335,7 @@ const AdminDashboard = () => {
           {/* Main Navigation Section */}
           <div className="space-y-1 px-3">
             <button
-              onClick={() => setActiveTab("home")}
+              onClick={() => handleTabSwitch("home")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "home" ? "text-lime-800 font-bold" : "text-gray-700 hover:bg-gray-50"
               }`}
@@ -2319,7 +2349,7 @@ const AdminDashboard = () => {
             <div>
               <button
                 onClick={() => {
-                  setActiveTab("farmer-registration")
+                  handleTabSwitch("farmer-registration")
                   setShowFarmLocationsDropdown(!showFarmLocationsDropdown)
                 }}
                 className={`flex items-center ${sidebarExpanded ? 'justify-between gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
@@ -2346,7 +2376,7 @@ const AdminDashboard = () => {
                 className={`transition-all duration-300 overflow-hidden ${showFarmLocationsDropdown && sidebarExpanded ? "max-h-40" : "max-h-0"}`}
               >
                 <button
-                  onClick={() => setActiveTab("crop-insurance")}
+                  onClick={() => handleTabSwitch("crop-insurance")}
                   className={`flex items-center ${sidebarExpanded ? 'gap-3 pl-10' : 'justify-center px-2'} py-2 rounded-lg hover:bg-gray-50 w-full text-left transition-colors ${activeTab === 'crop-insurance' ? "text-lime-800 font-bold" : "text-gray-600"}`}
                   style={activeTab === 'crop-insurance' ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                   title={!sidebarExpanded ? "Crop Insurance" : ""}
@@ -2358,7 +2388,7 @@ const AdminDashboard = () => {
             </div>
 
             <button
-              onClick={() => setActiveTab("claims")}
+              onClick={() => handleTabSwitch("claims")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "claims" ? "text-lime-800 font-bold" : "text-gray-700 hover:bg-gray-50"
               }`}
@@ -2370,7 +2400,7 @@ const AdminDashboard = () => {
             </button>
 
             <button
-              onClick={() => setActiveTab("distribution")}
+              onClick={() => handleTabSwitch("distribution")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "distribution"
                   ? "text-lime-800 font-bold"
@@ -2392,7 +2422,7 @@ const AdminDashboard = () => {
           {/* Secondary Navigation Section */}
           <div className="space-y-1 px-3">
             <button
-              onClick={() => setActiveTab("assistance")}
+              onClick={() => handleTabSwitch("assistance")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "assistance"
                   ? "text-lime-800 font-bold"
@@ -2406,7 +2436,7 @@ const AdminDashboard = () => {
             </button>
 
             <button
-              onClick={() => setActiveTab("admin-filing")}
+              onClick={() => handleTabSwitch("admin-filing")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "admin-filing"
                   ? "text-lime-800 font-bold"
