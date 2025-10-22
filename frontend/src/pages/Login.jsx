@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom"
 import { useAuthStore } from "../store/authStore"
 // Add imports for both logos
 import farmerLogoImage from "../assets/Images/FarmLogo.png" // Your farmer logo
-import adminLogoImage from "../assets/Images/AgriLogo.png" // Add your admin logo here
+import adminLogoImage from "../assets/Images/DALOGO.png" // Admin logo
 import { loginFarmer } from '../api';
 
 const Login = () => {

@@ -49,7 +49,7 @@ import "leaflet/dist/leaflet.css"
 // Use a relative path that matches your project structure
 // If you're unsure about the exact path, you can use a placeholder or comment it out temporarily
 // import adminLogoImage from "../assets/images/AgriLogo.png"
-import adminLogoImage from "../assets/Images/AgriLogo.png" // Fallback to a placeholder if image can't be found
+import adminLogoImage from "../assets/Images/DALOGO.png" // Admin logo
 
 // Import custom KPI block images
 import totalFarmerImage from "../assets/Images/TotalFarmer.png"
