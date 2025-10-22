@@ -254,6 +254,16 @@ const AdminDashboard = () => {
   const [showAdminAssistanceFiling, setShowAdminAssistanceFiling] = useState(false)
   const [showCropPriceManagement, setShowCropPriceManagement] = useState(false)
   const [isTabLoading, setIsTabLoading] = useState(false)
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
+
+  // Handle initial loading when component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialLoading(false);
+    }, 1200); // 1.2 seconds for initial dashboard loading
+
+    return () => clearTimeout(timer);
+  }, []);
 
   // Function to handle tab switching with loading
   const handleTabSwitch = (newTab) => {
@@ -1979,9 +1989,9 @@ const AdminDashboard = () => {
         }
       `}</style>
       
-      {/* Tab Loading Overlay */}
+      {/* Loading Overlays */}
       <LoadingOverlay 
-        isVisible={isTabLoading} 
+        isVisible={isInitialLoading || isTabLoading} 
       />
       {/* Top Navbar */}
       <header style={{ backgroundColor: 'rgb(39, 78, 19)' }} className={`text-black transition-all duration-300 ease-in-out ${sidebarExpanded ? 'md:ml-64' : 'md:ml-16'}`}>

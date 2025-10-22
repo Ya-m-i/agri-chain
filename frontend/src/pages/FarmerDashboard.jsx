@@ -60,6 +60,16 @@ const FarmerDashboard = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [isTabLoading, setIsTabLoading] = useState(false)
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
+  
+  // Handle initial loading when component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialLoading(false);
+    }, 1200); // 1.2 seconds for initial dashboard loading
+
+    return () => clearTimeout(timer);
+  }, []);
   
   // Function to handle tab switching with loading
   const handleTabSwitch = (newTab) => {
@@ -2241,8 +2251,8 @@ const FarmerDashboard = () => {
         </div>
       )}
       
-      {/* Tab Loading Overlay */}
-      <LoadingOverlay isVisible={isTabLoading} />
+      {/* Loading Overlays */}
+      <LoadingOverlay isVisible={isInitialLoading || isTabLoading} />
     </div>
   )
 }
