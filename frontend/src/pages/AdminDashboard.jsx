@@ -413,6 +413,7 @@ const AdminDashboard = () => {
   const [weatherData, setWeatherData] = useState([]) // Weather data for all farmer locations
   const [showWeatherOverlay, setShowWeatherOverlay] = useState(true) // Toggle weather overlay
   const [weatherLoading, setWeatherLoading] = useState(false) // Loading state for weather data
+  const weatherFetchedRef = useRef(false) // Track if weather has been fetched to prevent infinite loops
   // (removed duplicate overview map refs)
 
   // Overview map filters (must be declared before map callbacks that depend on them)
@@ -686,28 +687,6 @@ const AdminDashboard = () => {
     return '📍'
   }
 
-  // Fetch weather data for all farmer locations
-  const fetchWeatherForFarmers = useCallback(async () => {
-    if (!showWeatherOverlay) return
-    
-    setWeatherLoading(true)
-    try {
-      const farmersWithLocation = farmers.filter(farmer => 
-        farmer.location && 
-        typeof farmer.location.lat === 'number' && 
-        typeof farmer.location.lng === 'number'
-      )
-      
-      if (farmersWithLocation.length > 0) {
-        const weatherResults = await getWeatherForMultipleLocations(farmersWithLocation)
-        setWeatherData(weatherResults)
-      }
-    } catch (error) {
-      console.error('Error fetching weather for farmers:', error)
-    } finally {
-      setWeatherLoading(false)
-    }
-  }, [farmers, showWeatherOverlay])
 
   // Add farmers to the embedded overview map on the dashboard
   const addFarmersToOverviewMap = useCallback(() => {
@@ -1703,7 +1682,42 @@ const AdminDashboard = () => {
     
     // Fit map to show all farmer locations after adding them
     setTimeout(() => {
-      fitMapToFarmers()
+      if (overviewLeafletMapRef.current && farmers.length > 0) {
+        const farmersWithLocation = farmers.filter(farmer => 
+          farmer.location && 
+          typeof farmer.location.lat === 'number' && 
+          typeof farmer.location.lng === 'number'
+        )
+
+        if (farmersWithLocation.length === 0) return
+
+        // If only one farmer, center on them with medium zoom
+        if (farmersWithLocation.length === 1) {
+          const farmer = farmersWithLocation[0]
+          overviewLeafletMapRef.current.setView([farmer.location.lat, farmer.location.lng], 12)
+          return
+        }
+
+        // Calculate bounds for multiple farmers
+        const lats = farmersWithLocation.map(f => f.location.lat)
+        const lngs = farmersWithLocation.map(f => f.location.lng)
+        
+        const minLat = Math.min(...lats)
+        const maxLat = Math.max(...lats)
+        const minLng = Math.min(...lngs)
+        const maxLng = Math.max(...lngs)
+
+        // Add some padding around the bounds
+        const latPadding = (maxLat - minLat) * 0.1
+        const lngPadding = (maxLng - minLng) * 0.1
+
+        const bounds = [
+          [minLat - latPadding, minLng - lngPadding],
+          [maxLat + latPadding, maxLng + lngPadding]
+        ]
+
+        overviewLeafletMapRef.current.fitBounds(bounds, { padding: [20, 20] })
+      }
     }, 200)
     
     // Check for selected farmer location from farmer registration
@@ -1744,14 +1758,36 @@ const AdminDashboard = () => {
         localStorage.removeItem('selectedFarmerLocation')
       }
     }
-  }, [activeTab, farmers, mapCenter, addFarmersToOverviewMap, fitMapToFarmers])
+  }, [activeTab, farmers, mapCenter, addFarmersToOverviewMap])
 
   // Separate useEffect for weather fetching to prevent infinite loops
   useEffect(() => {
-    if (showWeatherOverlay && weatherData.length === 0 && farmers.length > 0) {
-      fetchWeatherForFarmers()
+    if (showWeatherOverlay && !weatherFetchedRef.current && farmers.length > 0) {
+      weatherFetchedRef.current = true
+      const fetchWeather = async () => {
+        setWeatherLoading(true)
+        try {
+          const farmersWithLocation = farmers.filter(farmer => 
+            farmer.location && 
+            typeof farmer.location.lat === 'number' && 
+            typeof farmer.location.lng === 'number'
+          )
+          
+          if (farmersWithLocation.length > 0) {
+            const weatherResults = await getWeatherForMultipleLocations(farmersWithLocation)
+            setWeatherData(weatherResults)
+          }
+        } catch (error) {
+          console.error('Error fetching weather for farmers:', error)
+        } finally {
+          setWeatherLoading(false)
+        }
+      }
+      
+      fetchWeather()
     }
-  }, [showWeatherOverlay, farmers.length, weatherData.length, fetchWeatherForFarmers])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showWeatherOverlay, farmers.length])
 
   // Function to fit map bounds to show all farmer locations
   const fitMapToFarmers = useCallback(() => {
@@ -2772,10 +2808,26 @@ const AdminDashboard = () => {
                   <div className="flex items-center gap-2">
                     {/* Weather Overlay Toggle */}
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         setShowWeatherOverlay(!showWeatherOverlay)
                         if (!showWeatherOverlay) {
-                          fetchWeatherForFarmers()
+                          setWeatherLoading(true)
+                          try {
+                            const farmersWithLocation = farmers.filter(farmer => 
+                              farmer.location && 
+                              typeof farmer.location.lat === 'number' && 
+                              typeof farmer.location.lng === 'number'
+                            )
+                            
+                            if (farmersWithLocation.length > 0) {
+                              const weatherResults = await getWeatherForMultipleLocations(farmersWithLocation)
+                              setWeatherData(weatherResults)
+                            }
+                          } catch (error) {
+                            console.error('Error fetching weather for farmers:', error)
+                          } finally {
+                            setWeatherLoading(false)
+                          }
                         }
                       }}
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
@@ -2799,9 +2851,26 @@ const AdminDashboard = () => {
                     {/* Refresh Weather Button */}
                     {showWeatherOverlay && (
                       <button
-                        onClick={() => {
+                        onClick={async () => {
                           setWeatherData([])
-                          fetchWeatherForFarmers()
+                          weatherFetchedRef.current = false
+                          setWeatherLoading(true)
+                          try {
+                            const farmersWithLocation = farmers.filter(farmer => 
+                              farmer.location && 
+                              typeof farmer.location.lat === 'number' && 
+                              typeof farmer.location.lng === 'number'
+                            )
+                            
+                            if (farmersWithLocation.length > 0) {
+                              const weatherResults = await getWeatherForMultipleLocations(farmersWithLocation)
+                              setWeatherData(weatherResults)
+                            }
+                          } catch (error) {
+                            console.error('Error fetching weather for farmers:', error)
+                          } finally {
+                            setWeatherLoading(false)
+                          }
                         }}
                         className="px-3 py-1.5 rounded-lg text-sm font-medium bg-orange-100 text-orange-700 border border-orange-200 hover:bg-orange-200 transition-colors"
                         title="Refresh weather data"
