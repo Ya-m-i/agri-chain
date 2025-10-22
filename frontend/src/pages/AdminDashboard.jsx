@@ -2614,22 +2614,55 @@ const AdminDashboard = () => {
               {/* Chart Visualizations Section */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
                 {/* Claims Trend Over Time - Left side, larger */}
-                <div className="lg:col-span-2 p-8 border border-gray-200 rounded-lg">
-                  <div className="flex items-center gap-4 mb-4">
-                    <h3 className="text-xl font-semibold text-gray-800">Claims Trend Over Time</h3>
-                    <select
-                      value={distributionYearFilter}
-                      onChange={(e) => setDistributionYearFilter(parseInt(e.target.value))}
-                      className="px-3 py-2 text-sm border rounded-md"
-                    >
-                      {Array.from({ length: 3 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
+                <div className="lg:col-span-2 p-8 border border-gray-200 rounded-lg bg-gray-900 text-white">
+                  {/* KPI Section */}
+                  <div className="flex justify-between items-start mb-6">
+                    <div>
+                      <h3 className="text-xl font-semibold text-white mb-2">Claims Trend Over Time</h3>
+                      <div className="flex items-baseline gap-3">
+                        <span className="text-3xl font-bold text-white">
+                          {(() => {
+                            const totalClaims = claims.filter(c => new Date(c.date).getFullYear() === distributionYearFilter).length;
+                            return totalClaims.toLocaleString();
+                          })()}
+                        </span>
+                        <div className="bg-gray-700 px-2 py-1 rounded text-sm text-white">
+                          {(() => {
+                            const currentYear = distributionYearFilter;
+                            const previousYear = currentYear - 1;
+                            const currentYearClaims = claims.filter(c => new Date(c.date).getFullYear() === currentYear).length;
+                            const previousYearClaims = claims.filter(c => new Date(c.date).getFullYear() === previousYear).length;
+                            const change = previousYearClaims > 0 ? ((currentYearClaims - previousYearClaims) / previousYearClaims * 100) : 0;
+                            return `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        className={`px-3 py-1 rounded text-sm ${distributionYearFilter === new Date().getFullYear() ? 'bg-lime-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                        onClick={() => setDistributionYearFilter(new Date().getFullYear())}
+                      >
+                        This Year
+                      </button>
+                      <button 
+                        className={`px-3 py-1 rounded text-sm ${distributionYearFilter === new Date().getFullYear() - 1 ? 'bg-lime-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                        onClick={() => setDistributionYearFilter(new Date().getFullYear() - 1)}
+                      >
+                        Last Year
+                      </button>
+                      <button 
+                        className={`px-3 py-1 rounded text-sm ${distributionYearFilter === new Date().getFullYear() - 2 ? 'bg-lime-500 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                        onClick={() => setDistributionYearFilter(new Date().getFullYear() - 2)}
+                      >
+                        {new Date().getFullYear() - 2}
+                      </button>
+                    </div>
                   </div>
-                  <div className="h-[500px]">
+                  
+                  <div className="h-[400px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart
+                      <LineChart
                         data={(() => {
                           const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
                           return monthNames.map((month, index) => {
@@ -2641,32 +2674,28 @@ const AdminDashboard = () => {
                             };
                           });
                         })()} 
-                        margin={{ top: 30, right: 40, left: 30, bottom: 80 }}
+                        margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                       >
-                        <defs>
-                          <linearGradient id="approvedGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#2f7d32" stopOpacity={0.4}/>
-                            <stop offset="95%" stopColor="#2f7d32" stopOpacity={0.1}/>
-                          </linearGradient>
-                          <linearGradient id="rejectedGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="rgb(174, 200, 28)" stopOpacity={0.4}/>
-                            <stop offset="95%" stopColor="rgb(174, 200, 28)" stopOpacity={0.1}/>
-                          </linearGradient>
-                        </defs>
                         <XAxis 
                           dataKey="month" 
-                          fontSize={14}
-                          axisLine={true}
+                          fontSize={12}
+                          axisLine={false}
                           tickLine={false}
-                          label={{ value: 'Month', position: 'insideBottom', offset: -15, style: { textAnchor: 'middle', fontSize: 14 } }}
+                          tick={{ fill: '#9CA3AF' }}
                         />
                         <YAxis 
-                          fontSize={14}
-                          axisLine={true}
+                          fontSize={12}
+                          axisLine={false}
                           tickLine={false}
-                          label={{ value: 'Number of Claims', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 14 } }}
+                          tick={{ fill: '#9CA3AF' }}
                         />
                         <RechartsTooltip 
+                          contentStyle={{
+                            backgroundColor: '#1F2937',
+                            border: '1px solid #374151',
+                            borderRadius: '8px',
+                            color: 'white'
+                          }}
                           formatter={(value, name) => {
                             const labels = {
                               approved: 'Approved Claims', 
@@ -2678,6 +2707,7 @@ const AdminDashboard = () => {
                         <RechartsLegend 
                           verticalAlign="top" 
                           height={36}
+                          wrapperStyle={{ color: 'white' }}
                           formatter={(value) => {
                             const labels = {
                               approved: 'Approved Claims',
@@ -2686,25 +2716,24 @@ const AdminDashboard = () => {
                             return labels[value] || value;
                           }}
                         />
-                        <Area 
+                        <Line 
                           type="monotone" 
                           dataKey="approved" 
-                          stroke="#2f7d32" 
-                          strokeWidth={1.5}
-                          fill="url(#approvedGradient)" 
-                          fillOpacity={1}
+                          stroke="#10B981" 
+                          strokeWidth={3}
                           dot={false}
+                          activeDot={{ r: 6, fill: '#10B981' }}
                         />
-                        <Area 
+                        <Line 
                           type="monotone" 
                           dataKey="rejected" 
-                          stroke="rgb(174, 200, 28)" 
-                          strokeWidth={1.5}
-                          fill="url(#rejectedGradient)" 
-                          fillOpacity={1}
+                          stroke="#059669" 
+                          strokeWidth={2}
+                          strokeDasharray="5 5"
                           dot={false}
+                          activeDot={{ r: 6, fill: '#059669' }}
                         />
-                      </AreaChart>
+                      </LineChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
