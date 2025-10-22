@@ -409,7 +409,7 @@ const AdminDashboard = () => {
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [mapMode, setMapMode] = useState("view") // view or add
   const [mapCenter, setMapCenter] = useState([7.5815, 125.8235]) // Precise coordinates for Kapalong, Davao del Norte
-  const [mapZoom, setMapZoom] = useState(15) // Closer zoom to focus on Kapalong area
+  const [mapZoom, setMapZoom] = useState(12) // Medium zoom to see all farmer locations in Kapalong area
   const [weatherData, setWeatherData] = useState([]) // Weather data for all farmer locations
   const [showWeatherOverlay, setShowWeatherOverlay] = useState(true) // Toggle weather overlay
   const [weatherLoading, setWeatherLoading] = useState(false) // Loading state for weather data
@@ -1685,7 +1685,7 @@ const AdminDashboard = () => {
     if (!overviewMapRef.current) return
 
     if (!overviewLeafletMapRef.current) {
-      overviewLeafletMapRef.current = L.map(overviewMapRef.current).setView(mapCenter, 15)
+      overviewLeafletMapRef.current = L.map(overviewMapRef.current).setView(mapCenter, 12)
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(overviewLeafletMapRef.current)
@@ -1701,10 +1701,10 @@ const AdminDashboard = () => {
 
     addFarmersToOverviewMap()
     
-    // Fetch weather data for farmers if weather overlay is enabled
-    if (showWeatherOverlay) {
-      fetchWeatherForFarmers()
-    }
+    // Fit map to show all farmer locations after adding them
+    setTimeout(() => {
+      fitMapToFarmers()
+    }, 200)
     
     // Check for selected farmer location from farmer registration
     const selectedFarmerLocation = localStorage.getItem('selectedFarmerLocation')
@@ -1744,8 +1744,54 @@ const AdminDashboard = () => {
         localStorage.removeItem('selectedFarmerLocation')
       }
     }
-  }, [activeTab, farmers, mapCenter, addFarmersToOverviewMap, showWeatherOverlay, weatherData, fetchWeatherForFarmers])
+  }, [activeTab, farmers, mapCenter, addFarmersToOverviewMap, fitMapToFarmers])
 
+  // Separate useEffect for weather fetching to prevent infinite loops
+  useEffect(() => {
+    if (showWeatherOverlay && weatherData.length === 0 && farmers.length > 0) {
+      fetchWeatherForFarmers()
+    }
+  }, [showWeatherOverlay, farmers.length, weatherData.length, fetchWeatherForFarmers])
+
+  // Function to fit map bounds to show all farmer locations
+  const fitMapToFarmers = useCallback(() => {
+    if (!overviewLeafletMapRef.current || farmers.length === 0) return
+
+    const farmersWithLocation = farmers.filter(farmer => 
+      farmer.location && 
+      typeof farmer.location.lat === 'number' && 
+      typeof farmer.location.lng === 'number'
+    )
+
+    if (farmersWithLocation.length === 0) return
+
+    // If only one farmer, center on them with medium zoom
+    if (farmersWithLocation.length === 1) {
+      const farmer = farmersWithLocation[0]
+      overviewLeafletMapRef.current.setView([farmer.location.lat, farmer.location.lng], 12)
+      return
+    }
+
+    // Calculate bounds for multiple farmers
+    const lats = farmersWithLocation.map(f => f.location.lat)
+    const lngs = farmersWithLocation.map(f => f.location.lng)
+    
+    const minLat = Math.min(...lats)
+    const maxLat = Math.max(...lats)
+    const minLng = Math.min(...lngs)
+    const maxLng = Math.max(...lngs)
+
+    // Add some padding around the bounds
+    const latPadding = (maxLat - minLat) * 0.1
+    const lngPadding = (maxLng - minLng) * 0.1
+
+    const bounds = [
+      [minLat - latPadding, minLng - lngPadding],
+      [maxLat + latPadding, maxLng + lngPadding]
+    ]
+
+    overviewLeafletMapRef.current.fitBounds(bounds, { padding: [20, 20] })
+  }, [farmers])
 
   // Function to search for a location on the map
   const searchLocation = () => {
@@ -2740,6 +2786,30 @@ const AdminDashboard = () => {
                     >
                       🌤️ Weather Overlay
                     </button>
+                    
+                    {/* Fit Map to Farmers Button */}
+                    <button
+                      onClick={fitMapToFarmers}
+                      className="px-3 py-1.5 rounded-lg text-sm font-medium bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 transition-colors"
+                      title="Fit map to show all farmer locations"
+                    >
+                      📍 Fit to Farmers
+                    </button>
+                    
+                    {/* Refresh Weather Button */}
+                    {showWeatherOverlay && (
+                      <button
+                        onClick={() => {
+                          setWeatherData([])
+                          fetchWeatherForFarmers()
+                        }}
+                        className="px-3 py-1.5 rounded-lg text-sm font-medium bg-orange-100 text-orange-700 border border-orange-200 hover:bg-orange-200 transition-colors"
+                        title="Refresh weather data"
+                        disabled={weatherLoading}
+                      >
+                        {weatherLoading ? '⏳' : '🔄'} Refresh Weather
+                      </button>
+                    )}
                     <select
                       value={cropFilter}
                       onChange={(e) => setCropFilter(e.target.value)}
