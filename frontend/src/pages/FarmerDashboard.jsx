@@ -28,6 +28,7 @@ import WeatherWidget from "../components/dashboard/weather-widget"
 import ClaimStatusTracker from "../components/dashboard/claim-status-tracker"
 import farmerLogoImage from "../assets/Images/FarmLogo.png" // Update this path to your farmer logo
 import FarmerCropInsurance from "../components/FarmerCropInsurance"
+import LoadingOverlay from '../components/LoadingOverlay';
 import FarmerCropPrices from "../components/FarmerCropPrices"
 import { calculateCompensation, getPaymentStatus, getExpectedPaymentDate, getDamageSeverity, getCoverageDetails } from "../utils/insuranceUtils"
 import { useClaims, useCropInsurance, useFarmerApplications, useAssistances, useApplyForAssistance } from '../hooks/useAPI'
@@ -58,6 +59,21 @@ const FarmerDashboard = () => {
   const [notificationOpen, setNotificationOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isTabLoading, setIsTabLoading] = useState(false)
+  
+  // Function to handle tab switching with loading
+  const handleTabSwitch = (newTab) => {
+    if (newTab === activeTab) return;
+    
+    setIsTabLoading(true);
+    setActiveTab(newTab);
+    setSidebarOpen(false);
+    
+    // Simulate loading time (you can adjust this duration)
+    setTimeout(() => {
+      setIsTabLoading(false);
+    }, 800);
+  };
   
   // Get notifications for current farmer - use Zustand subscription for reactive updates
   const farmerNotifications = useMemo(() => 
@@ -698,10 +714,7 @@ const FarmerDashboard = () => {
             <ul className="space-y-2">
               <li>
                 <button
-                  onClick={() => {
-                    setActiveTab("home")
-                    setSidebarOpen(false)
-                  }}
+                  onClick={() => handleTabSwitch("home")}
                   className={`flex items-center w-full p-2 rounded-lg ${
                     activeTab === "home" ? "bg-lime-100 text-lime-700" : "text-gray-700 hover:bg-gray-100"
                   }`}
@@ -713,8 +726,7 @@ const FarmerDashboard = () => {
               <li>
                 <button
                   onClick={() => {
-                    setActiveTab("claims")
-                    setSidebarOpen(false)
+                    handleTabSwitch("claims")
                     // Show notification about claims
                     useNotificationStore.getState().addFarmerNotification({
                       id: generateUniqueId(),
@@ -735,8 +747,7 @@ const FarmerDashboard = () => {
               <li>
                 <button
                   onClick={() => {
-                    setActiveTab("assistance")
-                    setSidebarOpen(false)
+                    handleTabSwitch("assistance")
                     // Show notification about assistance
                     useNotificationStore.getState().addFarmerNotification({
                       id: generateUniqueId(),
@@ -756,10 +767,7 @@ const FarmerDashboard = () => {
               </li>
               <li>
                 <button
-                  onClick={() => {
-                    setActiveTab("crop-insurance")
-                    setSidebarOpen(false)
-                  }}
+                  onClick={() => handleTabSwitch("crop-insurance")}
                   className={`flex items-center w-full p-2 rounded-lg ${
                     activeTab === "crop-insurance" ? "bg-lime-100 text-lime-700" : "text-gray-700 hover:bg-gray-100"
                   }`}
@@ -770,10 +778,7 @@ const FarmerDashboard = () => {
               </li>
               <li>
                 <button
-                  onClick={() => {
-                    setActiveTab("crop-prices")
-                    setSidebarOpen(false)
-                  }}
+                  onClick={() => handleTabSwitch("crop-prices")}
                   className={`flex items-center w-full p-2 rounded-lg ${
                     activeTab === "crop-prices" ? "bg-lime-100 text-lime-700" : "text-gray-700 hover:bg-gray-100"
                   }`}
@@ -792,7 +797,7 @@ const FarmerDashboard = () => {
             <ul className="space-y-2">
               <li>
                 <button
-                  onClick={() => setActiveTab("home")}
+                  onClick={() => handleTabSwitch("home")}
                   className={`flex items-center w-full p-2 rounded-lg ${
                     activeTab === "home" ? "bg-lime-100 text-lime-700" : "text-gray-700 hover:bg-gray-100"
                   }`}
@@ -803,7 +808,7 @@ const FarmerDashboard = () => {
               </li>
               <li>
                 <button
-                  onClick={() => setActiveTab("claims")}
+                  onClick={() => handleTabSwitch("claims")}
                   className={`flex items-center w-full p-2 rounded-lg ${
                     activeTab === "claims" ? "bg-lime-100 text-lime-700" : "text-gray-700 hover:bg-gray-100"
                   }`}
@@ -814,7 +819,7 @@ const FarmerDashboard = () => {
               </li>
               <li>
                 <button
-                  onClick={() => setActiveTab("calendar")}
+                  onClick={() => handleTabSwitch("calendar")}
                   className={`flex items-center w-full p-2 rounded-lg ${
                     activeTab === "calendar" ? "bg-lime-100 text-lime-700" : "text-gray-700 hover:bg-gray-100"
                   }`}
@@ -825,7 +830,7 @@ const FarmerDashboard = () => {
               </li>
               <li>
                 <button
-                  onClick={() => setActiveTab("assistance")}
+                  onClick={() => handleTabSwitch("assistance")}
                   className={`flex items-center w-full p-2 rounded-lg ${
                     activeTab === "assistance" ? "bg-lime-100 text-lime-700" : "text-gray-700 hover:bg-gray-100"
                   }`}
@@ -836,7 +841,7 @@ const FarmerDashboard = () => {
               </li>
               <li>
                 <button
-                  onClick={() => setActiveTab("crop-insurance")}
+                  onClick={() => handleTabSwitch("crop-insurance")}
                   className={`flex items-center w-full p-2 rounded-lg ${
                     activeTab === "crop-insurance" ? "bg-lime-100 text-lime-700" : "text-gray-700 hover:bg-gray-100"
                   }`}
@@ -847,7 +852,7 @@ const FarmerDashboard = () => {
               </li>
               <li>
                 <button
-                  onClick={() => setActiveTab("crop-prices")}
+                  onClick={() => handleTabSwitch("crop-prices")}
                   className={`flex items-center w-full p-2 rounded-lg ${
                     activeTab === "crop-prices" ? "bg-lime-100 text-lime-700" : "text-gray-700 hover:bg-gray-100"
                   }`}
@@ -2235,6 +2240,9 @@ const FarmerDashboard = () => {
           </div>
         </div>
       )}
+      
+      {/* Tab Loading Overlay */}
+      <LoadingOverlay isVisible={isTabLoading} />
     </div>
   )
 }

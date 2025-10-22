@@ -7,11 +7,13 @@ import { useAuthStore } from "../store/authStore"
 import farmerLogoImage from "../assets/Images/FarmLogo.png" // Your farmer logo
 import adminLogoImage from "../assets/Images/DALOGO.png" // Admin logo
 import { loginFarmer } from '../api';
+import LoadingOverlay from '../components/LoadingOverlay';
 
 const Login = () => {
   const [form, setForm] = useState({ username: "", password: "" })
   const [isAdminMode, setIsAdminMode] = useState(false)
   const [errorMsg, setErrorMsg] = useState("");
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
     console.log("Current mode:", isAdminMode ? "Admin" : "Farmer")
@@ -34,6 +36,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setErrorMsg("");
+    setIsLoggingIn(true);
 
     // Clear any existing auth state when switching modes or logging in
     console.log('Login: Clearing existing auth state before new login');
@@ -47,9 +50,14 @@ const Login = () => {
         console.log('Login: Admin credentials validated, logging in...');
         login("admin")
         console.log("Admin login successful, navigating to /admin")
-        navigate("/admin")
+        
+        // Add delay for loading animation
+        setTimeout(() => {
+          navigate("/admin")
+        }, 1000);
       } else {
         setErrorMsg("Invalid admin credentials");
+        setIsLoggingIn(false);
       }
     } else {
       try {
@@ -69,10 +77,15 @@ const Login = () => {
         
         console.log("Farmer login successful, userData:", userData);
         login("farmer", userData);
-        navigate("/farmer-dashboard");
+        
+        // Add delay for loading animation
+        setTimeout(() => {
+          navigate("/farmer-dashboard");
+        }, 1000);
       } catch (err) {
         console.error('Login: Farmer login failed:', err);
         setErrorMsg(err.message || "Invalid farmer credentials");
+        setIsLoggingIn(false);
       }
     }
   }
@@ -211,6 +224,9 @@ const Login = () => {
       {/* Decorative elements - Responsive sizing */}
       <div className="absolute top-0 left-0 w-full h-16 sm:h-24 lg:h-32 bg-lime-800 opacity-5 rounded-b-full"></div>
       <div className="absolute bottom-0 right-0 w-32 h-32 sm:w-48 sm:h-48 lg:w-64 lg:h-64 bg-lime-800 opacity-5 rounded-full -mr-16 sm:-mr-24 lg:-mr-32 -mb-16 sm:-mb-24 lg:-mb-32"></div>
+      
+      {/* Loading Overlay */}
+      <LoadingOverlay isVisible={isLoggingIn} />
     </div>
   )
 }
