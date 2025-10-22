@@ -43,7 +43,7 @@ import {
 import { useAuthStore } from "../store/authStore"
 import { useNotificationStore } from "../store/notificationStore"
 import { useSocketQuery } from "../hooks/useSocketQuery"
-import { getWeatherForKapalong } from "../utils/weatherUtils"
+import { getWeatherForKapalong, getWeatherForMultipleLocations, getWeatherMarkerColor, getWeatherMarkerIcon, getFarmingRecommendation } from "../utils/weatherUtils"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 // Use a relative path that matches your project structure
@@ -410,6 +410,9 @@ const AdminDashboard = () => {
   const [mapMode, setMapMode] = useState("view") // view or add
   const [mapCenter, setMapCenter] = useState([7.5815, 125.8235]) // Precise coordinates for Kapalong, Davao del Norte
   const [mapZoom, setMapZoom] = useState(15) // Closer zoom to focus on Kapalong area
+  const [weatherData, setWeatherData] = useState([]) // Weather data for all farmer locations
+  const [showWeatherOverlay, setShowWeatherOverlay] = useState(true) // Toggle weather overlay
+  const [weatherLoading, setWeatherLoading] = useState(false) // Loading state for weather data
   // (removed duplicate overview map refs)
 
   // Overview map filters (must be declared before map callbacks that depend on them)
@@ -683,6 +686,29 @@ const AdminDashboard = () => {
     return '📍'
   }
 
+  // Fetch weather data for all farmer locations
+  const fetchWeatherForFarmers = useCallback(async () => {
+    if (!showWeatherOverlay) return
+    
+    setWeatherLoading(true)
+    try {
+      const farmersWithLocation = farmers.filter(farmer => 
+        farmer.location && 
+        typeof farmer.location.lat === 'number' && 
+        typeof farmer.location.lng === 'number'
+      )
+      
+      if (farmersWithLocation.length > 0) {
+        const weatherResults = await getWeatherForMultipleLocations(farmersWithLocation)
+        setWeatherData(weatherResults)
+      }
+    } catch (error) {
+      console.error('Error fetching weather for farmers:', error)
+    } finally {
+      setWeatherLoading(false)
+    }
+  }, [farmers, showWeatherOverlay])
+
   // Add farmers to the embedded overview map on the dashboard
   const addFarmersToOverviewMap = useCallback(() => {
     if (!overviewMarkersLayerRef.current || !overviewLeafletMapRef.current) return
@@ -776,14 +802,35 @@ const AdminDashboard = () => {
           claimsByLocation[locationKey].count++
         }
 
-        // Choose color based on insurance status and claims
+        // Choose color based on weather overlay or insurance status
         let markerColor
-        if (hasActiveClaim) {
-          markerColor = '#f97316' // Orange for high claims area
-        } else if (isInsured) {
-          markerColor = '#22c55e' // Green for insured
+        let weatherInfo = null
+        
+        if (showWeatherOverlay && weatherData.length > 0) {
+          // Find weather data for this farmer
+          const farmerWeather = weatherData.find(w => w.farmerId === farmerKey)
+          if (farmerWeather) {
+            weatherInfo = farmerWeather.weather
+            markerColor = getWeatherMarkerColor(weatherInfo.status)
+          } else {
+            // Fallback to insurance status if no weather data
+            if (hasActiveClaim) {
+              markerColor = '#f97316' // Orange for high claims area
+            } else if (isInsured) {
+              markerColor = '#22c55e' // Green for insured
+            } else {
+              markerColor = '#ef4444' // Red for uninsured
+            }
+          }
         } else {
-          markerColor = '#ef4444' // Red for uninsured
+          // Use insurance status when weather overlay is off
+          if (hasActiveClaim) {
+            markerColor = '#f97316' // Orange for high claims area
+          } else if (isInsured) {
+            markerColor = '#22c55e' // Green for insured
+          } else {
+            markerColor = '#ef4444' // Red for uninsured
+          }
         }
 
         // choose a primary crop for icon
@@ -814,13 +861,42 @@ const AdminDashboard = () => {
           popupAnchor: [0, -16],
         })
 
-        // Enhanced popup with comprehensive information
+        // Enhanced popup with comprehensive information including weather
+        const weatherSection = weatherInfo ? `
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <span style="font-size: 18px;">${getWeatherMarkerIcon(weatherInfo.condition)}</span>
+              <strong style="color: #374151; font-size: 12px;">🌤️ WEATHER:</strong>
+              <span style="color: #059669; font-weight: 500;">${weatherInfo.condition}</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px; font-size: 11px;">
+              <div style="text-align: center;">
+                <div style="color: #6b7280;">🌡️ Temp</div>
+                <div style="color: #374151; font-weight: 500;">${weatherInfo.temperature}°C</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="color: #6b7280;">💧 Humidity</div>
+                <div style="color: #374151; font-weight: 500;">${weatherInfo.humidity}%</div>
+              </div>
+              <div style="text-align: center;">
+                <div style="color: #6b7280;">💨 Wind</div>
+                <div style="color: #374151; font-weight: 500;">${weatherInfo.windSpeed} km/h</div>
+              </div>
+            </div>
+            <div style="margin-top: 4px; padding: 4px; background: #fef3c7; border-radius: 4px; font-size: 10px; color: #92400e;">
+              💡 ${getFarmingRecommendation(weatherInfo)}
+            </div>
+          </div>
+        ` : ''
+        
         const popupContent = `
           <div style="min-width:250px; font-family: system-ui, -apple-system, sans-serif;">
             <div style="background: linear-gradient(135deg, ${markerColor} 0%, ${markerColor}99 100%); color: white; padding: 8px; margin: -9px -9px 8px -9px; border-radius: 4px 4px 0 0;">
               <h4 style="margin: 0; font-size: 16px; font-weight: bold;">👨‍🌾 ${farmerName}</h4>
               <small style="opacity: 0.9;">📍 ${barangay}</small>
             </div>
+            
+            ${weatherSection}
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
               <div>
@@ -889,7 +965,7 @@ const AdminDashboard = () => {
       document.head.appendChild(style)
     }
     
-  }, [farmers, insuranceByFarmer, cropFilter, monthFilter, yearFilter, claims, allApplications])
+  }, [farmers, insuranceByFarmer, cropFilter, monthFilter, yearFilter, claims, allApplications, showWeatherOverlay, weatherData])
 
         // Load claims function using React Query
         const loadClaims = useCallback(async () => {
@@ -1625,6 +1701,11 @@ const AdminDashboard = () => {
 
     addFarmersToOverviewMap()
     
+    // Fetch weather data for farmers if weather overlay is enabled
+    if (showWeatherOverlay) {
+      fetchWeatherForFarmers()
+    }
+    
     // Check for selected farmer location from farmer registration
     const selectedFarmerLocation = localStorage.getItem('selectedFarmerLocation')
     if (selectedFarmerLocation) {
@@ -1663,7 +1744,7 @@ const AdminDashboard = () => {
         localStorage.removeItem('selectedFarmerLocation')
       }
     }
-  }, [activeTab, farmers, mapCenter, addFarmersToOverviewMap])
+  }, [activeTab, farmers, mapCenter, addFarmersToOverviewMap, showWeatherOverlay, weatherData, fetchWeatherForFarmers])
 
 
   // Function to search for a location on the map
@@ -2635,8 +2716,30 @@ const AdminDashboard = () => {
                   <div className="flex items-center">
                     <img src={locationImage} alt="Geo-Tagging Map" className="h-7 w-7 mr-2" />
                     <h3 className="text-lg font-semibold text-gray-800">Geo-Tagging Map Overview</h3>
+                    {weatherLoading && (
+                      <div className="ml-3 flex items-center text-sm text-blue-600">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                        Loading weather...
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
+                    {/* Weather Overlay Toggle */}
+                    <button
+                      onClick={() => {
+                        setShowWeatherOverlay(!showWeatherOverlay)
+                        if (!showWeatherOverlay) {
+                          fetchWeatherForFarmers()
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                        showWeatherOverlay 
+                          ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+                          : 'bg-gray-100 text-gray-600 border border-gray-200'
+                      }`}
+                    >
+                      🌤️ Weather Overlay
+                    </button>
                     <select
                       value={cropFilter}
                       onChange={(e) => setCropFilter(e.target.value)}
@@ -2746,6 +2849,44 @@ const AdminDashboard = () => {
                 <div className="w-full h-[420px] rounded-lg border border-gray-200 overflow-hidden relative shadow-sm">
                   <div ref={overviewMapRef} className="w-full h-full z-10" />
                 </div>
+                
+                {/* Weather Legend */}
+                {showWeatherOverlay && (
+                  <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
+                    <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                      🌤️ Weather Status Legend
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span className="text-gray-700">🟢 Excellent (Sunny, Clear)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                        <span className="text-gray-700">🔵 Good (Partly Cloudy)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <span className="text-gray-700">🟡 Moderate (Cloudy)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                        <span className="text-gray-700">🟠 Caution (Light Rain)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                        <span className="text-gray-700">🔴 Warning (Heavy Rain)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-red-700"></div>
+                        <span className="text-gray-700">⚫ Danger (Thunderstorm)</span>
+                      </div>
+                    </div>
+                    <div className="mt-3 text-xs text-gray-600">
+                      💡 Click on markers to see detailed weather information and farming recommendations
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Pending Insurance Claims Section */}
