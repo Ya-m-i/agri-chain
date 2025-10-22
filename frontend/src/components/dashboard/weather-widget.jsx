@@ -1,46 +1,54 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Cloud, CloudRain, Sun, Wind, CloudSnow, CloudLightning, CloudDrizzle } from "lucide-react"
+import { Cloud, CloudRain, Sun, Wind, CloudSnow, CloudLightning, CloudDrizzle, RefreshCw } from "lucide-react"
+import { getWeatherForKapalong, getWeatherForecast, getFarmingRecommendation } from "../../utils/weatherUtils"
 
 const WeatherWidget = () => {
   const [weather, setWeather] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [refreshing, setRefreshing] = useState(false)
+
+  const fetchWeather = async (isRefresh = false) => {
+    try {
+      if (isRefresh) {
+        setRefreshing(true)
+      } else {
+        setLoading(true)
+      }
+      setError(null)
+
+      // Fetch current weather and forecast in parallel
+      const [currentWeather, forecastData] = await Promise.all([
+        getWeatherForKapalong(),
+        getWeatherForecast()
+      ])
+
+      const weatherData = {
+        ...currentWeather,
+        forecast: forecastData.forecast,
+        farmingRecommendation: getFarmingRecommendation(currentWeather),
+        realData: currentWeather.realData
+      }
+
+      setWeather(weatherData)
+    } catch (err) {
+      console.error('Error fetching weather:', err)
+      setError("Failed to load weather data")
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }
 
   useEffect(() => {
-    // In a real app, you would fetch from a weather API
-    // For this demo, we'll use mock data
-    const fetchWeather = async () => {
-      try {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-
-        const mockWeatherData = {
-          location: "San Isidro, Quezon City",
-          temperature: 32,
-          condition: "Partly Cloudy",
-          humidity: 75,
-          windSpeed: 12,
-          forecast: [
-            { day: "Today", condition: "Partly Cloudy", high: 32, low: 24 },
-            { day: "Tomorrow", condition: "Rain", high: 30, low: 23 },
-            { day: "Wed", condition: "Thunderstorm", high: 29, low: 23 },
-            { day: "Thu", condition: "Rain", high: 28, low: 22 },
-            { day: "Fri", condition: "Partly Cloudy", high: 31, low: 23 },
-          ],
-        }
-
-        setWeather(mockWeatherData)
-        setLoading(false)
-      } catch (err) {
-        setError("Failed to load weather data")
-        setLoading(false)
-      }
-    }
-
     fetchWeather()
   }, [])
+
+  const handleRefresh = () => {
+    fetchWeather(true)
+  }
 
   const getWeatherIcon = (condition) => {
     switch (condition.toLowerCase()) {
@@ -90,13 +98,30 @@ const WeatherWidget = () => {
     <div className="bg-white rounded-xl shadow p-4">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h2 className="text-lg font-semibold text-gray-800">{weather.location}</h2>
+          <div className="flex items-center gap-2 mb-1">
+            <h2 className="text-lg font-semibold text-gray-800">{weather.location}</h2>
+            {weather.realData && (
+              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                Live Data
+              </span>
+            )}
+          </div>
           <div className="flex items-center">
             <span className="text-3xl font-bold">{weather.temperature}°C</span>
             <span className="ml-2 text-gray-600">{weather.condition}</span>
           </div>
         </div>
-        <div>{getWeatherIcon(weather.condition)}</div>
+        <div className="flex items-center gap-2">
+          <div>{getWeatherIcon(weather.condition)}</div>
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+            title="Refresh weather data"
+          >
+            <RefreshCw className={`h-4 w-4 text-gray-500 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-2 mb-4 text-sm">
@@ -126,10 +151,15 @@ const WeatherWidget = () => {
       </div>
 
       <div className="mt-3 pt-3 border-t border-gray-200">
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-2 text-xs text-yellow-800">
-          <p className="font-medium">Weather Alert</p>
-          <p>Heavy rainfall expected in the next 48 hours. Consider protective measures for your crops.</p>
+        <div className="bg-blue-50 border-l-4 border-blue-400 p-2 text-xs text-blue-800">
+          <p className="font-medium">Farming Recommendation</p>
+          <p>{weather.farmingRecommendation}</p>
         </div>
+        {weather.realData && (
+          <div className="mt-2 text-xs text-gray-500 text-center">
+            Last updated: {new Date(weather.timestamp).toLocaleTimeString()}
+          </div>
+        )}
       </div>
     </div>
   )

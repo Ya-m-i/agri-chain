@@ -269,3 +269,98 @@ export const getFarmingRecommendation = (weatherData) => {
     return "🌤️ Moderate conditions - proceed with normal farming"
   }
 }
+
+// Get 5-day weather forecast for farmer dashboard
+export const getWeatherForecast = async (lat = WEATHER_LAT, lon = WEATHER_LON) => {
+  try {
+    if (!OPENWEATHER_API_KEY) {
+      console.warn('OpenWeatherMap API key not found, using fallback data')
+      return getFallbackForecastData()
+    }
+
+    // Fetch 5-day forecast from OpenWeatherMap
+    const apiUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${OPENWEATHER_API_KEY}&units=metric`
+    
+    const response = await fetch(apiUrl)
+    
+    if (!response.ok) {
+      throw new Error(`Weather forecast API error: ${response.status}`)
+    }
+    
+    const data = await response.json()
+    
+    // Process forecast data to get daily summaries
+    const dailyForecasts = {}
+    
+    data.list.forEach(item => {
+      const date = new Date(item.dt * 1000)
+      const dayKey = date.toDateString()
+      
+      if (!dailyForecasts[dayKey]) {
+        dailyForecasts[dayKey] = {
+          date: date,
+          temps: [],
+          conditions: [],
+          humidity: [],
+          windSpeed: []
+        }
+      }
+      
+      dailyForecasts[dayKey].temps.push(item.main.temp)
+      dailyForecasts[dayKey].conditions.push(item.weather[0])
+      dailyForecasts[dayKey].humidity.push(item.main.humidity)
+      dailyForecasts[dayKey].windSpeed.push(item.wind.speed * 3.6) // Convert m/s to km/h
+    })
+    
+    // Convert to array format for the widget
+    const forecast = Object.values(dailyForecasts).slice(0, 5).map((day, index) => {
+      const high = Math.round(Math.max(...day.temps))
+      const low = Math.round(Math.min(...day.temps))
+      
+      // Get most common condition for the day
+      const conditionCounts = {}
+      day.conditions.forEach(cond => {
+        const condition = mapWeatherCondition(cond.main, cond.description)
+        conditionCounts[condition] = (conditionCounts[condition] || 0) + 1
+      })
+      const mostCommonCondition = Object.keys(conditionCounts).reduce((a, b) => 
+        conditionCounts[a] > conditionCounts[b] ? a : b
+      )
+      
+      const dayNames = ['Today', 'Tomorrow', 'Wed', 'Thu', 'Fri']
+      
+      return {
+        day: dayNames[index] || `Day ${index + 1}`,
+        condition: mostCommonCondition,
+        high: high,
+        low: low,
+        humidity: Math.round(day.humidity.reduce((a, b) => a + b, 0) / day.humidity.length),
+        windSpeed: Math.round(day.windSpeed.reduce((a, b) => a + b, 0) / day.windSpeed.length)
+      }
+    })
+    
+    return {
+      location: `${WEATHER_CITY}, Davao del Norte`,
+      forecast: forecast,
+      realData: true
+    }
+  } catch (error) {
+    console.error('Error fetching weather forecast:', error)
+    return getFallbackForecastData()
+  }
+}
+
+// Fallback forecast data when API is unavailable
+const getFallbackForecastData = () => {
+  return {
+    location: "Kapalong, Davao del Norte",
+    forecast: [
+      { day: "Today", condition: "Partly Cloudy", high: 32, low: 24, humidity: 75, windSpeed: 12 },
+      { day: "Tomorrow", condition: "Rain", high: 30, low: 23, humidity: 85, windSpeed: 15 },
+      { day: "Wed", condition: "Thunderstorm", high: 29, low: 23, humidity: 90, windSpeed: 18 },
+      { day: "Thu", condition: "Rain", high: 28, low: 22, humidity: 88, windSpeed: 14 },
+      { day: "Fri", condition: "Partly Cloudy", high: 31, low: 23, humidity: 78, windSpeed: 10 },
+    ],
+    realData: false
+  }
+}
