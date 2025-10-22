@@ -157,47 +157,27 @@ import {
 // Utility: Find Peaks
 
 // Loading Overlay Component with Blockchain Style
-const LoadingOverlay = ({ isVisible, message = "Loading..." }) => {
+const LoadingOverlay = ({ isVisible }) => {
   if (!isVisible) return null;
   
   return (
     <div className="fixed inset-0 bg-transparent backdrop-blur-md flex items-center justify-center z-50">
-      <div className="bg-transparent backdrop-blur-sm border border-lime-500/30 rounded-2xl p-8 flex flex-col items-center space-y-6 shadow-2xl">
-        {/* Blockchain-style animated loading */}
-        <div className="relative">
-          {/* Outer rotating ring */}
-          <div className="w-16 h-16 border-2 border-lime-500/20 rounded-full animate-spin">
-            <div className="w-full h-full border-2 border-transparent border-t-lime-500 rounded-full animate-spin"></div>
-          </div>
-          
-          {/* Inner pulsing circle */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-6 h-6 bg-lime-500 rounded-full animate-pulse shadow-lg shadow-lime-500/50"></div>
-          </div>
-          
-          {/* Blockchain nodes animation */}
-          <div className="absolute -top-2 -right-2 w-3 h-3 bg-lime-400 rounded-full animate-bounce"></div>
-          <div className="absolute -bottom-2 -left-2 w-2 h-2 bg-lime-300 rounded-full animate-bounce delay-300"></div>
-          <div className="absolute -top-1 -left-1 w-2 h-2 bg-lime-600 rounded-full animate-bounce delay-150"></div>
+      {/* Blockchain-style animated loading */}
+      <div className="relative">
+        {/* Outer rotating ring */}
+        <div className="w-16 h-16 border-2 border-lime-500/20 rounded-full animate-spin">
+          <div className="w-full h-full border-2 border-transparent border-t-lime-500 rounded-full animate-spin"></div>
         </div>
         
-        {/* Loading text with blockchain styling */}
-        <div className="text-center">
-          <p className="text-lime-600 font-bold text-lg mb-2 tracking-wider">{message}</p>
-          <div className="flex space-x-1 justify-center">
-            <div className="w-2 h-2 bg-lime-500 rounded-full animate-pulse"></div>
-            <div className="w-2 h-2 bg-lime-500 rounded-full animate-pulse delay-100"></div>
-            <div className="w-2 h-2 bg-lime-500 rounded-full animate-pulse delay-200"></div>
-          </div>
+        {/* Inner pulsing circle */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-6 h-6 bg-lime-500 rounded-full animate-pulse shadow-lg shadow-lime-500/50"></div>
         </div>
         
-        {/* Blockchain connection lines */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/2 w-px h-8 bg-gradient-to-b from-lime-500/50 to-transparent"></div>
-          <div className="absolute bottom-0 left-1/2 w-px h-8 bg-gradient-to-t from-lime-500/50 to-transparent"></div>
-          <div className="absolute left-0 top-1/2 w-8 h-px bg-gradient-to-r from-lime-500/50 to-transparent"></div>
-          <div className="absolute right-0 top-1/2 w-8 h-px bg-gradient-to-l from-lime-500/50 to-transparent"></div>
-        </div>
+        {/* Blockchain nodes animation */}
+        <div className="absolute -top-2 -right-2 w-3 h-3 bg-lime-400 rounded-full animate-bounce"></div>
+        <div className="absolute -bottom-2 -left-2 w-2 h-2 bg-lime-300 rounded-full animate-bounce delay-300"></div>
+        <div className="absolute -top-1 -left-1 w-2 h-2 bg-lime-600 rounded-full animate-bounce delay-150"></div>
       </div>
     </div>
   );
@@ -2002,7 +1982,6 @@ const AdminDashboard = () => {
       {/* Tab Loading Overlay */}
       <LoadingOverlay 
         isVisible={isTabLoading} 
-        message="Connecting to Blockchain..." 
       />
       {/* Top Navbar */}
       <header style={{ backgroundColor: 'rgb(39, 78, 19)' }} className={`text-black transition-all duration-300 ease-in-out ${sidebarExpanded ? 'md:ml-64' : 'md:ml-16'}`}>
