@@ -2128,8 +2128,25 @@ const AdminDashboard = () => {
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           } md:hidden transition duration-200 ease-in-out z-30 w-64 bg-white shadow-lg`}
         >
-          <div className="p-4 bg-lime-800 text-white">
-            <h2 className="text-xl font-bold">Menu</h2>
+          <div className="p-6 bg-white border-b border-gray-200">
+            <div className="flex flex-col items-center">
+              <button 
+                onClick={() => {
+                  setActiveTab("home")
+                  setSidebarOpen(false)
+                }}
+                className="transition-all duration-300 hover:scale-105 focus:outline-none mb-3"
+              >
+                <img 
+                  src={adminLogoImage || "/placeholder.svg"} 
+                  alt="Admin Logo" 
+                  className="h-20 w-20 object-contain"
+                />
+              </button>
+              <h2 className="text-sm font-bold text-lime-800 text-center leading-tight">
+                Kapalong Department Agriculture
+              </h2>
+            </div>
           </div>
           <nav className="p-4">
             <ul className="space-y-2">
@@ -2265,22 +2282,28 @@ const AdminDashboard = () => {
           onMouseLeave={() => setSidebarExpanded(false)}
         >
           {/* Admin Logo Section */}
-          <div className="p-6 bg-white">
-            <div className="flex justify-center">
+          <div className="p-6 bg-white border-b border-gray-200">
+            <div className="flex flex-col items-center">
               <button 
                 onClick={() => setActiveTab("home")}
-                className="transition-opacity duration-300 hover:scale-105 focus:outline-none"
+                className="transition-all duration-300 hover:scale-105 focus:outline-none mb-3"
               >
                 <img 
                   src={adminLogoImage || "/placeholder.svg"} 
                   alt="Admin Logo" 
-                  className={`h-16 w-16 transition-opacity duration-300 ${sidebarExpanded ? 'opacity-100' : 'opacity-0'}`}
+                  className="h-20 w-20 object-contain"
                 />
               </button>
+              <div className={`transition-all duration-300 overflow-hidden ${sidebarExpanded ? 'opacity-100 max-h-20' : 'opacity-0 max-h-0'}`}>
+                <h2 className="text-sm font-bold text-lime-800 text-center leading-tight">
+                  Kapalong Department Agriculture
+                </h2>
+              </div>
             </div>
           </div>
 
-          <div className="space-y-1 px-3 mt-4">
+          {/* Main Navigation Section */}
+          <div className="space-y-1 px-3">
             <button
               onClick={() => setActiveTab("home")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
@@ -2359,9 +2382,15 @@ const AdminDashboard = () => {
               <Truck size={24} className="flex-shrink-0" />
               {sidebarExpanded && <span>Distribution Records</span>}
             </button>
+          </div>
 
-            {sidebarExpanded && <hr className="border-gray-100 my-4" />}
+          {/* Separator */}
+          <div className="px-3">
+            <hr className="border-gray-200" />
+          </div>
 
+          {/* Secondary Navigation Section */}
+          <div className="space-y-1 px-3">
             <button
               onClick={() => setActiveTab("assistance")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
