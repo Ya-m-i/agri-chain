@@ -408,8 +408,8 @@ const AdminDashboard = () => {
   const [mapSearchQuery, setMapSearchQuery] = useState("")
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [mapMode, setMapMode] = useState("view") // view or add
-  const [mapCenter, setMapCenter] = useState([7.6167, 125.7]) // Default to Kapalong, Davao del Norte
-  const [mapZoom, setMapZoom] = useState(12) // Increased zoom to focus on Kapalong area
+  const [mapCenter, setMapCenter] = useState([7.5815, 125.8235]) // Precise coordinates for Kapalong, Davao del Norte
+  const [mapZoom, setMapZoom] = useState(15) // Closer zoom to focus on Kapalong area
   // (removed duplicate overview map refs)
 
   // Overview map filters (must be declared before map callbacks that depend on them)
@@ -1609,7 +1609,7 @@ const AdminDashboard = () => {
     if (!overviewMapRef.current) return
 
     if (!overviewLeafletMapRef.current) {
-      overviewLeafletMapRef.current = L.map(overviewMapRef.current).setView(mapCenter, 10)
+      overviewLeafletMapRef.current = L.map(overviewMapRef.current).setView(mapCenter, 15)
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(overviewLeafletMapRef.current)
@@ -2630,7 +2630,7 @@ const AdminDashboard = () => {
               </div>
 
               {/* Overview: Farmers Map (embedded) */}
-              <div className="bg-white rounded-2xl p-6 mt-6">
+              <div className="bg-white rounded-2xl p-6 mt-6 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center">
                     <img src={locationImage} alt="Geo-Tagging Map" className="h-7 w-7 mr-2" />
@@ -2743,7 +2743,7 @@ const AdminDashboard = () => {
                   </div>
                 </div>
                 
-                <div className="w-full h-[420px] rounded-lg border border-gray-200 overflow-hidden relative">
+                <div className="w-full h-[420px] rounded-lg border border-gray-200 overflow-hidden relative shadow-sm">
                   <div ref={overviewMapRef} className="w-full h-full z-10" />
                 </div>
               </div>
