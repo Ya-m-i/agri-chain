@@ -280,10 +280,8 @@ const AdminDashboard = () => {
   };
 
   // React Query hooks for data management
-  // eslint-disable-next-line no-unused-vars
   const { data: claims = [], isLoading: claimsLoading, refetch: refetchClaims } = useClaims()
-  // eslint-disable-next-line no-unused-vars
-  const { data: farmers = [], isLoading: farmersLoading } = useFarmers()
+  const { data: farmers = [] } = useFarmers()
   // eslint-disable-next-line no-unused-vars
   const { data: activeFarmersData = { activeCount: 0, farmers: [] }, isLoading: activeFarmersLoading } = useActiveFarmers()
   // eslint-disable-next-line no-unused-vars
@@ -1028,7 +1026,7 @@ const AdminDashboard = () => {
 
   // Derived data
   const totalFarmers = farmers.length
-  const pendingClaims = claims.filter((c) => c.status === "pending").length
+  const pendingClaims = claims && Array.isArray(claims) ? claims.filter((c) => c && c.status === "pending").length : 0
 
   // Event handlers
 
@@ -2622,16 +2620,18 @@ const AdminDashboard = () => {
                       <div className="flex items-baseline gap-3">
                         <span className="text-3xl font-bold text-white">
                           {(() => {
-                            const totalClaims = claims.filter(c => new Date(c.date).getFullYear() === distributionYearFilter).length;
+                            if (!claims || !Array.isArray(claims)) return "0";
+                            const totalClaims = claims.filter(c => c && c.date && new Date(c.date).getFullYear() === distributionYearFilter).length;
                             return totalClaims.toLocaleString();
                           })()}
                         </span>
                         <div className="bg-gray-700 px-2 py-1 rounded text-sm text-white">
                           {(() => {
+                            if (!claims || !Array.isArray(claims)) return "+0.0%";
                             const currentYear = distributionYearFilter;
                             const previousYear = currentYear - 1;
-                            const currentYearClaims = claims.filter(c => new Date(c.date).getFullYear() === currentYear).length;
-                            const previousYearClaims = claims.filter(c => new Date(c.date).getFullYear() === previousYear).length;
+                            const currentYearClaims = claims.filter(c => c && c.date && new Date(c.date).getFullYear() === currentYear).length;
+                            const previousYearClaims = claims.filter(c => c && c.date && new Date(c.date).getFullYear() === previousYear).length;
                             const change = previousYearClaims > 0 ? ((currentYearClaims - previousYearClaims) / previousYearClaims * 100) : 0;
                             return `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
                           })()}
@@ -2661,16 +2661,22 @@ const AdminDashboard = () => {
                   </div>
                   
                   <div className="h-[400px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
+                    {claimsLoading ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lime-500"></div>
+                      </div>
+                    ) : (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
                         data={(() => {
+                          if (!claims || !Array.isArray(claims)) return [];
                           const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
                           return monthNames.map((month, index) => {
-                            const monthClaims = claims.filter(c => new Date(c.date).getMonth() === index && new Date(c.date).getFullYear() === distributionYearFilter);
+                            const monthClaims = claims.filter(c => c && c.date && new Date(c.date).getMonth() === index && new Date(c.date).getFullYear() === distributionYearFilter);
                             return {
                               month,
-                              approved: monthClaims.filter(c => c.status === 'approved').length,
-                              rejected: monthClaims.filter(c => c.status === 'rejected').length
+                              approved: monthClaims.filter(c => c && c.status === 'approved').length,
+                              rejected: monthClaims.filter(c => c && c.status === 'rejected').length
                             };
                           });
                         })()} 
@@ -2735,6 +2741,7 @@ const AdminDashboard = () => {
                         />
                       </LineChart>
                     </ResponsiveContainer>
+                    )}
                   </div>
                 </div>
 
