@@ -639,7 +639,7 @@ const FarmerRegistration = ({
       {/* Chart Visualizations Section */}
       <div className="w-full flex flex-col md:flex-row gap-6 mb-6">
         {/* Area Chart: Registered Farmers Over Time */}
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-6 border border-gray-200 rounded-lg">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-lime-700 flex items-center gap-2">
               <Users className="h-5 w-5 text-lime-600" /> Registered Farmers Over Time
@@ -718,7 +718,7 @@ const FarmerRegistration = ({
           </div>
         </div>
         {/* Donut Pie Chart: Crop Type Distribution */}
-        <div className="flex-1 p-6">
+        <div className="flex-1 p-6 border border-gray-200 rounded-lg">
           <h3 className="text-lg font-semibold mb-4 text-emerald-700 flex items-center gap-2">
             <Layers className="h-5 w-5 text-emerald-600" /> Crop Type Distribution
           </h3>

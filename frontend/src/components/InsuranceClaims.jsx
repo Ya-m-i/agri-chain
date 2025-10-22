@@ -114,7 +114,7 @@ const InsuranceClaims = ({
       {/* Claims Overview Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {/* Pending Claims KPI Card */}
-        <div className="p-4">
+        <div className="p-4 border border-gray-200 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <p className="text-sm text-gray-600">Pending Claims</p>
@@ -132,7 +132,7 @@ const InsuranceClaims = ({
         </div>
 
         {/* Approved Claims KPI Card */}
-        <div className="p-4">
+        <div className="p-4 border border-gray-200 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <p className="text-sm text-gray-600">Approved Claims</p>
@@ -150,7 +150,7 @@ const InsuranceClaims = ({
         </div>
 
         {/* Rejected Claims KPI Card */}
-        <div className="p-4">
+        <div className="p-4 border border-gray-200 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <p className="text-sm text-gray-600">Rejected Claims</p>
@@ -171,7 +171,7 @@ const InsuranceClaims = ({
       {/* Charts Section - Status Comparison Over Time and Claims Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Status Comparison Over Time - Grouped Bar Chart */}
-        <div className="p-6">
+        <div className="p-6 border border-gray-200 rounded-lg">
           <div className="flex items-center mb-4">
             <BarChart3 size={20} className="text-emerald-600 mr-2" />
             <h3 className="text-lg font-semibold text-gray-800">Status Comparison Over Time</h3>
@@ -292,7 +292,7 @@ const InsuranceClaims = ({
         </div>
 
         {/* Claims Distribution Donut Chart */}
-        <div className="p-6">
+        <div className="p-6 border border-gray-200 rounded-lg">
           <div className="flex items-center mb-4">
             <PieChart size={20} className="text-emerald-600 mr-2" />
             <h3 className="text-lg font-semibold text-gray-800">Claims Distribution</h3>
