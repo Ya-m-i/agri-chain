@@ -119,10 +119,10 @@ const InsuranceClaims = ({
             <div className="flex-1">
               <p className="text-sm text-gray-600">Pending Claims</p>
               <h3 className="text-2xl font-bold text-gray-800">
-                {claims && Array.isArray(claims) ? claims.filter(claim => claim && claim.status === "pending").length : 0}
+                {claims.filter(claim => claim.status === "pending").length}
               </h3>
               <p className="text-xs text-gray-500 mt-1">
-                {claims && Array.isArray(claims) && claims.length > 0 ? ((claims.filter(claim => claim && claim.status === "pending").length / claims.length) * 100).toFixed(1) : "0.0"}% of total
+                {claims.length > 0 ? ((claims.filter(claim => claim.status === "pending").length / claims.length) * 100).toFixed(1) : "0.0"}% of total
               </p>
             </div>
             <div className="ml-4">
@@ -137,10 +137,10 @@ const InsuranceClaims = ({
             <div className="flex-1">
               <p className="text-sm text-gray-600">Approved Claims</p>
               <h3 className="text-2xl font-bold text-green-600">
-                {claims && Array.isArray(claims) ? claims.filter(claim => claim && claim.status === "approved").length : 0}
+                {claims.filter(claim => claim.status === "approved").length}
               </h3>
               <p className="text-xs text-gray-500 mt-1">
-                {claims && Array.isArray(claims) && claims.length > 0 ? ((claims.filter(claim => claim && claim.status === "approved").length / claims.length) * 100).toFixed(1) : "0.0"}% of total
+                {claims.length > 0 ? ((claims.filter(claim => claim.status === "approved").length / claims.length) * 100).toFixed(1) : "0.0"}% of total
               </p>
             </div>
             <div className="ml-4">
@@ -155,10 +155,10 @@ const InsuranceClaims = ({
             <div className="flex-1">
               <p className="text-sm text-gray-600">Rejected Claims</p>
               <h3 className="text-2xl font-bold text-red-600">
-                {claims && Array.isArray(claims) ? claims.filter(claim => claim && claim.status === "rejected").length : 0}
+                {claims.filter(claim => claim.status === "rejected").length}
               </h3>
               <p className="text-xs text-gray-500 mt-1">
-                {claims && Array.isArray(claims) && claims.length > 0 ? ((claims.filter(claim => claim && claim.status === "rejected").length / claims.length) * 100).toFixed(1) : "0.0"}% of total
+                {claims.length > 0 ? ((claims.filter(claim => claim.status === "rejected").length / claims.length) * 100).toFixed(1) : "0.0"}% of total
               </p>
             </div>
             <div className="ml-4">
@@ -179,17 +179,6 @@ const InsuranceClaims = ({
           <div className="h-[400px]">
             <Bar
               data={(() => {
-                if (!claims || !Array.isArray(claims)) {
-                  return {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                    datasets: [
-                      { label: 'Pending', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], backgroundColor: 'rgba(251, 191, 36, 0.8)' },
-                      { label: 'Approved', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], backgroundColor: 'rgba(34, 197, 94, 0.8)' },
-                      { label: 'Rejected', data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], backgroundColor: 'rgba(239, 68, 68, 0.8)' }
-                    ]
-                  };
-                }
-                
                 // Generate monthly data for the current year
                 const currentYear = new Date().getFullYear();
                 const monthNames = [
@@ -199,16 +188,15 @@ const InsuranceClaims = ({
                 
                 const monthlyData = monthNames.map((month, index) => {
                   const monthClaims = claims.filter(claim => {
-                    if (!claim || !claim.date) return false;
                     const claimDate = new Date(claim.date);
                     return claimDate.getFullYear() === currentYear && claimDate.getMonth() === index;
                   });
                   
                   return {
                     month: month,
-                    pending: monthClaims.filter(claim => claim && claim.status === 'pending').length,
-                    approved: monthClaims.filter(claim => claim && claim.status === 'approved').length,
-                    rejected: monthClaims.filter(claim => claim && claim.status === 'rejected').length
+                    pending: monthClaims.filter(claim => claim.status === 'pending').length,
+                    approved: monthClaims.filter(claim => claim.status === 'approved').length,
+                    rejected: monthClaims.filter(claim => claim.status === 'rejected').length
                   };
                 });
                 
@@ -316,9 +304,9 @@ const InsuranceClaims = ({
                 datasets: [
                   {
                     data: [
-                      claims && Array.isArray(claims) ? claims.filter(claim => claim && claim.status === "pending").length : 0,
-                      claims && Array.isArray(claims) ? claims.filter(claim => claim && claim.status === "approved").length : 0,
-                      claims && Array.isArray(claims) ? claims.filter(claim => claim && claim.status === "rejected").length : 0
+                      claims.filter(claim => claim.status === "pending").length,
+                      claims.filter(claim => claim.status === "approved").length,
+                      claims.filter(claim => claim.status === "rejected").length
                     ],
                     backgroundColor: [
                       'rgba(251, 191, 36, 0.8)',  // yellow
