@@ -1,38 +1,97 @@
-// Weather utility for KPI blocks
+// Weather utility for KPI blocks with real OpenWeatherMap API
+const OPENWEATHER_API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY
+const WEATHER_CITY = import.meta.env.VITE_WEATHER_CITY || 'Kapalong'
+const WEATHER_COUNTRY = import.meta.env.VITE_WEATHER_COUNTRY || 'PH'
+const WEATHER_LAT = import.meta.env.VITE_WEATHER_LAT || '7.5815'
+const WEATHER_LON = import.meta.env.VITE_WEATHER_LON || '125.8235'
+
 export const getWeatherForKapalong = async () => {
   try {
-    // For now, using mock data for Kapalong, Davao del Norte
-    // In production, you would integrate with a real weather API like OpenWeatherMap
-    const mockWeatherData = {
-      location: "Kapalong, Davao del Norte",
-      temperature: Math.floor(Math.random() * 10) + 25, // 25-35°C
-      condition: getRandomWeatherCondition(),
-      humidity: Math.floor(Math.random() * 30) + 60, // 60-90%
-      windSpeed: Math.floor(Math.random() * 15) + 5, // 5-20 km/h
-      description: "",
-      icon: "",
-      timestamp: new Date().toISOString()
+    // Check if API key is available
+    if (!OPENWEATHER_API_KEY) {
+      console.warn('OpenWeatherMap API key not found, using fallback data')
+      return getFallbackWeatherData()
     }
 
-    // Add description and icon based on condition
-    const weatherInfo = getWeatherInfo(mockWeatherData.condition)
-    mockWeatherData.description = weatherInfo.description
-    mockWeatherData.icon = weatherInfo.icon
+    // Fetch real weather data from OpenWeatherMap
+    const apiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${WEATHER_LAT}&lon=${WEATHER_LON}&appid=${OPENWEATHER_API_KEY}&units=metric`
+    
+    const response = await fetch(apiUrl)
+    
+    if (!response.ok) {
+      throw new Error(`Weather API error: ${response.status}`)
+    }
+    
+    const data = await response.json()
+    
+    // Transform OpenWeatherMap data to our format
+    const weatherData = {
+      location: `${WEATHER_CITY}, Davao del Norte`,
+      temperature: Math.round(data.main.temp),
+      condition: mapWeatherCondition(data.weather[0].main, data.weather[0].description),
+      humidity: data.main.humidity,
+      windSpeed: Math.round(data.wind.speed * 3.6), // Convert m/s to km/h
+      description: data.weather[0].description,
+      icon: getWeatherIcon(data.weather[0].main, data.weather[0].icon),
+      timestamp: new Date().toISOString(),
+      realData: true
+    }
 
-    return mockWeatherData
+    return weatherData
   } catch (error) {
-    console.error('Error fetching weather:', error)
-    return {
-      location: "Kapalong, Davao del Norte",
-      temperature: 28,
-      condition: "Partly Cloudy",
-      humidity: 75,
-      windSpeed: 10,
-      description: "Weather data unavailable",
-      icon: "cloud",
-      timestamp: new Date().toISOString()
-    }
+    console.error('Error fetching weather from API:', error)
+    // Return fallback data if API fails
+    return getFallbackWeatherData()
   }
+}
+
+// Fallback weather data when API is unavailable
+const getFallbackWeatherData = () => {
+  return {
+    location: "Kapalong, Davao del Norte",
+    temperature: Math.floor(Math.random() * 10) + 25, // 25-35°C
+    condition: getRandomWeatherCondition(),
+    humidity: Math.floor(Math.random() * 30) + 60, // 60-90%
+    windSpeed: Math.floor(Math.random() * 15) + 5, // 5-20 km/h
+    description: "Weather data unavailable",
+    icon: "🌤️",
+    timestamp: new Date().toISOString(),
+    realData: false
+  }
+}
+
+// Map OpenWeatherMap conditions to our format
+const mapWeatherCondition = (main, description) => {
+  const conditionMap = {
+    'Clear': 'Clear',
+    'Clouds': description.includes('few') ? 'Partly Cloudy' : 'Cloudy',
+    'Rain': description.includes('light') ? 'Light Rain' : description.includes('heavy') ? 'Heavy Rain' : 'Rain',
+    'Drizzle': 'Drizzle',
+    'Thunderstorm': 'Thunderstorm',
+    'Snow': 'Snow',
+    'Mist': 'Cloudy',
+    'Fog': 'Cloudy',
+    'Haze': 'Cloudy'
+  }
+  
+  return conditionMap[main] || 'Partly Cloudy'
+}
+
+// Get weather icon based on OpenWeatherMap icon codes
+const getWeatherIcon = (main, iconCode) => {
+  const iconMap = {
+    '01d': '☀️', '01n': '🌙', // Clear sky
+    '02d': '⛅', '02n': '☁️', // Few clouds
+    '03d': '☁️', '03n': '☁️', // Scattered clouds
+    '04d': '☁️', '04n': '☁️', // Broken clouds
+    '09d': '🌧️', '09n': '🌧️', // Shower rain
+    '10d': '🌦️', '10n': '🌧️', // Rain
+    '11d': '⛈️', '11n': '⛈️', // Thunderstorm
+    '13d': '❄️', '13n': '❄️', // Snow
+    '50d': '🌫️', '50n': '🌫️'  // Mist
+  }
+  
+  return iconMap[iconCode] || '🌤️'
 }
 
 const getRandomWeatherCondition = () => {
