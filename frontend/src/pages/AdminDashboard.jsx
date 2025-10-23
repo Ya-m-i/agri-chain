@@ -2897,29 +2897,29 @@ const AdminDashboard = () => {
                             return labels[entry.dataKey] || value;
                           }}
                         />
-                        {/* Area for approved claims */}
-                        <Area
-                          type="monotone"
-                          dataKey="approved"
+                        {/* Line for approved claims with gradient fill */}
+                        <RechartsLine 
+                          type="monotone" 
+                          dataKey="approved" 
                           name="approved"
+                          stroke="url(#approvedGradient)" 
+                          strokeWidth={3}
+                          dot={false}
+                          activeDot={{ r: 6, stroke: '#22c55e', strokeWidth: 3, fill: '#ffffff' }}
+                          connectNulls={false}
                           fill="url(#approvedAreaGradient)"
-                          stroke="url(#approvedGradient)"
-                          strokeWidth={2}
-                          connectNulls={false}
-                          dot={false}
-                          activeDot={{ r: 5, stroke: '#22c55e', strokeWidth: 2, fill: '#ffffff' }}
                         />
-                        {/* Area for rejected claims */}
-                        <Area
-                          type="monotone"
-                          dataKey="rejected"
+                        {/* Line for rejected claims with gradient fill */}
+                        <RechartsLine 
+                          type="monotone" 
+                          dataKey="rejected" 
                           name="rejected"
-                          fill="url(#rejectedAreaGradient)"
-                          stroke="#000000"
-                          strokeWidth={2}
-                          connectNulls={false}
+                          stroke="#000000" 
+                          strokeWidth={3}
                           dot={false}
-                          activeDot={{ r: 5, stroke: '#000000', strokeWidth: 2, fill: '#ffffff' }}
+                          activeDot={{ r: 6, stroke: '#000000', strokeWidth: 3, fill: '#ffffff' }}
+                          connectNulls={false}
+                          fill="url(#rejectedAreaGradient)"
                         />
                       </LineChart>
                     </ResponsiveContainer>
