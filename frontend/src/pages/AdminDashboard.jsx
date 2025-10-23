@@ -2615,7 +2615,7 @@ const AdminDashboard = () => {
               {/* Chart Visualizations Section */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
                 {/* Claims Trend Over Time - Left side, larger */}
-                <div className="lg:col-span-2 p-8">
+                <div className="lg:col-span-2 p-8 border border-gray-200 rounded-lg">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-semibold text-gray-800">Claims Trend Over Time</h3>
                     <div className="flex items-center gap-4">
@@ -2673,7 +2673,7 @@ const AdminDashboard = () => {
                       </select>
                     </div>
                   </div>
-                  <div className="h-[500px] border border-gray-200 rounded-lg p-4">
+                  <div className="h-[500px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
                         data={(() => {
@@ -2774,7 +2774,6 @@ const AdminDashboard = () => {
                             <stop offset="100%" stopColor="#22c55e" stopOpacity={0.8}/>
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
                         <XAxis 
                           dataKey="period" 
                           stroke="#374151"
@@ -2831,7 +2830,6 @@ const AdminDashboard = () => {
                           dataKey="rejected" 
                           stroke="#000000" 
                           strokeWidth={2}
-                          strokeDasharray="5 5"
                           dot={false}
                           activeDot={{ r: 6, stroke: '#000000', strokeWidth: 2, fill: '#ffffff' }}
                           connectNulls={false}
