@@ -455,6 +455,7 @@ const AdminDashboard = () => {
   // Filter states
   const [claimsTabView, setClaimsTabView] = useState("pending") // For Insurance Claims tab view
   const [distributionYearFilter, setDistributionYearFilter] = useState(new Date().getFullYear()) // For Distribution Records year filter
+  const [timePeriodFilter, setTimePeriodFilter] = useState('lastMonth') // For Claims Trend time period filter
 
   // Map states
   const [mapSearchQuery, setMapSearchQuery] = useState("")
@@ -2614,61 +2615,145 @@ const AdminDashboard = () => {
               {/* Chart Visualizations Section */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
                 {/* Claims Trend Over Time - Left side, larger */}
-                <div className="lg:col-span-2 p-8 border border-gray-200 rounded-lg">
-                  <div className="flex items-center gap-4 mb-4">
+                <div className="lg:col-span-2 p-8">
+                  <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-semibold text-gray-800">Claims Trend Over Time</h3>
-                    <select
-                      value={distributionYearFilter}
-                      onChange={(e) => setDistributionYearFilter(parseInt(e.target.value))}
-                      className="px-3 py-2 text-sm border rounded-md"
-                    >
-                      {Array.from({ length: 3 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
+                    <div className="flex items-center gap-4">
+                      {/* Time Period Filter */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setTimePeriodFilter('today')}
+                          className={`px-3 py-1 text-sm ${
+                            timePeriodFilter === 'today' 
+                              ? 'font-bold text-black' 
+                              : 'text-gray-600 hover:text-black'
+                          }`}
+                        >
+                          Today
+                        </button>
+                        <button
+                          onClick={() => setTimePeriodFilter('lastWeek')}
+                          className={`px-3 py-1 text-sm ${
+                            timePeriodFilter === 'lastWeek' 
+                              ? 'font-bold text-black' 
+                              : 'text-gray-600 hover:text-black'
+                          }`}
+                        >
+                          Last Week
+                        </button>
+                        <button
+                          onClick={() => setTimePeriodFilter('lastMonth')}
+                          className={`px-3 py-1 text-sm ${
+                            timePeriodFilter === 'lastMonth' 
+                              ? 'font-bold text-black' 
+                              : 'text-gray-600 hover:text-black'
+                          }`}
+                        >
+                          Last Month
+                        </button>
+                      </div>
+                      <select
+                        value={distributionYearFilter}
+                        onChange={(e) => setDistributionYearFilter(parseInt(e.target.value))}
+                        className="px-3 py-2 text-sm border rounded-md"
+                      >
+                        {Array.from({ length: 3 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                          <option key={year} value={year}>{year}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                  <div className="h-[500px] bg-white rounded-lg p-4 border border-gray-200">
+                  <div className="h-[500px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
                         data={(() => {
-                          // Generate monthly data based on actual cash assistance claims
-                          const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                          return monthNames.map((month, index) => {
-                            const monthClaims = claims.filter(c => {
-                              const claimDate = new Date(c.date);
-                              return claimDate.getMonth() === index && 
-                                     claimDate.getFullYear() === distributionYearFilter;
-                            });
+                          const now = new Date();
+                          let dataPoints = [];
+                          
+                          if (timePeriodFilter === 'today') {
+                            // Today - hourly data
+                            for (let hour = 0; hour < 24; hour++) {
+                              const hourClaims = claims.filter(c => {
+                                const claimDate = new Date(c.date);
+                                return claimDate.getDate() === now.getDate() && 
+                                       claimDate.getMonth() === now.getMonth() && 
+                                       claimDate.getFullYear() === now.getFullYear() &&
+                                       claimDate.getHours() === hour;
+                              });
+                              
+                              dataPoints.push({
+                                period: `${hour}:00`,
+                                approved: hourClaims.filter(c => c.status === 'approved').length,
+                                rejected: hourClaims.filter(c => c.status === 'rejected').length,
+                                total: hourClaims.length
+                              });
+                            }
+                          } else if (timePeriodFilter === 'lastWeek') {
+                            // Last week - daily data
+                            const weekAgo = new Date(now);
+                            weekAgo.setDate(weekAgo.getDate() - 7);
                             
-                            const approved = monthClaims.filter(c => c.status === 'approved').length;
-                            const rejected = monthClaims.filter(c => c.status === 'rejected').length;
+                            for (let i = 0; i < 7; i++) {
+                              const date = new Date(weekAgo);
+                              date.setDate(date.getDate() + i);
+                              
+                              const dayClaims = claims.filter(c => {
+                                const claimDate = new Date(c.date);
+                                return claimDate.getDate() === date.getDate() && 
+                                       claimDate.getMonth() === date.getMonth() && 
+                                       claimDate.getFullYear() === date.getFullYear();
+                              });
+                              
+                              dataPoints.push({
+                                period: date.toLocaleDateString('en-US', { weekday: 'short' }),
+                                approved: dayClaims.filter(c => c.status === 'approved').length,
+                                rejected: dayClaims.filter(c => c.status === 'rejected').length,
+                                total: dayClaims.length
+                              });
+                            }
+                          } else {
+                            // Last month - weekly data
+                            const monthAgo = new Date(now);
+                            monthAgo.setMonth(monthAgo.getMonth() - 1);
                             
-                            return {
-                              month,
-                              approved,
-                              rejected,
-                              total: approved + rejected
-                            };
-                          });
+                            for (let week = 0; week < 4; week++) {
+                              const weekStart = new Date(monthAgo);
+                              weekStart.setDate(weekStart.getDate() + (week * 7));
+                              const weekEnd = new Date(weekStart);
+                              weekEnd.setDate(weekEnd.getDate() + 6);
+                              
+                              const weekClaims = claims.filter(c => {
+                                const claimDate = new Date(c.date);
+                                return claimDate >= weekStart && claimDate <= weekEnd;
+                              });
+                              
+                              dataPoints.push({
+                                period: `Week ${week + 1}`,
+                                approved: weekClaims.filter(c => c.status === 'approved').length,
+                                rejected: weekClaims.filter(c => c.status === 'rejected').length,
+                                total: weekClaims.length
+                              });
+                            }
+                          }
+                          
+                          return dataPoints;
                         })()} 
                         margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                       >
+                        <defs>
+                          <linearGradient id="approvedGradient" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor="#84cc16" stopOpacity={1}/>
+                            <stop offset="100%" stopColor="#22c55e" stopOpacity={0.8}/>
+                          </linearGradient>
+                        </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
                         <XAxis 
-                          dataKey="month" 
+                          dataKey="period" 
                           stroke="#374151"
                           fontSize={12}
-                          axisLine={true}
-                          tickLine={true}
+                          axisLine={false}
+                          tickLine={false}
                           tick={{ fill: '#374151' }}
-                        />
-                        <YAxis 
-                          stroke="#374151"
-                          fontSize={12}
-                          axisLine={true}
-                          tickLine={true}
-                          tick={{ fill: '#374151' }}
-                          domain={[0, 'dataMax + 2']}
                         />
                         <RechartsTooltip 
                           contentStyle={{
@@ -2689,7 +2774,7 @@ const AdminDashboard = () => {
                             return [`${value} (${percentage}%)`, labels[name] || name];
                           }}
                           labelFormatter={(label) => {
-                            return `${label} ${distributionYearFilter}`;
+                            return `${label}`;
                           }}
                         />
                         <RechartsLegend 
@@ -2707,10 +2792,10 @@ const AdminDashboard = () => {
                         <RechartsLine 
                           type="monotone" 
                           dataKey="approved" 
-                          stroke="#10b981" 
+                          stroke="url(#approvedGradient)" 
                           strokeWidth={4}
-                          dot={{ fill: '#10b981', stroke: '#10b981', strokeWidth: 3, r: 5 }}
-                          activeDot={{ r: 7, stroke: '#10b981', strokeWidth: 3, fill: '#ffffff' }}
+                          dot={false}
+                          activeDot={{ r: 6, stroke: '#22c55e', strokeWidth: 3, fill: '#ffffff' }}
                           connectNulls={false}
                         />
                         <RechartsLine 
@@ -2718,7 +2803,7 @@ const AdminDashboard = () => {
                           dataKey="rejected" 
                           stroke="#000000" 
                           strokeWidth={2}
-                          dot={{ fill: '#000000', stroke: '#000000', strokeWidth: 2, r: 4 }}
+                          dot={false}
                           activeDot={{ r: 6, stroke: '#000000', strokeWidth: 2, fill: '#ffffff' }}
                           connectNulls={false}
                         />
