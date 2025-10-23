@@ -2881,62 +2881,44 @@ const AdminDashboard = () => {
                           labelFormatter={(label) => {
                             return `${label}`;
                           }}
-                          shared={false}
+                          shared={true}
                           allowEscapeViewBox={{ x: false, y: false }}
                         />
                         <RechartsLegend 
                           verticalAlign="top" 
                           height={36}
                           wrapperStyle={{ color: '#374151', fontSize: '14px' }}
-                          formatter={(value) => {
+                          formatter={(value, entry) => {
                             const labels = {
                               approved: 'Approved Claims',
                               rejected: 'Rejected Claims'
                             };
-                            return labels[value] || value;
+                            return labels[entry.dataKey] || value;
                           }}
-                        />
-                        {/* Background area fill */}
-                        <Area
-                          type="monotone"
-                          dataKey="approved"
-                          fill="url(#backgroundGradient)"
-                          stroke="none"
-                          connectNulls={false}
                         />
                         {/* Area for approved claims */}
                         <Area
                           type="monotone"
                           dataKey="approved"
+                          name="approved"
                           fill="url(#approvedAreaGradient)"
-                          stroke="none"
+                          stroke="url(#approvedGradient)"
+                          strokeWidth={2}
                           connectNulls={false}
+                          dot={false}
+                          activeDot={{ r: 5, stroke: '#22c55e', strokeWidth: 2, fill: '#ffffff' }}
                         />
                         {/* Area for rejected claims */}
                         <Area
                           type="monotone"
                           dataKey="rejected"
+                          name="rejected"
                           fill="url(#rejectedAreaGradient)"
-                          stroke="none"
-                          connectNulls={false}
-                        />
-                        <RechartsLine 
-                          type="monotone" 
-                          dataKey="approved" 
-                          stroke="url(#approvedGradient)" 
+                          stroke="#000000"
                           strokeWidth={2}
-                          dot={false}
-                          activeDot={{ r: 5, stroke: '#22c55e', strokeWidth: 2, fill: '#ffffff' }}
                           connectNulls={false}
-                        />
-                        <RechartsLine 
-                          type="monotone" 
-                          dataKey="rejected" 
-                          stroke="#000000" 
-                          strokeWidth={2}
                           dot={false}
                           activeDot={{ r: 5, stroke: '#000000', strokeWidth: 2, fill: '#ffffff' }}
-                          connectNulls={false}
                         />
                       </LineChart>
                     </ResponsiveContainer>
