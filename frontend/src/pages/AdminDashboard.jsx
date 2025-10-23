@@ -1964,6 +1964,98 @@ const AdminDashboard = () => {
     return Array.from(setCrops).sort()
   }, [farmers, insuranceByFarmer])
 
+  // Memoized Claims Trend Data to prevent chart movement/looping
+  const claimsTrendData = useMemo(() => {
+    const now = new Date();
+    let dataPoints = [];
+    
+    if (timePeriodFilter === 'today') {
+      // Today - hourly data
+      for (let hour = 0; hour < 24; hour++) {
+        const hourClaims = claims.filter(c => {
+          const claimDate = new Date(c.date);
+          return claimDate.getDate() === now.getDate() && 
+                 claimDate.getMonth() === now.getMonth() && 
+                 claimDate.getFullYear() === now.getFullYear() &&
+                 claimDate.getHours() === hour;
+        });
+        
+        dataPoints.push({
+          period: `${hour}:00`,
+          approved: hourClaims.filter(c => c.status === 'approved').length,
+          rejected: hourClaims.filter(c => c.status === 'rejected').length,
+          total: hourClaims.length
+        });
+      }
+    } else if (timePeriodFilter === 'lastWeek') {
+      // Last week - daily data
+      const weekAgo = new Date(now);
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(weekAgo);
+        date.setDate(date.getDate() + i);
+        
+        const dayClaims = claims.filter(c => {
+          const claimDate = new Date(c.date);
+          return claimDate.getDate() === date.getDate() && 
+                 claimDate.getMonth() === date.getMonth() && 
+                 claimDate.getFullYear() === date.getFullYear();
+        });
+        
+        dataPoints.push({
+          period: date.toLocaleDateString('en-US', { weekday: 'short' }),
+          approved: dayClaims.filter(c => c.status === 'approved').length,
+          rejected: dayClaims.filter(c => c.status === 'rejected').length,
+          total: dayClaims.length
+        });
+      }
+    } else if (timePeriodFilter === 'thisYear') {
+      // This year - monthly data
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      
+      for (let month = 0; month < 12; month++) {
+        const monthClaims = claims.filter(c => {
+          const claimDate = new Date(c.date);
+          return claimDate.getMonth() === month && 
+                 claimDate.getFullYear() === now.getFullYear();
+        });
+        
+        dataPoints.push({
+          period: monthNames[month],
+          approved: monthClaims.filter(c => c.status === 'approved').length,
+          rejected: monthClaims.filter(c => c.status === 'rejected').length,
+          total: monthClaims.length
+        });
+      }
+    } else {
+      // Last month - weekly data
+      const monthAgo = new Date(now);
+      monthAgo.setMonth(monthAgo.getMonth() - 1);
+      
+      for (let week = 0; week < 4; week++) {
+        const weekStart = new Date(monthAgo);
+        weekStart.setDate(weekStart.getDate() + (week * 7));
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 6);
+        
+        const weekClaims = claims.filter(c => {
+          const claimDate = new Date(c.date);
+          return claimDate >= weekStart && claimDate <= weekEnd;
+        });
+        
+        dataPoints.push({
+          period: `Week ${week + 1}`,
+          approved: weekClaims.filter(c => c.status === 'approved').length,
+          rejected: weekClaims.filter(c => c.status === 'rejected').length,
+          total: weekClaims.length
+        });
+      }
+    }
+    
+    return dataPoints;
+  }, [timePeriodFilter, claims]);
+
   // Ensure Lato font is available for Admin only
   useEffect(() => {
     const existing = document.getElementById('lato-font')
@@ -2662,110 +2754,21 @@ const AdminDashboard = () => {
                           This Year
                         </button>
                       </div>
-                      <select
-                        value={distributionYearFilter}
-                        onChange={(e) => setDistributionYearFilter(parseInt(e.target.value))}
-                        className="px-3 py-2 text-sm border rounded-md"
-                      >
-                        {Array.from({ length: 3 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                          <option key={year} value={year}>{year}</option>
-                        ))}
-                      </select>
+                    <select
+                      value={distributionYearFilter}
+                      onChange={(e) => setDistributionYearFilter(parseInt(e.target.value))}
+                      className="px-3 py-2 text-sm border rounded-md"
+                    >
+                      {Array.from({ length: 3 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
                     </div>
                   </div>
                   <div className="h-[500px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
-                        data={(() => {
-                          const now = new Date();
-                          let dataPoints = [];
-                          
-                          if (timePeriodFilter === 'today') {
-                            // Today - hourly data
-                            for (let hour = 0; hour < 24; hour++) {
-                              const hourClaims = claims.filter(c => {
-                                const claimDate = new Date(c.date);
-                                return claimDate.getDate() === now.getDate() && 
-                                       claimDate.getMonth() === now.getMonth() && 
-                                       claimDate.getFullYear() === now.getFullYear() &&
-                                       claimDate.getHours() === hour;
-                              });
-                              
-                              dataPoints.push({
-                                period: `${hour}:00`,
-                                approved: hourClaims.filter(c => c.status === 'approved').length,
-                                rejected: hourClaims.filter(c => c.status === 'rejected').length,
-                                total: hourClaims.length
-                              });
-                            }
-                          } else if (timePeriodFilter === 'lastWeek') {
-                            // Last week - daily data
-                            const weekAgo = new Date(now);
-                            weekAgo.setDate(weekAgo.getDate() - 7);
-                            
-                            for (let i = 0; i < 7; i++) {
-                              const date = new Date(weekAgo);
-                              date.setDate(date.getDate() + i);
-                              
-                              const dayClaims = claims.filter(c => {
-                                const claimDate = new Date(c.date);
-                                return claimDate.getDate() === date.getDate() && 
-                                       claimDate.getMonth() === date.getMonth() && 
-                                       claimDate.getFullYear() === date.getFullYear();
-                              });
-                              
-                              dataPoints.push({
-                                period: date.toLocaleDateString('en-US', { weekday: 'short' }),
-                                approved: dayClaims.filter(c => c.status === 'approved').length,
-                                rejected: dayClaims.filter(c => c.status === 'rejected').length,
-                                total: dayClaims.length
-                              });
-                            }
-                          } else if (timePeriodFilter === 'thisYear') {
-                            // This year - monthly data
-                            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                            
-                            for (let month = 0; month < 12; month++) {
-                              const monthClaims = claims.filter(c => {
-                                const claimDate = new Date(c.date);
-                                return claimDate.getMonth() === month && 
-                                       claimDate.getFullYear() === now.getFullYear();
-                              });
-                              
-                              dataPoints.push({
-                                period: monthNames[month],
-                                approved: monthClaims.filter(c => c.status === 'approved').length,
-                                rejected: monthClaims.filter(c => c.status === 'rejected').length,
-                                total: monthClaims.length
-                              });
-                            }
-                          } else {
-                            // Last month - weekly data
-                            const monthAgo = new Date(now);
-                            monthAgo.setMonth(monthAgo.getMonth() - 1);
-                            
-                            for (let week = 0; week < 4; week++) {
-                              const weekStart = new Date(monthAgo);
-                              weekStart.setDate(weekStart.getDate() + (week * 7));
-                              const weekEnd = new Date(weekStart);
-                              weekEnd.setDate(weekEnd.getDate() + 6);
-                              
-                              const weekClaims = claims.filter(c => {
-                                const claimDate = new Date(c.date);
-                                return claimDate >= weekStart && claimDate <= weekEnd;
-                              });
-                              
-                              dataPoints.push({
-                                period: `Week ${week + 1}`,
-                                approved: weekClaims.filter(c => c.status === 'approved').length,
-                                rejected: weekClaims.filter(c => c.status === 'rejected').length,
-                                total: weekClaims.length
-                              });
-                            }
-                          }
-                          
-                          return dataPoints;
-                        })()} 
+                        data={claimsTrendData} 
                         margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                       >
                         <defs>
@@ -2860,9 +2863,9 @@ const AdminDashboard = () => {
                                   
                                   return [
                                     { name: 'Pending', value: pending, color: '#f59e0b', percentage: total > 0 ? ((pending / total) * 100).toFixed(1) : '0' },
-                                    { name: 'Approved', value: approved, color: '#10b981', percentage: total > 0 ? ((approved / total) * 100).toFixed(1) : '0' },
-                                    { name: 'Rejected', value: rejected, color: '#ef4444', percentage: total > 0 ? ((rejected / total) * 100).toFixed(1) : '0' },
-                                    { name: 'Distributed', value: distributed, color: '#3b82f6', percentage: total > 0 ? ((distributed / total) * 100).toFixed(1) : '0' }
+                                    { name: 'Approved', value: approved, color: '#00ff00', percentage: total > 0 ? ((approved / total) * 100).toFixed(1) : '0' },
+                                    { name: 'Rejected', value: rejected, color: '#000000', percentage: total > 0 ? ((rejected / total) * 100).toFixed(1) : '0' },
+                                    { name: 'Distributed', value: distributed, color: '#00bfff', percentage: total > 0 ? ((distributed / total) * 100).toFixed(1) : '0' }
                                   ];
                                 })()}
                                 cx="50%"
@@ -2880,9 +2883,9 @@ const AdminDashboard = () => {
                                   
                                   return [
                                     { name: 'Pending', value: pending, color: '#f59e0b' },
-                                    { name: 'Approved', value: approved, color: '#10b981' },
-                                    { name: 'Rejected', value: rejected, color: '#ef4444' },
-                                    { name: 'Distributed', value: distributed, color: '#3b82f6' }
+                                    { name: 'Approved', value: approved, color: '#00ff00' },
+                                    { name: 'Rejected', value: rejected, color: '#000000' },
+                                    { name: 'Distributed', value: distributed, color: '#00bfff' }
                                   ].map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={entry.color} />
                                   ));
@@ -2902,7 +2905,7 @@ const AdminDashboard = () => {
                                   const rejected = allApplications.filter(app => app.status === 'rejected').length;
                                   const distributed = allApplications.filter(app => app.status === 'distributed').length;
                                   const total = pending + approved + rejected + distributed;
-                                  const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
                                   return [`${value} (${percentage}%)`, name];
                                 }}
                               />
@@ -2939,9 +2942,9 @@ const AdminDashboard = () => {
                             
                             return [
                               { name: 'Pending', value: pending, color: '#f59e0b' },
-                              { name: 'Approved', value: approved, color: '#10b981' },
-                              { name: 'Rejected', value: rejected, color: '#ef4444' },
-                              { name: 'Distributed', value: distributed, color: '#3b82f6' }
+                              { name: 'Approved', value: approved, color: '#00ff00' },
+                              { name: 'Rejected', value: rejected, color: '#000000' },
+                              { name: 'Distributed', value: distributed, color: '#00bfff' }
                             ].map((item, index) => {
                               const percentage = total > 0 ? ((item.value / total) * 100).toFixed(1) : '0';
                               return (
