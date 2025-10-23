@@ -2627,81 +2627,58 @@ const AdminDashboard = () => {
                       ))}
                     </select>
                   </div>
-                  <div className="h-[500px] bg-gray-900 rounded-lg p-4">
+                  <div className="h-[500px] bg-white rounded-lg p-4 border border-gray-200">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
                         data={(() => {
-                          // Generate weekly data from February to July
-                          const weeklyData = [];
-                          const startDate = new Date(2024, 1, 1); // February 2024
-                          const endDate = new Date(2024, 6, 31); // July 2024
-                          
-                          for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 7)) {
-                            const weekStart = new Date(d);
-                            const weekEnd = new Date(d);
-                            weekEnd.setDate(weekEnd.getDate() + 6);
-                            
-                            const weekClaims = claims.filter(c => {
+                          // Generate monthly data based on actual cash assistance claims
+                          const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                          return monthNames.map((month, index) => {
+                            const monthClaims = claims.filter(c => {
                               const claimDate = new Date(c.date);
-                              return claimDate >= weekStart && claimDate <= weekEnd && 
-                                     new Date(c.date).getFullYear() === distributionYearFilter;
+                              return claimDate.getMonth() === index && 
+                                     claimDate.getFullYear() === distributionYearFilter;
                             });
                             
-                            const approved = weekClaims.filter(c => c.status === 'approved').length;
-                            const rejected = weekClaims.filter(c => c.status === 'rejected').length;
+                            const approved = monthClaims.filter(c => c.status === 'approved').length;
+                            const rejected = monthClaims.filter(c => c.status === 'rejected').length;
                             
-                            // Add some realistic variation if no data
-                            const baseApproved = approved || Math.floor(Math.random() * 15) + 5;
-                            const baseRejected = rejected || Math.floor(Math.random() * 8) + 2;
-                            
-                            weeklyData.push({
-                              date: weekStart.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
-                              fullDate: weekStart.toISOString().split('T')[0],
-                              approved: baseApproved,
-                              rejected: baseRejected,
-                              total: baseApproved + baseRejected
-                            });
-                          }
-                          
-                          return weeklyData;
+                            return {
+                              month,
+                              approved,
+                              rejected,
+                              total: approved + rejected
+                            };
+                          });
                         })()} 
                         margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                       >
-                        <defs>
-                          <linearGradient id="approvedLineGradient" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor="#10b981" stopOpacity={1}/>
-                            <stop offset="100%" stopColor="#34d399" stopOpacity={0.8}/>
-                          </linearGradient>
-                          <linearGradient id="rejectedLineGradient" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor="#f59e0b" stopOpacity={1}/>
-                            <stop offset="100%" stopColor="#fbbf24" stopOpacity={0.8}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
                         <XAxis 
-                          dataKey="date" 
-                          stroke="#9ca3af"
+                          dataKey="month" 
+                          stroke="#374151"
                           fontSize={12}
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: '#9ca3af' }}
+                          axisLine={true}
+                          tickLine={true}
+                          tick={{ fill: '#374151' }}
                         />
                         <YAxis 
-                          stroke="#9ca3af"
+                          stroke="#374151"
                           fontSize={12}
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fill: '#9ca3af' }}
-                          domain={[0, 'dataMax + 5']}
+                          axisLine={true}
+                          tickLine={true}
+                          tick={{ fill: '#374151' }}
+                          domain={[0, 'dataMax + 2']}
                         />
                         <RechartsTooltip 
                           contentStyle={{
-                            backgroundColor: '#1f2937',
-                            border: '1px solid #374151',
+                            backgroundColor: '#ffffff',
+                            border: '1px solid #d1d5db',
                             borderRadius: '8px',
-                            color: '#f9fafb'
+                            color: '#374151',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                           }}
-                          labelStyle={{ color: '#f9fafb', fontSize: '14px', fontWeight: '600' }}
+                          labelStyle={{ color: '#374151', fontSize: '14px', fontWeight: '600' }}
                           formatter={(value, name, props) => {
                             const labels = {
                               approved: 'Approved Claims', 
@@ -2711,22 +2688,14 @@ const AdminDashboard = () => {
                             const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
                             return [`${value} (${percentage}%)`, labels[name] || name];
                           }}
-                          labelFormatter={(label, payload) => {
-                            if (payload && payload[0]) {
-                              const date = new Date(payload[0].payload.fullDate);
-                              return date.toLocaleDateString('en-US', { 
-                                month: 'long', 
-                                day: 'numeric', 
-                                year: 'numeric' 
-                              });
-                            }
-                            return label;
+                          labelFormatter={(label) => {
+                            return `${label} ${distributionYearFilter}`;
                           }}
                         />
                         <RechartsLegend 
                           verticalAlign="top" 
                           height={36}
-                          wrapperStyle={{ color: '#f9fafb', fontSize: '14px' }}
+                          wrapperStyle={{ color: '#374151', fontSize: '14px' }}
                           formatter={(value) => {
                             const labels = {
                               approved: 'Approved Claims',
@@ -2738,19 +2707,19 @@ const AdminDashboard = () => {
                         <RechartsLine 
                           type="monotone" 
                           dataKey="approved" 
-                          stroke="url(#approvedLineGradient)" 
-                          strokeWidth={3}
-                          dot={{ fill: '#10b981', stroke: '#10b981', strokeWidth: 2, r: 4 }}
-                          activeDot={{ r: 6, stroke: '#10b981', strokeWidth: 2, fill: '#1f2937' }}
+                          stroke="#10b981" 
+                          strokeWidth={4}
+                          dot={{ fill: '#10b981', stroke: '#10b981', strokeWidth: 3, r: 5 }}
+                          activeDot={{ r: 7, stroke: '#10b981', strokeWidth: 3, fill: '#ffffff' }}
                           connectNulls={false}
                         />
                         <RechartsLine 
                           type="monotone" 
                           dataKey="rejected" 
-                          stroke="url(#rejectedLineGradient)" 
-                          strokeWidth={3}
-                          dot={{ fill: '#f59e0b', stroke: '#f59e0b', strokeWidth: 2, r: 4 }}
-                          activeDot={{ r: 6, stroke: '#f59e0b', strokeWidth: 2, fill: '#1f2937' }}
+                          stroke="#000000" 
+                          strokeWidth={2}
+                          dot={{ fill: '#000000', stroke: '#000000', strokeWidth: 2, r: 4 }}
+                          activeDot={{ r: 6, stroke: '#000000', strokeWidth: 2, fill: '#ffffff' }}
                           connectNulls={false}
                         />
                       </LineChart>
