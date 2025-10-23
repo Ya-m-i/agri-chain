@@ -2850,7 +2850,7 @@ const AdminDashboard = () => {
                     <div className="flex flex-col lg:flex-row">
                       {/* Left side - Chart Visualization */}
                       <div className="flex-1 mb-4 lg:mb-0">
-                        <div className="h-[250px] sm:h-[300px] lg:h-[350px] relative animate-pulse" style={{ animationDuration: '3s', animationIterationCount: 'infinite' }}>
+                        <div className="h-[250px] sm:h-[300px] lg:h-[350px] relative overflow-hidden" style={{ minHeight: '250px' }}>
                           <ResponsiveContainer width="100%" height="100%">
                             <RechartsPieChart>
                               <RechartsPie
@@ -2875,8 +2875,8 @@ const AdminDashboard = () => {
                                 paddingAngle={2}
                                 dataKey="value"
                                 animationBegin={0}
-                                animationDuration={1500}
-                                animationEasing="ease-in-out"
+                                animationDuration={800}
+                                animationEasing="ease-out"
                               >
                                 {(() => {
                                   const pending = allApplications.filter(app => app.status === 'pending').length;
@@ -2916,7 +2916,7 @@ const AdminDashboard = () => {
                           </ResponsiveContainer>
                           
                           {/* Center text */}
-                          <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
                             <div className="text-center">
                               <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">
                                 {(() => {
