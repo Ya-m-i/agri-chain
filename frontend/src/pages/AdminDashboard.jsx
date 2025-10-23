@@ -2113,7 +2113,7 @@ const AdminDashboard = () => {
         isVisible={isInitialLoading || isTabLoading} 
       />
       {/* Top Navbar */}
-      <header style={{ backgroundColor: 'rgb(39, 78, 19)' }} className={`text-black transition-all duration-300 ease-in-out ${sidebarExpanded ? 'md:ml-64' : 'md:ml-16'}`}>
+      <header style={{ backgroundColor: 'white' }} className={`text-black transition-all duration-300 ease-in-out ${sidebarExpanded ? 'md:ml-64' : 'md:ml-16'}`}>
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center">
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="mr-4 md:hidden" aria-label="Toggle menu">
@@ -2323,9 +2323,10 @@ const AdminDashboard = () => {
           id="mobile-sidebar"
           className={`fixed inset-y-0 left-0 transform ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } md:hidden transition duration-200 ease-in-out z-30 w-64 ${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-lg`}
+          } md:hidden transition duration-150 ease-out z-30 w-64 shadow-lg`}
+          style={{ backgroundColor: 'rgb(13, 13, 13)' }}
         >
-          <div className={`p-6 ${darkMode ? 'bg-gray-800' : 'bg-white'} border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+          <div className="p-6 border-b border-gray-100" style={{ backgroundColor: 'rgb(13, 13, 13)' }}>
             <div className="flex flex-col items-center">
               <button 
                 onClick={() => {
@@ -2351,7 +2352,7 @@ const AdminDashboard = () => {
                 <button
                   onClick={() => handleTabSwitch("home")}
                   className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "home" ? "text-lime-800 font-bold" : "text-gray-700 hover:bg-gray-100"
+                    activeTab === "home" ? "text-lime-500 font-bold" : "text-lime-500 hover:bg-gray-100"
                   }`}
                   style={activeTab === "home" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
@@ -2364,8 +2365,8 @@ const AdminDashboard = () => {
                   onClick={() => handleTabSwitch("farmer-registration")}
                   className={`flex items-center w-full p-2 rounded-lg ${
                     activeTab === "farmer-registration"
-                      ? "text-lime-800 font-bold"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "text-lime-500 font-bold"
+                      : "text-lime-500 hover:bg-gray-100"
                   }`}
                   style={activeTab === "farmer-registration" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
@@ -2380,7 +2381,7 @@ const AdminDashboard = () => {
                     setMapMode("view")
                     setSidebarOpen(false)
                   }}
-                  className={`flex items-center w-full p-2 rounded-lg hover:bg-gray-100 pl-10 ${showMapModal ? "text-lime-800 font-bold" : "text-gray-700"}`}
+                  className={`flex items-center w-full p-2 rounded-lg hover:bg-gray-100 pl-10 ${showMapModal ? "text-lime-500 font-bold" : "text-lime-500"}`}
                   style={showMapModal ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
                   <Map size={24} className="mr-3" />
@@ -2394,7 +2395,7 @@ const AdminDashboard = () => {
                     setSidebarOpen(false)
                   }}
                   className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "claims" ? "text-lime-800 font-bold" : "text-gray-700 hover:bg-gray-100"
+                    activeTab === "claims" ? "text-lime-500 font-bold" : "text-lime-500 hover:bg-gray-100"
                   }`}
                   style={activeTab === "claims" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
@@ -2409,7 +2410,7 @@ const AdminDashboard = () => {
                     setSidebarOpen(false)
                   }}
                   className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "distribution" ? "text-lime-800 font-bold" : "text-gray-700 hover:bg-gray-100"
+                    activeTab === "distribution" ? "text-lime-500 font-bold" : "text-lime-500 hover:bg-gray-100"
                   }`}
                   style={activeTab === "distribution" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
@@ -2424,7 +2425,7 @@ const AdminDashboard = () => {
                     setSidebarOpen(false)
                   }}
                   className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "assistance" ? "text-lime-800 font-bold" : "text-gray-700 hover:bg-gray-100"
+                    activeTab === "assistance" ? "text-lime-500 font-bold" : "text-lime-500 hover:bg-gray-100"
                   }`}
                   style={activeTab === "assistance" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
@@ -2439,7 +2440,7 @@ const AdminDashboard = () => {
                     setSidebarOpen(false)
                   }}
                   className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "crop-insurance" ? "text-lime-800 font-bold" : "text-gray-700 hover:bg-gray-100"
+                    activeTab === "crop-insurance" ? "text-lime-500 font-bold" : "text-lime-500 hover:bg-gray-100"
                   }`}
                   style={activeTab === "crop-insurance" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
@@ -2454,7 +2455,7 @@ const AdminDashboard = () => {
                     setSidebarOpen(false)
                   }}
                   className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "admin-filing" ? "text-lime-800 font-bold" : "text-gray-700 hover:bg-gray-100"
+                    activeTab === "admin-filing" ? "text-lime-500 font-bold" : "text-lime-500 hover:bg-gray-100"
                   }`}
                   style={activeTab === "admin-filing" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
@@ -2468,12 +2469,13 @@ const AdminDashboard = () => {
 
         {/* Desktop Sidebar */}
         <aside 
-          className={`hidden md:block ${sidebarExpanded ? 'w-64' : 'w-16'} shadow-lg ${darkMode ? 'text-white' : 'text-black'} space-y-6 border-r ${darkMode ? 'border-gray-700' : 'border-gray-100'} fixed top-0 left-0 h-screen overflow-y-auto ${darkMode ? 'bg-gray-800' : 'bg-white'} transition-all duration-300 ease-in-out group z-20 scrollbar-hide`}
+          className={`hidden md:block ${sidebarExpanded ? 'w-64' : 'w-16'} shadow-lg text-lime-500 space-y-6 border-r border-gray-100 fixed top-0 left-0 h-screen overflow-y-auto transition-all duration-150 ease-out group z-20 scrollbar-hide`}
+          style={{ backgroundColor: 'rgb(13, 13, 13)' }}
           onMouseEnter={() => setSidebarExpanded(true)}
           onMouseLeave={() => setSidebarExpanded(false)}
         >
           {/* Admin Logo Section */}
-          <div className={`p-6 ${darkMode ? 'bg-gray-800' : 'bg-white'} border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+          <div className="p-6 border-b border-gray-100" style={{ backgroundColor: 'rgb(13, 13, 13)' }}>
             <div className="flex flex-col items-center">
               <button 
                 onClick={() => handleTabSwitch("home")}
@@ -2499,10 +2501,8 @@ const AdminDashboard = () => {
               onClick={() => handleTabSwitch("home")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "home" 
-                  ? "text-lime-800 font-bold" 
-                  : darkMode 
-                    ? "text-gray-300 hover:bg-gray-700" 
-                    : "text-gray-700 hover:bg-gray-50"
+                  ? "text-lime-500 font-bold" 
+                  : "text-lime-500 hover:bg-gray-50"
               }`}
               style={activeTab === "home" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
               title={!sidebarExpanded ? "Dashboard" : ""}
@@ -2519,10 +2519,8 @@ const AdminDashboard = () => {
                 }}
                 className={`flex items-center ${sidebarExpanded ? 'justify-between gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                   activeTab === "farmer-registration"
-                    ? "text-lime-800 font-bold"
-                    : darkMode 
-                      ? "text-gray-300 hover:bg-gray-700"
-                      : "text-gray-700 hover:bg-gray-50"
+                    ? "text-lime-500 font-bold"
+                    : "text-lime-500 hover:bg-gray-50"
                 }`}
                 style={activeTab === "farmer-registration" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 title={!sidebarExpanded ? "Farmer Registration" : ""}
@@ -2544,7 +2542,7 @@ const AdminDashboard = () => {
               >
                 <button
                   onClick={() => handleTabSwitch("crop-insurance")}
-                  className={`flex items-center ${sidebarExpanded ? 'gap-3 pl-10' : 'justify-center px-2'} py-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} w-full text-left transition-colors ${activeTab === 'crop-insurance' ? "text-lime-800 font-bold" : darkMode ? "text-gray-300" : "text-gray-600"}`}
+                  className={`flex items-center ${sidebarExpanded ? 'gap-3 pl-10' : 'justify-center px-2'} py-2 rounded-lg hover:bg-gray-50 w-full text-left transition-colors ${activeTab === 'crop-insurance' ? "text-lime-500 font-bold" : "text-lime-500"}`}
                   style={activeTab === 'crop-insurance' ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                   title={!sidebarExpanded ? "Crop Insurance" : ""}
                 >
@@ -2558,10 +2556,8 @@ const AdminDashboard = () => {
               onClick={() => handleTabSwitch("claims")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "claims" 
-                  ? "text-lime-800 font-bold" 
-                  : darkMode 
-                    ? "text-gray-300 hover:bg-gray-700"
-                    : "text-gray-700 hover:bg-gray-50"
+                  ? "text-lime-500 font-bold" 
+                  : "text-lime-500 hover:bg-gray-50"
               }`}
               style={activeTab === "claims" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
               title={!sidebarExpanded ? "Cash Assistance Claims" : ""}
@@ -2574,10 +2570,8 @@ const AdminDashboard = () => {
               onClick={() => handleTabSwitch("distribution")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "distribution"
-                  ? "text-lime-800 font-bold"
-                  : darkMode 
-                    ? "text-gray-300 hover:bg-gray-700"
-                    : "text-gray-700 hover:bg-gray-50"
+                  ? "text-lime-500 font-bold"
+                  : "text-lime-500 hover:bg-gray-50"
               }`}
               style={activeTab === "distribution" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
               title={!sidebarExpanded ? "Distribution Records" : ""}
@@ -2598,10 +2592,8 @@ const AdminDashboard = () => {
               onClick={() => handleTabSwitch("assistance")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "assistance"
-                  ? "text-lime-800 font-bold"
-                  : darkMode 
-                    ? "text-gray-300 hover:bg-gray-700"
-                    : "text-gray-700 hover:bg-gray-50"
+                  ? "text-lime-500 font-bold"
+                  : "text-lime-500 hover:bg-gray-50"
               }`}
               style={activeTab === "assistance" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
               title={!sidebarExpanded ? "Assistance Inventory" : ""}
@@ -2614,10 +2606,8 @@ const AdminDashboard = () => {
               onClick={() => handleTabSwitch("admin-filing")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "admin-filing"
-                  ? "text-lime-800 font-bold"
-                  : darkMode 
-                    ? "text-gray-300 hover:bg-gray-700"
-                    : "text-gray-700 hover:bg-gray-50"
+                  ? "text-lime-500 font-bold"
+                  : "text-lime-500 hover:bg-gray-50"
               }`}
               style={activeTab === "admin-filing" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
               title={!sidebarExpanded ? "File for Farmers" : ""}
