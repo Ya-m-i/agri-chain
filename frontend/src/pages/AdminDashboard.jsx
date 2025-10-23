@@ -2847,10 +2847,10 @@ const AdminDashboard = () => {
                   {/* Assistance Application Breakdown - Top */}
                   <div className="p-6 border border-gray-200 rounded-lg bg-white">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">Assistance Application Breakdown</h3>
-                    <div className="flex">
+                    <div className="flex flex-col lg:flex-row">
                       {/* Left side - Chart Visualization */}
-                      <div className="flex-1">
-                        <div className="h-[300px] relative animate-pulse" style={{ animationDuration: '3s', animationIterationCount: 'infinite' }}>
+                      <div className="flex-1 mb-4 lg:mb-0">
+                        <div className="h-[250px] sm:h-[300px] lg:h-[350px] relative animate-pulse" style={{ animationDuration: '3s', animationIterationCount: 'infinite' }}>
                           <ResponsiveContainer width="100%" height="100%">
                             <RechartsPieChart>
                               <RechartsPie
@@ -2870,8 +2870,8 @@ const AdminDashboard = () => {
                                 })()}
                                 cx="50%"
                                 cy="50%"
-                                innerRadius={60}
-                                outerRadius={100}
+                                innerRadius={40}
+                                outerRadius={80}
                                 paddingAngle={2}
                                 dataKey="value"
                                 animationBegin={0}
@@ -2918,7 +2918,7 @@ const AdminDashboard = () => {
                           {/* Center text */}
                           <div className="absolute inset-0 flex items-center justify-center">
                             <div className="text-center">
-                              <div className="text-2xl font-bold text-gray-800">
+                              <div className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">
                                 {(() => {
                                   const pending = allApplications.filter(app => app.status === 'pending').length;
                                   const approved = allApplications.filter(app => app.status === 'approved').length;
@@ -2927,15 +2927,15 @@ const AdminDashboard = () => {
                                   return pending + approved + rejected + distributed;
                                 })()}
                               </div>
-                              <div className="text-sm text-gray-600">Total Claims</div>
+                              <div className="text-xs sm:text-sm text-gray-600">Total Claims</div>
                             </div>
                           </div>
                         </div>
                       </div>
                       
                       {/* Right side - Legend */}
-                      <div className="w-48 pl-4">
-                        <div className="space-y-3">
+                      <div className="w-full lg:w-48 lg:pl-4">
+                        <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 lg:space-y-3 lg:space-y-0">
                           {(() => {
                             const pending = allApplications.filter(app => app.status === 'pending').length;
                             const approved = allApplications.filter(app => app.status === 'approved').length;
@@ -2951,13 +2951,13 @@ const AdminDashboard = () => {
                             ].map((item, index) => {
                               const percentage = total > 0 ? ((item.value / total) * 100).toFixed(1) : '0';
                               return (
-                                <div key={index} className="flex items-center space-x-3">
+                                <div key={index} className="flex items-center space-x-2 lg:space-x-3">
                                   <div 
-                                    className="w-4 h-4 rounded-full" 
+                                    className="w-3 h-3 sm:w-4 sm:h-4 rounded-full flex-shrink-0" 
                                     style={{ backgroundColor: item.color }}
                                   ></div>
-                                  <div className="flex-1">
-                                    <div className="text-sm font-medium text-gray-800">{item.name}</div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="text-xs sm:text-sm font-medium text-gray-800 truncate">{item.name}</div>
                                     <div className="text-xs text-gray-600">{item.value} ({percentage}%)</div>
                                   </div>
                                 </div>
