@@ -1977,7 +1977,7 @@ const AdminDashboard = () => {
   }, [])
 
   return (
-    <div className="admin-lato min-h-screen bg-gradient-to-b from-lime-50 to-white relative flex flex-col" style={{ fontFamily: "'Lato', sans-serif" }}>
+    <div className="admin-lato min-h-screen bg-white relative flex flex-col" style={{ fontFamily: "'Lato', sans-serif" }}>
       <style>{scrollbarStyle}</style>
       <style>{`.admin-lato, .admin-lato * { font-family: 'Lato', sans-serif !important; }`}</style>
       <style>{`
@@ -2506,7 +2506,7 @@ const AdminDashboard = () => {
         </aside>
 
         {/* Main Content */}
-        <main className={`flex-1 p-4 bg-gradient-to-b from-zinc-50 to-white transition-all duration-300 ease-in-out ${sidebarExpanded ? 'md:ml-64' : 'md:ml-16'}`}>
+        <main className={`flex-1 p-4 bg-white transition-all duration-300 ease-in-out ${sidebarExpanded ? 'md:ml-64' : 'md:ml-16'}`}>
           {activeTab === "home" && (
             <>
               {/* --- Analytics Filters --- */}
@@ -2651,6 +2651,16 @@ const AdminDashboard = () => {
                         >
                           Last Month
                         </button>
+                        <button
+                          onClick={() => setTimePeriodFilter('thisYear')}
+                          className={`px-3 py-1 text-sm ${
+                            timePeriodFilter === 'thisYear' 
+                              ? 'font-bold text-black' 
+                              : 'text-gray-600 hover:text-black'
+                          }`}
+                        >
+                          This Year
+                        </button>
                       </div>
                       <select
                         value={distributionYearFilter}
@@ -2663,7 +2673,7 @@ const AdminDashboard = () => {
                       </select>
                     </div>
                   </div>
-                  <div className="h-[500px]">
+                  <div className="h-[500px] border border-gray-200 rounded-lg p-4">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
                         data={(() => {
@@ -2709,6 +2719,24 @@ const AdminDashboard = () => {
                                 approved: dayClaims.filter(c => c.status === 'approved').length,
                                 rejected: dayClaims.filter(c => c.status === 'rejected').length,
                                 total: dayClaims.length
+                              });
+                            }
+                          } else if (timePeriodFilter === 'thisYear') {
+                            // This year - monthly data
+                            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                            
+                            for (let month = 0; month < 12; month++) {
+                              const monthClaims = claims.filter(c => {
+                                const claimDate = new Date(c.date);
+                                return claimDate.getMonth() === month && 
+                                       claimDate.getFullYear() === now.getFullYear();
+                              });
+                              
+                              dataPoints.push({
+                                period: monthNames[month],
+                                approved: monthClaims.filter(c => c.status === 'approved').length,
+                                rejected: monthClaims.filter(c => c.status === 'rejected').length,
+                                total: monthClaims.length
                               });
                             }
                           } else {
@@ -2803,6 +2831,7 @@ const AdminDashboard = () => {
                           dataKey="rejected" 
                           stroke="#000000" 
                           strokeWidth={2}
+                          strokeDasharray="5 5"
                           dot={false}
                           activeDot={{ r: 6, stroke: '#000000', strokeWidth: 2, fill: '#ffffff' }}
                           connectNulls={false}
