@@ -2902,11 +2902,9 @@ const AdminDashboard = () => {
                           dataKey="approved"
                           name="approved"
                           fill="url(#approvedAreaGradient)"
-                          stroke="url(#approvedGradient)"
-                          strokeWidth={2}
+                          stroke="none"
                           connectNulls={false}
                           dot={false}
-                          activeDot={{ r: 5, stroke: '#22c55e', strokeWidth: 2, fill: '#ffffff' }}
                         />
                         {/* Area for rejected claims */}
                         <Area
@@ -2914,11 +2912,31 @@ const AdminDashboard = () => {
                           dataKey="rejected"
                           name="rejected"
                           fill="url(#rejectedAreaGradient)"
-                          stroke="#000000"
-                          strokeWidth={2}
+                          stroke="none"
                           connectNulls={false}
                           dot={false}
+                        />
+                        {/* Line for approved claims */}
+                        <RechartsLine 
+                          type="monotone" 
+                          dataKey="approved" 
+                          name="approved"
+                          stroke="url(#approvedGradient)" 
+                          strokeWidth={2}
+                          dot={false}
+                          activeDot={{ r: 5, stroke: '#22c55e', strokeWidth: 2, fill: '#ffffff' }}
+                          connectNulls={false}
+                        />
+                        {/* Line for rejected claims */}
+                        <RechartsLine 
+                          type="monotone" 
+                          dataKey="rejected" 
+                          name="rejected"
+                          stroke="#000000" 
+                          strokeWidth={2}
+                          dot={false}
                           activeDot={{ r: 5, stroke: '#000000', strokeWidth: 2, fill: '#ffffff' }}
+                          connectNulls={false}
                         />
                       </LineChart>
                     </ResponsiveContainer>
