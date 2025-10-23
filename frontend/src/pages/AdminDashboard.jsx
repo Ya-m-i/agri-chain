@@ -2061,44 +2061,6 @@ const AdminDashboard = () => {
     return dataPoints;
   }, [timePeriodFilter, claims]);
 
-  // State for window dimensions to trigger re-renders
-  const [windowDimensions, setWindowDimensions] = useState({
-    width: typeof window !== 'undefined' ? window.innerWidth : 1200,
-    height: typeof window !== 'undefined' ? window.innerHeight : 800
-  });
-
-  // Memoized donut chart dimensions for responsive behavior with improved stability
-  const donutDimensions = useMemo(() => {
-    const { width, height } = windowDimensions;
-    
-    // Calculate base dimensions that maintain aspect ratio
-    const baseSize = Math.min(width, height * 0.4);
-    
-    // Ensure minimum and maximum sizes for stability
-    const minSize = 120;
-    const maxSize = 200;
-    const clampedSize = Math.max(minSize, Math.min(maxSize, baseSize));
-    
-    return {
-      innerRadius: Math.max(20, clampedSize * 0.3),
-      outerRadius: Math.max(40, clampedSize * 0.6),
-      // Add container dimensions for better control
-      containerSize: clampedSize
-    };
-  }, [windowDimensions]);
-
-  // Window resize listener for responsive donut chart
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Ensure Lato font is available for Admin only
   useEffect(() => {
@@ -2853,16 +2815,20 @@ const AdminDashboard = () => {
                       >
                         <defs>
                           <linearGradient id="approvedGradient" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor="#84cc16" stopOpacity={1}/>
-                            <stop offset="100%" stopColor="#22c55e" stopOpacity={0.8}/>
+                            <stop offset="0%" stopColor="#84cc16" stopOpacity={0.8}/>
+                            <stop offset="100%" stopColor="#22c55e" stopOpacity={0.6}/>
                           </linearGradient>
                           <linearGradient id="approvedAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#84cc16" stopOpacity={0.3}/>
-                            <stop offset="100%" stopColor="#22c55e" stopOpacity={0.1}/>
+                            <stop offset="0%" stopColor="#84cc16" stopOpacity={0.15}/>
+                            <stop offset="100%" stopColor="#22c55e" stopOpacity={0.05}/>
                           </linearGradient>
                           <linearGradient id="rejectedAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#000000" stopOpacity={0.2}/>
-                            <stop offset="100%" stopColor="#000000" stopOpacity={0.05}/>
+                            <stop offset="0%" stopColor="#000000" stopOpacity={0.1}/>
+                            <stop offset="100%" stopColor="#000000" stopOpacity={0.03}/>
+                          </linearGradient>
+                          <linearGradient id="backgroundGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#f0f9ff" stopOpacity={0.3}/>
+                            <stop offset="100%" stopColor="#f8fafc" stopOpacity={0.1}/>
                           </linearGradient>
                         </defs>
                         <XAxis 
@@ -2907,6 +2873,14 @@ const AdminDashboard = () => {
                             return labels[value] || value;
                           }}
                         />
+                        {/* Background area fill */}
+                        <Area
+                          type="monotone"
+                          dataKey="approved"
+                          fill="url(#backgroundGradient)"
+                          stroke="none"
+                          connectNulls={false}
+                        />
                         {/* Area for approved claims */}
                         <Area
                           type="monotone"
@@ -2927,9 +2901,9 @@ const AdminDashboard = () => {
                           type="monotone" 
                           dataKey="approved" 
                           stroke="url(#approvedGradient)" 
-                          strokeWidth={4}
+                          strokeWidth={2}
                           dot={false}
-                          activeDot={{ r: 6, stroke: '#22c55e', strokeWidth: 3, fill: '#ffffff' }}
+                          activeDot={{ r: 5, stroke: '#22c55e', strokeWidth: 2, fill: '#ffffff' }}
                           connectNulls={false}
                         />
                         <RechartsLine 
@@ -2938,7 +2912,7 @@ const AdminDashboard = () => {
                           stroke="#000000" 
                           strokeWidth={2}
                           dot={false}
-                          activeDot={{ r: 6, stroke: '#000000', strokeWidth: 2, fill: '#ffffff' }}
+                          activeDot={{ r: 5, stroke: '#000000', strokeWidth: 2, fill: '#ffffff' }}
                           connectNulls={false}
                         />
                       </LineChart>
@@ -2958,8 +2932,8 @@ const AdminDashboard = () => {
                           className="relative overflow-hidden transition-all duration-300 flex items-center justify-center" 
                           style={{ 
                             minHeight: '200px',
-                            height: `${donutDimensions.containerSize}px`,
-                            width: `${donutDimensions.containerSize}px`,
+                            height: '200px',
+                            width: '200px',
                             maxWidth: '100%',
                             maxHeight: '100%'
                           }}
@@ -2971,7 +2945,7 @@ const AdminDashboard = () => {
                             minWidth={200}
                           >
                             <RechartsPieChart
-                              margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
+                              margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
                             >
                               <RechartsPie
                                 data={(() => {
@@ -2990,15 +2964,13 @@ const AdminDashboard = () => {
                                 })()}
                                 cx="50%"
                                 cy="50%"
-                                innerRadius={donutDimensions.innerRadius}
-                                outerRadius={donutDimensions.outerRadius}
-                                paddingAngle={1}
+                                innerRadius={60}
+                                outerRadius={90}
+                                paddingAngle={0}
                                 dataKey="value"
                                 animationBegin={0}
                                 animationDuration={800}
                                 animationEasing="ease-out"
-                                startAngle={90}
-                                endAngle={450}
                               >
                                 {(() => {
                                   const pending = allApplications.filter(app => app.status === 'pending').length;
