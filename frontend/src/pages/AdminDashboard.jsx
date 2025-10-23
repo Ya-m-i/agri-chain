@@ -2851,8 +2851,9 @@ const AdminDashboard = () => {
                       {/* Left side - Chart Visualization */}
                       <div className="flex-1">
                         <div className="h-[300px] relative">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <RechartsPieChart>
+                          <div className="animate-spin" style={{ animationDuration: '20s', animationTimingFunction: 'linear' }}>
+                            <ResponsiveContainer width="100%" height="100%">
+                              <RechartsPieChart>
                               <RechartsPie
                                 data={(() => {
                                   const pending = allApplications.filter(app => app.status === 'pending').length;
@@ -2874,6 +2875,9 @@ const AdminDashboard = () => {
                                 outerRadius={100}
                                 paddingAngle={2}
                                 dataKey="value"
+                                animationBegin={0}
+                                animationDuration={2000}
+                                animationEasing="ease-in-out"
                               >
                                 {(() => {
                                   const pending = allApplications.filter(app => app.status === 'pending').length;
@@ -2911,9 +2915,10 @@ const AdminDashboard = () => {
                               />
                             </RechartsPieChart>
                           </ResponsiveContainer>
+                          </div>
                           
-                          {/* Center text */}
-                          <div className="absolute inset-0 flex items-center justify-center">
+                          {/* Center text - counter-rotating to stay upright */}
+                          <div className="absolute inset-0 flex items-center justify-center" style={{ transform: 'rotate(0deg)', animation: 'none' }}>
                             <div className="text-center">
                               <div className="text-2xl font-bold text-gray-800">
                                 {(() => {
