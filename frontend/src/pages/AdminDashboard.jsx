@@ -39,6 +39,9 @@ import {
   HandHeart,
   Clock,
   Cloud,
+  Moon,
+  Monitor,
+  Sun,
 } from "lucide-react"
 import { useAuthStore } from "../store/authStore"
 import { useNotificationStore } from "../store/notificationStore"
@@ -255,6 +258,8 @@ const AdminDashboard = () => {
   const [showCropPriceManagement, setShowCropPriceManagement] = useState(false)
   const [isTabLoading, setIsTabLoading] = useState(false)
   const [isInitialLoading, setIsInitialLoading] = useState(true)
+  const [darkMode, setDarkMode] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(false)
 
   // Handle initial loading when component mounts
   useEffect(() => {
@@ -2081,7 +2086,7 @@ const AdminDashboard = () => {
   }, [])
 
   return (
-    <div className="admin-lato min-h-screen bg-white relative flex flex-col" style={{ fontFamily: "'Lato', sans-serif" }}>
+    <div className={`admin-lato min-h-screen relative flex flex-col transition-colors duration-300 ${darkMode ? 'bg-gray-900' : 'bg-white'}`} style={{ fontFamily: "'Lato', sans-serif" }}>
       <style>{scrollbarStyle}</style>
       <style>{`.admin-lato, .admin-lato * { font-family: 'Lato', sans-serif !important; }`}</style>
       <style>{`
@@ -2268,6 +2273,26 @@ const AdminDashboard = () => {
                   >
                     <Plus size={16} className="mr-2" />
                     Test Notification
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCalendar(true)
+                      setDropdownOpen(false)
+                    }}
+                    className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                  >
+                    <Calendar size={16} className="mr-2" />
+                    Calendar
+                  </button>
+                  <button
+                    onClick={() => {
+                      setDarkMode(!darkMode)
+                      setDropdownOpen(false)
+                    }}
+                    className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                  >
+                    {darkMode ? <Sun size={16} className="mr-2" /> : <Moon size={16} className="mr-2" />}
+                    {darkMode ? 'Light Mode' : 'Dark Mode'}
                   </button>
                   <button
                     onClick={handleLogout}
@@ -5135,6 +5160,124 @@ const AdminDashboard = () => {
             <strong>{lowStockItems.map(item => item.assistanceType).join(', ')}</strong>
             . Please restock soon.
           </span>
+        </div>
+      )}
+
+      {/* Calendar Tab */}
+      {showCalendar && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden" style={{ borderRadius: '5px' }}>
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-800">Calendar</h2>
+              <button
+                onClick={() => setShowCalendar(false)}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Calendar Widget */}
+                <div className="bg-gray-50 rounded-lg p-4" style={{ borderRadius: '5px' }}>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Monthly View</h3>
+                  <div className="grid grid-cols-7 gap-2 text-center">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                      <div key={day} className="text-sm font-medium text-gray-600 py-2">{day}</div>
+                    ))}
+                    {Array.from({ length: 35 }, (_, i) => {
+                      const date = i - 6; // Start from previous month
+                      const isCurrentMonth = date > 0 && date <= 31;
+                      const isToday = date === new Date().getDate();
+                      return (
+                        <div
+                          key={i}
+                          className={`p-2 text-sm rounded cursor-pointer transition-colors ${
+                            isCurrentMonth 
+                              ? isToday 
+                                ? 'bg-lime-600 text-white font-bold' 
+                                : 'text-gray-800 hover:bg-lime-100'
+                              : 'text-gray-400'
+                          }`}
+                          style={{ borderRadius: '5px' }}
+                        >
+                          {date > 0 ? date : ''}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                
+                {/* Events/Activities */}
+                <div className="bg-gray-50 rounded-lg p-4" style={{ borderRadius: '5px' }}>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Today's Activities</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center p-3 bg-white rounded-lg shadow-sm" style={{ borderRadius: '5px' }}>
+                      <div className="w-3 h-3 bg-lime-500 rounded-full mr-3"></div>
+                      <div>
+                        <div className="font-medium text-gray-800">Farmer Registration</div>
+                        <div className="text-sm text-gray-600">10:00 AM - 12:00 PM</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center p-3 bg-white rounded-lg shadow-sm" style={{ borderRadius: '5px' }}>
+                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+                      <div>
+                        <div className="font-medium text-gray-800">Assistance Distribution</div>
+                        <div className="text-sm text-gray-600">2:00 PM - 4:00 PM</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center p-3 bg-white rounded-lg shadow-sm" style={{ borderRadius: '5px' }}>
+                      <div className="w-3 h-3 bg-orange-500 rounded-full mr-3"></div>
+                      <div>
+                        <div className="font-medium text-gray-800">Crop Insurance Review</div>
+                        <div className="text-sm text-gray-600">4:30 PM - 6:00 PM</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Quick Actions */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <button 
+                    className="flex items-center justify-center p-4 bg-lime-100 hover:bg-lime-200 rounded-lg transition-colors"
+                    style={{ borderRadius: '5px' }}
+                    onClick={() => {
+                      setShowCalendar(false)
+                      handleTabSwitch('farmer-registration')
+                    }}
+                  >
+                    <UserPlus size={20} className="mr-2 text-lime-700" />
+                    <span className="text-lime-700 font-medium">Register Farmer</span>
+                  </button>
+                  <button 
+                    className="flex items-center justify-center p-4 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors"
+                    style={{ borderRadius: '5px' }}
+                    onClick={() => {
+                      setShowCalendar(false)
+                      handleTabSwitch('assistance')
+                    }}
+                  >
+                    <ClipboardCheck size={20} className="mr-2 text-blue-700" />
+                    <span className="text-blue-700 font-medium">Manage Assistance</span>
+                  </button>
+                  <button 
+                    className="flex items-center justify-center p-4 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors"
+                    style={{ borderRadius: '5px' }}
+                    onClick={() => {
+                      setShowCalendar(false)
+                      handleTabSwitch('crop-insurance')
+                    }}
+                  >
+                    <Shield size={20} className="mr-2 text-purple-700" />
+                    <span className="text-purple-700 font-medium">Crop Insurance</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
