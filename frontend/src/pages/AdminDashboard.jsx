@@ -2061,16 +2061,43 @@ const AdminDashboard = () => {
     return dataPoints;
   }, [timePeriodFilter, claims]);
 
-  // Memoized donut chart dimensions for responsive behavior
+  // State for window dimensions to trigger re-renders
+  const [windowDimensions, setWindowDimensions] = useState({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1200,
+    height: typeof window !== 'undefined' ? window.innerHeight : 800
+  });
+
+  // Memoized donut chart dimensions for responsive behavior with improved stability
   const donutDimensions = useMemo(() => {
-    if (typeof window !== 'undefined') {
-      const width = window.innerWidth;
-      return {
-        innerRadius: width < 480 ? 25 : width < 640 ? 30 : width < 768 ? 35 : width < 1024 ? 40 : width < 1280 ? 45 : 50,
-        outerRadius: width < 480 ? 50 : width < 640 ? 60 : width < 768 ? 70 : width < 1024 ? 80 : width < 1280 ? 90 : 100
-      };
-    }
-    return { innerRadius: 40, outerRadius: 80 };
+    const { width, height } = windowDimensions;
+    
+    // Calculate base dimensions that maintain aspect ratio
+    const baseSize = Math.min(width, height * 0.4);
+    
+    // Ensure minimum and maximum sizes for stability
+    const minSize = 120;
+    const maxSize = 200;
+    const clampedSize = Math.max(minSize, Math.min(maxSize, baseSize));
+    
+    return {
+      innerRadius: Math.max(20, clampedSize * 0.3),
+      outerRadius: Math.max(40, clampedSize * 0.6),
+      // Add container dimensions for better control
+      containerSize: clampedSize
+    };
+  }, [windowDimensions]);
+
+  // Window resize listener for responsive donut chart
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Ensure Lato font is available for Admin only
@@ -2829,6 +2856,14 @@ const AdminDashboard = () => {
                             <stop offset="0%" stopColor="#84cc16" stopOpacity={1}/>
                             <stop offset="100%" stopColor="#22c55e" stopOpacity={0.8}/>
                           </linearGradient>
+                          <linearGradient id="approvedAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#84cc16" stopOpacity={0.3}/>
+                            <stop offset="100%" stopColor="#22c55e" stopOpacity={0.1}/>
+                          </linearGradient>
+                          <linearGradient id="rejectedAreaGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#000000" stopOpacity={0.2}/>
+                            <stop offset="100%" stopColor="#000000" stopOpacity={0.05}/>
+                          </linearGradient>
                         </defs>
                         <XAxis 
                           dataKey="period" 
@@ -2872,6 +2907,22 @@ const AdminDashboard = () => {
                             return labels[value] || value;
                           }}
                         />
+                        {/* Area for approved claims */}
+                        <Area
+                          type="monotone"
+                          dataKey="approved"
+                          fill="url(#approvedAreaGradient)"
+                          stroke="none"
+                          connectNulls={false}
+                        />
+                        {/* Area for rejected claims */}
+                        <Area
+                          type="monotone"
+                          dataKey="rejected"
+                          fill="url(#rejectedAreaGradient)"
+                          stroke="none"
+                          connectNulls={false}
+                        />
                         <RechartsLine 
                           type="monotone" 
                           dataKey="approved" 
@@ -2903,9 +2954,25 @@ const AdminDashboard = () => {
                     <div className="flex flex-col lg:flex-row">
                       {/* Left side - Chart Visualization */}
                       <div className="flex-1 mb-4 lg:mb-0">
-                        <div className="h-[200px] xs:h-[220px] sm:h-[250px] md:h-[280px] lg:h-[300px] xl:h-[320px] 2xl:h-[350px] relative overflow-hidden transition-all duration-300" style={{ minHeight: '200px' }}>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <RechartsPieChart>
+                        <div 
+                          className="relative overflow-hidden transition-all duration-300 flex items-center justify-center" 
+                          style={{ 
+                            minHeight: '200px',
+                            height: `${donutDimensions.containerSize}px`,
+                            width: `${donutDimensions.containerSize}px`,
+                            maxWidth: '100%',
+                            maxHeight: '100%'
+                          }}
+                        >
+                          <ResponsiveContainer 
+                            width="100%" 
+                            height="100%"
+                            minHeight={200}
+                            minWidth={200}
+                          >
+                            <RechartsPieChart
+                              margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
+                            >
                               <RechartsPie
                                 data={(() => {
                                   const pending = allApplications.filter(app => app.status === 'pending').length;
@@ -2925,11 +2992,13 @@ const AdminDashboard = () => {
                                 cy="50%"
                                 innerRadius={donutDimensions.innerRadius}
                                 outerRadius={donutDimensions.outerRadius}
-                                paddingAngle={2}
+                                paddingAngle={1}
                                 dataKey="value"
                                 animationBegin={0}
                                 animationDuration={800}
                                 animationEasing="ease-out"
+                                startAngle={90}
+                                endAngle={450}
                               >
                                 {(() => {
                                   const pending = allApplications.filter(app => app.status === 'pending').length;
@@ -2980,7 +3049,7 @@ const AdminDashboard = () => {
                                   return pending + approved + rejected + distributed;
                                 })()}
                               </div>
-                              <div className="text-xs xs:text-sm sm:text-base md:text-sm lg:text-sm xl:text-base text-gray-600 transition-all duration-300">Total Claims</div>
+                              <div className="text-xs xs:text-sm sm:text-base md:text-sm lg:text-sm xl:text-base text-gray-600 transition-all duration-300">Total Applications</div>
                             </div>
                           </div>
                         </div>
