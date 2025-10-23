@@ -459,7 +459,6 @@ const AdminDashboard = () => {
 
   // Filter states
   const [claimsTabView, setClaimsTabView] = useState("pending") // For Insurance Claims tab view
-  const [distributionYearFilter, setDistributionYearFilter] = useState(new Date().getFullYear()) // For Distribution Records year filter
   const [timePeriodFilter, setTimePeriodFilter] = useState('lastMonth') // For Claims Trend time period filter
 
   // Map states
@@ -2015,6 +2014,27 @@ const AdminDashboard = () => {
           total: dayClaims.length
         });
       }
+    } else if (timePeriodFilter === 'thisMonth') {
+      // This month - daily data
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dayClaims = claims.filter(c => {
+          const claimDate = new Date(c.date);
+          return claimDate.getDate() === day && 
+                 claimDate.getMonth() === currentMonth && 
+                 claimDate.getFullYear() === currentYear;
+        });
+        
+        dataPoints.push({
+          period: `${day}`,
+          approved: dayClaims.filter(c => c.status === 'approved').length,
+          rejected: dayClaims.filter(c => c.status === 'rejected').length,
+          total: dayClaims.length
+        });
+      }
     } else if (timePeriodFilter === 'thisYear') {
       // This year - monthly data
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -2786,6 +2806,16 @@ const AdminDashboard = () => {
                           Last Month
                         </button>
                         <button
+                          onClick={() => setTimePeriodFilter('thisMonth')}
+                          className={`px-3 py-1 text-sm ${
+                            timePeriodFilter === 'thisMonth' 
+                              ? 'font-bold text-black' 
+                              : 'text-gray-600 hover:text-black'
+                          }`}
+                        >
+                          This Month
+                        </button>
+                        <button
                           onClick={() => setTimePeriodFilter('thisYear')}
                           className={`px-3 py-1 text-sm ${
                             timePeriodFilter === 'thisYear' 
@@ -2796,15 +2826,6 @@ const AdminDashboard = () => {
                           This Year
                         </button>
                       </div>
-                    <select
-                      value={distributionYearFilter}
-                      onChange={(e) => setDistributionYearFilter(parseInt(e.target.value))}
-                      className="px-3 py-2 text-sm border rounded-md"
-                    >
-                      {Array.from({ length: 3 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
                     </div>
                   </div>
                   <div className="h-[500px]">
@@ -2860,6 +2881,8 @@ const AdminDashboard = () => {
                           labelFormatter={(label) => {
                             return `${label}`;
                           }}
+                          shared={false}
+                          allowEscapeViewBox={{ x: false, y: false }}
                         />
                         <RechartsLegend 
                           verticalAlign="top" 
