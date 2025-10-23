@@ -91,7 +91,7 @@ import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 
 // Recharts imports
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar as RechartsBar, LineChart, Line as RechartsLine, Legend as RechartsLegend, Cell } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar as RechartsBar, LineChart, Line as RechartsLine, Legend as RechartsLegend, Cell, PieChart as RechartsPieChart, Pie as RechartsPie, Sector } from 'recharts';
 import { showError } from "../utils/feedbackUtils"
 // Using dynamic import for jsPDF to avoid build issues
 // const jsPDF = (() => {
@@ -2842,71 +2842,124 @@ const AdminDashboard = () => {
                 {/* Right side - Two charts stacked */}
                 <div className="lg:col-span-1 space-y-8">
                   {/* Assistance Application Breakdown - Top */}
-                  <div className="p-6 border border-gray-200 rounded-lg">
+                  <div className="p-6 border border-gray-200 rounded-lg bg-white">
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">Assistance Application Breakdown</h3>
-                    <div className="h-[220px] relative">
-                      <Pie
-                        data={{
-                          labels: ['Pending', 'Approved', 'Rejected', 'Distributed'],
-                          datasets: [{
-                            data: [
-                              allApplications.filter(app => app.status === 'pending').length,
-                              allApplications.filter(app => app.status === 'approved').length,
-                              allApplications.filter(app => app.status === 'rejected').length,
-                              allApplications.filter(app => app.status === 'distributed').length
-                            ],
-                            backgroundColor: ['#84cc16', '#22c55e', 'rgb(174, 200, 28)', '#10b981'],
-                            borderWidth: 2,
-                            borderColor: '#ffffff'
-                          }]
-                        }}
-                        options={{
-                          responsive: true,
-                          maintainAspectRatio: false,
-                          plugins: { 
-                            legend: { 
-                              position: 'bottom', 
-                              labels: { 
-                                font: { size: 14 },
-                                padding: 15,
-                                usePointStyle: true,
-                                generateLabels: function(chart) {
-                                  const data = chart.data;
-                                  const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
-                                  return data.labels.map((label, index) => {
-                                    const value = data.datasets[0].data[index];
-                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
-                                    return {
-                                      text: `${label}: ${value} (${percentage}%)`,
-                                      fillStyle: data.datasets[0].backgroundColor[index],
-                                      strokeStyle: data.datasets[0].backgroundColor[index],
-                                      lineWidth: 0,
-                                      pointStyle: 'circle'
-                                    };
-                                  });
-                                }
-                              } 
-                            },
-                            tooltip: {
-                              callbacks: {
-                                label: function(context) {
-                                  const label = context.label || '';
-                                  const value = context.parsed;
-                                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                    <div className="flex">
+                      {/* Left side - Chart Visualization */}
+                      <div className="flex-1">
+                        <div className="h-[300px] relative">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <RechartsPieChart>
+                              <RechartsPie
+                                data={(() => {
+                                  const pending = allApplications.filter(app => app.status === 'pending').length;
+                                  const approved = allApplications.filter(app => app.status === 'approved').length;
+                                  const rejected = allApplications.filter(app => app.status === 'rejected').length;
+                                  const distributed = allApplications.filter(app => app.status === 'distributed').length;
+                                  const total = pending + approved + rejected + distributed;
+                                  
+                                  return [
+                                    { name: 'Pending', value: pending, color: '#f59e0b', percentage: total > 0 ? ((pending / total) * 100).toFixed(1) : '0' },
+                                    { name: 'Approved', value: approved, color: '#10b981', percentage: total > 0 ? ((approved / total) * 100).toFixed(1) : '0' },
+                                    { name: 'Rejected', value: rejected, color: '#ef4444', percentage: total > 0 ? ((rejected / total) * 100).toFixed(1) : '0' },
+                                    { name: 'Distributed', value: distributed, color: '#3b82f6', percentage: total > 0 ? ((distributed / total) * 100).toFixed(1) : '0' }
+                                  ];
+                                })()}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={60}
+                                outerRadius={100}
+                                paddingAngle={2}
+                                dataKey="value"
+                              >
+                                {(() => {
+                                  const pending = allApplications.filter(app => app.status === 'pending').length;
+                                  const approved = allApplications.filter(app => app.status === 'approved').length;
+                                  const rejected = allApplications.filter(app => app.status === 'rejected').length;
+                                  const distributed = allApplications.filter(app => app.status === 'distributed').length;
+                                  
+                                  return [
+                                    { name: 'Pending', value: pending, color: '#f59e0b' },
+                                    { name: 'Approved', value: approved, color: '#10b981' },
+                                    { name: 'Rejected', value: rejected, color: '#ef4444' },
+                                    { name: 'Distributed', value: distributed, color: '#3b82f6' }
+                                  ].map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                  ));
+                                })()}
+                              </RechartsPie>
+                              <RechartsTooltip 
+                                contentStyle={{
+                                  backgroundColor: '#1f2937',
+                                  border: '1px solid #374151',
+                                  borderRadius: '8px',
+                                  color: '#f9fafb',
+                                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}
+                                formatter={(value, name) => {
+                                  const pending = allApplications.filter(app => app.status === 'pending').length;
+                                  const approved = allApplications.filter(app => app.status === 'approved').length;
+                                  const rejected = allApplications.filter(app => app.status === 'rejected').length;
+                                  const distributed = allApplications.filter(app => app.status === 'distributed').length;
+                                  const total = pending + approved + rejected + distributed;
                                   const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
-                                  return `${label}: ${value} (${percentage}%)`;
-                                }
-                              }
-                            }
-                          },
-                          layout: {
-                            padding: {
-                              top: 20,
-                              bottom: 20
-                            }
-                          }
-                        }}
-                      />
+                                  return [`${value} (${percentage}%)`, name];
+                                }}
+                              />
+                            </RechartsPieChart>
+                          </ResponsiveContainer>
+                          
+                          {/* Center text */}
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-center">
+                              <div className="text-2xl font-bold text-gray-800">
+                                {(() => {
+                                  const pending = allApplications.filter(app => app.status === 'pending').length;
+                                  const approved = allApplications.filter(app => app.status === 'approved').length;
+                                  const rejected = allApplications.filter(app => app.status === 'rejected').length;
+                                  const distributed = allApplications.filter(app => app.status === 'distributed').length;
+                                  return pending + approved + rejected + distributed;
+                                })()}
+                              </div>
+                              <div className="text-sm text-gray-600">Total Claims</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Right side - Legend */}
+                      <div className="w-48 pl-4">
+                        <div className="space-y-3">
+                          {(() => {
+                            const pending = allApplications.filter(app => app.status === 'pending').length;
+                            const approved = allApplications.filter(app => app.status === 'approved').length;
+                            const rejected = allApplications.filter(app => app.status === 'rejected').length;
+                            const distributed = allApplications.filter(app => app.status === 'distributed').length;
+                            const total = pending + approved + rejected + distributed;
+                            
+                            return [
+                              { name: 'Pending', value: pending, color: '#f59e0b' },
+                              { name: 'Approved', value: approved, color: '#10b981' },
+                              { name: 'Rejected', value: rejected, color: '#ef4444' },
+                              { name: 'Distributed', value: distributed, color: '#3b82f6' }
+                            ].map((item, index) => {
+                              const percentage = total > 0 ? ((item.value / total) * 100).toFixed(1) : '0';
+                              return (
+                                <div key={index} className="flex items-center space-x-3">
+                                  <div 
+                                    className="w-4 h-4 rounded-full" 
+                                    style={{ backgroundColor: item.color }}
+                                  ></div>
+                                  <div className="flex-1">
+                                    <div className="text-sm font-medium text-gray-800">{item.name}</div>
+                                    <div className="text-xs text-gray-600">{item.value} ({percentage}%)</div>
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
