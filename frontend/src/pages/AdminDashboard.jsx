@@ -2759,58 +2759,71 @@ const AdminDashboard = () => {
               {/* Chart Visualizations Section */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
                 {/* Claims Trend Over Time - Left side, larger */}
-                <div className="lg:col-span-2 p-8 border border-gray-200 rounded-lg">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-semibold text-gray-800">Claims Trend Over Time</h3>
+                <div className="lg:col-span-2 p-8 rounded-2xl relative overflow-hidden backdrop-blur-xl" style={{
+                  background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(10, 20, 15, 0.98) 50%, rgba(0, 0, 0, 0.95) 100%)',
+                  boxShadow: '0 0 40px rgba(34, 197, 94, 0.3), inset 0 0 60px rgba(34, 197, 94, 0.05)',
+                  border: '1px solid rgba(34, 197, 94, 0.2)',
+                }}>
+                  {/* Animated grid background */}
+                  <div className="absolute inset-0 opacity-10" style={{
+                    backgroundImage: 'linear-gradient(rgba(34, 197, 94, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 197, 94, 0.3) 1px, transparent 1px)',
+                    backgroundSize: '50px 50px',
+                  }}></div>
+                  {/* Glowing orb effect */}
+                  <div className="absolute top-0 right-0 w-96 h-96 bg-green-500 rounded-full blur-3xl opacity-10 animate-pulse"></div>
+                  <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-500 rounded-full blur-3xl opacity-10 animate-pulse" style={{ animationDelay: '1s' }}></div>
+                  
+                  <div className="flex items-center justify-between mb-4 relative z-10">
+                    <h3 className="text-xl font-semibold text-green-400" style={{ textShadow: '0 0 20px rgba(34, 197, 94, 0.5)' }}>Claims Trend Over Time</h3>
                     <div className="flex items-center gap-4">
                       {/* Time Period Filter */}
                       <div className="flex gap-2">
                         <button
                           onClick={() => setTimePeriodFilter('today')}
-                          className={`px-3 py-1 text-sm ${
+                          className={`px-3 py-1 text-sm rounded-lg transition-all duration-300 ${
                             timePeriodFilter === 'today' 
-                              ? 'font-bold text-black' 
-                              : 'text-gray-600 hover:text-black'
+                              ? 'font-bold text-black bg-green-400 shadow-lg shadow-green-500/50' 
+                              : 'text-gray-400 hover:text-green-400 hover:bg-green-500/10'
                           }`}
                         >
                           Today
                         </button>
                         <button
                           onClick={() => setTimePeriodFilter('lastWeek')}
-                          className={`px-3 py-1 text-sm ${
+                          className={`px-3 py-1 text-sm rounded-lg transition-all duration-300 ${
                             timePeriodFilter === 'lastWeek' 
-                              ? 'font-bold text-black' 
-                              : 'text-gray-600 hover:text-black'
+                              ? 'font-bold text-black bg-green-400 shadow-lg shadow-green-500/50' 
+                              : 'text-gray-400 hover:text-green-400 hover:bg-green-500/10'
                           }`}
                         >
                           Last Week
                         </button>
                         <button
                           onClick={() => setTimePeriodFilter('lastMonth')}
-                          className={`px-3 py-1 text-sm ${
+                          className={`px-3 py-1 text-sm rounded-lg transition-all duration-300 ${
                             timePeriodFilter === 'lastMonth' 
-                              ? 'font-bold text-black' 
-                              : 'text-gray-600 hover:text-black'
+                              ? 'font-bold text-black bg-green-400 shadow-lg shadow-green-500/50' 
+                              : 'text-gray-400 hover:text-green-400 hover:bg-green-500/10'
                           }`}
                         >
                           Last Month
                         </button>
                         <button
                           onClick={() => setTimePeriodFilter('thisMonth')}
-                          className={`px-3 py-1 text-sm ${
+                          className={`px-3 py-1 text-sm rounded-lg transition-all duration-300 ${
                             timePeriodFilter === 'thisMonth' 
-                              ? 'font-bold text-black' 
-                              : 'text-gray-600 hover:text-black'
+                              ? 'font-bold text-black bg-green-400 shadow-lg shadow-green-500/50' 
+                              : 'text-gray-400 hover:text-green-400 hover:bg-green-500/10'
                           }`}
                         >
                           This Month
                         </button>
                         <button
                           onClick={() => setTimePeriodFilter('thisYear')}
-                          className={`px-3 py-1 text-sm ${
+                          className={`px-3 py-1 text-sm rounded-lg transition-all duration-300 ${
                             timePeriodFilter === 'thisYear' 
-                              ? 'font-bold text-black' 
-                              : 'text-gray-600 hover:text-black'
+                              ? 'font-bold text-black bg-green-400 shadow-lg shadow-green-500/50' 
+                              : 'text-gray-400 hover:text-green-400 hover:bg-green-500/10'
                           }`}
                         >
                           This Year
@@ -2818,47 +2831,80 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="h-[500px]">
+                  <div className="h-[500px] relative z-10">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart
                         data={claimsTrendData} 
                         margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
                       >
                         <defs>
+                          {/* Neon Green to Black Gradient for Approved Line */}
                           <linearGradient id="approvedGradient" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor="#84cc16" stopOpacity={0.8}/>
-                            <stop offset="100%" stopColor="#22c55e" stopOpacity={0.6}/>
+                            <stop offset="0%" stopColor="#00ff88" stopOpacity={1}/>
+                            <stop offset="50%" stopColor="#22c55e" stopOpacity={0.9}/>
+                            <stop offset="100%" stopColor="#000000" stopOpacity={0.8}/>
                           </linearGradient>
+                          {/* Neon Green Glow Shadow for Approved */}
+                          <filter id="approvedGlow">
+                            <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                            <feMerge>
+                              <feMergeNode in="coloredBlur"/>
+                              <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                          </filter>
+                          {/* Area gradient for approved with neon green */}
                           <linearGradient id="approvedAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#84cc16" stopOpacity={0.15}/>
-                            <stop offset="100%" stopColor="#22c55e" stopOpacity={0.05}/>
+                            <stop offset="0%" stopColor="#00ff88" stopOpacity={0.3}/>
+                            <stop offset="50%" stopColor="#22c55e" stopOpacity={0.15}/>
+                            <stop offset="100%" stopColor="#000000" stopOpacity={0.05}/>
                           </linearGradient>
+                          {/* Black to Gray Gradient for Rejected Line */}
+                          <linearGradient id="rejectedGradient" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0%" stopColor="#1a1a1a" stopOpacity={1}/>
+                            <stop offset="50%" stopColor="#4a4a4a" stopOpacity={0.9}/>
+                            <stop offset="100%" stopColor="#808080" stopOpacity={0.8}/>
+                          </linearGradient>
+                          {/* Gray Shadow for Rejected */}
+                          <filter id="rejectedGlow">
+                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                            <feMerge>
+                              <feMergeNode in="coloredBlur"/>
+                              <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                          </filter>
+                          {/* Area gradient for rejected */}
                           <linearGradient id="rejectedAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#000000" stopOpacity={0.1}/>
+                            <stop offset="0%" stopColor="#4a4a4a" stopOpacity={0.2}/>
+                            <stop offset="50%" stopColor="#2a2a2a" stopOpacity={0.1}/>
                             <stop offset="100%" stopColor="#000000" stopOpacity={0.03}/>
-                          </linearGradient>
-                          <linearGradient id="backgroundGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#f0f9ff" stopOpacity={0.3}/>
-                            <stop offset="100%" stopColor="#f8fafc" stopOpacity={0.1}/>
                           </linearGradient>
                         </defs>
                         <XAxis 
                           dataKey="period" 
-                          stroke="#374151"
+                          stroke="rgba(34, 197, 94, 0.3)"
                           fontSize={12}
-                          axisLine={false}
+                          axisLine={{ stroke: 'rgba(34, 197, 94, 0.2)' }}
                           tickLine={false}
-                          tick={{ fill: '#374151' }}
+                          tick={{ fill: '#22c55e', fontWeight: 500 }}
+                        />
+                        <YAxis 
+                          stroke="rgba(34, 197, 94, 0.3)"
+                          fontSize={12}
+                          axisLine={{ stroke: 'rgba(34, 197, 94, 0.2)' }}
+                          tickLine={false}
+                          tick={{ fill: '#22c55e', fontWeight: 500 }}
+                          grid={{ stroke: 'rgba(34, 197, 94, 0.1)' }}
                         />
                         <RechartsTooltip 
                           contentStyle={{
-                            backgroundColor: '#ffffff',
-                            border: '1px solid #d1d5db',
-                            borderRadius: '8px',
-                            color: '#374151',
-                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                            backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                            border: '1px solid rgba(34, 197, 94, 0.5)',
+                            borderRadius: '12px',
+                            color: '#22c55e',
+                            boxShadow: '0 0 30px rgba(34, 197, 94, 0.3), inset 0 0 20px rgba(34, 197, 94, 0.1)',
+                            backdropFilter: 'blur(10px)'
                           }}
-                          labelStyle={{ color: '#374151', fontSize: '14px', fontWeight: '600' }}
+                          labelStyle={{ color: '#00ff88', fontSize: '14px', fontWeight: '700', textShadow: '0 0 10px rgba(0, 255, 136, 0.5)' }}
                           formatter={(value, name, props) => {
                             const labels = {
                               approved: 'Approved Claims', 
@@ -2878,7 +2924,7 @@ const AdminDashboard = () => {
                         <RechartsLegend 
                           verticalAlign="top" 
                           height={36}
-                          wrapperStyle={{ color: '#374151', fontSize: '14px' }}
+                          wrapperStyle={{ color: '#22c55e', fontSize: '14px', fontWeight: '600' }}
                           formatter={(value, entry) => {
                             const labels = {
                               approved: 'Approved Claims',
@@ -2887,29 +2933,50 @@ const AdminDashboard = () => {
                             return labels[entry.dataKey] || value;
                           }}
                         />
-                        {/* Line for approved claims with gradient fill */}
+                        {/* CartesianGrid with neon green styling */}
+                        <CartesianGrid 
+                          strokeDasharray="3 3" 
+                          stroke="rgba(34, 197, 94, 0.1)" 
+                          vertical={false}
+                        />
+                        {/* Line for approved claims with neon green to black gradient and glow */}
                         <RechartsLine 
                           type="monotone" 
                           dataKey="approved" 
                           name="approved"
                           stroke="url(#approvedGradient)" 
-                          strokeWidth={3}
-                          dot={false}
-                          activeDot={{ r: 6, stroke: '#22c55e', strokeWidth: 3, fill: '#ffffff' }}
+                          strokeWidth={4}
+                          dot={{ r: 4, fill: '#00ff88', stroke: '#00ff88', strokeWidth: 2, filter: 'url(#approvedGlow)' }}
+                          activeDot={{ 
+                            r: 8, 
+                            fill: '#00ff88', 
+                            stroke: '#00ff88', 
+                            strokeWidth: 3, 
+                            filter: 'url(#approvedGlow)',
+                            style: { boxShadow: '0 0 20px rgba(0, 255, 136, 0.8)' }
+                          }}
                           connectNulls={false}
                           fill="url(#approvedAreaGradient)"
+                          filter="url(#approvedGlow)"
                         />
-                        {/* Line for rejected claims with gradient fill */}
+                        {/* Line for rejected claims with black to gray gradient and shadow */}
                         <RechartsLine 
                           type="monotone" 
                           dataKey="rejected" 
                           name="rejected"
-                          stroke="#000000" 
-                          strokeWidth={3}
-                          dot={false}
-                          activeDot={{ r: 6, stroke: '#000000', strokeWidth: 3, fill: '#ffffff' }}
+                          stroke="url(#rejectedGradient)" 
+                          strokeWidth={4}
+                          dot={{ r: 4, fill: '#808080', stroke: '#4a4a4a', strokeWidth: 2, filter: 'url(#rejectedGlow)' }}
+                          activeDot={{ 
+                            r: 8, 
+                            fill: '#808080', 
+                            stroke: '#4a4a4a', 
+                            strokeWidth: 3, 
+                            filter: 'url(#rejectedGlow)'
+                          }}
                           connectNulls={false}
                           fill="url(#rejectedAreaGradient)"
+                          filter="url(#rejectedGlow)"
                         />
                       </LineChart>
                     </ResponsiveContainer>
