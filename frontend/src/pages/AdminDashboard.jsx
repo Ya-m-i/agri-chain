@@ -2119,12 +2119,12 @@ const AdminDashboard = () => {
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="mr-4 md:hidden" aria-label="Toggle menu">
               {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            <h1 className="text-xl font-sans font-semibold tracking-wide text-white">ADMIN DASHBOARD</h1>
+            <h1 className="text-xl font-sans font-semibold tracking-wide text-black">ADMIN DASHBOARD</h1>
           </div>
 
           <div className="flex items-center space-x-4">
             {/* Real-time Status Indicator */}
-            <div className="flex items-center space-x-2 text-white text-sm">
+            <div className="flex items-center space-x-2 text-black text-sm">
               <div className={`w-2 h-2 rounded-full ${isRefreshing ? 'bg-yellow-400 animate-pulse' : 'bg-green-400'}`}></div>
               <span className="hidden sm:inline">
                 {isRefreshing ? 'Refreshing...' : 'Live'}
@@ -2158,13 +2158,13 @@ const AdminDashboard = () => {
             <div className="relative">
               <button
                 onClick={toggleNotificationPanel}
-                className={`text-white p-2 rounded-full hover:bg-lime-500 transition-colors relative ${unreadAdminCount > 0 ? 'animate-pulse' : ''}`}
+                className={`text-black p-2 rounded-full hover:bg-lime-500 transition-colors relative ${unreadAdminCount > 0 ? 'animate-pulse' : ''}`}
                 style={{ backgroundColor: 'rgb(56, 118, 29)' }}
                 aria-label="Notifications"
               >
                 <Bell size={22} />
                 {unreadAdminCount > 0 && (
-                  <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full animate-pulse">
+                  <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-black transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full animate-pulse">
                     {unreadAdminCount}
                   </span>
                 )}
@@ -2176,12 +2176,12 @@ const AdminDashboard = () => {
                   className="notification-panel absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl z-50 overflow-hidden"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="p-4 text-white flex justify-between items-center" style={{ backgroundColor: 'rgb(56, 118, 29)' }}>
+                  <div className="p-4 text-black flex justify-between items-center" style={{ backgroundColor: 'rgb(56, 118, 29)' }}>
                     <h3 className="font-semibold">Notifications</h3>
                     {adminNotifications.length > 0 && (
                       <button
                         onClick={() => useNotificationStore.getState().clearNotifications()}
-                        className="text-white hover:text-gray-200 text-sm"
+                        className="text-black hover:text-gray-200 text-sm"
                         title="Clear all notifications"
                       >
                         Clear All
