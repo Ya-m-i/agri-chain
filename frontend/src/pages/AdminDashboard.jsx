@@ -2158,7 +2158,7 @@ const AdminDashboard = () => {
             <div className="relative">
               <button
                 onClick={toggleNotificationPanel}
-                className={`text-black p-2 rounded-full hover:bg-lime-500 transition-colors relative ${unreadAdminCount > 0 ? 'animate-pulse' : ''}`}
+                className={`text-white p-2 rounded-full hover:bg-lime-500 transition-colors relative ${unreadAdminCount > 0 ? 'animate-pulse' : ''}`}
                 style={{ backgroundColor: 'rgb(56, 118, 29)' }}
                 aria-label="Notifications"
               >
@@ -2759,7 +2759,8 @@ const AdminDashboard = () => {
               {/* Chart Visualizations Section */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
                 {/* Claims Trend Over Time - Left side, larger */}
-                <div className="lg:col-span-2 p-8 rounded-2xl relative overflow-hidden backdrop-blur-xl" style={{
+                <div className="lg:col-span-2 p-8 relative overflow-hidden backdrop-blur-xl" style={{
+                  borderRadius: '5px',
                   background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(15, 20, 10, 0.98) 50%, rgba(0, 0, 0, 0.95) 100%)',
                   boxShadow: '0 0 40px rgba(132, 204, 22, 0.3), inset 0 0 60px rgba(132, 204, 22, 0.05)',
                   border: '1px solid rgba(132, 204, 22, 0.2)',
@@ -3022,7 +3023,7 @@ const AdminDashboard = () => {
                                     { name: 'Pending', value: pending, color: '#f59e0b', percentage: total > 0 ? ((pending / total) * 100).toFixed(1) : '0' },
                                     { name: 'Approved', value: approved, color: '#00ff00', percentage: total > 0 ? ((approved / total) * 100).toFixed(1) : '0' },
                                     { name: 'Rejected', value: rejected, color: '#000000', percentage: total > 0 ? ((rejected / total) * 100).toFixed(1) : '0' },
-                                    { name: 'Distributed', value: distributed, color: '#00bfff', percentage: total > 0 ? ((distributed / total) * 100).toFixed(1) : '0' }
+                                    { name: 'Distributed', value: distributed, color: '#ededdc', percentage: total > 0 ? ((distributed / total) * 100).toFixed(1) : '0' }
                                   ];
                                 })()}
                                 cx="50%"
@@ -3045,7 +3046,7 @@ const AdminDashboard = () => {
                                     { name: 'Pending', value: pending, color: '#f59e0b' },
                                     { name: 'Approved', value: approved, color: '#00ff00' },
                                     { name: 'Rejected', value: rejected, color: '#000000' },
-                                    { name: 'Distributed', value: distributed, color: '#00bfff' }
+                                    { name: 'Distributed', value: distributed, color: '#ededdc' }
                                   ].map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={entry.color} />
                                   ));
@@ -3104,7 +3105,7 @@ const AdminDashboard = () => {
                               { name: 'Pending', value: pending, color: '#f59e0b' },
                               { name: 'Approved', value: approved, color: '#00ff00' },
                               { name: 'Rejected', value: rejected, color: '#000000' },
-                              { name: 'Distributed', value: distributed, color: '#00bfff' }
+                              { name: 'Distributed', value: distributed, color: '#ededdc' }
                             ].map((item, index) => {
                               const percentage = total > 0 ? ((item.value / total) * 100).toFixed(1) : '0';
                               return (
@@ -3132,7 +3133,7 @@ const AdminDashboard = () => {
                       <h3 className="text-lg font-semibold text-gray-800">Kapalong Crop Market Prices</h3>
                       <button
                         onClick={() => setShowCropPriceManagement(true)}
-                        className="flex items-center gap-2 px-3 py-1 bg-lime-600 text-white rounded-lg text-xs font-medium hover:bg-lime-700 transition-colors"
+                        className="flex items-center gap-2 px-3 py-1 text-gray-700 rounded-lg text-xs font-medium hover:text-lime-600 hover:font-bold hover:bg-lime-100 transition-all"
                       >
                         <Settings size={14} />
                         Manage Prices
@@ -3159,7 +3160,7 @@ const AdminDashboard = () => {
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart
                             data={cropPrices.slice(0, 8).map(crop => ({
-                              crop: crop.cropType ? `${crop.cropName} (${crop.cropType})` : crop.cropName,
+                              crop: crop.cropName,
                               price: crop.pricePerKg,
                               unit: crop.unit,
                               cropName: crop.cropName
