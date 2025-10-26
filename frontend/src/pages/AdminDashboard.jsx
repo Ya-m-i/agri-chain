@@ -2333,7 +2333,7 @@ const AdminDashboard = () => {
           } md:hidden transition duration-150 ease-out z-30 w-64 shadow-lg`}
           style={{ backgroundColor: 'rgb(13, 13, 13)' }}
         >
-          <div className="p-6 border-b border-gray-100" style={{ backgroundColor: 'rgb(13, 13, 13)' }}>
+          <div className="p-6 border-b border-lime-500" style={{ backgroundColor: 'rgb(13, 13, 13)' }}>
             <div className="flex flex-col items-center">
               <button 
                 onClick={() => {
@@ -2348,7 +2348,7 @@ const AdminDashboard = () => {
                   className="h-32 w-32 object-contain"
                 />
               </button>
-              <h2 className="text-lg font-bold text-white text-center leading-tight">
+              <h2 className="text-lg font-bold text-lime-500 text-center leading-tight">
                 Kapalong Department Agriculture
               </h2>
             </div>
@@ -2482,7 +2482,7 @@ const AdminDashboard = () => {
           onMouseLeave={() => setSidebarExpanded(false)}
         >
           {/* Admin Logo Section */}
-          <div className="p-6 border-b border-gray-100" style={{ backgroundColor: 'rgb(13, 13, 13)' }}>
+          <div className={`p-6 border-b transition-opacity duration-300 ${sidebarExpanded ? 'border-lime-500 opacity-100' : 'border-transparent opacity-0'}`} style={{ backgroundColor: 'rgb(13, 13, 13)' }}>
             <div className="flex flex-col items-center">
               <button 
                 onClick={() => handleTabSwitch("home")}
@@ -2495,7 +2495,7 @@ const AdminDashboard = () => {
                 />
               </button>
               <div className={`transition-all duration-300 overflow-hidden ${sidebarExpanded ? 'opacity-100 max-h-20' : 'opacity-0 max-h-0'}`}>
-                <h2 className="text-lg font-bold text-white text-center leading-tight">
+                <h2 className="text-lg font-bold text-lime-500 text-center leading-tight">
                   Kapalong Department Agriculture
                 </h2>
               </div>
