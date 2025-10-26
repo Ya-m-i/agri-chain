@@ -2377,7 +2377,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "farmer-registration" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <img src={registrationIcon} alt="Registration" className="w-6 h-6 mr-3" />
+                  <img src={registrationIcon} alt="Registration" className="w-8 h-8 mr-3" />
                   Farmer Registration
                 </button>
               </li>
@@ -2406,7 +2406,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "claims" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <img src={cashIcon} alt="Cash" className="w-6 h-6 mr-3" />
+                  <img src={cashIcon} alt="Cash" className="w-8 h-8 mr-3" />
                   Cash Assistance Claims
                 </button>
               </li>
@@ -2421,7 +2421,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "distribution" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <img src={distributionIcon} alt="Distribution" className="w-6 h-6 mr-3" />
+                  <img src={distributionIcon} alt="Distribution" className="w-8 h-8 mr-3" />
                   Distribution Records
                 </button>
               </li>
@@ -2436,7 +2436,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "assistance" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <img src={inventoryIcon} alt="Inventory" className="w-6 h-6 mr-3" />
+                  <img src={inventoryIcon} alt="Inventory" className="w-8 h-8 mr-3" />
                   Assistance Inventory
                 </button>
               </li>
@@ -2466,7 +2466,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "admin-filing" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <img src={fileIcon} alt="File" className="w-6 h-6 mr-3" />
+                  <img src={fileIcon} alt="File" className="w-8 h-8 mr-3" />
                   File for Farmers
                 </button>
               </li>
@@ -2533,7 +2533,7 @@ const AdminDashboard = () => {
                 title={!sidebarExpanded ? "Farmer Registration" : ""}
               >
                 <div className="flex items-center gap-3">
-                  <img src={registrationIcon} alt="Registration" className="w-6 h-6 flex-shrink-0" />
+                  <img src={registrationIcon} alt="Registration" className="w-8 h-8 flex-shrink-0" />
                   {sidebarExpanded && <span>Farmer Registration</span>}
                 </div>
                 {sidebarExpanded && (
@@ -2569,7 +2569,7 @@ const AdminDashboard = () => {
               style={activeTab === "claims" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
               title={!sidebarExpanded ? "Cash Assistance Claims" : ""}
             >
-              <img src={cashIcon} alt="Cash" className="w-6 h-6 flex-shrink-0" />
+              <img src={cashIcon} alt="Cash" className="w-8 h-8 flex-shrink-0" />
               {sidebarExpanded && <span>Cash Assistance Claims</span>}
             </button>
 
@@ -2583,7 +2583,7 @@ const AdminDashboard = () => {
               style={activeTab === "distribution" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
               title={!sidebarExpanded ? "Distribution Records" : ""}
             >
-              <img src={distributionIcon} alt="Distribution" className="w-6 h-6 flex-shrink-0" />
+              <img src={distributionIcon} alt="Distribution" className="w-8 h-8 flex-shrink-0" />
               {sidebarExpanded && <span>Distribution Records</span>}
             </button>
           </div>
@@ -2607,7 +2607,7 @@ const AdminDashboard = () => {
               style={activeTab === "assistance" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
               title={!sidebarExpanded ? "Assistance Inventory" : ""}
             >
-              <img src={inventoryIcon} alt="Inventory" className="w-6 h-6 flex-shrink-0" />
+              <img src={inventoryIcon} alt="Inventory" className="w-8 h-8 flex-shrink-0" />
               {sidebarExpanded && <span>Assistance Inventory</span>}
             </button>
 
@@ -2621,7 +2621,7 @@ const AdminDashboard = () => {
               style={activeTab === "admin-filing" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
               title={!sidebarExpanded ? "File for Farmers" : ""}
             >
-              <img src={fileIcon} alt="File" className="w-6 h-6 flex-shrink-0" />
+              <img src={fileIcon} alt="File" className="w-8 h-8 flex-shrink-0" />
               {sidebarExpanded && <span>File for Farmers</span>}
             </button>
 
