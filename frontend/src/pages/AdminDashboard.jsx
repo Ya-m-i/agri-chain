@@ -65,6 +65,13 @@ import climateImage from "../assets/Images/climate.png"
 import locationImage from "../assets/Images/location.png"
 import insuranceImage from "../assets/Images/insurance.png"
 import recentImage from "../assets/Images/recent.png"
+
+// Import sidebar navigation icons
+import registrationIcon from "../assets/Images/Registration.png"
+import cashIcon from "../assets/Images/cash.png"
+import distributionIcon from "../assets/Images/Distribution.png"
+import inventoryIcon from "../assets/Images/Inventory.png"
+import fileIcon from "../assets/Images/File.png"
 import DistributionRecords from "../components/DistributionRecords"
 import FarmerRegistration from "../components/FarmerRegistration"
 import AdminSettings from "../components/AdminSettings"
@@ -2338,10 +2345,10 @@ const AdminDashboard = () => {
                 <img 
                   src={adminLogoImage || "/placeholder.svg"} 
                   alt="Admin Logo" 
-                  className="h-20 w-20 object-contain"
+                  className="h-32 w-32 object-contain"
                 />
               </button>
-              <h2 className="text-sm font-bold text-lime-800 text-center leading-tight">
+              <h2 className="text-lg font-bold text-white text-center leading-tight">
                 Kapalong Department Agriculture
               </h2>
             </div>
@@ -2370,7 +2377,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "farmer-registration" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <UserPlus size={24} className="mr-3" />
+                  <img src={registrationIcon} alt="Registration" className="w-6 h-6 mr-3" />
                   Farmer Registration
                 </button>
               </li>
@@ -2399,7 +2406,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "claims" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <FileText size={24} className="mr-3" />
+                  <img src={cashIcon} alt="Cash" className="w-6 h-6 mr-3" />
                   Cash Assistance Claims
                 </button>
               </li>
@@ -2414,7 +2421,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "distribution" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <Truck size={24} className="mr-3" />
+                  <img src={distributionIcon} alt="Distribution" className="w-6 h-6 mr-3" />
                   Distribution Records
                 </button>
               </li>
@@ -2429,7 +2436,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "assistance" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <ClipboardCheck size={24} className="mr-3" />
+                  <img src={inventoryIcon} alt="Inventory" className="w-6 h-6 mr-3" />
                   Assistance Inventory
                 </button>
               </li>
@@ -2459,7 +2466,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "admin-filing" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <FileText size={24} className="mr-3" />
+                  <img src={fileIcon} alt="File" className="w-6 h-6 mr-3" />
                   File for Farmers
                 </button>
               </li>
@@ -2484,11 +2491,11 @@ const AdminDashboard = () => {
                 <img 
                   src={adminLogoImage || "/placeholder.svg"} 
                   alt="Admin Logo" 
-                  className="h-20 w-20 object-contain"
+                  className="h-32 w-32 object-contain"
                 />
               </button>
               <div className={`transition-all duration-300 overflow-hidden ${sidebarExpanded ? 'opacity-100 max-h-20' : 'opacity-0 max-h-0'}`}>
-                <h2 className="text-sm font-bold text-lime-800 text-center leading-tight">
+                <h2 className="text-lg font-bold text-white text-center leading-tight">
                   Kapalong Department Agriculture
                 </h2>
               </div>
@@ -2526,7 +2533,7 @@ const AdminDashboard = () => {
                 title={!sidebarExpanded ? "Farmer Registration" : ""}
               >
                 <div className="flex items-center gap-3">
-                  <UserPlus size={24} className="flex-shrink-0" />
+                  <img src={registrationIcon} alt="Registration" className="w-6 h-6 flex-shrink-0" />
                   {sidebarExpanded && <span>Farmer Registration</span>}
                 </div>
                 {sidebarExpanded && (
@@ -2562,7 +2569,7 @@ const AdminDashboard = () => {
               style={activeTab === "claims" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
               title={!sidebarExpanded ? "Cash Assistance Claims" : ""}
             >
-              <FileText size={24} className="flex-shrink-0" />
+              <img src={cashIcon} alt="Cash" className="w-6 h-6 flex-shrink-0" />
               {sidebarExpanded && <span>Cash Assistance Claims</span>}
             </button>
 
@@ -2576,15 +2583,17 @@ const AdminDashboard = () => {
               style={activeTab === "distribution" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
               title={!sidebarExpanded ? "Distribution Records" : ""}
             >
-              <Truck size={24} className="flex-shrink-0" />
+              <img src={distributionIcon} alt="Distribution" className="w-6 h-6 flex-shrink-0" />
               {sidebarExpanded && <span>Distribution Records</span>}
             </button>
           </div>
 
           {/* Separator */}
-          <div className="px-3">
-            <hr className={`${darkMode ? 'border-gray-700' : 'border-gray-200'}`} />
-          </div>
+          {sidebarExpanded && (
+            <div className="px-3">
+              <hr className="border-lime-500" />
+            </div>
+          )}
 
           {/* Secondary Navigation Section */}
           <div className="space-y-1 px-3">
@@ -2598,7 +2607,7 @@ const AdminDashboard = () => {
               style={activeTab === "assistance" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
               title={!sidebarExpanded ? "Assistance Inventory" : ""}
             >
-              <ClipboardCheck size={24} className="flex-shrink-0" />
+              <img src={inventoryIcon} alt="Inventory" className="w-6 h-6 flex-shrink-0" />
               {sidebarExpanded && <span>Assistance Inventory</span>}
             </button>
 
@@ -2612,7 +2621,7 @@ const AdminDashboard = () => {
               style={activeTab === "admin-filing" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
               title={!sidebarExpanded ? "File for Farmers" : ""}
             >
-              <FileText size={24} className="flex-shrink-0" />
+              <img src={fileIcon} alt="File" className="w-6 h-6 flex-shrink-0" />
               {sidebarExpanded && <span>File for Farmers</span>}
             </button>
 
@@ -2732,17 +2741,20 @@ const AdminDashboard = () => {
                   <div className="text-xs text-gray-600 mb-2">This Month</div>
                   {/* Analytics Mini Chart */}
                     <div className="w-full h-6 bg-gray-100 rounded-lg overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg" 
-                         style={{ width: `${Math.min(((() => {
-                           const currentMonth = new Date().getMonth();
-                           const currentYear = new Date().getFullYear();
-                           return allApplications.filter(app => {
-                             const appDate = new Date(app.createdAt || app.date);
-                             return (app.status === 'distributed' || app.status === 'approved') && 
-                                    appDate.getMonth() === currentMonth && 
-                                    appDate.getFullYear() === currentYear;
-                           }).length;
-                         })() / Math.max(totalFarmers, 1)) * 100, 100)}%` }}>
+                    <div className="h-full rounded-lg" 
+                         style={{ 
+                           backgroundColor: '#ededdc',
+                           width: `${Math.min(((() => {
+                             const currentMonth = new Date().getMonth();
+                             const currentYear = new Date().getFullYear();
+                             return allApplications.filter(app => {
+                               const appDate = new Date(app.createdAt || app.date);
+                               return (app.status === 'distributed' || app.status === 'approved') && 
+                                      appDate.getMonth() === currentMonth && 
+                                      appDate.getFullYear() === currentYear;
+                             }).length;
+                           })() / Math.max(totalFarmers, 1)) * 100, 100)}%` 
+                         }}>
                     </div>
                   </div>
                   <div className="text-xs text-gray-500 mt-1">Monthly Target: {Math.floor(totalFarmers * 0.1)}</div>
