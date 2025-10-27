@@ -899,34 +899,75 @@ const FarmerRegistration = ({
         </div>
       )}
 
-      {/* Register Farmer Modal */}
+      {/* Register Farmer Modal - Enhanced Blockchain Style with Neon Lime */}
       {showRegisterForm && (
-        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white rounded-[5px] shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar">
-            <div className="sticky top-0 text-white p-5 rounded-t-xl flex justify-between items-center" style={{ backgroundColor: 'rgb(43, 158, 102)' }}>
-              <h2 className="text-2xl font-semibold">Register a New Farmer</h2>
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-lime-500 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar relative animate-[fadeIn_0.3s_ease-in]" style={{ boxShadow: '0 0 60px rgba(132, 204, 22, 0.8), 0 0 100px rgba(132, 204, 22, 0.4)' }}>
+            {/* Enhanced Corner Accents with Glow */}
+            <div className="absolute top-0 left-0 w-20 h-20 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute bottom-0 left-0 w-20 h-20 border-b-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute bottom-0 right-0 w-20 h-20 border-b-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            
+            {/* Decorative Circuit Lines */}
+            <div className="absolute top-10 left-10 w-32 h-0.5 bg-gradient-to-r from-lime-500 to-transparent opacity-60 z-10"></div>
+            <div className="absolute top-10 right-10 w-32 h-0.5 bg-gradient-to-l from-lime-500 to-transparent opacity-60 z-10"></div>
+            <div className="absolute bottom-10 left-10 w-32 h-0.5 bg-gradient-to-r from-lime-500 to-transparent opacity-60 z-10"></div>
+            <div className="absolute bottom-10 right-10 w-32 h-0.5 bg-gradient-to-l from-lime-500 to-transparent opacity-60 z-10"></div>
+            
+            <div className="sticky top-0 bg-white border-b-4 border-lime-500 p-6 flex justify-between items-center z-20 relative" style={{ boxShadow: '0 6px 20px rgba(132, 204, 22, 0.4)' }}>
+              <div className="flex items-center">
+                <div className="mr-4 p-3 bg-lime-500 rounded-lg animate-pulse" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.8)' }}>
+                  <UserPlus className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-black mb-1 tracking-wide" style={{ textShadow: '2px 2px 6px rgba(132, 204, 22, 0.4)' }}>
+                    ⛓️ BLOCKCHAIN FARMER REGISTRATION
+                  </h2>
+                  <div className="flex items-center gap-3">
+                    <span className="flex items-center text-xs text-gray-600">
+                      <span className="w-2 h-2 bg-lime-500 rounded-full mr-2 animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
+                      Secure & Immutable System
+                    </span>
+                    <span className="text-xs text-lime-600 font-bold px-2 py-1 bg-lime-100 rounded-full border border-lime-400">
+                      VERIFIED NODE
+                    </span>
+                  </div>
+                </div>
+              </div>
               <button
-                className="text-white hover:text-gray-200 focus:outline-none"
+                className="text-lime-500 hover:text-lime-600 focus:outline-none transition-all hover:rotate-90 duration-300"
                 onClick={() => setShowRegisterForm(false)}
+                style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.6))' }}
               >
-                <X size={24} />
+                <X size={32} strokeWidth={3} />
               </button>
             </div>
 
-            <div className="p-6 md:p-8">
+            <div className="p-6 md:p-8 relative z-10">
               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Personal Information KPI Block */}
-                <div className="bg-gradient-to-br from-blue-50 to-white rounded-xl shadow-lg p-4 border border-blue-200">
-                  <div className="flex items-center mb-3">
-                    <User size={20} className="text-blue-600 mr-2" />
-                    <h3 className="text-lg font-semibold text-blue-800">Personal Information</h3>
+                {/* Personal Information Block - Enhanced Blockchain Style */}
+                <div className="bg-white rounded-xl shadow-2xl p-5 border-4 border-lime-500 relative overflow-hidden" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6), inset 0 0 20px rgba(132, 204, 22, 0.1)' }}>
+                  {/* Glowing Effect Lines */}
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-lime-400 to-transparent animate-pulse"></div>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500 relative">
+                    <div className="p-2 bg-gradient-to-br from-lime-400 to-lime-600 rounded-lg mr-3 animate-pulse" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.8)' }}>
+                      <User size={20} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-black text-lime-600 uppercase tracking-wider">Personal Data</h3>
+                      <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
+                        Blockchain Record
+                      </span>
+                    </div>
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">First Name</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <User size={18} className="text-gray-400" />
+                          <User size={16} className="text-lime-500" />
                         </div>
                         <input
                           type="text"
@@ -934,56 +975,61 @@ const FarmerRegistration = ({
                           value={formData.firstName || ""}
                           onChange={handleChange}
                           placeholder="Enter first name"
-                          className="pl-10 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          className="pl-10 w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                          style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
                           required
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Middle Name</label>
+                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Middle Name</label>
                       <input
                         type="text"
                         name="middleName"
                         value={formData.middleName || ""}
                         onChange={handleChange}
                         placeholder="Enter middle name (optional)"
-                        className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                        style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Last Name</label>
                       <input
                         type="text"
                         name="lastName"
                         value={formData.lastName || ""}
                         onChange={handleChange}
                         placeholder="Enter last name"
-                        className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                        style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Birthday</label>
+                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Birthday</label>
                       <input
                         type="date"
                         name="birthday"
                         value={formData.birthday || ""}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                        style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Gender</label>
                       <select
                         name="gender"
                         value={formData.gender || ""}
                         onChange={handleChange}
-                        className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                        style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
                         required
                       >
                         <option value="">Select Gender</option>
@@ -994,109 +1040,119 @@ const FarmerRegistration = ({
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
+                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Contact Number</label>
                       <input
                         type="tel"
                         name="contactNum"
                         value={formData.contactNum || ""}
                         onChange={handleChange}
                         placeholder="Enter contact number (e.g., 09123456789)"
-                        className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                        style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
                         required
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Address KPI Block */}
-                <div className="bg-gradient-to-br from-green-50 to-white rounded-xl shadow-lg p-4 border border-green-200">
-                  <div className="flex items-center mb-3">
-                    <MapPin size={20} className="text-green-600 mr-2" />
-                    <h3 className="text-lg font-semibold text-green-800">Address Information</h3>
+                {/* Address Information Block - Enhanced Blockchain Style */}
+                <div className="bg-white rounded-xl shadow-2xl p-5 border-4 border-lime-500 relative overflow-hidden" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6), inset 0 0 20px rgba(132, 204, 22, 0.1)' }}>
+                  {/* Glowing Effect Lines */}
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-lime-400 to-transparent animate-pulse"></div>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500 relative">
+                    <div className="p-2 bg-gradient-to-br from-lime-400 to-lime-600 rounded-lg mr-3 animate-pulse" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.8)' }}>
+                      <MapPin size={20} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-black text-lime-600 uppercase tracking-wider">Location Data</h3>
+                      <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
+                        GPS Verified
+                      </span>
+                    </div>
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Address</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-auto cursor-pointer" onClick={() => { setShowMapModal(true); setMapMode('add'); }}>
-                          <MapPin size={18} className="text-gray-400" />
+                          <MapPin size={16} className="text-lime-500" />
                         </div>
                         <input
                           type="text"
                           name="address"
                           value={formData.address || ""}
                           onChange={handleChange}
-                          className="pl-10 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                          className="pl-10 w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                          style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
                           required
                           readOnly
                           placeholder="Click the map icon to select location"
                         />
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Click the map icon to select location automatically
+                      <p className="text-xs text-gray-600 mt-1 flex items-center">
+                        <span className="text-lime-500 mr-1">►</span>
+                        Click map icon for GPS-verified location
                       </p>
                     </div>
+                  </div>
+                </div>
 
-                <div className="space-y-2 md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">Address</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-auto cursor-pointer" onClick={() => { setShowMapModal(true); setMapMode('add'); }}>
-                      <MapPin size={18} className="text-gray-400" />
+                {/* Farm Information Block - Enhanced Blockchain Style */}
+                <div className="bg-white rounded-xl shadow-2xl p-5 border-4 border-lime-500 relative overflow-hidden" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6), inset 0 0 20px rgba(132, 204, 22, 0.1)' }}>
+                  {/* Glowing Effect Lines */}
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-lime-400 to-transparent animate-pulse"></div>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500 relative">
+                    <div className="p-2 bg-gradient-to-br from-lime-400 to-lime-600 rounded-lg mr-3 animate-pulse" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.8)' }}>
+                      <Layers size={20} className="text-white" />
                     </div>
-                    <input
-                      type="text"
-                      name="address"
-                      value={formData.address || ""}
-                      onChange={handleChange}
-                      className="pl-10 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-                      required
-                      readOnly
-                      placeholder="Click the map icon to select location"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    Click the map icon to select location automatically
-                  </p>
-                </div>
-
-                  </div>
-                </div>
-
-                {/* Farm Information KPI Block */}
-                <div className="bg-gradient-to-br from-yellow-50 to-white rounded-xl shadow-lg p-4 border border-yellow-200">
-                  <div className="flex items-center mb-3">
-                    <Layers size={20} className="text-yellow-600 mr-2" />
-                    <h3 className="text-lg font-semibold text-yellow-800">Farm Information</h3>
+                    <div>
+                      <h3 className="text-base font-black text-lime-600 uppercase tracking-wider">Farm Registry</h3>
+                      <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
+                        Immutable Ledger
+                      </span>
+                    </div>
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Crop Area (hectares)</label>
+                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Crop Area (hectares)</label>
                       <input
                         type="text"
                         name="cropArea"
                         value={formData.cropArea || ""}
                         onChange={handleChange}
-                        placeholder="Enter crop area in hectares (e.g., 2.5)"
-                        className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent transition-all"
+                        placeholder="Enter crop area (e.g., 2.5)"
+                        className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                        style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
                         required
                       />
                     </div>
-
                   </div>
                 </div>
 
-                {/* Lot Information KPI Block */}
-                <div className="bg-gradient-to-br from-orange-50 to-white rounded-xl shadow-lg p-4 border border-orange-200">
-                  <div className="flex items-center mb-3">
-                    <MapPin size={20} className="text-orange-600 mr-2" />
-                    <h3 className="text-lg font-semibold text-orange-800">Lot Information</h3>
+                {/* Lot Information Block - Enhanced Blockchain Style */}
+                <div className="bg-white rounded-xl shadow-2xl p-5 border-4 border-lime-500 relative overflow-hidden" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6), inset 0 0 20px rgba(132, 204, 22, 0.1)' }}>
+                  {/* Glowing Effect Lines */}
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-lime-400 to-transparent animate-pulse"></div>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500 relative">
+                    <div className="p-2 bg-gradient-to-br from-lime-400 to-lime-600 rounded-lg mr-3 animate-pulse" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.8)' }}>
+                      <MapPin size={20} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-black text-lime-600 uppercase tracking-wider">Lot Registry</h3>
+                      <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
+                        Verified Node
+                      </span>
+                    </div>
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Lot Number</label>
+                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Lot Number</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <MapPin size={18} className="text-gray-400" />
+                          <MapPin size={16} className="text-lime-500" />
                         </div>
                         <input
                           type="text"
@@ -1104,16 +1160,17 @@ const FarmerRegistration = ({
                           value={formData.lotNumber || ""}
                           onChange={handleChange}
                           placeholder="Enter lot number (e.g., Lot 123)"
-                          className="pl-10 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                          className="pl-10 w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                          style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Lot Area</label>
+                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Lot Area</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Layers size={18} className="text-gray-400" />
+                          <Layers size={16} className="text-lime-500" />
                         </div>
                         <input
                           type="text"
@@ -1121,65 +1178,80 @@ const FarmerRegistration = ({
                           value={formData.lotArea || ""}
                           onChange={handleChange}
                           placeholder="Enter lot area (e.g., 1.5 hectares)"
-                          className="pl-10 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                          className="pl-10 w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                          style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
                         />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Agency</label>
+                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Agency</label>
                       <input
                         type="text"
                         name="agency"
                         value={formData.agency || ""}
                         onChange={handleChange}
                         placeholder="Enter agency name (e.g., DA-PCIC, LGU)"
-                        className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                        style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3 py-2">
+                <div className="flex items-center space-x-3 py-4 bg-lime-50 p-4 rounded-xl border-3 border-lime-500 relative overflow-hidden" style={{ boxShadow: '0 4px 15px rgba(132, 204, 22, 0.3)' }}>
+                  <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-lime-400 to-transparent"></div>
                   <input
                     type="checkbox"
                     id="isCertified"
                     name="isCertified"
                     checked={formData.isCertified || false}
                     onChange={handleChange}
-                    className="w-5 h-5 text-lime-600 rounded focus:ring-lime-500"
+                    className="w-6 h-6 text-lime-600 bg-white border-2 border-lime-500 rounded-md focus:ring-2 focus:ring-lime-400"
                   />
-                  <label htmlFor="isCertified" className="text-gray-700 font-medium">
+                  <label htmlFor="isCertified" className="text-black font-black uppercase text-sm tracking-wide flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-lime-600" />
                     Certified Farmer
                   </label>
                 </div>
-                {/* RSBSA Registered checkbox */}
-                <div className="flex items-center space-x-3 py-2">
+                {/* RSBSA Registered checkbox - Enhanced */}
+                <div className="flex items-center space-x-3 py-4 bg-lime-50 p-4 rounded-xl border-3 border-lime-500 relative overflow-hidden" style={{ boxShadow: '0 4px 15px rgba(132, 204, 22, 0.3)' }}>
+                  <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-lime-400 to-transparent"></div>
                   <input
                     type="checkbox"
                     id="rsbsaRegistered"
                     name="rsbsaRegistered"
                     checked={formData.rsbsaRegistered || false}
                     onChange={handleChange}
-                    className="w-5 h-5 text-lime-600 rounded focus:ring-lime-500"
+                    className="w-6 h-6 text-lime-600 bg-white border-2 border-lime-500 rounded-md focus:ring-2 focus:ring-lime-400"
                   />
-                  <label htmlFor="rsbsaRegistered" className="text-gray-700 font-medium">
-                    RSBSA Registered <span className="text-xs text-gray-500">(Required to avail government assistance)</span>
+                  <label htmlFor="rsbsaRegistered" className="text-black font-black uppercase text-sm tracking-wide">
+                    RSBSA Registered <span className="text-xs text-gray-600 normal-case font-normal">(Required for assistance)</span>
                   </label>
                 </div>
 
-                {/* Restore Farmer Account Information section before the submit/cancel buttons: */}
-                <div className="md:col-span-2 border-t border-gray-200 pt-6 mt-4">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <User className="mr-2 h-5 w-5 text-lime-600" />
-                    Farmer Account Information
-                  </h3>
+                {/* Farmer Account Information - Enhanced Blockchain Style */}
+                <div className="md:col-span-2 border-t-4 border-lime-500 pt-6 mt-6 relative">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-lime-500 via-lime-400 to-lime-500 animate-pulse" style={{ filter: 'blur(2px)' }}></div>
+                  <div className="flex items-center mb-6 pb-4 border-b-2 border-lime-400">
+                    <div className="w-2 h-12 bg-gradient-to-b from-lime-400 to-lime-600 mr-4 rounded animate-pulse" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.9)' }}></div>
+                    <div>
+                      <h3 className="text-xl font-black text-lime-600 flex items-center uppercase tracking-wider">
+                        <User className="mr-3 h-7 w-7" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }} />
+                        Account Protocol
+                      </h3>
+                      <span className="text-xs text-gray-600 flex items-center gap-2 mt-1">
+                        <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse"></span>
+                        Encrypted Blockchain Credentials
+                      </span>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Username</label>
+                      <label className="block text-xs font-bold text-lime-600 uppercase">Username</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <User size={18} className="text-gray-400" />
+                          <User size={16} className="text-lime-500" />
                         </div>
                         <input
                           type="text"
@@ -1187,16 +1259,17 @@ const FarmerRegistration = ({
                           value={formData.username || ""}
                           onChange={handleChange}
                           placeholder="Enter username for farmer login"
-                          className="pl-10 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                          className="pl-10 w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                          style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
                           required
                         />
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">Password</label>
+                      <label className="block text-xs font-bold text-lime-600 uppercase">Password</label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <FileText size={18} className="text-gray-400" />
+                          <FileText size={16} className="text-lime-500" />
                         </div>
                         <input
                           type="password"
@@ -1204,31 +1277,49 @@ const FarmerRegistration = ({
                           value={formData.password || ""}
                           onChange={handleChange}
                           placeholder="Enter password for farmer login"
-                          className="pl-10 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                          className="pl-10 w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                          style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
                           required
                         />
                       </div>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    This account will be used by the farmer to access their dashboard and submit claims.
-                  </p>
+                  <div className="relative mt-4 p-4 bg-gradient-to-br from-lime-50 to-lime-100 rounded-xl border-2 border-lime-400 overflow-hidden" style={{ boxShadow: '0 4px 15px rgba(132, 204, 22, 0.2)' }}>
+                    <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-lime-500 to-transparent"></div>
+                    <p className="text-xs text-gray-700 flex items-center">
+                      <span className="text-lime-500 mr-2 font-bold text-base">►</span>
+                      Secure blockchain-encrypted credentials for farmer dashboard access and claim submissions
+                    </p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse"></div>
+                        <span className="text-[10px] text-gray-600">256-bit encryption</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+                        <span className="text-[10px] text-gray-600">Immutable ledger</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="md:col-span-2 flex gap-4 pt-6">
+                <div className="md:col-span-2 flex gap-4 pt-6 border-t-4 border-lime-500 mt-6 relative">
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-lime-500 via-lime-400 to-lime-500"></div>
                   <button
                     type="button"
                     onClick={() => setShowRegisterForm(false)}
-                    className="flex-1 bg-gray-200 text-gray-800 px-4 py-3 rounded-lg hover:bg-gray-300 transition-colors"
+                    className="flex-1 bg-white text-gray-700 border-3 border-gray-400 px-6 py-4 rounded-xl hover:bg-gray-100 hover:border-gray-500 transition-all font-black uppercase tracking-wide text-sm shadow-lg hover:shadow-xl"
                   >
-                    Cancel
+                    ✕ Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 bg-lime-700 text-white px-4 py-3 rounded-lg hover:bg-lime-800 transition-colors flex items-center justify-center"
+                    className="flex-1 bg-gradient-to-r from-lime-500 to-lime-600 text-white px-6 py-4 rounded-xl hover:from-lime-400 hover:to-lime-500 transition-all flex items-center justify-center font-black uppercase tracking-wide text-sm relative overflow-hidden group"
+                    style={{ boxShadow: '0 6px 30px rgba(132, 204, 22, 0.7)' }}
                   >
-                    <UserPlus className="mr-2 h-5 w-5" />
-                    Register Farmer
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-30 group-hover:animate-[shimmer_1s_ease-in-out] transform -skew-x-12"></div>
+                    <UserPlus className="mr-2 h-6 w-6 animate-pulse" />
+                    Register to Blockchain
                   </button>
                 </div>
               </form>
