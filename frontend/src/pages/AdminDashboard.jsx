@@ -2377,7 +2377,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "farmer-registration" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <img src={registrationIcon} alt="Registration" className="w-8 h-8 mr-3" />
+                  <img src={registrationIcon} alt="Registration" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" />
                   Farmer Registration
                 </button>
               </li>
@@ -2406,7 +2406,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "claims" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <img src={cashIcon} alt="Cash" className="w-8 h-8 mr-3" />
+                  <img src={cashIcon} alt="Cash" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" />
                   Cash Assistance Claims
                 </button>
               </li>
@@ -2421,7 +2421,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "distribution" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <img src={distributionIcon} alt="Distribution" className="w-8 h-8 mr-3" />
+                  <img src={distributionIcon} alt="Distribution" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" />
                   Distribution Records
                 </button>
               </li>
@@ -2436,7 +2436,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "assistance" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <img src={inventoryIcon} alt="Inventory" className="w-8 h-8 mr-3" />
+                  <img src={inventoryIcon} alt="Inventory" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" />
                   Assistance Inventory
                 </button>
               </li>
@@ -2466,7 +2466,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "admin-filing" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
                 >
-                  <img src={fileIcon} alt="File" className="w-8 h-8 mr-3" />
+                  <img src={fileIcon} alt="File" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" />
                   File for Farmers
                 </button>
               </li>
@@ -2533,7 +2533,7 @@ const AdminDashboard = () => {
                 title={!sidebarExpanded ? "Farmer Registration" : ""}
               >
                 <div className="flex items-center gap-3">
-                  <img src={registrationIcon} alt="Registration" className="w-8 h-8 flex-shrink-0" />
+                  <img src={registrationIcon} alt="Registration" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" />
                   {sidebarExpanded && <span>Farmer Registration</span>}
                 </div>
                 {sidebarExpanded && (
@@ -2569,7 +2569,7 @@ const AdminDashboard = () => {
               style={activeTab === "claims" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
               title={!sidebarExpanded ? "Cash Assistance Claims" : ""}
             >
-              <img src={cashIcon} alt="Cash" className="w-8 h-8 flex-shrink-0" />
+              <img src={cashIcon} alt="Cash" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" />
               {sidebarExpanded && <span>Cash Assistance Claims</span>}
             </button>
 
@@ -2583,7 +2583,7 @@ const AdminDashboard = () => {
               style={activeTab === "distribution" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
               title={!sidebarExpanded ? "Distribution Records" : ""}
             >
-              <img src={distributionIcon} alt="Distribution" className="w-8 h-8 flex-shrink-0" />
+              <img src={distributionIcon} alt="Distribution" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" />
               {sidebarExpanded && <span>Distribution Records</span>}
             </button>
           </div>
@@ -2607,7 +2607,7 @@ const AdminDashboard = () => {
               style={activeTab === "assistance" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
               title={!sidebarExpanded ? "Assistance Inventory" : ""}
             >
-              <img src={inventoryIcon} alt="Inventory" className="w-8 h-8 flex-shrink-0" />
+              <img src={inventoryIcon} alt="Inventory" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" />
               {sidebarExpanded && <span>Assistance Inventory</span>}
             </button>
 
@@ -2621,7 +2621,7 @@ const AdminDashboard = () => {
               style={activeTab === "admin-filing" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
               title={!sidebarExpanded ? "File for Farmers" : ""}
             >
-              <img src={fileIcon} alt="File" className="w-8 h-8 flex-shrink-0" />
+              <img src={fileIcon} alt="File" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" />
               {sidebarExpanded && <span>File for Farmers</span>}
             </button>
 
@@ -2682,7 +2682,7 @@ const AdminDashboard = () => {
                   <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>Growth: +{Math.floor(totalFarmers * 0.05)} this month</div>
                   </div>
                   <div className="flex-shrink-0 ml-3">
-                    <img src={totalFarmerImage} alt="Total Farmers" className="h-12 w-12" />
+                    <img src={totalFarmerImage} alt="Total Farmers" className="h-12 w-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] object-contain" />
                   </div>
                 </div>
 
@@ -2701,7 +2701,7 @@ const AdminDashboard = () => {
                   <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>Active Rate: {Math.round(((activeFarmersData.activeCount || 0) / Math.max(totalFarmers, 1)) * 100)}%</div>
                   </div>
                   <div className="flex-shrink-0 ml-3">
-                    <img src={activeImage} alt="Active Farmers" className="h-12 w-12" />
+                    <img src={activeImage} alt="Active Farmers" className="h-12 w-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] object-contain" />
                   </div>
                 </div>
 
@@ -2720,7 +2720,7 @@ const AdminDashboard = () => {
                   <div className="text-xs text-gray-500 mt-1">Processing: {Math.round((pendingClaims / Math.max(claims.length, 1)) * 100)}%</div>
                   </div>
                   <div className="flex-shrink-0 ml-3">
-                    <img src={pendingImage} alt="Pending Claims" className="h-12 w-12" />
+                    <img src={pendingImage} alt="Pending Claims" className="h-12 w-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] object-contain" />
                   </div>
                 </div>
 
@@ -2760,7 +2760,7 @@ const AdminDashboard = () => {
                   <div className="text-xs text-gray-500 mt-1">Monthly Target: {Math.floor(totalFarmers * 0.1)}</div>
                   </div>
                   <div className="flex-shrink-0 ml-3">
-                    <img src={assistedImage} alt="Farmer Assisted" className="h-12 w-12" />
+                    <img src={assistedImage} alt="Farmer Assisted" className="h-12 w-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] object-contain" />
                   </div>
                 </div>
 
