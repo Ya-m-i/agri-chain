@@ -3270,22 +3270,18 @@ const AdminDashboard = () => {
                           }
                         }
                       }}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                        showWeatherOverlay 
-                          ? 'bg-blue-100 text-blue-700 border border-blue-200' 
-                          : 'bg-gray-100 text-gray-600 border border-gray-200'
-                      }`}
+                      className="px-3 py-1.5 text-sm text-lime-500 hover:font-bold transition-all"
                     >
-                      🌤️ Weather Overlay
+                      Weather Overlay
                     </button>
                     
                     {/* Fit Map to Farmers Button */}
                     <button
                       onClick={fitMapToFarmers}
-                      className="px-3 py-1.5 rounded-lg text-sm font-medium bg-green-100 text-green-700 border border-green-200 hover:bg-green-200 transition-colors"
+                      className="px-3 py-1.5 text-sm text-lime-500 hover:font-bold transition-all"
                       title="Fit map to show all farmer locations"
                     >
-                      📍 Fit to Farmers
+                      Fit to Farmers
                     </button>
                     
                     {/* Refresh Weather Button */}
@@ -3312,17 +3308,17 @@ const AdminDashboard = () => {
                             setWeatherLoading(false)
                           }
                         }}
-                        className="px-3 py-1.5 rounded-lg text-sm font-medium bg-orange-100 text-orange-700 border border-orange-200 hover:bg-orange-200 transition-colors"
+                        className="px-3 py-1.5 text-sm text-lime-500 hover:font-bold transition-all"
                         title="Refresh weather data"
                         disabled={weatherLoading}
                       >
-                        {weatherLoading ? '⏳' : '🔄'} Refresh Weather
+                        {weatherLoading ? 'Refreshing...' : 'Refresh Weather'}
                       </button>
                     )}
                     <select
                       value={cropFilter}
                       onChange={(e) => setCropFilter(e.target.value)}
-                      className="px-2 py-1 text-xs border border-gray-300 rounded-md"
+                      className="px-2 py-1 text-xs bg-black text-lime-400 border border-lime-500 rounded-md"
                       title="Filter by crop"
                     >
                       <option value="all">All Crops</option>
@@ -3333,7 +3329,7 @@ const AdminDashboard = () => {
                     <select
                       value={monthFilter}
                       onChange={(e) => setMonthFilter(e.target.value)}
-                      className="px-2 py-1 text-xs border border-gray-300 rounded-md"
+                      className="px-2 py-1 text-xs bg-black text-lime-400 border border-lime-500 rounded-md"
                       title="Filter by month"
                     >
                       <option value="all">All Months</option>
@@ -3353,7 +3349,7 @@ const AdminDashboard = () => {
                     <select
                       value={yearFilter}
                       onChange={(e) => setYearFilter(e.target.value)}
-                      className="px-2 py-1 text-xs border border-gray-300 rounded-md"
+                      className="px-2 py-1 text-xs bg-black text-lime-400 border border-lime-500 rounded-md"
                       title="Filter by year"
                     >
                       <option value="all">All Years</option>
@@ -3364,74 +3360,13 @@ const AdminDashboard = () => {
                   </div>
                 </div>
                 
-                {/* Map Legend and Controls */}
-                <div className="mb-4 p-3 bg-white rounded-lg">
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="text-sm font-medium text-gray-700">Legend:</div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span className="text-xs text-gray-600">Insured</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                        <span className="text-xs text-gray-600">Uninsured</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                        <span className="text-xs text-gray-600">High Claims Area</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <label className="flex items-center gap-1 text-xs text-gray-600">
-                        <input 
-                          type="checkbox" 
-                          defaultChecked={false}
-                          onChange={(e) => {
-                            // Toggle heatmap layer
-                            if (overviewLeafletMapRef.current) {
-                              const isChecked = e.target.checked;
-                              // Implementation for heatmap toggle would go here
-                              console.log('Heatmap toggle:', isChecked);
-                            }
-                          }}
-                          className="rounded"
-                        />
-                        Claims Heatmap
-                      </label>
-                      
-                      <label className="flex items-center gap-1 text-xs text-gray-600">
-                        <input 
-                          type="checkbox" 
-                          defaultChecked={false}
-                          onChange={(e) => {
-                            // Toggle disaster overlay
-                            if (overviewLeafletMapRef.current) {
-                              const isChecked = e.target.checked;
-                              // Implementation for disaster overlay would go here
-                              console.log('Disaster overlay toggle:', isChecked);
-                            }
-                          }}
-                          className="rounded"
-                        />
-                        Disaster Impact
-                      </label>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-2 text-xs text-gray-500">
-                    💡 Hover over pins for detailed farmer information • Color-coded by barangay and insurance status
-                  </div>
-                </div>
-                
                 <div className="w-full h-[420px] rounded-lg border border-gray-200 overflow-hidden relative shadow-sm">
                   <div ref={overviewMapRef} className="w-full h-full z-10" />
                 </div>
                 
                 {/* Weather Legend */}
                 {showWeatherOverlay && (
-                  <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg border border-blue-200">
+                  <div className="mt-4 p-4 bg-lime-100 rounded-lg border border-lime-300">
                     <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center">
                       🌤️ Weather Status Legend
                     </h4>
