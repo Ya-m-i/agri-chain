@@ -2618,18 +2618,6 @@ const AdminDashboard = () => {
               {sidebarExpanded && <span>File for Farmers</span>}
             </button>
 
-            {sidebarExpanded && (
-              <div className="px-3">
-                <button
-                  onClick={() => setShowEventModal(true)}
-                  className={`flex items-center gap-3 px-4 py-2.5 rounded-lg w-full text-left transition-colors ${darkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'}`}
-                  title="Add Government Assistance"
-                >
-                  <Plus size={24} />
-                  <span>Add Government Assistance</span>
-                </button>
-              </div>
-            )}
           </div>
 
           {sidebarExpanded && (
@@ -3225,48 +3213,39 @@ const AdminDashboard = () => {
                 <hr className="border-gray-200" />
               </div>
 
-              {/* Overview: Farmers Map (embedded) - Enhanced Blockchain Style */}
-              <div className="bg-white rounded-2xl p-6 mt-6 border-4 border-lime-500 relative overflow-hidden shadow-2xl" style={{ boxShadow: '0 0 50px rgba(132, 204, 22, 0.7), 0 0 100px rgba(132, 204, 22, 0.3)' }}>
-                {/* Enhanced Corner Accents with Glow */}
-                <div className="absolute top-0 left-0 w-20 h-20 border-t-4 border-l-4 border-lime-400 animate-pulse" style={{ filter: 'drop-shadow(0 0 10px rgba(132, 204, 22, 0.9))' }}></div>
-                <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-lime-400 animate-pulse" style={{ filter: 'drop-shadow(0 0 10px rgba(132, 204, 22, 0.9))' }}></div>
-                <div className="absolute bottom-0 left-0 w-20 h-20 border-b-4 border-l-4 border-lime-400 animate-pulse" style={{ filter: 'drop-shadow(0 0 10px rgba(132, 204, 22, 0.9))' }}></div>
-                <div className="absolute bottom-0 right-0 w-20 h-20 border-b-4 border-r-4 border-lime-400 animate-pulse" style={{ filter: 'drop-shadow(0 0 10px rgba(132, 204, 22, 0.9))' }}></div>
+              {/* Overview: Farmers Map (embedded) - Minimalist Blockchain Style */}
+              <div className="bg-white rounded-xl p-6 mt-6 border-4 border-lime-500 relative overflow-hidden shadow-2xl" style={{ boxShadow: '0 0 60px rgba(132, 204, 22, 0.8), 0 0 100px rgba(132, 204, 22, 0.4)' }}>
+                {/* Corner Accents */}
+                <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+                <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+                <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+                <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
                 
-                {/* Decorative Circuit Lines */}
-                <div className="absolute top-10 left-10 w-32 h-0.5 bg-gradient-to-r from-lime-500 to-transparent opacity-60"></div>
-                <div className="absolute top-10 right-10 w-32 h-0.5 bg-gradient-to-l from-lime-500 to-transparent opacity-60"></div>
-                <div className="absolute bottom-10 left-10 w-32 h-0.5 bg-gradient-to-r from-lime-500 to-transparent opacity-60"></div>
-                <div className="absolute bottom-10 right-10 w-32 h-0.5 bg-gradient-to-l from-lime-500 to-transparent opacity-60"></div>
+                {/* Decorative Lines */}
+                <div className="absolute top-8 left-8 w-24 h-0.5 bg-gradient-to-r from-lime-500 to-transparent opacity-60 z-10"></div>
+                <div className="absolute top-8 right-8 w-24 h-0.5 bg-gradient-to-l from-lime-500 to-transparent opacity-60 z-10"></div>
                 
-                <div className="flex items-center justify-between mb-6 relative z-10 pb-4 border-b-4 border-lime-500" style={{ boxShadow: '0 4px 15px rgba(132, 204, 22, 0.3)' }}>
-                  <div className="flex items-center">
-                    <div className="p-3 bg-gradient-to-br from-lime-400 to-lime-600 rounded-xl mr-4 animate-pulse" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.9)' }}>
-                      <img src={locationImage} alt="Geo-Tagging Map" className="h-8 w-8" />
+                <div className="sticky top-0 bg-white flex items-center justify-between mb-6 relative z-10 pb-4 border-b-4 border-lime-500" style={{ boxShadow: '0 6px 20px rgba(132, 204, 22, 0.4)' }}>
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-black rounded-lg animate-pulse" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.8)' }}>
+                      <img src={locationImage} alt="Geo-Tagging Map" className="h-7 w-7" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-black text-black tracking-wide" style={{ textShadow: '2px 2px 6px rgba(132, 204, 22, 0.4)' }}>
-                        🗺️ GEO-TAGGING MAP OVERVIEW
-                      </h3>
-                      <div className="flex items-center gap-3 mt-1">
-                        <p className="text-xs text-gray-600 flex items-center">
-                          <span className="w-2 h-2 bg-lime-500 rounded-full mr-2 animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
-                          Blockchain-Verified Locations
-                        </p>
-                        <span className="text-xs text-lime-600 font-bold px-2 py-1 bg-lime-100 rounded-full border border-lime-400">
-                          LIVE TRACKING
-                        </span>
+                      <h3 className="text-xl font-black text-black tracking-wide uppercase">🗺️ Map Overview</h3>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
+                        <span className="text-[10px] text-gray-600 uppercase tracking-wider">Blockchain Protocol</span>
                       </div>
                     </div>
                     {weatherLoading && (
-                      <div className="ml-4 flex items-center text-sm text-lime-600 font-semibold">
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-lime-500 mr-2"></div>
-                        Loading weather...
+                      <div className="ml-4 flex items-center text-xs text-lime-600 font-semibold">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-lime-500 mr-2"></div>
+                        Loading...
                       </div>
                     )}
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    {/* Weather Overlay Toggle - Enhanced */}
+                    {/* Weather Overlay Toggle - Minimalist */}
                     <button
                       onClick={async () => {
                         setShowWeatherOverlay(!showWeatherOverlay)
@@ -3290,23 +3269,23 @@ const AdminDashboard = () => {
                           }
                         }
                       }}
-                      className="px-3 py-2 text-xs font-bold text-lime-600 hover:text-white bg-lime-50 hover:bg-lime-500 border-2 border-lime-500 rounded-lg transition-all uppercase tracking-wide"
-                      style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.3)' }}
+                      className="px-3 py-2 text-xs font-bold text-black hover:text-lime-500 bg-white hover:bg-black border-2 border-black hover:border-lime-500 rounded-lg transition-all uppercase tracking-wide"
+                      style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                     >
-                      🌤️ Weather
+                      Weather
                     </button>
                     
-                    {/* Fit Map to Farmers Button - Enhanced */}
+                    {/* Fit Map to Farmers Button - Minimalist */}
                     <button
                       onClick={fitMapToFarmers}
-                      className="px-3 py-2 text-xs font-bold text-lime-600 hover:text-white bg-lime-50 hover:bg-lime-500 border-2 border-lime-500 rounded-lg transition-all uppercase tracking-wide"
+                      className="px-3 py-2 text-xs font-bold text-black hover:text-lime-500 bg-white hover:bg-black border-2 border-black hover:border-lime-500 rounded-lg transition-all uppercase tracking-wide"
                       title="Fit map to show all farmer locations"
-                      style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.3)' }}
+                      style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                     >
-                      📍 Fit Map
+                      Fit Map
                     </button>
                     
-                    {/* Refresh Weather Button - Enhanced */}
+                    {/* Refresh Weather Button - Minimalist */}
                     {showWeatherOverlay && (
                       <button
                         onClick={async () => {
@@ -3330,22 +3309,22 @@ const AdminDashboard = () => {
                             setWeatherLoading(false)
                           }
                         }}
-                        className="px-3 py-2 text-xs font-bold text-lime-600 hover:text-white bg-lime-50 hover:bg-lime-500 border-2 border-lime-500 rounded-lg transition-all uppercase tracking-wide disabled:opacity-50"
+                        className="px-3 py-2 text-xs font-bold text-black hover:text-lime-500 bg-white hover:bg-black border-2 border-black hover:border-lime-500 rounded-lg transition-all uppercase tracking-wide disabled:opacity-50"
                         title="Refresh weather data"
                         disabled={weatherLoading}
-                        style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.3)' }}
+                        style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                       >
-                        {weatherLoading ? '🔄 Refreshing...' : '🔄 Refresh'}
+                        {weatherLoading ? 'Refreshing...' : 'Refresh'}
                       </button>
                     )}
                     <select
                       value={cropFilter}
                       onChange={(e) => setCropFilter(e.target.value)}
-                      className="px-3 py-2 text-xs font-bold bg-white text-lime-600 border-2 border-lime-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 uppercase"
+                      className="px-3 py-2 text-xs font-bold bg-white text-black border-2 border-lime-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 uppercase"
                       title="Filter by crop"
-                      style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.3)' }}
+                      style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                     >
-                      <option value="all">🌾 All Crops</option>
+                      <option value="all">All Crops</option>
                       {availableCrops.map(crop => (
                         <option key={crop} value={crop}>{crop}</option>
                       ))}
@@ -3353,11 +3332,11 @@ const AdminDashboard = () => {
                     <select
                       value={monthFilter}
                       onChange={(e) => setMonthFilter(e.target.value)}
-                      className="px-3 py-2 text-xs font-bold bg-white text-lime-600 border-2 border-lime-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 uppercase"
+                      className="px-3 py-2 text-xs font-bold bg-white text-black border-2 border-lime-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 uppercase"
                       title="Filter by month"
-                      style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.3)' }}
+                      style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                     >
-                      <option value="all">📅 All Months</option>
+                      <option value="all">All Months</option>
                       <option value="1">Jan</option>
                       <option value="2">Feb</option>
                       <option value="3">Mar</option>
@@ -3374,11 +3353,11 @@ const AdminDashboard = () => {
                     <select
                       value={yearFilter}
                       onChange={(e) => setYearFilter(e.target.value)}
-                      className="px-3 py-2 text-xs font-bold bg-white text-lime-600 border-2 border-lime-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 uppercase"
+                      className="px-3 py-2 text-xs font-bold bg-white text-black border-2 border-lime-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 uppercase"
                       title="Filter by year"
-                      style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.3)' }}
+                      style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                     >
-                      <option value="all">📆 All Years</option>
+                      <option value="all">All Years</option>
                       {Array.from({ length: 2025 - 1990 + 1 }, (_, i) => 1990 + i).map(y => (
                         <option key={y} value={y}>{y}</option>
                       ))}
@@ -3386,67 +3365,54 @@ const AdminDashboard = () => {
                   </div>
                 </div>
                 
-                <div className="w-full h-[420px] rounded-xl border-4 border-lime-500 overflow-hidden relative z-10 shadow-2xl" style={{ boxShadow: '0 0 40px rgba(132, 204, 22, 0.8), inset 0 0 40px rgba(132, 204, 22, 0.15)' }}>
-                  {/* Enhanced Map Border Glow Effect */}
-                  <div className="absolute inset-0 pointer-events-none z-20 animate-pulse" style={{ 
-                    boxShadow: 'inset 0 0 30px rgba(132, 204, 22, 0.4)',
-                    border: '2px solid rgba(132, 204, 22, 0.3)'
-                  }}></div>
-                  {/* Corner Indicators for Map */}
-                  <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-lime-400 z-20 opacity-70"></div>
-                  <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-lime-400 z-20 opacity-70"></div>
-                  <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-lime-400 z-20 opacity-70"></div>
-                  <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-lime-400 z-20 opacity-70"></div>
+                <div className="w-full h-[420px] rounded-lg border-2 border-lime-500 overflow-hidden relative z-10" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.4)' }}>
                   <div ref={overviewMapRef} className="w-full h-full" />
                 </div>
                 
-                {/* Weather Legend - Enhanced Blockchain Style */}
+                {/* Weather Legend - Minimalist Blockchain Style */}
                 {showWeatherOverlay && (
-                  <div className="mt-6 p-5 bg-white rounded-xl border-4 border-lime-500 relative z-10 shadow-xl overflow-hidden" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6), inset 0 0 20px rgba(132, 204, 22, 0.1)' }}>
-                    {/* Top Glow Line */}
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-lime-400 to-transparent animate-pulse"></div>
-                    
+                  <div className="mt-6 p-5 bg-white rounded-lg border-2 border-lime-500 relative z-10" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
                     <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
-                      <div className="w-2 h-8 bg-gradient-to-b from-lime-400 to-lime-600 mr-3 rounded animate-pulse" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.9)' }}></div>
+                      <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
+                        <Cloud size={18} className="text-lime-500" />
+                      </div>
                       <div>
-                        <h4 className="text-base font-black text-lime-600 uppercase tracking-wider">
-                          🌤️ Weather Status Protocol
-                        </h4>
-                        <span className="text-[10px] text-gray-600 flex items-center gap-1 mt-0.5">
-                          <span className="w-1 h-1 bg-lime-500 rounded-full animate-pulse"></span>
-                          Real-time Monitoring
+                        <h4 className="text-sm font-black text-black uppercase tracking-wider">Weather Status</h4>
+                        <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                          <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
+                          Real-time Data
                         </span>
                       </div>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
-                      <div className="flex items-center gap-2 bg-lime-50 p-3 rounded-lg border-2 border-lime-400 hover:border-lime-500 transition-all" style={{ boxShadow: '0 2px 8px rgba(132, 204, 22, 0.2)' }}>
-                        <div className="w-4 h-4 rounded-full bg-green-500 flex-shrink-0 animate-pulse" style={{ boxShadow: '0 0 10px rgba(34, 197, 94, 0.8)' }}></div>
-                        <span className="text-gray-700 font-semibold">🟢 Excellent (Sunny)</span>
+                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
+                        <div className="w-3 h-3 rounded-full bg-green-500 flex-shrink-0"></div>
+                        <span className="text-gray-700 font-semibold">Excellent</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-lime-50 p-3 rounded-lg border-2 border-lime-400 hover:border-lime-500 transition-all" style={{ boxShadow: '0 2px 8px rgba(132, 204, 22, 0.2)' }}>
-                        <div className="w-4 h-4 rounded-full bg-blue-500 flex-shrink-0 animate-pulse" style={{ boxShadow: '0 0 10px rgba(59, 130, 246, 0.8)' }}></div>
-                        <span className="text-gray-700 font-semibold">🔵 Good (Partly Cloudy)</span>
+                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
+                        <div className="w-3 h-3 rounded-full bg-blue-500 flex-shrink-0"></div>
+                        <span className="text-gray-700 font-semibold">Good</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-lime-50 p-3 rounded-lg border-2 border-lime-400 hover:border-lime-500 transition-all" style={{ boxShadow: '0 2px 8px rgba(132, 204, 22, 0.2)' }}>
-                        <div className="w-4 h-4 rounded-full bg-yellow-500 flex-shrink-0 animate-pulse" style={{ boxShadow: '0 0 10px rgba(234, 179, 8, 0.8)' }}></div>
-                        <span className="text-gray-700 font-semibold">🟡 Moderate (Cloudy)</span>
+                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
+                        <div className="w-3 h-3 rounded-full bg-yellow-500 flex-shrink-0"></div>
+                        <span className="text-gray-700 font-semibold">Moderate</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-lime-50 p-3 rounded-lg border-2 border-lime-400 hover:border-lime-500 transition-all" style={{ boxShadow: '0 2px 8px rgba(132, 204, 22, 0.2)' }}>
-                        <div className="w-4 h-4 rounded-full bg-orange-500 flex-shrink-0 animate-pulse" style={{ boxShadow: '0 0 10px rgba(249, 115, 22, 0.8)' }}></div>
-                        <span className="text-gray-700 font-semibold">🟠 Caution (Light Rain)</span>
+                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
+                        <div className="w-3 h-3 rounded-full bg-orange-500 flex-shrink-0"></div>
+                        <span className="text-gray-700 font-semibold">Caution</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-lime-50 p-3 rounded-lg border-2 border-lime-400 hover:border-lime-500 transition-all" style={{ boxShadow: '0 2px 8px rgba(132, 204, 22, 0.2)' }}>
-                        <div className="w-4 h-4 rounded-full bg-red-500 flex-shrink-0 animate-pulse" style={{ boxShadow: '0 0 10px rgba(239, 68, 68, 0.8)' }}></div>
-                        <span className="text-gray-700 font-semibold">🔴 Warning (Heavy Rain)</span>
+                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
+                        <div className="w-3 h-3 rounded-full bg-red-500 flex-shrink-0"></div>
+                        <span className="text-gray-700 font-semibold">Warning</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-lime-50 p-3 rounded-lg border-2 border-lime-400 hover:border-lime-500 transition-all" style={{ boxShadow: '0 2px 8px rgba(132, 204, 22, 0.2)' }}>
-                        <div className="w-4 h-4 rounded-full bg-red-700 flex-shrink-0 animate-pulse" style={{ boxShadow: '0 0 10px rgba(185, 28, 28, 0.8)' }}></div>
-                        <span className="text-gray-700 font-semibold">⚫ Danger (Thunderstorm)</span>
+                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
+                        <div className="w-3 h-3 rounded-full bg-red-700 flex-shrink-0"></div>
+                        <span className="text-gray-700 font-semibold">Danger</span>
                       </div>
                     </div>
-                    <div className="mt-4 pt-4 border-t-2 border-lime-400 text-xs text-gray-700 flex items-center bg-gradient-to-r from-lime-50 to-lime-100 p-3 rounded-lg">
-                      <span className="text-lime-600 mr-2 font-bold text-base">►</span>
-                      <span className="font-medium">Click markers for detailed weather data & blockchain-verified farming recommendations</span>
+                    <div className="mt-4 pt-4 border-t-2 border-lime-500 text-xs text-gray-700 flex items-center bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
+                      <span className="text-lime-500 mr-2 font-bold">►</span>
+                      <span className="font-medium">Click markers for detailed weather data</span>
                     </div>
                   </div>
                 )}

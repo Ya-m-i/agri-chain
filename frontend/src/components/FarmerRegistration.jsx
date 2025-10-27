@@ -916,47 +916,39 @@ const FarmerRegistration = ({
             <div className="absolute bottom-10 right-10 w-32 h-0.5 bg-gradient-to-l from-lime-500 to-transparent opacity-60 z-10"></div>
             
             <div className="sticky top-0 bg-white border-b-4 border-lime-500 p-6 flex justify-between items-center z-20 relative" style={{ boxShadow: '0 6px 20px rgba(132, 204, 22, 0.4)' }}>
-              <div className="flex items-center">
-                <div className="mr-4 p-3 bg-lime-500 rounded-lg animate-pulse" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.8)' }}>
-                  <UserPlus className="h-8 w-8 text-white" />
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-black rounded-lg animate-pulse" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.8)' }}>
+                  <UserPlus className="h-7 w-7 text-lime-500" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-black text-black mb-1 tracking-wide" style={{ textShadow: '2px 2px 6px rgba(132, 204, 22, 0.4)' }}>
-                    ⛓️ BLOCKCHAIN FARMER REGISTRATION
-                  </h2>
-                  <div className="flex items-center gap-3">
-                    <span className="flex items-center text-xs text-gray-600">
-                      <span className="w-2 h-2 bg-lime-500 rounded-full mr-2 animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
-                      Secure & Immutable System
-                    </span>
-                    <span className="text-xs text-lime-600 font-bold px-2 py-1 bg-lime-100 rounded-full border border-lime-400">
-                      VERIFIED NODE
-                    </span>
+                  <h2 className="text-xl font-black text-black tracking-wide uppercase">⛓️ Register Farmer</h2>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
+                    <span className="text-[10px] text-gray-600 uppercase tracking-wider">Blockchain Protocol</span>
                   </div>
                 </div>
               </div>
               <button
-                className="text-lime-500 hover:text-lime-600 focus:outline-none transition-all hover:rotate-90 duration-300"
+                type="button"
                 onClick={() => setShowRegisterForm(false)}
+                className="text-lime-500 hover:text-lime-600 focus:outline-none transition-all hover:rotate-90 duration-300"
                 style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.6))' }}
               >
-                <X size={32} strokeWidth={3} />
+                <X size={28} strokeWidth={3} />
               </button>
             </div>
 
             <div className="p-6 md:p-8 relative z-10">
               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Personal Information Block - Enhanced Blockchain Style */}
-                <div className="bg-white rounded-xl shadow-2xl p-5 border-4 border-lime-500 relative overflow-hidden" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6), inset 0 0 20px rgba(132, 204, 22, 0.1)' }}>
-                  {/* Glowing Effect Lines */}
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-lime-400 to-transparent animate-pulse"></div>
-                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500 relative">
-                    <div className="p-2 bg-gradient-to-br from-lime-400 to-lime-600 rounded-lg mr-3 animate-pulse" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.8)' }}>
-                      <User size={20} className="text-white" />
+                {/* Personal Information Block - Minimalist Blockchain Style */}
+                <div className="bg-white rounded-lg p-5 border-2 border-lime-500 relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
+                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
+                      <User size={18} className="text-lime-500" />
                     </div>
                     <div>
-                      <h3 className="text-base font-black text-lime-600 uppercase tracking-wider">Personal Data</h3>
-                      <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Personal Data</h3>
+                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
                         <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
                         Blockchain Record
                       </span>
@@ -1055,17 +1047,15 @@ const FarmerRegistration = ({
                   </div>
                 </div>
 
-                {/* Address Information Block - Enhanced Blockchain Style */}
-                <div className="bg-white rounded-xl shadow-2xl p-5 border-4 border-lime-500 relative overflow-hidden" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6), inset 0 0 20px rgba(132, 204, 22, 0.1)' }}>
-                  {/* Glowing Effect Lines */}
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-lime-400 to-transparent animate-pulse"></div>
-                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500 relative">
-                    <div className="p-2 bg-gradient-to-br from-lime-400 to-lime-600 rounded-lg mr-3 animate-pulse" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.8)' }}>
-                      <MapPin size={20} className="text-white" />
+                {/* Address Information Block - Minimalist Blockchain Style */}
+                <div className="bg-white rounded-lg p-5 border-2 border-lime-500 relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
+                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
+                      <MapPin size={18} className="text-lime-500" />
                     </div>
                     <div>
-                      <h3 className="text-base font-black text-lime-600 uppercase tracking-wider">Location Data</h3>
-                      <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Location Data</h3>
+                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
                         <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
                         GPS Verified
                       </span>
@@ -1098,17 +1088,15 @@ const FarmerRegistration = ({
                   </div>
                 </div>
 
-                {/* Farm Information Block - Enhanced Blockchain Style */}
-                <div className="bg-white rounded-xl shadow-2xl p-5 border-4 border-lime-500 relative overflow-hidden" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6), inset 0 0 20px rgba(132, 204, 22, 0.1)' }}>
-                  {/* Glowing Effect Lines */}
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-lime-400 to-transparent animate-pulse"></div>
-                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500 relative">
-                    <div className="p-2 bg-gradient-to-br from-lime-400 to-lime-600 rounded-lg mr-3 animate-pulse" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.8)' }}>
-                      <Layers size={20} className="text-white" />
+                {/* Farm Information Block - Minimalist Blockchain Style */}
+                <div className="bg-white rounded-lg p-5 border-2 border-lime-500 relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
+                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
+                      <Layers size={18} className="text-lime-500" />
                     </div>
                     <div>
-                      <h3 className="text-base font-black text-lime-600 uppercase tracking-wider">Farm Registry</h3>
-                      <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Farm Registry</h3>
+                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
                         <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
                         Immutable Ledger
                       </span>
@@ -1131,17 +1119,15 @@ const FarmerRegistration = ({
                   </div>
                 </div>
 
-                {/* Lot Information Block - Enhanced Blockchain Style */}
-                <div className="bg-white rounded-xl shadow-2xl p-5 border-4 border-lime-500 relative overflow-hidden" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6), inset 0 0 20px rgba(132, 204, 22, 0.1)' }}>
-                  {/* Glowing Effect Lines */}
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-lime-400 to-transparent animate-pulse"></div>
-                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500 relative">
-                    <div className="p-2 bg-gradient-to-br from-lime-400 to-lime-600 rounded-lg mr-3 animate-pulse" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.8)' }}>
-                      <MapPin size={20} className="text-white" />
+                {/* Lot Information Block - Minimalist Blockchain Style */}
+                <div className="bg-white rounded-lg p-5 border-2 border-lime-500 relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
+                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
+                      <MapPin size={18} className="text-lime-500" />
                     </div>
                     <div>
-                      <h3 className="text-base font-black text-lime-600 uppercase tracking-wider">Lot Registry</h3>
-                      <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Lot Registry</h3>
+                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
                         <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
                         Verified Node
                       </span>
@@ -1199,50 +1185,45 @@ const FarmerRegistration = ({
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3 py-4 bg-lime-50 p-4 rounded-xl border-3 border-lime-500 relative overflow-hidden" style={{ boxShadow: '0 4px 15px rgba(132, 204, 22, 0.3)' }}>
-                  <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-lime-400 to-transparent"></div>
+                <div className="flex items-center space-x-3 py-3 bg-white p-4 rounded-lg border-2 border-lime-500" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}>
                   <input
                     type="checkbox"
                     id="isCertified"
                     name="isCertified"
                     checked={formData.isCertified || false}
                     onChange={handleChange}
-                    className="w-6 h-6 text-lime-600 bg-white border-2 border-lime-500 rounded-md focus:ring-2 focus:ring-lime-400"
+                    className="w-5 h-5 text-lime-600 bg-white border-2 border-lime-500 rounded focus:ring-2 focus:ring-lime-400"
                   />
-                  <label htmlFor="isCertified" className="text-black font-black uppercase text-sm tracking-wide flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-lime-600" />
+                  <label htmlFor="isCertified" className="text-black font-bold uppercase text-sm tracking-wide">
                     Certified Farmer
                   </label>
                 </div>
-                {/* RSBSA Registered checkbox - Enhanced */}
-                <div className="flex items-center space-x-3 py-4 bg-lime-50 p-4 rounded-xl border-3 border-lime-500 relative overflow-hidden" style={{ boxShadow: '0 4px 15px rgba(132, 204, 22, 0.3)' }}>
-                  <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-lime-400 to-transparent"></div>
+                {/* RSBSA Registered checkbox - Minimalist */}
+                <div className="flex items-center space-x-3 py-3 bg-white p-4 rounded-lg border-2 border-lime-500" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}>
                   <input
                     type="checkbox"
                     id="rsbsaRegistered"
                     name="rsbsaRegistered"
                     checked={formData.rsbsaRegistered || false}
                     onChange={handleChange}
-                    className="w-6 h-6 text-lime-600 bg-white border-2 border-lime-500 rounded-md focus:ring-2 focus:ring-lime-400"
+                    className="w-5 h-5 text-lime-600 bg-white border-2 border-lime-500 rounded focus:ring-2 focus:ring-lime-400"
                   />
-                  <label htmlFor="rsbsaRegistered" className="text-black font-black uppercase text-sm tracking-wide">
-                    RSBSA Registered <span className="text-xs text-gray-600 normal-case font-normal">(Required for assistance)</span>
+                  <label htmlFor="rsbsaRegistered" className="text-black font-bold uppercase text-sm tracking-wide">
+                    RSBSA Registered <span className="text-xs text-gray-600 normal-case font-normal">(Required)</span>
                   </label>
                 </div>
 
-                {/* Farmer Account Information - Enhanced Blockchain Style */}
-                <div className="md:col-span-2 border-t-4 border-lime-500 pt-6 mt-6 relative">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-lime-500 via-lime-400 to-lime-500 animate-pulse" style={{ filter: 'blur(2px)' }}></div>
-                  <div className="flex items-center mb-6 pb-4 border-b-2 border-lime-400">
-                    <div className="w-2 h-12 bg-gradient-to-b from-lime-400 to-lime-600 mr-4 rounded animate-pulse" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.9)' }}></div>
+                {/* Farmer Account Information - Minimalist Blockchain Style */}
+                <div className="md:col-span-2 border-t-2 border-lime-500 pt-6 mt-6">
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
+                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
+                      <User size={18} className="text-lime-500" />
+                    </div>
                     <div>
-                      <h3 className="text-xl font-black text-lime-600 flex items-center uppercase tracking-wider">
-                        <User className="mr-3 h-7 w-7" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }} />
-                        Account Protocol
-                      </h3>
-                      <span className="text-xs text-gray-600 flex items-center gap-2 mt-1">
-                        <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse"></span>
-                        Encrypted Blockchain Credentials
+                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Account Protocol</h3>
+                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
+                        Encrypted Credentials
                       </span>
                     </div>
                   </div>
@@ -1284,42 +1265,31 @@ const FarmerRegistration = ({
                       </div>
                     </div>
                   </div>
-                  <div className="relative mt-4 p-4 bg-gradient-to-br from-lime-50 to-lime-100 rounded-xl border-2 border-lime-400 overflow-hidden" style={{ boxShadow: '0 4px 15px rgba(132, 204, 22, 0.2)' }}>
-                    <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-lime-500 to-transparent"></div>
+                  <div className="mt-3 p-3 bg-white rounded-lg border-2 border-lime-500" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}>
                     <p className="text-xs text-gray-700 flex items-center">
-                      <span className="text-lime-500 mr-2 font-bold text-base">►</span>
-                      Secure blockchain-encrypted credentials for farmer dashboard access and claim submissions
+                      <span className="text-lime-500 mr-2 font-bold">►</span>
+                      Secure blockchain-encrypted credentials for farmer dashboard access
                     </p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <div className="flex items-center gap-1">
-                        <div className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse"></div>
-                        <span className="text-[10px] text-gray-600">256-bit encryption</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <div className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-                        <span className="text-[10px] text-gray-600">Immutable ledger</span>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
-                <div className="md:col-span-2 flex gap-4 pt-6 border-t-4 border-lime-500 mt-6 relative">
-                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-lime-500 via-lime-400 to-lime-500"></div>
+                <div className="md:col-span-2 flex gap-3 pt-6 border-t-2 border-lime-500 mt-6">
                   <button
                     type="button"
                     onClick={() => setShowRegisterForm(false)}
-                    className="flex-1 bg-white text-gray-700 border-3 border-gray-400 px-6 py-4 rounded-xl hover:bg-gray-100 hover:border-gray-500 transition-all font-black uppercase tracking-wide text-sm shadow-lg hover:shadow-xl"
+                    className="flex-1 bg-white text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-black hover:text-white transition-all font-bold uppercase tracking-wide text-sm"
                   >
-                    ✕ Cancel
+                    Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 bg-gradient-to-r from-lime-500 to-lime-600 text-white px-6 py-4 rounded-xl hover:from-lime-400 hover:to-lime-500 transition-all flex items-center justify-center font-black uppercase tracking-wide text-sm relative overflow-hidden group"
-                    style={{ boxShadow: '0 6px 30px rgba(132, 204, 22, 0.7)' }}
+                    className="flex-1 bg-black text-lime-500 px-6 py-3 rounded-lg hover:bg-lime-500 hover:text-black transition-all font-bold uppercase tracking-wide text-sm relative overflow-hidden group border-2 border-black hover:border-lime-500"
+                    style={{ boxShadow: '0 4px 20px rgba(132, 204, 22, 0.5)' }}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-30 group-hover:animate-[shimmer_1s_ease-in-out] transform -skew-x-12"></div>
-                    <UserPlus className="mr-2 h-6 w-6 animate-pulse" />
-                    Register to Blockchain
+                    <span className="relative z-10 flex items-center justify-center gap-2">
+                      <UserPlus className="w-5 h-5" />
+                      Register
+                    </span>
                   </button>
                 </div>
               </form>

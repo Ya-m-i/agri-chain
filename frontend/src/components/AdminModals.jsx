@@ -339,20 +339,55 @@ const AdminModals = ({
 
       {/* Event Modal */}
       {showEventModal && (
-        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4 text-lime-800">Add Government Assistance</h2>
-            <form onSubmit={handleEventSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Assistance Type</label>
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-lime-500 rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto hide-scrollbar relative animate-[fadeIn_0.3s_ease-in]" style={{ boxShadow: '0 0 60px rgba(132, 204, 22, 0.8), 0 0 100px rgba(132, 204, 22, 0.4)' }}>
+            {/* Corner Accents */}
+            <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            
+            {/* Decorative Lines */}
+            <div className="absolute top-8 left-8 w-24 h-0.5 bg-gradient-to-r from-lime-500 to-transparent opacity-60 z-10"></div>
+            <div className="absolute top-8 right-8 w-24 h-0.5 bg-gradient-to-l from-lime-500 to-transparent opacity-60 z-10"></div>
+            
+            {/* Header */}
+            <div className="sticky top-0 bg-white border-b-4 border-lime-500 p-6 flex justify-between items-center z-20 relative" style={{ boxShadow: '0 6px 20px rgba(132, 204, 22, 0.4)' }}>
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-black rounded-lg animate-pulse" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.8)' }}>
+                  <HandHeart className="h-7 w-7 text-lime-500" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-black tracking-wide uppercase">⛓️ Add Assistance</h2>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
+                    <span className="text-[10px] text-gray-600 uppercase tracking-wider">Blockchain Protocol</span>
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEventModal(false)}
+                className="text-lime-500 hover:text-lime-600 focus:outline-none transition-all hover:rotate-90 duration-300"
+                style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.6))' }}
+              >
+                <X size={28} strokeWidth={3} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleEventSubmit} className="p-6 space-y-4 relative z-10">
+              {/* Assistance Type */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Assistance Type</label>
                 <select
                   name="assistanceType"
                   value={eventForm.assistanceType || ""}
                   onChange={handleEventChange}
-                  className="mt-1 block w-full border border-gray-300 rounded px-3 py-2 text-gray-700"
+                  className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                  style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                   required
                 >
-                  <option value="">Select Assistance Type</option>
+                  <option value="">Select Type</option>
                   <option value="Seed Distribution">🌱 Seed Distribution</option>
                   <option value="Fertilizer Subsidy">💊 Fertilizer Subsidy</option>
                   <option value="Machinery Support">🚜 Machinery Support</option>
@@ -361,121 +396,158 @@ const AdminModals = ({
                   <option value="Training & Tools">🧪 Training & Tools</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Description</label>
+              
+              {/* Description */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Description</label>
                 <textarea
                   name="description"
                   value={eventForm.description || ""}
                   onChange={handleEventChange}
-                  className="mt-1 block w-full border border-gray-300 rounded px-3 py-2 text-gray-700"
+                  className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600 resize-none"
+                  style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                  rows="3"
                   required
-                  placeholder="Describe the assistance (e.g., variety, details, etc.)"
+                  placeholder="Describe the assistance details..."
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Crop Type</label>
+              
+              {/* Crop Type */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Crop Type</label>
                 <select
                   name="cropType"
                   value={eventForm.cropType}
                   onChange={handleEventChange}
-                  className="mt-1 block w-full border border-gray-300 rounded px-3 py-2 text-gray-700"
+                  className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                  style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                   required
                 >
-                  <option value="">Select Crop Type</option>
-                  <option value="Rice">Rice</option>
-                  <option value="Corn">Corn</option>
-                  <option value="Vegetables">Vegetables</option>
-                  <option value="Banana">Banana</option>
-                  <option value="Coconut">Coconut</option>
-                  <option value="Other">Other</option>
+                  <option value="">Select Crop</option>
+                  <option value="Rice">🌾 Rice</option>
+                  <option value="Corn">🌽 Corn</option>
+                  <option value="Vegetables">🥬 Vegetables</option>
+                  <option value="Banana">🍌 Banana</option>
+                  <option value="Coconut">🥥 Coconut</option>
+                  <option value="Other">📝 Other</option>
                 </select>
               </div>
+              
+              {/* Other Crop Type (conditional) */}
               {eventForm.cropType === "Other" && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Specify Crop Type</label>
+                <div className="space-y-2 animate-[fadeIn_0.3s_ease-in]">
+                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Specify Crop Type</label>
                   <input
                     type="text"
                     name="otherCropType"
                     value={eventForm.otherCropType || ""}
                     onChange={handleEventChange}
-                    className="mt-1 block w-full border border-gray-300 rounded px-3 py-2 text-gray-700"
+                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                     required
-                    placeholder="Enter crop type"
+                    placeholder="Enter crop type..."
                   />
                 </div>
               )}
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Founder Name</label>
+              
+              {/* Founder Name */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Founder/Agency Name</label>
                 <input
                   type="text"
                   name="founderName"
                   value={eventForm.founderName}
                   onChange={handleEventChange}
-                  className="mt-1 block w-full border border-gray-300 rounded px-3 py-2 text-gray-700"
+                  className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                  style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                   required
+                  placeholder="e.g., DA-PCIC, LGU..."
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Quantity</label>
-                <input
-                  type="number"
-                  name="quantity"
-                  value={eventForm.quantity}
-                  onChange={handleEventChange}
-                  className="mt-1 block w-full border border-gray-300 rounded px-3 py-2 text-gray-700"
-                  required
-                  min="1"
-                />
+              
+              {/* Quantity & Date Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Quantity</label>
+                  <input
+                    type="number"
+                    name="quantity"
+                    value={eventForm.quantity}
+                    onChange={handleEventChange}
+                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                    required
+                    min="1"
+                    placeholder="0"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Date Added</label>
+                  <input
+                    type="date"
+                    name="dateAdded"
+                    value={eventForm.dateAdded}
+                    onChange={handleEventChange}
+                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                    required
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Date Added</label>
-                <input
-                  type="date"
-                  name="dateAdded"
-                  value={eventForm.dateAdded}
-                  onChange={handleEventChange}
-                  className="mt-1 block w-full border border-gray-300 rounded px-3 py-2 text-gray-700"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Photo/Logo</label>
-                <input
-                  type="file"
-                  name="photo"
-                  accept="image/*"
-                  onChange={e => {
-                    const file = e.target.files && e.target.files[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (ev) => {
-                        handleEventChange({
-                          target: {
-                            name: 'photo',
-                            value: ev.target.result,
-                            type: 'text',
-                          }
-                        });
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
-                  className="mt-1 block w-full border border-gray-300 rounded px-3 py-2 text-gray-700"
-                />
+              
+              {/* Photo Upload */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Photo/Logo</label>
+                <div className="relative">
+                  <input
+                    type="file"
+                    name="photo"
+                    accept="image/*"
+                    onChange={e => {
+                      const file = e.target.files && e.target.files[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          handleEventChange({
+                            target: {
+                              name: 'photo',
+                              value: ev.target.result,
+                              type: 'text',
+                            }
+                          });
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-black file:text-lime-500 hover:file:bg-lime-500 hover:file:text-black file:transition-all"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                  />
+                </div>
                 {eventForm.photo && (
-                  <img src={eventForm.photo} alt="Preview" className="mt-2 h-20 object-contain rounded border" />
+                  <div className="mt-3 p-2 border-2 border-lime-400 rounded-lg bg-lime-50">
+                    <img src={eventForm.photo} alt="Preview" className="h-24 object-contain mx-auto rounded" />
+                  </div>
                 )}
               </div>
-              <div className="flex justify-end gap-2 pt-4">
+              
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-6 border-t-2 border-lime-500 mt-6">
                 <button
                   type="button"
                   onClick={() => setShowEventModal(false)}
-                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                  className="flex-1 bg-white text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-black hover:text-white transition-all font-bold uppercase tracking-wide text-sm"
                 >
                   Cancel
                 </button>
-                <button type="submit" className="px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-600">
-                  Save
+                <button 
+                  type="submit" 
+                  className="flex-1 bg-black text-lime-500 px-6 py-3 rounded-lg hover:bg-lime-500 hover:text-black transition-all font-bold uppercase tracking-wide text-sm relative overflow-hidden group border-2 border-black hover:border-lime-500"
+                  style={{ boxShadow: '0 4px 20px rgba(132, 204, 22, 0.5)' }}
+                >
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    <Plus className="w-5 h-5" />
+                    Save
+                  </span>
                 </button>
               </div>
             </form>

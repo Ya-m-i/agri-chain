@@ -617,37 +617,46 @@ const CropInsuranceManagement = () => {
         )}
       </div>
 
-      {/* Add New Crop Modal - Blockchain Style */}
+      {/* Add New Crop Modal - Minimalist Blockchain Style */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto border-4 border-lime-500 relative" style={{ boxShadow: '0 0 40px rgba(132, 204, 22, 0.6)' }}>
+        <div className="fixed inset-0 bg-black bg-opacity-90 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto hide-scrollbar border-4 border-lime-500 relative animate-[fadeIn_0.3s_ease-in]" style={{ boxShadow: '0 0 60px rgba(132, 204, 22, 0.8), 0 0 100px rgba(132, 204, 22, 0.4)' }}>
             {/* Corner Accents */}
-            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-lime-400 pointer-events-none"></div>
-            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-lime-400 pointer-events-none"></div>
-            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-lime-400 pointer-events-none"></div>
-            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-lime-400 pointer-events-none"></div>
+            <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
             
-            <div className="flex justify-between items-center mb-6 relative z-10 border-b-2 border-lime-500 pb-4" style={{ boxShadow: '0 2px 10px rgba(132, 204, 22, 0.2)' }}>
-              <div>
-                <h3 className="text-2xl font-bold text-black mb-1" style={{ textShadow: '2px 2px 4px rgba(132, 204, 22, 0.3)' }}>
-                  ⛓️ ADD NEW CROP INSURANCE
-                </h3>
-                <p className="text-xs text-gray-600 flex items-center">
-                  <span className="w-2 h-2 bg-lime-500 rounded-full mr-2 animate-pulse"></span>
-                  Blockchain-Verified Insurance Protocol
-                </p>
+            {/* Decorative Lines */}
+            <div className="absolute top-8 left-8 w-24 h-0.5 bg-gradient-to-r from-lime-500 to-transparent opacity-60 z-10"></div>
+            <div className="absolute top-8 right-8 w-24 h-0.5 bg-gradient-to-l from-lime-500 to-transparent opacity-60 z-10"></div>
+            
+            <div className="sticky top-0 bg-white border-b-4 border-lime-500 p-6 flex justify-between items-center z-20 relative" style={{ boxShadow: '0 6px 20px rgba(132, 204, 22, 0.4)' }}>
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-black rounded-lg animate-pulse" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.8)' }}>
+                  <Shield className="h-7 w-7 text-lime-500" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-black tracking-wide uppercase">⛓️ Add Insurance</h3>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
+                    <span className="text-[10px] text-gray-600 uppercase tracking-wider">Blockchain Protocol</span>
+                  </div>
+                </div>
               </div>
               <button
+                type="button"
                 onClick={() => setShowAddModal(false)}
-                className="text-lime-500 hover:text-lime-600 transition-colors"
+                className="text-lime-500 hover:text-lime-600 focus:outline-none transition-all hover:rotate-90 duration-300"
+                style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.6))' }}
               >
-                <X size={28} />
+                <X size={28} strokeWidth={3} />
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
+            <form onSubmit={handleSubmit} className="p-6 space-y-4 relative z-10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-lime-600 mb-2 uppercase tracking-wide">
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
                     Farmer
                   </label>
                   <select
@@ -655,8 +664,8 @@ const CropInsuranceManagement = () => {
                     value={formData.farmerId}
                     onChange={handleFormChange}
                     required
-                    className="w-full p-3 border-2 border-lime-500 rounded-lg focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all"
-                    style={{ boxShadow: '0 2px 8px rgba(132, 204, 22, 0.2)' }}
+                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                   >
                     <option value="">Select Farmer</option>
                     {farmers.map((farmer) => (
@@ -666,8 +675,8 @@ const CropInsuranceManagement = () => {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-lime-600 mb-2 uppercase tracking-wide">
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
                     Crop Type
                   </label>
                   <select
@@ -675,8 +684,8 @@ const CropInsuranceManagement = () => {
                     value={formData.cropType}
                     onChange={handleFormChange}
                     required
-                    className="w-full p-3 border-2 border-lime-500 rounded-lg focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all"
-                    style={{ boxShadow: '0 2px 8px rgba(132, 204, 22, 0.2)' }}
+                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                   >
                     <option value="">Select Crop Type</option>
                     {Object.keys(cropConfigurations).map((crop) => (
@@ -686,8 +695,8 @@ const CropInsuranceManagement = () => {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-lime-600 mb-2 uppercase tracking-wide">
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
                     Crop Area (hectares)
                   </label>
                   <input
@@ -697,12 +706,12 @@ const CropInsuranceManagement = () => {
                     onChange={handleFormChange}
                     required
                     step="0.01"
-                    className="w-full p-3 border-2 border-lime-500 rounded-lg focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all"
-                    style={{ boxShadow: '0 2px 8px rgba(132, 204, 22, 0.2)' }}
+                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-lime-600 mb-2 uppercase tracking-wide">
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
                     Lot Number
                   </label>
                   <input
@@ -711,12 +720,12 @@ const CropInsuranceManagement = () => {
                     value={formData.lotNumber}
                     onChange={handleFormChange}
                     required
-                    className="w-full p-3 border-2 border-lime-500 rounded-lg focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all"
-                    style={{ boxShadow: '0 2px 8px rgba(132, 204, 22, 0.2)' }}
+                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-lime-600 mb-2 uppercase tracking-wide">
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
                     Lot Area (hectares)
                   </label>
                   <input
@@ -726,12 +735,12 @@ const CropInsuranceManagement = () => {
                     onChange={handleFormChange}
                     required
                     step="0.01"
-                    className="w-full p-3 border-2 border-lime-500 rounded-lg focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all"
-                    style={{ boxShadow: '0 2px 8px rgba(132, 204, 22, 0.2)' }}
+                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-lime-600 mb-2 uppercase tracking-wide">
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
                     Insurance Day Limit
                   </label>
                   <input
@@ -740,12 +749,12 @@ const CropInsuranceManagement = () => {
                     value={formData.insuranceDayLimit}
                     onChange={handleFormChange}
                     required
-                    className="w-full p-3 border-2 border-lime-500 rounded-lg focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all"
-                    style={{ boxShadow: '0 2px 8px rgba(132, 204, 22, 0.2)' }}
+                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-lime-600 mb-2 uppercase tracking-wide">
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
                     Planting Date
                   </label>
                   <input
@@ -754,12 +763,12 @@ const CropInsuranceManagement = () => {
                     value={formData.plantingDate}
                     onChange={handleFormChange}
                     required
-                    className="w-full p-3 border-2 border-lime-500 rounded-lg focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all"
-                    style={{ boxShadow: '0 2px 8px rgba(132, 204, 22, 0.2)' }}
+                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-lime-600 mb-2 uppercase tracking-wide">
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
                     Expected Harvest Date
                   </label>
                   <input
@@ -768,13 +777,13 @@ const CropInsuranceManagement = () => {
                     value={formData.expectedHarvestDate}
                     onChange={handleFormChange}
                     required
-                    className="w-full p-3 border-2 border-lime-500 rounded-lg focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all"
-                    style={{ boxShadow: '0 2px 8px rgba(132, 204, 22, 0.2)' }}
+                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                   />
                 </div>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-lime-600 mb-2 uppercase tracking-wide">
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
                   Notes
                 </label>
                 <textarea
@@ -782,26 +791,29 @@ const CropInsuranceManagement = () => {
                   value={formData.notes}
                   onChange={handleFormChange}
                   rows="3"
-                  className="w-full p-3 border-2 border-lime-500 rounded-lg focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all"
-                  style={{ boxShadow: '0 2px 8px rgba(132, 204, 22, 0.2)' }}
+                  className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600 resize-none"
+                  style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                 />
               </div>
-              <div className="flex justify-end gap-3 pt-4 border-t-2 border-lime-500/30">
+              <div className="flex gap-3 pt-6 border-t-2 border-lime-500 mt-6">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-6 py-3 text-gray-700 bg-gray-100 border-2 border-gray-300 rounded-lg hover:bg-gray-200 hover:border-gray-400 transition-all font-bold uppercase text-sm"
+                  className="flex-1 bg-white text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-black hover:text-white transition-all font-bold uppercase tracking-wide text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-3 bg-lime-500 text-black rounded-lg hover:bg-lime-400 disabled:opacity-50 transition-all font-bold uppercase text-sm flex items-center gap-2"
-                  style={{ boxShadow: '0 4px 15px rgba(132, 204, 22, 0.5)' }}
+                  className="flex-1 bg-black text-lime-500 px-6 py-3 rounded-lg hover:bg-lime-500 hover:text-black disabled:opacity-50 transition-all font-bold uppercase tracking-wide text-sm relative overflow-hidden group border-2 border-black hover:border-lime-500"
+                  style={{ boxShadow: '0 4px 20px rgba(132, 204, 22, 0.5)' }}
                 >
-                  <Shield size={18} />
-                  {loading ? 'Processing...' : 'Create Record'}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-lime-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    <Shield className="w-5 h-5" />
+                    {loading ? 'Processing...' : 'Create Record'}
+                  </span>
                 </button>
               </div>
             </form>
