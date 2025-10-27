@@ -2348,7 +2348,7 @@ const AdminDashboard = () => {
                   className="h-32 w-32 object-contain"
                 />
               </button>
-              <h2 className="text-lg font-bold text-lime-500 text-center leading-tight">
+              <h2 className="text-sm font-bold text-lime-400 text-center leading-tight">
                 Kapalong Department Agriculture
               </h2>
             </div>
@@ -2495,7 +2495,7 @@ const AdminDashboard = () => {
                 />
               </button>
               <div className={`transition-all duration-300 overflow-hidden ${sidebarExpanded ? 'opacity-100 max-h-20' : 'opacity-0 max-h-0'}`}>
-                <h2 className="text-lg font-bold text-lime-500 text-center leading-tight">
+                <h2 className="text-sm font-bold text-lime-400 text-center leading-tight">
                   Kapalong Department Agriculture
                 </h2>
               </div>
@@ -2587,13 +2587,6 @@ const AdminDashboard = () => {
               {sidebarExpanded && <span>Distribution Records</span>}
             </button>
           </div>
-
-          {/* Separator */}
-          {sidebarExpanded && (
-            <div className="px-3">
-              <hr className="border-lime-500" />
-            </div>
-          )}
 
           {/* Secondary Navigation Section */}
           <div className="space-y-1 px-3">
