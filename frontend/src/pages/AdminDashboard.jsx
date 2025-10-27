@@ -3233,14 +3233,30 @@ const AdminDashboard = () => {
               </div>
 
               {/* Overview: Farmers Map (embedded) */}
-              <div className="bg-white rounded-2xl p-6 mt-6 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
+              <div className="bg-black rounded-2xl p-6 mt-6 border-2 border-lime-500 relative overflow-hidden" style={{ boxShadow: '0 0 25px rgba(132, 204, 22, 0.4)' }}>
+                {/* Corner Accents */}
+                <div className="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-lime-400"></div>
+                <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-lime-400"></div>
+                <div className="absolute bottom-0 left-0 w-12 h-12 border-b-2 border-l-2 border-lime-400"></div>
+                <div className="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-lime-400"></div>
+                
+                <div className="flex items-center justify-between mb-4 relative z-10">
                   <div className="flex items-center">
-                    <img src={locationImage} alt="Geo-Tagging Map" className="h-7 w-7 mr-2" />
-                    <h3 className="text-lg font-semibold text-gray-800">Geo-Tagging Map Overview</h3>
+                    <div className="p-2 bg-lime-500 rounded-lg mr-3" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.6)' }}>
+                      <img src={locationImage} alt="Geo-Tagging Map" className="h-7 w-7" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-lime-400" style={{ textShadow: '0 0 10px rgba(132, 204, 22, 0.8)' }}>
+                        🗺️ GEO-TAGGING MAP OVERVIEW
+                      </h3>
+                      <p className="text-xs text-gray-400 flex items-center mt-1">
+                        <span className="w-2 h-2 bg-lime-400 rounded-full mr-2 animate-pulse"></span>
+                        Blockchain-Verified Locations
+                      </p>
+                    </div>
                     {weatherLoading && (
-                      <div className="ml-3 flex items-center text-sm text-blue-600">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                      <div className="ml-4 flex items-center text-sm text-lime-400">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-lime-400 mr-2"></div>
                         Loading weather...
                       </div>
                     )}
@@ -3360,44 +3376,53 @@ const AdminDashboard = () => {
                   </div>
                 </div>
                 
-                <div className="w-full h-[420px] rounded-lg border-2 border-black overflow-hidden relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}>
-                  <div ref={overviewMapRef} className="w-full h-full z-10" />
+                <div className="w-full h-[420px] rounded-lg border-2 border-lime-500 overflow-hidden relative z-10" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.5), inset 0 0 30px rgba(132, 204, 22, 0.1)' }}>
+                  {/* Map Border Glow Effect */}
+                  <div className="absolute inset-0 pointer-events-none z-20" style={{ 
+                    boxShadow: 'inset 0 0 20px rgba(132, 204, 22, 0.3)',
+                    border: '1px solid rgba(132, 204, 22, 0.2)'
+                  }}></div>
+                  <div ref={overviewMapRef} className="w-full h-full" />
                 </div>
                 
-                {/* Weather Legend */}
+                {/* Weather Legend - Blockchain Style */}
                 {showWeatherOverlay && (
-                  <div className="mt-4 p-4 bg-lime-100 rounded-lg border border-lime-300">
-                    <h4 className="text-sm font-semibold text-gray-800 mb-3 flex items-center">
-                      🌤️ Weather Status Legend
-                    </h4>
+                  <div className="mt-4 p-4 bg-gray-900 rounded-lg border-2 border-lime-500 relative z-10" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
+                    <div className="flex items-center mb-3">
+                      <div className="w-1 h-6 bg-lime-500 mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.8)' }}></div>
+                      <h4 className="text-sm font-bold text-lime-400">
+                        🌤️ WEATHER STATUS PROTOCOL
+                      </h4>
+                    </div>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span className="text-gray-700">🟢 Excellent (Sunny, Clear)</span>
+                      <div className="flex items-center gap-2 bg-black p-2 rounded border border-lime-500/30">
+                        <div className="w-3 h-3 rounded-full bg-green-500" style={{ boxShadow: '0 0 8px rgba(34, 197, 94, 0.6)' }}></div>
+                        <span className="text-gray-300">🟢 Excellent (Sunny)</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                        <span className="text-gray-700">🔵 Good (Partly Cloudy)</span>
+                      <div className="flex items-center gap-2 bg-black p-2 rounded border border-lime-500/30">
+                        <div className="w-3 h-3 rounded-full bg-blue-500" style={{ boxShadow: '0 0 8px rgba(59, 130, 246, 0.6)' }}></div>
+                        <span className="text-gray-300">🔵 Good (Partly Cloudy)</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                        <span className="text-gray-700">🟡 Moderate (Cloudy)</span>
+                      <div className="flex items-center gap-2 bg-black p-2 rounded border border-lime-500/30">
+                        <div className="w-3 h-3 rounded-full bg-yellow-500" style={{ boxShadow: '0 0 8px rgba(234, 179, 8, 0.6)' }}></div>
+                        <span className="text-gray-300">🟡 Moderate (Cloudy)</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                        <span className="text-gray-700">🟠 Caution (Light Rain)</span>
+                      <div className="flex items-center gap-2 bg-black p-2 rounded border border-lime-500/30">
+                        <div className="w-3 h-3 rounded-full bg-orange-500" style={{ boxShadow: '0 0 8px rgba(249, 115, 22, 0.6)' }}></div>
+                        <span className="text-gray-300">🟠 Caution (Light Rain)</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                        <span className="text-gray-700">🔴 Warning (Heavy Rain)</span>
+                      <div className="flex items-center gap-2 bg-black p-2 rounded border border-lime-500/30">
+                        <div className="w-3 h-3 rounded-full bg-red-500" style={{ boxShadow: '0 0 8px rgba(239, 68, 68, 0.6)' }}></div>
+                        <span className="text-gray-300">🔴 Warning (Heavy Rain)</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-700"></div>
-                        <span className="text-gray-700">⚫ Danger (Thunderstorm)</span>
+                      <div className="flex items-center gap-2 bg-black p-2 rounded border border-lime-500/30">
+                        <div className="w-3 h-3 rounded-full bg-red-700" style={{ boxShadow: '0 0 8px rgba(185, 28, 28, 0.6)' }}></div>
+                        <span className="text-gray-300">⚫ Danger (Thunderstorm)</span>
                       </div>
                     </div>
-                    <div className="mt-3 text-xs text-gray-600">
-                      💡 Click on markers to see detailed weather information and farming recommendations
+                    <div className="mt-3 pt-3 border-t border-lime-500/30 text-xs text-gray-400 flex items-center">
+                      <span className="text-lime-400 mr-2">►</span>
+                      Click markers for detailed weather data & blockchain-verified farming recommendations
                     </div>
                   </div>
                 )}
