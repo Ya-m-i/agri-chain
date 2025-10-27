@@ -3360,7 +3360,7 @@ const AdminDashboard = () => {
                   </div>
                 </div>
                 
-                <div className="w-full h-[420px] rounded-lg border border-gray-200 overflow-hidden relative shadow-sm">
+                <div className="w-full h-[420px] rounded-lg border-2 border-black overflow-hidden relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}>
                   <div ref={overviewMapRef} className="w-full h-full z-10" />
                 </div>
                 
@@ -4159,74 +4159,140 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === "admin-filing" && (
-            <div className="p-6">
+            <div className="p-6 bg-gradient-to-br from-black via-gray-900 to-black min-h-screen">
               <div className="max-w-6xl mx-auto">
-                <div className="mb-8">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">File for Farmers</h1>
-                  <p className="text-gray-600">
-                    File insurance claims and assistance applications on behalf of farmers who don't have mobile phones.
-                    This feature allows DA staff to help farmers who visit the office directly.
+                {/* Header with Blockchain Vibe */}
+                <div className="mb-8 text-center relative">
+                  <div className="absolute inset-0 bg-lime-500 opacity-5 blur-3xl"></div>
+                  <h1 className="text-4xl font-bold text-white mb-3 relative" style={{ textShadow: '0 0 20px rgba(132, 204, 22, 0.6)' }}>
+                    <span className="text-lime-400">⛓️ BLOCKCHAIN</span> FILE SYSTEM
+                  </h1>
+                  <p className="text-gray-300 relative max-w-2xl mx-auto">
+                    Secure, transparent, and immutable filing system powered by blockchain technology.
+                    Help farmers file claims and assistance applications with complete data integrity.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* File Claim Card */}
-                  <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
-                    <div className="flex items-center mb-4">
-                      <div className="p-3 bg-blue-100 rounded-lg mr-4">
-                        <FileText className="h-8 w-8 text-blue-600" />
+                  {/* File Claim Card - Blockchain Style */}
+                  <div className="bg-black rounded-lg border-2 border-lime-500 p-6 relative overflow-hidden group hover:shadow-2xl transition-all duration-300" 
+                       style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.3)' }}>
+                    {/* Animated Background Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-lime-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    
+                    {/* Corner Accents */}
+                    <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-lime-400"></div>
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-lime-400"></div>
+                    
+                    <div className="flex items-center mb-6 relative z-10">
+                      <div className="p-4 bg-lime-500 rounded-lg mr-4" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.6)' }}>
+                        <FileText className="h-8 w-8 text-black" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-semibold text-gray-900">File Insurance Claim</h2>
-                        <p className="text-gray-600 text-sm">Submit insurance claims for farmers</p>
+                        <h2 className="text-xl font-bold text-lime-400 mb-1">FILE INSURANCE CLAIM</h2>
+                        <p className="text-gray-400 text-sm flex items-center">
+                          <span className="w-2 h-2 bg-lime-400 rounded-full mr-2 animate-pulse"></span>
+                          Blockchain-Verified Claims
+                        </p>
                       </div>
                     </div>
-                    <p className="text-gray-600 mb-6">
-                      Help farmers file insurance claims when they visit the DA office. 
-                      Select the farmer and fill out the claim form with all necessary details.
-                    </p>
+                    
+                    <div className="relative z-10 mb-6 space-y-3">
+                      <p className="text-gray-300 text-sm">
+                        🔗 Submit insurance claims with blockchain verification
+                      </p>
+                      <p className="text-gray-400 text-xs">
+                        ✓ Immutable records • Instant verification • Transparent tracking
+                      </p>
+                    </div>
+                    
                     <button
                       onClick={() => setShowAdminClaimFiling(true)}
-                      className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                      className="w-full bg-lime-500 text-black py-3 px-4 rounded-lg hover:bg-lime-400 transition-all duration-300 flex items-center justify-center space-x-2 font-bold relative z-10 group-hover:scale-105"
+                      style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
                     >
                       <FileText className="h-5 w-5" />
-                      <span>File Claim for Farmer</span>
+                      <span>INITIATE CLAIM FILING</span>
                     </button>
                   </div>
 
-                  {/* File Assistance Card */}
-                  <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-shadow">
-                    <div className="flex items-center mb-4">
-                      <div className="p-3 bg-green-100 rounded-lg mr-4">
-                        <HandHeart className="h-8 w-8 text-green-600" />
+                  {/* File Assistance Card - Blockchain Style */}
+                  <div className="bg-black rounded-lg border-2 border-lime-500 p-6 relative overflow-hidden group hover:shadow-2xl transition-all duration-300" 
+                       style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.3)' }}>
+                    {/* Animated Background Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-lime-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    
+                    {/* Corner Accents */}
+                    <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-lime-400"></div>
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-lime-400"></div>
+                    
+                    <div className="flex items-center mb-6 relative z-10">
+                      <div className="p-4 bg-lime-500 rounded-lg mr-4" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.6)' }}>
+                        <HandHeart className="h-8 w-8 text-black" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-semibold text-gray-900">File Assistance Application</h2>
-                        <p className="text-gray-600 text-sm">Submit government assistance applications</p>
+                        <h2 className="text-xl font-bold text-lime-400 mb-1">FILE ASSISTANCE APP</h2>
+                        <p className="text-gray-400 text-sm flex items-center">
+                          <span className="w-2 h-2 bg-lime-400 rounded-full mr-2 animate-pulse"></span>
+                          Smart Contract Enabled
+                        </p>
                       </div>
                     </div>
-                    <p className="text-gray-600 mb-6">
-                      Help farmers apply for government assistance programs when they visit the DA office.
-                      Check eligibility and submit applications on their behalf.
-                    </p>
+                    
+                    <div className="relative z-10 mb-6 space-y-3">
+                      <p className="text-gray-300 text-sm">
+                        🔗 Process assistance applications via blockchain
+                      </p>
+                      <p className="text-gray-400 text-xs">
+                        ✓ Automated eligibility • Secure distribution • Real-time updates
+                      </p>
+                    </div>
+                    
                     <button
                       onClick={() => setShowAdminAssistanceFiling(true)}
-                      className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
+                      className="w-full bg-lime-500 text-black py-3 px-4 rounded-lg hover:bg-lime-400 transition-all duration-300 flex items-center justify-center space-x-2 font-bold relative z-10 group-hover:scale-105"
+                      style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
                     >
                       <HandHeart className="h-5 w-5" />
-                      <span>File Assistance for Farmer</span>
+                      <span>INITIATE ASSISTANCE FILING</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Instructions */}
-                <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-yellow-800 mb-3">Instructions for DA Staff</h3>
-                  <div className="space-y-2 text-yellow-700">
-                    <p>• <strong>For Claims:</strong> Select the farmer from the database, fill out the claim form with damage details, and submit. The farmer will need to sign the printed claim form.</p>
-                    <p>• <strong>For Assistance:</strong> Check farmer eligibility, select appropriate assistance program, and submit application. Ensure farmer meets all requirements.</p>
-                    <p>• <strong>Documentation:</strong> Always verify farmer identity and collect necessary signatures before submitting applications.</p>
-                    <p>• <strong>Follow-up:</strong> Keep track of submitted applications and inform farmers about status updates.</p>
+                {/* Blockchain Instructions Panel */}
+                <div className="mt-8 bg-black border-2 border-lime-500 rounded-lg p-6 relative overflow-hidden" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.3)' }}>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-lime-500 opacity-5 blur-2xl"></div>
+                  
+                  <div className="flex items-center mb-4 relative z-10">
+                    <div className="w-1 h-8 bg-lime-500 mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.8)' }}></div>
+                    <h3 className="text-xl font-bold text-lime-400">SYSTEM PROTOCOL FOR DA STAFF</h3>
+                  </div>
+                  
+                  <div className="space-y-3 text-gray-300 relative z-10">
+                    <div className="flex items-start space-x-3 p-3 bg-gray-900 rounded border-l-2 border-lime-500">
+                      <span className="text-lime-400 font-bold">►</span>
+                      <p><span className="text-white font-semibold">CLAIMS PROTOCOL:</span> Select farmer from database → Fill damage assessment form → Submit to blockchain → Generate verification hash → Farmer signature required</p>
+                    </div>
+                    <div className="flex items-start space-x-3 p-3 bg-gray-900 rounded border-l-2 border-lime-500">
+                      <span className="text-lime-400 font-bold">►</span>
+                      <p><span className="text-white font-semibold">ASSISTANCE PROTOCOL:</span> Verify eligibility via smart contract → Select program → Submit application → Automated approval process → Track on blockchain ledger</p>
+                    </div>
+                    <div className="flex items-start space-x-3 p-3 bg-gray-900 rounded border-l-2 border-lime-500">
+                      <span className="text-lime-400 font-bold">►</span>
+                      <p><span className="text-white font-semibold">SECURITY:</span> All records are encrypted and stored on distributed ledger → Verify farmer identity → Collect digital/physical signatures → Maintain audit trail</p>
+                    </div>
+                    <div className="flex items-start space-x-3 p-3 bg-gray-900 rounded border-l-2 border-lime-500">
+                      <span className="text-lime-400 font-bold">►</span>
+                      <p><span className="text-white font-semibold">TRACKING:</span> Real-time status monitoring → Blockchain transaction history → Automated notifications → Transparent verification system</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 pt-4 border-t border-lime-500/30 flex items-center justify-center space-x-4 text-xs text-gray-500 relative z-10">
+                    <span className="flex items-center"><span className="w-2 h-2 bg-lime-400 rounded-full mr-2 animate-pulse"></span>SYSTEM ONLINE</span>
+                    <span>|</span>
+                    <span>BLOCKCHAIN SECURED</span>
+                    <span>|</span>
+                    <span>END-TO-END ENCRYPTED</span>
                   </div>
                 </div>
               </div>
