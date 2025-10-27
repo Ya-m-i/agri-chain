@@ -17,6 +17,7 @@ import {
   Plus,
   Search,
   Camera,
+  HandHeart,
 } from "lucide-react"
 import { calculateCompensation, getDamageSeverity, getCoverageDetails } from "../utils/insuranceUtils"
 import { useNotificationStore } from "../store/notificationStore"
