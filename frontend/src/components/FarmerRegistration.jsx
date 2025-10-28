@@ -901,8 +901,8 @@ const FarmerRegistration = ({
 
       {/* Register Farmer Modal - Enhanced Blockchain Style with Neon Lime */}
       {showRegisterForm && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white border-4 border-lime-500 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar relative animate-[fadeIn_0.3s_ease-in]" style={{ boxShadow: '0 0 60px rgba(132, 204, 22, 0.8), 0 0 100px rgba(132, 204, 22, 0.4)' }}>
+        <div className="fixed inset-0 z-50 bg-white bg-opacity-90 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white border border-gray-300 rounded-xl shadow-sm max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar relative animate-[fadeIn_0.3s_ease-in]" style={{ boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
             {/* Enhanced Corner Accents with Glow */}
             <div className="absolute top-0 left-0 w-20 h-20 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
             <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>

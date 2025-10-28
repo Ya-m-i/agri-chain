@@ -340,8 +340,8 @@ const AdminModals = ({
 
       {/* Event Modal */}
       {showEventModal && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white border-4 border-lime-500 rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto hide-scrollbar relative animate-[fadeIn_0.3s_ease-in]" style={{ boxShadow: '0 0 60px rgba(132, 204, 22, 0.8), 0 0 100px rgba(132, 204, 22, 0.4)' }}>
+        <div className="fixed inset-0 z-50 bg-white bg-opacity-90 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white border border-gray-300 rounded-xl shadow-sm w-full max-w-lg max-h-[90vh] overflow-y-auto hide-scrollbar relative animate-[fadeIn_0.3s_ease-in]" style={{ boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
             {/* Corner Accents */}
             <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
             <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
@@ -358,7 +358,7 @@ const AdminModals = ({
                 <div className="p-3 bg-black rounded-lg animate-pulse" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.8)' }}>
                   <HandHeart className="h-7 w-7 text-lime-500" />
                 </div>
-                <div>
+              <div>
                   <h2 className="text-xl font-black text-black tracking-wide uppercase">⛓️ Add Assistance</h2>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
@@ -470,59 +470,59 @@ const AdminModals = ({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Quantity</label>
-                  <input
-                    type="number"
-                    name="quantity"
-                    value={eventForm.quantity}
-                    onChange={handleEventChange}
+                <input
+                  type="number"
+                  name="quantity"
+                  value={eventForm.quantity}
+                  onChange={handleEventChange}
                     className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
                     style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
-                    required
-                    min="1"
+                  required
+                  min="1"
                     placeholder="0"
-                  />
-                </div>
+                />
+              </div>
                 <div className="space-y-2">
                   <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Date Added</label>
-                  <input
-                    type="date"
-                    name="dateAdded"
-                    value={eventForm.dateAdded}
-                    onChange={handleEventChange}
+                <input
+                  type="date"
+                  name="dateAdded"
+                  value={eventForm.dateAdded}
+                  onChange={handleEventChange}
                     className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
                     style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
-                    required
-                  />
-                </div>
+                  required
+                />
+              </div>
               </div>
               
               {/* Photo Upload */}
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Photo/Logo</label>
                 <div className="relative">
-                  <input
-                    type="file"
-                    name="photo"
-                    accept="image/*"
-                    onChange={e => {
-                      const file = e.target.files && e.target.files[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (ev) => {
-                          handleEventChange({
-                            target: {
-                              name: 'photo',
-                              value: ev.target.result,
-                              type: 'text',
-                            }
-                          });
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
+                <input
+                  type="file"
+                  name="photo"
+                  accept="image/*"
+                  onChange={e => {
+                    const file = e.target.files && e.target.files[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        handleEventChange({
+                          target: {
+                            name: 'photo',
+                            value: ev.target.result,
+                            type: 'text',
+                          }
+                        });
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
                     className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-black file:text-lime-500 hover:file:bg-lime-500 hover:file:text-black file:transition-all"
                     style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
-                  />
+                />
                 </div>
                 {eventForm.photo && (
                   <div className="mt-3 p-2 border-2 border-lime-400 rounded-lg bg-lime-50">
