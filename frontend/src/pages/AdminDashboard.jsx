@@ -2436,7 +2436,7 @@ const AdminDashboard = () => {
           } md:hidden transition duration-150 ease-out z-30 w-64 shadow-lg`}
           style={{ backgroundColor: 'rgb(27, 27, 27)' }}
         >
-          <div className="p-6 border-b-4 border-black" style={{ backgroundColor: 'rgb(27, 27, 27)' }}>
+          <div className="p-6" style={{ backgroundColor: 'rgb(27, 27, 27)' }}>
             <div className="flex flex-col items-center">
               <button 
                 onClick={() => {
@@ -2461,7 +2461,7 @@ const AdminDashboard = () => {
               <li>
                 <button
                   onClick={() => handleTabSwitch("home")}
-                  className="flex items-center w-full p-2 rounded-lg bg-lime-500 text-black font-bold hover:bg-lime-400 transition-colors"
+                  className="flex items-center w-full p-2 rounded-lg text-lime-500 font-bold hover:bg-lime-500 hover:text-black transition-colors"
                 >
                   <LayoutDashboard size={24} className="mr-3" />
                   Dashboard
@@ -2470,7 +2470,7 @@ const AdminDashboard = () => {
               <li>
                 <button
                   onClick={() => handleTabSwitch("farmer-registration")}
-                  className="flex items-center w-full p-2 rounded-lg bg-lime-500 text-black font-bold hover:bg-lime-400 transition-colors"
+                  className="flex items-center w-full p-2 rounded-lg text-lime-500 font-bold hover:bg-lime-500 hover:text-black transition-colors"
                 >
                   <img src={registrationIcon} alt="Registration" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" />
                   Farmer Registration
@@ -2483,25 +2483,19 @@ const AdminDashboard = () => {
                     setMapMode("view")
                     setSidebarOpen(false)
                   }}
-                  className="flex items-center w-full p-2 rounded-lg bg-lime-500 text-black font-bold hover:bg-lime-400 transition-colors pl-10"
+                  className="flex items-center w-full p-2 rounded-lg text-lime-500 font-bold hover:bg-lime-500 hover:text-black transition-colors pl-10"
                 >
                   <Map size={24} className="mr-3" />
                   View Farm Locations
                 </button>
               </li>
-              
-              {/* Divider */}
-              <li>
-                <div className="border-t-4 border-lime-500 my-3"></div>
-              </li>
-              
               <li>
                 <button
                   onClick={() => {
                     handleTabSwitch("claims")
                     setSidebarOpen(false)
                   }}
-                  className="flex items-center w-full p-2 rounded-lg bg-lime-500 text-black font-bold hover:bg-lime-400 transition-colors"
+                  className="flex items-center w-full p-2 rounded-lg text-lime-500 font-bold hover:bg-lime-500 hover:text-black transition-colors"
                 >
                   <img src={cashIcon} alt="Cash" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" />
                   Cash Assistance Claims
@@ -2513,7 +2507,7 @@ const AdminDashboard = () => {
                     handleTabSwitch("distribution")
                     setSidebarOpen(false)
                   }}
-                  className="flex items-center w-full p-2 rounded-lg bg-lime-500 text-black font-bold hover:bg-lime-400 transition-colors"
+                  className="flex items-center w-full p-2 rounded-lg text-lime-500 font-bold hover:bg-lime-500 hover:text-black transition-colors"
                 >
                   <img src={distributionIcon} alt="Distribution" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" />
                   Distribution Records
@@ -2525,7 +2519,7 @@ const AdminDashboard = () => {
                     setActiveTab("assistance")
                     setSidebarOpen(false)
                   }}
-                  className="flex items-center w-full p-2 rounded-lg bg-lime-500 text-black font-bold hover:bg-lime-400 transition-colors"
+                  className="flex items-center w-full p-2 rounded-lg text-lime-500 font-bold hover:bg-lime-500 hover:text-black transition-colors"
                 >
                   <img src={inventoryIcon} alt="Inventory" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" />
                   Assistance Inventory
@@ -2537,7 +2531,7 @@ const AdminDashboard = () => {
                     setActiveTab("crop-insurance")
                     setSidebarOpen(false)
                   }}
-                  className="flex items-center w-full p-2 rounded-lg bg-lime-500 text-black font-bold hover:bg-lime-400 transition-colors"
+                  className="flex items-center w-full p-2 rounded-lg text-lime-500 font-bold hover:bg-lime-500 hover:text-black transition-colors"
                 >
                   <Shield size={24} className="mr-3" />
                   Crop Insurance
@@ -2549,7 +2543,7 @@ const AdminDashboard = () => {
                     setActiveTab("admin-filing")
                     setSidebarOpen(false)
                   }}
-                  className="flex items-center w-full p-2 rounded-lg bg-lime-500 text-black font-bold hover:bg-lime-400 transition-colors"
+                  className="flex items-center w-full p-2 rounded-lg text-lime-500 font-bold hover:bg-lime-500 hover:text-black transition-colors"
                 >
                   <img src={fileIcon} alt="File" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" />
                   File for Farmers
@@ -2567,7 +2561,7 @@ const AdminDashboard = () => {
           onMouseLeave={() => setSidebarExpanded(false)}
         >
           {/* Admin Logo Section */}
-          <div className={`p-6 border-b-4 transition-opacity duration-300 ${sidebarExpanded ? 'border-lime-500 opacity-100' : 'border-transparent opacity-0'}`} style={{ backgroundColor: 'rgb(27, 27, 27)' }}>
+          <div className={`p-6 transition-opacity duration-300 ${sidebarExpanded ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundColor: 'rgb(27, 27, 27)' }}>
             <div className="flex flex-col items-center">
               <button 
                 onClick={() => handleTabSwitch("home")}
@@ -2591,7 +2585,7 @@ const AdminDashboard = () => {
           <div className="space-y-1 px-3">
             <button
               onClick={() => handleTabSwitch("home")}
-              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left bg-lime-500 text-black font-bold hover:bg-lime-400 transition-colors`}
+              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left text-lime-500 font-bold hover:bg-lime-500 hover:text-black transition-colors`}
               title={!sidebarExpanded ? "Dashboard" : ""}
             >
               <LayoutDashboard size={24} className="flex-shrink-0" />
@@ -2604,7 +2598,7 @@ const AdminDashboard = () => {
                   handleTabSwitch("farmer-registration")
                   setShowFarmLocationsDropdown(!showFarmLocationsDropdown)
                 }}
-                className={`flex items-center ${sidebarExpanded ? 'justify-between gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left bg-lime-500 text-black font-bold hover:bg-lime-400 transition-colors`}
+                className={`flex items-center ${sidebarExpanded ? 'justify-between gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left text-lime-500 font-bold hover:bg-lime-500 hover:text-black transition-colors`}
                 title={!sidebarExpanded ? "Farmer Registration" : ""}
               >
                 <div className="flex items-center gap-3">
@@ -2624,7 +2618,7 @@ const AdminDashboard = () => {
               >
                 <button
                   onClick={() => handleTabSwitch("crop-insurance")}
-                  className={`flex items-center ${sidebarExpanded ? 'gap-3 pl-10' : 'justify-center px-2'} py-2 rounded-lg bg-lime-500 text-black font-bold hover:bg-lime-400 w-full text-left transition-colors`}
+                  className={`flex items-center ${sidebarExpanded ? 'gap-3 pl-10' : 'justify-center px-2'} py-2 rounded-lg text-lime-500 font-bold hover:bg-lime-500 hover:text-black w-full text-left transition-colors`}
                   title={!sidebarExpanded ? "Crop Insurance" : ""}
                 >
                   <Shield size={24} className="flex-shrink-0" />
@@ -2635,7 +2629,7 @@ const AdminDashboard = () => {
 
             <button
               onClick={() => handleTabSwitch("claims")}
-              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left bg-lime-500 text-black font-bold hover:bg-lime-400 transition-colors`}
+              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left text-lime-500 font-bold hover:bg-lime-500 hover:text-black transition-colors`}
               title={!sidebarExpanded ? "Cash Assistance Claims" : ""}
             >
               <img src={cashIcon} alt="Cash" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" />
@@ -2644,24 +2638,16 @@ const AdminDashboard = () => {
 
             <button
               onClick={() => handleTabSwitch("distribution")}
-              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left bg-lime-500 text-black font-bold hover:bg-lime-400 transition-colors`}
+              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left text-lime-500 font-bold hover:bg-lime-500 hover:text-black transition-colors`}
               title={!sidebarExpanded ? "Distribution Records" : ""}
             >
               <img src={distributionIcon} alt="Distribution" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" />
               {sidebarExpanded && <span>Distribution Records</span>}
             </button>
-          </div>
 
-          {/* Divider */}
-          <div className="px-3">
-            <div className="border-t-4 border-lime-500"></div>
-          </div>
-
-          {/* Secondary Navigation Section */}
-          <div className="space-y-1 px-3">
             <button
               onClick={() => handleTabSwitch("assistance")}
-              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left bg-lime-500 text-black font-bold hover:bg-lime-400 transition-colors`}
+              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left text-lime-500 font-bold hover:bg-lime-500 hover:text-black transition-colors`}
               title={!sidebarExpanded ? "Assistance Inventory" : ""}
             >
               <img src={inventoryIcon} alt="Inventory" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" />
@@ -2670,13 +2656,12 @@ const AdminDashboard = () => {
 
             <button
               onClick={() => handleTabSwitch("admin-filing")}
-              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left bg-lime-500 text-black font-bold hover:bg-lime-400 transition-colors`}
+              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left text-lime-500 font-bold hover:bg-lime-500 hover:text-black transition-colors`}
               title={!sidebarExpanded ? "File for Farmers" : ""}
             >
               <img src={fileIcon} alt="File" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" />
               {sidebarExpanded && <span>File for Farmers</span>}
             </button>
-
           </div>
 
           {sidebarExpanded && (
