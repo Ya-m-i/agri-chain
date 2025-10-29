@@ -291,7 +291,7 @@ const FarmerRegistration = ({
         lotNumber: "",
         lotArea: "",
         agency: "",
-        isCertified: false,
+        isCertified: true, // Reset filter back to show certified farmers
         periodFrom: "",
         periodTo: "",
         username: "",
@@ -439,7 +439,32 @@ const FarmerRegistration = ({
           <button
             className="bg-lime-500 text-black px-4 py-2 rounded-lg hover:bg-lime-400 transition-all duration-200 flex items-center justify-center shadow-lg font-bold"
             style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
-            onClick={() => setShowRegisterForm(true)}
+            onClick={() => {
+              // Reset form for new farmer registration
+              setFormData({
+                firstName: "",
+                middleName: "",
+                lastName: "",
+                birthday: "",
+                gender: "",
+                contactNum: "",
+                address: "",
+                cropType: "",
+                cropArea: "",
+                insuranceType: "",
+                lotNumber: "",
+                lotArea: "",
+                agency: "",
+                isCertified: false, // New farmers start as uncertified
+                periodFrom: "",
+                periodTo: "",
+                username: "",
+                password: "",
+                rsbsaRegistered: false,
+              });
+              setSelectedLocation(null);
+              setShowRegisterForm(true);
+            }}
           >
             <UserPlus className="mr-2 h-5 w-5" />
             Register New Farmer
@@ -859,7 +884,11 @@ const FarmerRegistration = ({
               </div>
               <button
                 type="button"
-                onClick={() => setShowRegisterForm(false)}
+                onClick={() => {
+                  // Reset filter back to certified farmers when closing
+                  setFormData(prev => ({ ...prev, isCertified: true }));
+                  setShowRegisterForm(false);
+                }}
                 className="text-lime-500 hover:text-lime-600 focus:outline-none transition-all hover:rotate-90 duration-300"
                 style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.6))' }}
               >
@@ -1205,7 +1234,11 @@ const FarmerRegistration = ({
                 <div className="md:col-span-2 flex gap-3 pt-6 border-t-2 border-lime-500 mt-6">
                   <button
                     type="button"
-                    onClick={() => setShowRegisterForm(false)}
+                    onClick={() => {
+                      // Reset filter back to certified farmers when canceling
+                      setFormData(prev => ({ ...prev, isCertified: true }));
+                      setShowRegisterForm(false);
+                    }}
                     className="flex-1 bg-white text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-black hover:text-white transition-all font-bold uppercase tracking-wide text-sm"
                   >
                     Cancel

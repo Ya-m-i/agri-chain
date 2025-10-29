@@ -565,7 +565,7 @@ const AdminDashboard = () => {
     lotNumber: "",
     lotArea: "",
     agency: "",
-    isCertified: false,
+    isCertified: true, // Default filter to show certified farmers
     periodFrom: "",
     periodTo: "",
     username: "",
