@@ -495,9 +495,10 @@ const AdminDashboard = () => {
 
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false)
   const [showMapModal, setShowMapModal] = useState(false)
+  // Modal map refs (for farmer registration location picker)
   const mapRef = useRef(null)
-  const leafletMapRef = useRef(null)
-  const markersLayerRef = useRef(null)
+  const modalLeafletMapRef = useRef(null)
+  const modalMarkersLayerRef = useRef(null)
   // Embedded overview map (dashboard)
   // NOTE: declared once here for the dashboard view
   const overviewMapRef = useRef(null)
@@ -709,10 +710,10 @@ const AdminDashboard = () => {
   // Function to add farmers to map
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const addFarmersToMap = () => {
-    if (!markersLayerRef.current || !leafletMapRef.current) return
+    if (!modalMarkersLayerRef.current || !modalLeafletMapRef.current) return
 
     // Clear existing markers
-    markersLayerRef.current.clearLayers()
+    modalMarkersLayerRef.current.clearLayers()
 
     // Add markers for each farmer with location data
     farmers.forEach((farmer) => {
@@ -752,7 +753,7 @@ const AdminDashboard = () => {
           ${isCertified}
         `)
 
-        marker.addTo(markersLayerRef.current)
+        marker.addTo(modalMarkersLayerRef.current)
       }
     })
   }
@@ -1914,11 +1915,11 @@ const AdminDashboard = () => {
       const kapalongZoom = 13;
       
       // If map doesn't exist, create it
-      if (!leafletMapRef.current) {
+      if (!modalLeafletMapRef.current) {
         console.log('🗺️ Creating new map instance...');
         
         // Initialize the map with dark theme
-        leafletMapRef.current = L.map(mapRef.current, {
+        modalLeafletMapRef.current = L.map(mapRef.current, {
           zoomControl: false
         }).setView(kapalongCoords, kapalongZoom);
 
@@ -1927,18 +1928,18 @@ const AdminDashboard = () => {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
           subdomains: 'abcd',
           maxZoom: 20
-        }).addTo(leafletMapRef.current);
+        }).addTo(modalLeafletMapRef.current);
         
         // Add custom zoom control
         L.control.zoom({
           position: 'topright'
-        }).addTo(leafletMapRef.current);
+        }).addTo(modalLeafletMapRef.current);
 
         // Create a layer for markers
-        markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current);
+        modalMarkersLayerRef.current = L.layerGroup().addTo(modalLeafletMapRef.current);
 
         // Add click handler for adding new locations
-        leafletMapRef.current.on("click", (e) => {
+        modalLeafletMapRef.current.on("click", (e) => {
           if (mapMode === "add") {
             setSelectedLocation({
               lat: e.latlng.lat,
@@ -1946,8 +1947,8 @@ const AdminDashboard = () => {
             });
 
             // Clear existing markers in add mode
-            if (markersLayerRef.current) {
-              markersLayerRef.current.clearLayers();
+            if (modalMarkersLayerRef.current) {
+              modalMarkersLayerRef.current.clearLayers();
             }
 
             // Add a new marker at the clicked location with lime marker
@@ -1958,7 +1959,7 @@ const AdminDashboard = () => {
                 iconSize: [24, 24],
                 iconAnchor: [12, 12]
               })
-            }).addTo(markersLayerRef.current);
+            }).addTo(modalMarkersLayerRef.current);
 
             // Reverse geocode to get address and update form
             reverseGeocode(e.latlng.lat, e.latlng.lng);
@@ -1969,30 +1970,30 @@ const AdminDashboard = () => {
       } else {
         // Map exists, just update view and invalidate size
         console.log('🗺️ Map exists, updating view...');
-        leafletMapRef.current.setView(kapalongCoords, kapalongZoom);
+        modalLeafletMapRef.current.setView(kapalongCoords, kapalongZoom);
         
         // Force a resize to ensure the map renders correctly
         setTimeout(() => {
-          if (leafletMapRef.current) {
-            leafletMapRef.current.invalidateSize();
+          if (modalLeafletMapRef.current) {
+            modalLeafletMapRef.current.invalidateSize();
             console.log('✅ Map size invalidated and rerendered');
           }
         }, 200);
       }
       
       // Add existing farm locations to the map
-      if (markersLayerRef.current) {
+      if (modalMarkersLayerRef.current) {
         addFarmersToMap();
       }
     }
 
     // Cleanup when modal closes
     return () => {
-      if (!showMapModal && leafletMapRef.current) {
+      if (!showMapModal && modalLeafletMapRef.current) {
         console.log('🗑️ Cleaning up map instance...');
-        leafletMapRef.current.remove();
-        leafletMapRef.current = null;
-        markersLayerRef.current = null;
+        modalLeafletMapRef.current.remove();
+        modalLeafletMapRef.current = null;
+        modalMarkersLayerRef.current = null;
       }
     };
   }, [showMapModal, mapMode, addFarmersToMap])
@@ -2245,15 +2246,15 @@ const AdminDashboard = () => {
       if (data && data.length > 0) {
         const { lat, lon } = data[0];
 
-        if (leafletMapRef.current) {
-          leafletMapRef.current.setView([parseFloat(lat), parseFloat(lon)], 15);
+        if (modalLeafletMapRef.current) {
+          modalLeafletMapRef.current.setView([parseFloat(lat), parseFloat(lon)], 15);
 
           if (mapMode === "add") {
             setSelectedLocation({ lat: parseFloat(lat), lng: parseFloat(lon) });
 
             // Clear existing markers
-            if (markersLayerRef.current) {
-              markersLayerRef.current.clearLayers();
+            if (modalMarkersLayerRef.current) {
+              modalMarkersLayerRef.current.clearLayers();
             }
 
             // Add a new marker at the searched location with lime style
@@ -2264,7 +2265,7 @@ const AdminDashboard = () => {
                 iconSize: [24, 24],
                 iconAnchor: [12, 12]
               })
-            }).addTo(markersLayerRef.current);
+            }).addTo(modalMarkersLayerRef.current);
 
             // Reverse geocode to get address and update form
             reverseGeocode(parseFloat(lat), parseFloat(lon));
@@ -3523,89 +3524,20 @@ const AdminDashboard = () => {
                 <hr className="border-gray-200" />
               </div>
 
-              {/* ENHANCED Geo-Tagging Map Overview Section */}
-              <div className="bg-gradient-to-br from-gray-50 to-lime-50 rounded-2xl p-6 mt-6 border-2 border-lime-500 relative overflow-hidden shadow-lg" style={{ boxShadow: '0 4px 20px rgba(132, 204, 22, 0.3)' }}>
-                {/* Enhanced Corner Accents */}
-                <div className="absolute top-0 left-0 w-20 h-20 border-t-4 border-l-4 border-lime-500 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 12px rgba(132, 204, 22, 1))' }}></div>
-                <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-lime-500 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 12px rgba(132, 204, 22, 1))' }}></div>
-                <div className="absolute bottom-0 left-0 w-20 h-20 border-b-4 border-l-4 border-lime-500 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 12px rgba(132, 204, 22, 1))' }}></div>
-                <div className="absolute bottom-0 right-0 w-20 h-20 border-b-4 border-r-4 border-lime-500 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 12px rgba(132, 204, 22, 1))' }}></div>
+              {/* Geo-Tagging Map Overview Section */}
+              <div className="bg-white rounded-xl p-6 mt-6 border border-gray-300 relative overflow-hidden shadow-sm" style={{ boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+                {/* Corner Accents */}
+                <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+                <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+                <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+                <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
                 
-                {/* Animated Background Grid */}
-                <div className="absolute inset-0 opacity-5 pointer-events-none">
-                  <div className="absolute inset-0" style={{ 
-                    backgroundImage: 'linear-gradient(rgba(132, 204, 22, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(132, 204, 22, 0.5) 1px, transparent 1px)',
-                    backgroundSize: '20px 20px'
-                  }}></div>
-                </div>
+                {/* Decorative Lines */}
+                <div className="absolute top-8 left-8 w-24 h-0.5 bg-gradient-to-r from-lime-500 to-transparent opacity-60 z-10"></div>
+                <div className="absolute top-8 right-8 w-24 h-0.5 bg-gradient-to-l from-lime-500 to-transparent opacity-60 z-10"></div>
                 
-                {/* Map Statistics Dashboard - Above Map */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 relative z-10">
-                  <div className="bg-white rounded-xl p-4 border-2 border-lime-500 shadow-md hover:scale-105 transition-transform">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Total Locations</p>
-                        <p className="text-3xl font-black text-lime-600">
-                          {farmers.filter(f => f.location && typeof f.location.lat === 'number' && typeof f.location.lng === 'number').length}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-lime-100 rounded-lg">
-                        <MapPin className="h-8 w-8 text-lime-600" />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white rounded-xl p-4 border-2 border-blue-500 shadow-md hover:scale-105 transition-transform">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Crop Types</p>
-                        <p className="text-3xl font-black text-blue-600">
-                          {availableCrops.length}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-blue-100 rounded-lg">
-                        <Layers className="h-8 w-8 text-blue-600" />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white rounded-xl p-4 border-2 border-green-500 shadow-md hover:scale-105 transition-transform">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Active Farms</p>
-                        <p className="text-3xl font-black text-green-600">
-                          {farmers.filter(f => f.isOnline || (f.location && f.location.lat)).length}
-                        </p>
-                      </div>
-                      <div className="p-3 bg-green-100 rounded-lg">
-                        <CheckCircle className="h-8 w-8 text-green-600" />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white rounded-xl p-4 border-2 border-amber-500 shadow-md hover:scale-105 transition-transform">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Coverage Area</p>
-                        <p className="text-2xl font-black text-amber-600">
-                          {(() => {
-                            const totalArea = farmers.reduce((sum, f) => {
-                              const area = parseFloat(f.cropArea || f.lotArea || 0);
-                              return sum + area;
-                            }, 0);
-                            return totalArea > 1000 ? `${(totalArea / 1000).toFixed(1)}K` : totalArea.toFixed(0);
-                          })()}<span className="text-sm ml-1">ha</span>
-                        </p>
-                      </div>
-                      <div className="p-3 bg-amber-100 rounded-lg">
-                        <Map className="h-8 w-8 text-amber-600" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Main Map Header with Enhanced Controls */}
-                <div className="sticky top-0 flex items-center justify-between mb-6 relative z-10 pb-4 border-b-2 border-lime-200">
+                {/* Main Map Header */}
+                <div className="sticky top-0 flex items-center justify-between mb-6 relative z-10 pb-4">
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-black rounded-lg animate-pulse" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.8)' }}>
                       <img src={locationImage} alt="Geo-Tagging Map" className="h-7 w-7" />
@@ -3770,84 +3702,8 @@ const AdminDashboard = () => {
                   </div>
                 </div>
                 
-                {/* Crop Types Legend - Enhanced with More Info */}
-                <div className="mt-6 bg-white/95 backdrop-blur-sm rounded-xl p-6 border-2 border-lime-500 shadow-lg relative z-10">
-                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-200">
-                    <div className="p-2 bg-lime-500 rounded-lg mr-3 shadow-md">
-                      <Layers size={20} className="text-white" />
-                    </div>
-                    <div>
-                      <h4 className="text-lg font-black text-gray-800 uppercase tracking-wider">Crop Types Distribution</h4>
-                      <span className="text-xs text-gray-600 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse"></span>
-                        Click on map markers to view farmer details
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                    {availableCrops.map((crop, index) => {
-                      const cropCount = farmers.filter(f => 
-                        (f.cropType || '').toLowerCase().includes(crop.toLowerCase()) && 
-                        f.location && 
-                        typeof f.location.lat === 'number'
-                      ).length;
-                      
-                      const getCropIcon = (cropName) => {
-                        const c = cropName.toLowerCase();
-                        if (c.includes('rice') || c.includes('palay')) return '🌾';
-                        if (c.includes('corn')) return '🌽';
-                        if (c.includes('banana')) return '🍌';
-                        if (c.includes('coconut')) return '🥥';
-                        if (c.includes('coffee')) return '☕';
-                        if (c.includes('cacao')) return '🍫';
-                        if (c.includes('sugar')) return '🌿';
-                        if (c.includes('pineapple')) return '🍍';
-                        if (c.includes('mango')) return '🥭';
-                        if (c.includes('vegetable')) return '🥬';
-                        return '🌱';
-                      };
-                      
-                      return (
-                        <div 
-                          key={crop} 
-                          className="flex items-center gap-2 bg-white hover:bg-lime-50 p-3 rounded-lg border-2 border-gray-200 hover:border-lime-500 transition-all cursor-pointer shadow-sm hover:shadow-md group"
-                          onClick={() => setCropFilter(crop)}
-                          title={`Filter map to show ${crop} farms`}
-                        >
-                          <div className="text-2xl group-hover:scale-125 transition-transform">
-                            {getCropIcon(crop)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <span className="text-xs font-semibold text-gray-800 block truncate group-hover:text-lime-600">{crop}</span>
-                            <span className="text-xs font-bold text-lime-600">{cropCount} farms</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  
-                  {/* Map Instructions */}
-                  <div className="mt-4 pt-4 border-t-2 border-lime-200">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                      <div className="flex items-center gap-2 bg-lime-50 p-3 rounded-lg border border-lime-200">
-                        <div className="w-2 h-2 rounded-full bg-lime-500 flex-shrink-0 animate-pulse"></div>
-                        <span className="text-gray-700 font-semibold">🖱️ Click markers for farm details</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-blue-50 p-3 rounded-lg border border-blue-200">
-                        <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0"></div>
-                        <span className="text-gray-700 font-semibold">🔍 Zoom in/out to explore</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-amber-50 p-3 rounded-lg border border-amber-200">
-                        <div className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0"></div>
-                        <span className="text-gray-700 font-semibold">🌾 Filter by crop type above</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
                 {/* Weather Legend - Minimalist Blockchain Style */}
-                {showWeatherOverlay && (
+                {showWeatherOverlay && false && (
                   <div className="mt-6 p-5 bg-lime-500 rounded-lg border-2 border-black relative z-10" style={{ boxShadow: '0 0 15px rgba(0, 0, 0, 0.3)' }}>
                     <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
                       <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
