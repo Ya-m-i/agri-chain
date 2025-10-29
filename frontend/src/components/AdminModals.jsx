@@ -1375,8 +1375,8 @@ const AdminModals = ({
               )}
             </div>
 
-            <div className="flex-1 min-h-[400px] relative">
-              <div ref={mapRef} className="w-full h-[500px]"></div>
+            <div className="flex-1 min-h-[400px] relative bg-gray-100">
+              <div ref={mapRef} className="w-full h-[500px] bg-gray-200" style={{ minHeight: '500px', position: 'relative', zIndex: 1 }}></div>
             </div>
 
             {mapMode === "add" && (

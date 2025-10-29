@@ -1907,27 +1907,56 @@ const AdminDashboard = () => {
 
   // Load Leaflet when map modal is shown - fixed to ensure proper rendering
   useEffect(() => {
-    if (showMapModal && mapRef.current) {
-      console.log('🗺️ Map modal opened, checking map instance...');
+    if (!showMapModal) {
+      // Cleanup when modal closes
+      if (modalLeafletMapRef.current) {
+        console.log('🗑️ Cleaning up map instance...');
+        modalLeafletMapRef.current.remove();
+        modalLeafletMapRef.current = null;
+        modalMarkersLayerRef.current = null;
+      }
+      return;
+    }
+
+    // Wait for DOM to be ready
+    if (!mapRef.current) {
+      console.log('⏳ Waiting for map container...');
+      return;
+    }
+
+    console.log('🗺️ Map modal opened, checking map instance...');
+    
+    // Kapalong, Davao del Norte coordinates - precise center
+    const kapalongCoords = [7.5815, 125.8235];
+    const kapalongZoom = 13;
+    
+    // Always destroy and recreate to ensure fresh map
+    if (modalLeafletMapRef.current) {
+      console.log('🗑️ Removing existing map instance...');
+      modalLeafletMapRef.current.remove();
+      modalLeafletMapRef.current = null;
+      modalMarkersLayerRef.current = null;
+    }
+
+    // Helper function to initialize the map
+    const initializeMap = () => {
+      if (!mapRef.current) return;
+
+      console.log('🗺️ Creating new map instance...');
       
-      // Kapalong, Davao del Norte coordinates - precise center
-      const kapalongCoords = [7.5815, 125.8235];
-      const kapalongZoom = 13;
-      
-      // If map doesn't exist, create it
-      if (!modalLeafletMapRef.current) {
-        console.log('🗺️ Creating new map instance...');
-        
+      try {
         // Initialize the map with dark theme
         modalLeafletMapRef.current = L.map(mapRef.current, {
-          zoomControl: false
+          zoomControl: false,
+          preferCanvas: false
         }).setView(kapalongCoords, kapalongZoom);
 
         // Add CartoDB Dark Matter tile layer for blockchain vibe
         L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
           subdomains: 'abcd',
-          maxZoom: 20
+          maxZoom: 20,
+          minZoom: 3
         }).addTo(modalLeafletMapRef.current);
         
         // Add custom zoom control
@@ -1966,37 +1995,62 @@ const AdminDashboard = () => {
           }
         });
         
-        console.log('✅ Map initialized and centered on Kapalong');
-      } else {
-        // Map exists, just update view and invalidate size
-        console.log('🗺️ Map exists, updating view...');
-        modalLeafletMapRef.current.setView(kapalongCoords, kapalongZoom);
-        
-        // Force a resize to ensure the map renders correctly
+        // Force invalidate size after initialization
         setTimeout(() => {
           if (modalLeafletMapRef.current) {
             modalLeafletMapRef.current.invalidateSize();
-            console.log('✅ Map size invalidated and rerendered');
+            console.log('✅ Map size invalidated after initialization');
+          }
+        }, 100);
+
+        console.log('✅ Map initialized and centered on Kapalong');
+        
+        // Add existing farm locations to the map
+        setTimeout(() => {
+          if (modalMarkersLayerRef.current) {
+            addFarmersToMap();
           }
         }, 200);
-      }
-      
-      // Add existing farm locations to the map
-      if (modalMarkersLayerRef.current) {
-        addFarmersToMap();
-      }
-    }
-
-    // Cleanup when modal closes
-    return () => {
-      if (!showMapModal && modalLeafletMapRef.current) {
-        console.log('🗑️ Cleaning up map instance...');
-        modalLeafletMapRef.current.remove();
-        modalLeafletMapRef.current = null;
-        modalMarkersLayerRef.current = null;
+      } catch (error) {
+        console.error('❌ Error initializing map:', error);
       }
     };
-  }, [showMapModal, mapMode, addFarmersToMap])
+
+    // Small delay to ensure container is visible
+    const initTimeout = setTimeout(() => {
+      if (!mapRef.current) {
+        console.error('❌ Map container not available');
+        return;
+      }
+
+      // Check if container is visible
+      const container = mapRef.current;
+      const styles = window.getComputedStyle(container);
+      console.log('📊 Map container info:', {
+        width: container.offsetWidth,
+        height: container.offsetHeight,
+        display: styles.display,
+        visibility: styles.visibility,
+        opacity: styles.opacity
+      });
+
+      if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+        console.warn('⚠️ Map container has zero dimensions, retrying...');
+        setTimeout(() => {
+          if (mapRef.current && mapRef.current.offsetWidth > 0) {
+            initializeMap();
+          }
+        }, 300);
+        return;
+      }
+
+      initializeMap();
+    }, 150);
+
+    return () => {
+      clearTimeout(initTimeout);
+    };
+  }, [showMapModal, mapMode])
 
   // Load crop insurance records and group by farmer for dashboard overview
   // Note: This useEffect removed as we now use React Query data directly
