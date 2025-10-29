@@ -832,7 +832,7 @@ const FarmerRegistration = ({
                           alt="View" 
                           className="h-10 w-10"
                           style={{ 
-                            filter: 'drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5))',
+                            filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))',
                             width: '40px',
                             height: '40px',
                             minWidth: '40px',
@@ -853,7 +853,7 @@ const FarmerRegistration = ({
                           alt="Set Profile" 
                           className="h-10 w-10"
                           style={{ 
-                            filter: 'drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5))',
+                            filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))',
                             width: '40px',
                             height: '40px',
                             minWidth: '40px',
@@ -876,7 +876,7 @@ const FarmerRegistration = ({
                           alt="Delete" 
                           className="h-10 w-10"
                           style={{ 
-                            filter: 'drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5))',
+                            filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))',
                             width: '40px',
                             height: '40px',
                             minWidth: '40px',
@@ -1346,23 +1346,23 @@ const FarmerRegistration = ({
       {/* Farmer Details Modal - Blockchain Farm Vibe */}
       {showFarmerDetails && selectedFarmer && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border-4 border-lime-500 max-w-3xl w-full max-h-[90vh] overflow-y-auto relative" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6)' }}>
+          <div className="rounded-xl border-4 border-lime-500 max-w-3xl w-full max-h-[90vh] overflow-y-auto relative backdrop-blur-xl" style={{ background: 'rgba(0, 0, 0, 0.7)', boxShadow: '0 0 30px rgba(132, 204, 22, 0.6)' }}>
             {/* Corner Accents */}
             <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
             <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
             <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
             <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
             
-            <div className="sticky top-0 bg-white border-b-4 border-lime-500 p-6 flex justify-between items-center z-20" style={{ boxShadow: '0 4px 15px rgba(132, 204, 22, 0.3)' }}>
+            <div className="sticky top-0 backdrop-blur-xl border-b-4 border-lime-500 p-6 flex justify-between items-center z-20" style={{ background: 'rgba(0, 0, 0, 0.8)', boxShadow: '0 4px 15px rgba(132, 204, 22, 0.3)' }}>
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-black rounded-lg" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.6)' }}>
                   <User className="h-6 w-6 text-lime-500" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-black uppercase tracking-wide">⛓️ Farmer Details</h2>
+                  <h2 className="text-xl font-black text-lime-500 uppercase tracking-wide">⛓️ Farmer Details</h2>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
-                    <span className="text-[10px] text-gray-600 uppercase tracking-wider">Blockchain Record</span>
+                    <span className="text-[10px] text-lime-400 uppercase tracking-wider">Blockchain Record</span>
                   </div>
                 </div>
               </div>
@@ -1376,66 +1376,66 @@ const FarmerRegistration = ({
             </div>
             <div className="p-6 relative z-10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-5 rounded-lg border-2 border-lime-500 relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
+                <div className="backdrop-blur-xl p-5 rounded-lg border-2 border-lime-500 relative" style={{ background: 'rgba(0, 0, 0, 0.5)', boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
                   <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
                     <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
                       <User size={18} className="text-lime-500" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Personal Info</h3>
-                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                      <h3 className="text-sm font-black text-lime-500 uppercase tracking-wider">Personal Info</h3>
+                      <span className="text-[10px] text-lime-400 flex items-center gap-1">
                         <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
                         Verified Data
                       </span>
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <div><span className="text-gray-500 text-xs font-bold uppercase">Full Name</span><p className="font-bold text-black">{selectedFarmer.farmerName}</p></div>
-                    <div><span className="text-gray-500 text-xs font-bold uppercase">Birthday</span><p className="font-bold text-black">{selectedFarmer.birthday || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-xs font-bold uppercase">Gender</span><p className="font-bold text-black">{selectedFarmer.gender || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-xs font-bold uppercase">Contact Number</span><p className="font-bold text-black">{selectedFarmer.contactNum || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-xs font-bold uppercase">Address</span><p className="font-bold text-black">{selectedFarmer.address}</p></div>
+                    <div><span className="text-lime-400 text-xs font-bold uppercase">Full Name</span><p className="font-bold text-white">{selectedFarmer.farmerName}</p></div>
+                    <div><span className="text-lime-400 text-xs font-bold uppercase">Birthday</span><p className="font-bold text-white">{selectedFarmer.birthday || "Not provided"}</p></div>
+                    <div><span className="text-lime-400 text-xs font-bold uppercase">Gender</span><p className="font-bold text-white">{selectedFarmer.gender || "Not provided"}</p></div>
+                    <div><span className="text-lime-400 text-xs font-bold uppercase">Contact Number</span><p className="font-bold text-white">{selectedFarmer.contactNum || "Not provided"}</p></div>
+                    <div><span className="text-lime-400 text-xs font-bold uppercase">Address</span><p className="font-bold text-white">{selectedFarmer.address}</p></div>
                   </div>
                 </div>
-                <div className="bg-white p-5 rounded-lg border-2 border-lime-500 relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
+                <div className="backdrop-blur-xl p-5 rounded-lg border-2 border-lime-500 relative" style={{ background: 'rgba(0, 0, 0, 0.5)', boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
                   <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
                     <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
                       <Layers size={18} className="text-lime-500" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Farm Info</h3>
-                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                      <h3 className="text-sm font-black text-lime-500 uppercase tracking-wider">Farm Info</h3>
+                      <span className="text-[10px] text-lime-400 flex items-center gap-1">
                         <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
                         Registry Data
                       </span>
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <div><span className="text-gray-500 text-xs font-bold uppercase">Crop Type</span><p className="font-bold text-black">{selectedFarmer.cropType}</p></div>
-                    <div><span className="text-gray-500 text-xs font-bold uppercase">Crop Area</span><p className="font-bold text-black">{selectedFarmer.cropArea} hectares</p></div>
-                    <div><span className="text-gray-500 text-xs font-bold uppercase">Lot Number</span><p className="font-bold text-black">{selectedFarmer.lotNumber || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-xs font-bold uppercase">Lot Area</span><p className="font-bold text-black">{selectedFarmer.lotArea || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-xs font-bold uppercase">Certified</span><p className="font-bold text-black">{selectedFarmer.isCertified ? (<span className="text-lime-600 flex items-center"><CheckCircle size={16} className="mr-1" /> Yes</span>) : (<span className="text-gray-600">No</span>)}</p></div>
+                    <div><span className="text-lime-400 text-xs font-bold uppercase">Crop Type</span><p className="font-bold text-white">{selectedFarmer.cropType}</p></div>
+                    <div><span className="text-lime-400 text-xs font-bold uppercase">Crop Area</span><p className="font-bold text-white">{selectedFarmer.cropArea} hectares</p></div>
+                    <div><span className="text-lime-400 text-xs font-bold uppercase">Lot Number</span><p className="font-bold text-white">{selectedFarmer.lotNumber || "Not provided"}</p></div>
+                    <div><span className="text-lime-400 text-xs font-bold uppercase">Lot Area</span><p className="font-bold text-white">{selectedFarmer.lotArea || "Not provided"}</p></div>
+                    <div><span className="text-lime-400 text-xs font-bold uppercase">Certified</span><p className="font-bold text-white">{selectedFarmer.isCertified ? (<span className="text-lime-500 flex items-center"><CheckCircle size={16} className="mr-1" /> Yes</span>) : (<span className="text-gray-400">No</span>)}</p></div>
                   </div>
                 </div>
               </div>
-              <div className="bg-white p-5 rounded-lg border-2 border-lime-500 relative mt-6" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
+              <div className="backdrop-blur-xl p-5 rounded-lg border-2 border-lime-500 relative mt-6" style={{ background: 'rgba(0, 0, 0, 0.5)', boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
                 <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
                   <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
                     <FileText size={18} className="text-lime-500" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-black text-black uppercase tracking-wider">Insurance Info</h3>
-                    <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                    <h3 className="text-sm font-black text-lime-500 uppercase tracking-wider">Insurance Info</h3>
+                    <span className="text-[10px] text-lime-400 flex items-center gap-1">
                       <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
                       Policy Data
                     </span>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div><span className="text-gray-500 text-xs font-bold uppercase">Insurance Type</span><p className="font-bold text-black">{selectedFarmer.insuranceType || "Not provided"}</p></div>
-                  <div><span className="text-gray-500 text-xs font-bold uppercase">Premium Amount</span><p className="font-bold text-black">{selectedFarmer.premiumAmount || "Not provided"}</p></div>
-                  <div><span className="text-gray-500 text-xs font-bold uppercase">Agency</span><p className="font-bold text-black">{selectedFarmer.agency || "Not provided"}</p></div>
+                  <div><span className="text-lime-400 text-xs font-bold uppercase">Insurance Type</span><p className="font-bold text-white">{selectedFarmer.insuranceType || "Not provided"}</p></div>
+                  <div><span className="text-lime-400 text-xs font-bold uppercase">Premium Amount</span><p className="font-bold text-white">{selectedFarmer.premiumAmount || "Not provided"}</p></div>
+                  <div><span className="text-lime-400 text-xs font-bold uppercase">Agency</span><p className="font-bold text-white">{selectedFarmer.agency || "Not provided"}</p></div>
                 </div>
               </div>
               <div className="mt-6 flex justify-end">
@@ -1455,7 +1455,7 @@ const FarmerRegistration = ({
       {/* Delete Confirmation Modal - Blockchain Farm Vibe */}
       {showDeleteConfirmation && farmerToDelete && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border-4 border-lime-500 p-8 w-full max-w-md relative" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6)' }}>
+          <div className="rounded-xl border-4 border-lime-500 p-8 w-full max-w-md relative backdrop-blur-xl" style={{ background: 'rgba(0, 0, 0, 0.7)', boxShadow: '0 0 30px rgba(132, 204, 22, 0.6)' }}>
             {/* Corner Accents */}
             <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-lime-400 pointer-events-none animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
             <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-lime-400 pointer-events-none animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
@@ -1467,19 +1467,19 @@ const FarmerRegistration = ({
                 <AlertTriangle className="text-lime-500" size={28} />
               </div>
               <div>
-                <h3 className="text-xl font-black text-black uppercase tracking-wide">⚠️ Delete Record</h3>
+                <h3 className="text-xl font-black text-lime-500 uppercase tracking-wide">⚠️ Delete Record</h3>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" style={{ boxShadow: '0 0 8px rgba(239, 68, 68, 1)' }}></span>
-                  <span className="text-[10px] text-gray-600 uppercase tracking-wider">Permanent Action</span>
+                  <span className="text-[10px] text-lime-400 uppercase tracking-wider">Permanent Action</span>
                 </div>
               </div>
             </div>
             
-            <div className="mb-8 p-4 bg-white border-2 border-lime-500 rounded-lg" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.3)' }}>
-              <p className="text-black font-semibold text-center">
-                Are you sure you want to delete <span className="text-lime-600 font-black">{farmerToDelete.farmerName}</span>?
+            <div className="mb-8 p-4 backdrop-blur-xl border-2 border-lime-500 rounded-lg" style={{ background: 'rgba(0, 0, 0, 0.5)', boxShadow: '0 0 10px rgba(132, 204, 22, 0.3)' }}>
+              <p className="text-white font-semibold text-center">
+                Are you sure you want to delete <span className="text-lime-500 font-black">{farmerToDelete.farmerName}</span>?
               </p>
-              <p className="text-gray-600 text-sm text-center mt-2">
+              <p className="text-lime-400 text-sm text-center mt-2">
                 ⛓️ This action cannot be undone from the blockchain
               </p>
             </div>
@@ -1491,7 +1491,8 @@ const FarmerRegistration = ({
                   setShowDeleteConfirmation(false);
                   setFarmerToDelete(null);
                 }}
-                className="px-6 py-3 bg-white text-black border-2 border-black rounded-lg hover:bg-gray-100 transition-all font-bold uppercase tracking-wide"
+                className="px-6 py-3 backdrop-blur-xl text-white border-2 border-lime-500 rounded-lg hover:bg-lime-500 hover:text-black transition-all font-bold uppercase tracking-wide"
+                style={{ background: 'rgba(0, 0, 0, 0.5)' }}
               >
                 Cancel
               </button>
@@ -1559,23 +1560,23 @@ const FarmerRegistration = ({
       {/* Set Profile Modal - Blockchain Farm Vibe */}
       {showProfileModal && selectedFarmerForProfile && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl border-4 border-lime-500 max-w-md w-full relative" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6)' }}>
+          <div className="rounded-xl border-4 border-lime-500 max-w-md w-full relative backdrop-blur-xl" style={{ background: 'rgba(0, 0, 0, 0.7)', boxShadow: '0 0 30px rgba(132, 204, 22, 0.6)' }}>
             {/* Corner Accents */}
             <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
             <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
             <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
             <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
             
-            <div className="sticky top-0 bg-white border-b-4 border-lime-500 p-6 flex justify-between items-center z-20" style={{ boxShadow: '0 4px 15px rgba(132, 204, 22, 0.3)' }}>
+            <div className="sticky top-0 backdrop-blur-xl border-b-4 border-lime-500 p-6 flex justify-between items-center z-20" style={{ background: 'rgba(0, 0, 0, 0.8)', boxShadow: '0 4px 15px rgba(132, 204, 22, 0.3)' }}>
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-black rounded-lg" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.6)' }}>
                   <User className="h-6 w-6 text-lime-500" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-black uppercase tracking-wide">📸 Profile Setup</h2>
+                  <h2 className="text-xl font-black text-lime-500 uppercase tracking-wide">📸 Profile Setup</h2>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
-                    <span className="text-[10px] text-gray-600 uppercase tracking-wider">Identity Update</span>
+                    <span className="text-[10px] text-lime-400 uppercase tracking-wider">Identity Update</span>
                   </div>
                 </div>
               </div>
@@ -1589,37 +1590,37 @@ const FarmerRegistration = ({
             </div>
             
             <div className="p-8 relative z-10">
-              <div className="text-center mb-6 bg-white border-2 border-lime-500 rounded-lg p-4" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.3)' }}>
-                <h3 className="text-lg font-black text-black uppercase tracking-wide mb-1">
+              <div className="text-center mb-6 backdrop-blur-xl border-2 border-lime-500 rounded-lg p-4" style={{ background: 'rgba(0, 0, 0, 0.5)', boxShadow: '0 0 10px rgba(132, 204, 22, 0.3)' }}>
+                <h3 className="text-lg font-black text-lime-500 uppercase tracking-wide mb-1">
                   {selectedFarmerForProfile.farmerName || 
                    `${selectedFarmerForProfile.firstName || ''} ${selectedFarmerForProfile.middleName || ''} ${selectedFarmerForProfile.lastName || ''}`.replace(/  +/g, ' ').trim()}
                 </h3>
-                <p className="text-gray-600 text-sm font-semibold">⛓️ Upload identity image</p>
+                <p className="text-lime-400 text-sm font-semibold">⛓️ Upload identity image</p>
               </div>
               
               <div className="space-y-6">
                 <div className="flex justify-center">
                   {profileImages[selectedFarmerForProfile._id || selectedFarmerForProfile.id] ? (
                     <div className="relative">
-                      <img 
-                        src={profileImages[selectedFarmerForProfile._id || selectedFarmerForProfile.id]} 
-                        alt="Current Profile" 
+                    <img 
+                      src={profileImages[selectedFarmerForProfile._id || selectedFarmerForProfile.id]} 
+                      alt="Current Profile" 
                         className="h-32 w-32 rounded-full object-cover border-4 border-lime-500"
                         style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.6)' }}
-                      />
-                      <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-lime-500 rounded-full flex items-center justify-center border-4 border-white animate-pulse" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.8)' }}>
+                    />
+                      <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-lime-500 rounded-full flex items-center justify-center border-4 border-black animate-pulse" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.8)' }}>
                         <CheckCircle className="h-5 w-5 text-black" />
                       </div>
                     </div>
                   ) : (
-                    <div className="h-32 w-32 rounded-full bg-white border-4 border-lime-500 flex items-center justify-center" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.3)' }}>
+                    <div className="h-32 w-32 rounded-full backdrop-blur-xl border-4 border-lime-500 flex items-center justify-center" style={{ background: 'rgba(0, 0, 0, 0.5)', boxShadow: '0 0 20px rgba(132, 204, 22, 0.3)' }}>
                       <User className="h-16 w-16 text-lime-500" />
                     </div>
                   )}
                 </div>
                 
                 <div>
-                  <label className="block text-xs font-black text-black uppercase mb-3 tracking-wider">
+                  <label className="block text-xs font-black text-lime-500 uppercase mb-3 tracking-wider">
                     Choose Profile Image
                   </label>
                   <input
@@ -1639,15 +1640,16 @@ const FarmerRegistration = ({
                         reader.readAsDataURL(file);
                       }
                     }}
-                    className="w-full border-2 border-lime-500 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-lime-400 text-black font-semibold"
-                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                    className="w-full border-2 border-lime-500 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-lime-400 text-white font-semibold backdrop-blur-xl"
+                    style={{ background: 'rgba(0, 0, 0, 0.5)', boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                   />
                 </div>
                 
                 <div className="flex justify-end space-x-3 mt-8">
                   <button
                     onClick={() => setShowProfileModal(false)}
-                    className="px-6 py-3 bg-white text-black border-2 border-black rounded-lg hover:bg-gray-100 transition-all font-bold uppercase tracking-wide"
+                    className="px-6 py-3 backdrop-blur-xl text-white border-2 border-lime-500 rounded-lg hover:bg-lime-500 hover:text-black transition-all font-bold uppercase tracking-wide"
+                    style={{ background: 'rgba(0, 0, 0, 0.5)' }}
                   >
                     Cancel
                   </button>

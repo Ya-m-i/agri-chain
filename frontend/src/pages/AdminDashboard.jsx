@@ -2434,9 +2434,9 @@ const AdminDashboard = () => {
           className={`fixed inset-y-0 left-0 transform ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           } md:hidden transition duration-150 ease-out z-30 w-64 shadow-lg`}
-          style={{ backgroundColor: 'rgb(13, 13, 13)' }}
+          style={{ backgroundColor: 'rgb(132, 204, 22)' }}
         >
-          <div className="p-6 border-b border-lime-500" style={{ backgroundColor: 'rgb(13, 13, 13)' }}>
+          <div className="p-6 border-b-4 border-black" style={{ backgroundColor: 'rgb(132, 204, 22)' }}>
             <div className="flex flex-col items-center">
               <button 
                 onClick={() => {
@@ -2449,9 +2449,10 @@ const AdminDashboard = () => {
                   src={adminLogoImage || "/placeholder.svg"} 
                   alt="Admin Logo" 
                   className="h-32 w-32 object-contain"
+                  style={{ filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))' }}
                 />
               </button>
-              <h2 className="text-sm font-bold text-lime-400 text-center leading-tight">
+              <h2 className="text-sm font-bold text-black text-center leading-tight">
                 Kapalong Department Agriculture
               </h2>
             </div>
@@ -2462,9 +2463,9 @@ const AdminDashboard = () => {
                 <button
                   onClick={() => handleTabSwitch("home")}
                   className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "home" ? "text-lime-500 font-bold" : "text-lime-500 hover:bg-gray-100"
+                    activeTab === "home" ? "text-black font-bold" : "text-black hover:bg-lime-400"
                   }`}
-                  style={activeTab === "home" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+                  style={activeTab === "home" ? { backgroundColor: 'rgba(0, 0, 0, 0.1)' } : undefined}
                 >
                   <LayoutDashboard size={24} className="mr-3" />
                   Dashboard
@@ -2475,12 +2476,12 @@ const AdminDashboard = () => {
                   onClick={() => handleTabSwitch("farmer-registration")}
                   className={`flex items-center w-full p-2 rounded-lg ${
                     activeTab === "farmer-registration"
-                      ? "text-lime-500 font-bold"
-                      : "text-lime-500 hover:bg-gray-100"
+                      ? "text-black font-bold"
+                      : "text-black hover:bg-lime-400"
                   }`}
-                  style={activeTab === "farmer-registration" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+                  style={activeTab === "farmer-registration" ? { backgroundColor: 'rgba(0, 0, 0, 0.1)' } : undefined}
                 >
-                  <img src={registrationIcon} alt="Registration" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" />
+                  <img src={registrationIcon} alt="Registration" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))' }} />
                   Farmer Registration
                 </button>
               </li>
@@ -2491,13 +2492,19 @@ const AdminDashboard = () => {
                     setMapMode("view")
                     setSidebarOpen(false)
                   }}
-                  className={`flex items-center w-full p-2 rounded-lg hover:bg-gray-100 pl-10 ${showMapModal ? "text-lime-500 font-bold" : "text-lime-500"}`}
-                  style={showMapModal ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+                  className={`flex items-center w-full p-2 rounded-lg hover:bg-lime-400 pl-10 ${showMapModal ? "text-black font-bold" : "text-black"}`}
+                  style={showMapModal ? { backgroundColor: 'rgba(0, 0, 0, 0.1)' } : undefined}
                 >
                   <Map size={24} className="mr-3" />
                   View Farm Locations
                 </button>
               </li>
+              
+              {/* Divider */}
+              <li>
+                <div className="border-t-4 border-black my-3"></div>
+              </li>
+              
               <li>
                 <button
                   onClick={() => {
@@ -2505,11 +2512,11 @@ const AdminDashboard = () => {
                     setSidebarOpen(false)
                   }}
                   className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "claims" ? "text-lime-500 font-bold" : "text-lime-500 hover:bg-gray-100"
+                    activeTab === "claims" ? "text-black font-bold" : "text-black hover:bg-lime-400"
                   }`}
-                  style={activeTab === "claims" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+                  style={activeTab === "claims" ? { backgroundColor: 'rgba(0, 0, 0, 0.1)' } : undefined}
                 >
-                  <img src={cashIcon} alt="Cash" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" />
+                  <img src={cashIcon} alt="Cash" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))' }} />
                   Cash Assistance Claims
                 </button>
               </li>
@@ -2520,11 +2527,11 @@ const AdminDashboard = () => {
                     setSidebarOpen(false)
                   }}
                   className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "distribution" ? "text-lime-500 font-bold" : "text-lime-500 hover:bg-gray-100"
+                    activeTab === "distribution" ? "text-black font-bold" : "text-black hover:bg-lime-400"
                   }`}
-                  style={activeTab === "distribution" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+                  style={activeTab === "distribution" ? { backgroundColor: 'rgba(0, 0, 0, 0.1)' } : undefined}
                 >
-                  <img src={distributionIcon} alt="Distribution" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" />
+                  <img src={distributionIcon} alt="Distribution" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))' }} />
                   Distribution Records
                 </button>
               </li>
@@ -2535,11 +2542,11 @@ const AdminDashboard = () => {
                     setSidebarOpen(false)
                   }}
                   className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "assistance" ? "text-lime-500 font-bold" : "text-lime-500 hover:bg-gray-100"
+                    activeTab === "assistance" ? "text-black font-bold" : "text-black hover:bg-lime-400"
                   }`}
-                  style={activeTab === "assistance" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+                  style={activeTab === "assistance" ? { backgroundColor: 'rgba(0, 0, 0, 0.1)' } : undefined}
                 >
-                  <img src={inventoryIcon} alt="Inventory" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" />
+                  <img src={inventoryIcon} alt="Inventory" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))' }} />
                   Assistance Inventory
                 </button>
               </li>
@@ -2550,9 +2557,9 @@ const AdminDashboard = () => {
                     setSidebarOpen(false)
                   }}
                   className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "crop-insurance" ? "text-lime-500 font-bold" : "text-lime-500 hover:bg-gray-100"
+                    activeTab === "crop-insurance" ? "text-black font-bold" : "text-black hover:bg-lime-400"
                   }`}
-                  style={activeTab === "crop-insurance" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+                  style={activeTab === "crop-insurance" ? { backgroundColor: 'rgba(0, 0, 0, 0.1)' } : undefined}
                 >
                   <Shield size={24} className="mr-3" />
                   Crop Insurance
@@ -2565,11 +2572,11 @@ const AdminDashboard = () => {
                     setSidebarOpen(false)
                   }}
                   className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "admin-filing" ? "text-lime-500 font-bold" : "text-lime-500 hover:bg-gray-100"
+                    activeTab === "admin-filing" ? "text-black font-bold" : "text-black hover:bg-lime-400"
                   }`}
-                  style={activeTab === "admin-filing" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+                  style={activeTab === "admin-filing" ? { backgroundColor: 'rgba(0, 0, 0, 0.1)' } : undefined}
                 >
-                  <img src={fileIcon} alt="File" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" />
+                  <img src={fileIcon} alt="File" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] mr-3 object-contain" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))' }} />
                   File for Farmers
                 </button>
               </li>
@@ -2579,13 +2586,13 @@ const AdminDashboard = () => {
 
         {/* Desktop Sidebar */}
         <aside 
-          className={`hidden md:block ${sidebarExpanded ? 'w-64' : 'w-16'} shadow-lg text-lime-500 space-y-6 border-r border-gray-100 fixed top-0 left-0 h-screen overflow-y-auto transition-all duration-150 ease-out group z-20 scrollbar-hide`}
-          style={{ backgroundColor: 'rgb(13, 13, 13)' }}
+          className={`hidden md:block ${sidebarExpanded ? 'w-64' : 'w-16'} shadow-lg text-black space-y-6 border-r border-gray-100 fixed top-0 left-0 h-screen overflow-y-auto transition-all duration-150 ease-out group z-20 scrollbar-hide`}
+          style={{ backgroundColor: 'rgb(132, 204, 22)' }}
           onMouseEnter={() => setSidebarExpanded(true)}
           onMouseLeave={() => setSidebarExpanded(false)}
         >
           {/* Admin Logo Section */}
-          <div className={`p-6 border-b transition-opacity duration-300 ${sidebarExpanded ? 'border-lime-500 opacity-100' : 'border-transparent opacity-0'}`} style={{ backgroundColor: 'rgb(13, 13, 13)' }}>
+          <div className={`p-6 border-b-4 transition-opacity duration-300 ${sidebarExpanded ? 'border-black opacity-100' : 'border-transparent opacity-0'}`} style={{ backgroundColor: 'rgb(132, 204, 22)' }}>
             <div className="flex flex-col items-center">
               <button 
                 onClick={() => handleTabSwitch("home")}
@@ -2595,10 +2602,11 @@ const AdminDashboard = () => {
                   src={adminLogoImage || "/placeholder.svg"} 
                   alt="Admin Logo" 
                   className="h-32 w-32 object-contain"
+                  style={{ filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))' }}
                 />
               </button>
               <div className={`transition-all duration-300 overflow-hidden ${sidebarExpanded ? 'opacity-100 max-h-20' : 'opacity-0 max-h-0'}`}>
-                <h2 className="text-sm font-bold text-lime-400 text-center leading-tight">
+                <h2 className="text-sm font-bold text-black text-center leading-tight">
                   Kapalong Department Agriculture
                 </h2>
               </div>
@@ -2611,10 +2619,10 @@ const AdminDashboard = () => {
               onClick={() => handleTabSwitch("home")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "home" 
-                  ? "text-lime-500 font-bold" 
-                  : "text-lime-500 hover:bg-gray-50"
+                  ? "text-black font-bold" 
+                  : "text-black hover:bg-lime-400"
               }`}
-              style={activeTab === "home" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+              style={activeTab === "home" ? { backgroundColor: 'rgba(0, 0, 0, 0.1)' } : undefined}
               title={!sidebarExpanded ? "Dashboard" : ""}
             >
               <LayoutDashboard size={24} className="flex-shrink-0" />
@@ -2629,14 +2637,14 @@ const AdminDashboard = () => {
                 }}
                 className={`flex items-center ${sidebarExpanded ? 'justify-between gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                   activeTab === "farmer-registration"
-                    ? "text-lime-500 font-bold"
-                    : "text-lime-500 hover:bg-gray-50"
+                    ? "text-black font-bold"
+                    : "text-black hover:bg-lime-400"
                 }`}
-                style={activeTab === "farmer-registration" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+                style={activeTab === "farmer-registration" ? { backgroundColor: 'rgba(0, 0, 0, 0.1)' } : undefined}
                 title={!sidebarExpanded ? "Farmer Registration" : ""}
               >
                 <div className="flex items-center gap-3">
-                  <img src={registrationIcon} alt="Registration" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" />
+                  <img src={registrationIcon} alt="Registration" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))' }} />
                   {sidebarExpanded && <span>Farmer Registration</span>}
                 </div>
                 {sidebarExpanded && (
@@ -2652,8 +2660,8 @@ const AdminDashboard = () => {
               >
                 <button
                   onClick={() => handleTabSwitch("crop-insurance")}
-                  className={`flex items-center ${sidebarExpanded ? 'gap-3 pl-10' : 'justify-center px-2'} py-2 rounded-lg hover:bg-gray-50 w-full text-left transition-colors ${activeTab === 'crop-insurance' ? "text-lime-500 font-bold" : "text-lime-500"}`}
-                  style={activeTab === 'crop-insurance' ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+                  className={`flex items-center ${sidebarExpanded ? 'gap-3 pl-10' : 'justify-center px-2'} py-2 rounded-lg hover:bg-lime-400 w-full text-left transition-colors ${activeTab === 'crop-insurance' ? "text-black font-bold" : "text-black"}`}
+                  style={activeTab === 'crop-insurance' ? { backgroundColor: 'rgba(0, 0, 0, 0.1)' } : undefined}
                   title={!sidebarExpanded ? "Crop Insurance" : ""}
                 >
                   <Shield size={24} className="flex-shrink-0" />
@@ -2666,13 +2674,13 @@ const AdminDashboard = () => {
               onClick={() => handleTabSwitch("claims")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "claims" 
-                  ? "text-lime-500 font-bold" 
-                  : "text-lime-500 hover:bg-gray-50"
+                  ? "text-black font-bold" 
+                  : "text-black hover:bg-lime-400"
               }`}
-              style={activeTab === "claims" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+              style={activeTab === "claims" ? { backgroundColor: 'rgba(0, 0, 0, 0.1)' } : undefined}
               title={!sidebarExpanded ? "Cash Assistance Claims" : ""}
             >
-              <img src={cashIcon} alt="Cash" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" />
+              <img src={cashIcon} alt="Cash" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))' }} />
               {sidebarExpanded && <span>Cash Assistance Claims</span>}
             </button>
 
@@ -2680,15 +2688,20 @@ const AdminDashboard = () => {
               onClick={() => handleTabSwitch("distribution")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "distribution"
-                  ? "text-lime-500 font-bold"
-                  : "text-lime-500 hover:bg-gray-50"
+                  ? "text-black font-bold"
+                  : "text-black hover:bg-lime-400"
               }`}
-              style={activeTab === "distribution" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+              style={activeTab === "distribution" ? { backgroundColor: 'rgba(0, 0, 0, 0.1)' } : undefined}
               title={!sidebarExpanded ? "Distribution Records" : ""}
             >
-              <img src={distributionIcon} alt="Distribution" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" />
+              <img src={distributionIcon} alt="Distribution" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))' }} />
               {sidebarExpanded && <span>Distribution Records</span>}
             </button>
+          </div>
+
+          {/* Divider */}
+          <div className="px-3">
+            <div className="border-t-4 border-black"></div>
           </div>
 
           {/* Secondary Navigation Section */}
@@ -2697,13 +2710,13 @@ const AdminDashboard = () => {
               onClick={() => handleTabSwitch("assistance")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "assistance"
-                  ? "text-lime-500 font-bold"
-                  : "text-lime-500 hover:bg-gray-50"
+                  ? "text-black font-bold"
+                  : "text-black hover:bg-lime-400"
               }`}
-              style={activeTab === "assistance" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+              style={activeTab === "assistance" ? { backgroundColor: 'rgba(0, 0, 0, 0.1)' } : undefined}
               title={!sidebarExpanded ? "Assistance Inventory" : ""}
             >
-              <img src={inventoryIcon} alt="Inventory" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" />
+              <img src={inventoryIcon} alt="Inventory" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))' }} />
               {sidebarExpanded && <span>Assistance Inventory</span>}
             </button>
 
@@ -2711,13 +2724,13 @@ const AdminDashboard = () => {
               onClick={() => handleTabSwitch("admin-filing")}
               className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
                 activeTab === "admin-filing"
-                  ? "text-lime-500 font-bold"
-                  : "text-lime-500 hover:bg-gray-50"
+                  ? "text-black font-bold"
+                  : "text-black hover:bg-lime-400"
               }`}
-              style={activeTab === "admin-filing" ? { backgroundColor: 'rgba(43, 158, 102, 0.15)' } : undefined}
+              style={activeTab === "admin-filing" ? { backgroundColor: 'rgba(0, 0, 0, 0.1)' } : undefined}
               title={!sidebarExpanded ? "File for Farmers" : ""}
             >
-              <img src={fileIcon} alt="File" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" />
+              <img src={fileIcon} alt="File" className="w-8 h-8 min-w-[2rem] min-h-[2rem] max-w-[2rem] max-h-[2rem] flex-shrink-0 object-contain" style={{ filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))' }} />
               {sidebarExpanded && <span>File for Farmers</span>}
             </button>
 
