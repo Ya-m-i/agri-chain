@@ -1383,7 +1383,8 @@ const AdminDashboard = () => {
       return;
     }
     
-    const farmerIdToNotify = claim.farmerId._id || claim.farmerId;
+    // Handle both populated (object) and non-populated (string) farmerId
+    const farmerIdToNotify = claim.farmerId?._id || claim.farmerId;
     const compensationAmount = claim.compensation ? `₱${claim.compensation.toLocaleString()}` : 'your compensation';
     
     let alertMessage = `🔔 CLAIM READY FOR PICKUP! Your approved claim for ${claim.crop} damage can now be claimed. Compensation: ${compensationAmount}.`;
@@ -1463,7 +1464,8 @@ const AdminDashboard = () => {
 
       // Send notification to the farmer
       if (claim && (claim.farmerId || farmerId)) {
-        const farmerIdToNotify = claim.farmerId || farmerId;
+        // Handle both populated (object) and non-populated (string) farmerId
+        const farmerIdToNotify = claim.farmerId?._id || claim.farmerId || farmerId;
         const notificationType = actionType === 'approved' ? 'success' : 'error';
         const notificationTitle = actionType === 'approved' ? 'Claim Approved!' : 'Claim Rejected';
         
