@@ -1375,8 +1375,19 @@ const AdminModals = ({
               )}
             </div>
 
-            <div className="flex-1 min-h-[400px] relative bg-gray-100">
-              <div ref={mapRef} className="w-full h-[500px] bg-gray-200" style={{ minHeight: '500px', position: 'relative', zIndex: 1 }}></div>
+            <div className="flex-1 min-h-[500px] relative bg-white p-2">
+              <div 
+                ref={mapRef} 
+                id="location-picker-map"
+                className="w-full h-full min-h-[500px] rounded-lg border-2 border-lime-500"
+                style={{ 
+                  minHeight: '500px',
+                  height: '500px',
+                  position: 'relative',
+                  zIndex: 1,
+                  backgroundColor: '#f0f0f0'
+                }}
+              ></div>
             </div>
 
             {mapMode === "add" && (

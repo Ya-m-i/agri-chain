@@ -1905,12 +1905,11 @@ const AdminDashboard = () => {
     console.log('AdminDashboard: Total pages:', totalPages);
   }, [currentItems, currentPage, totalPages]);
 
-  // Load Leaflet when map modal is shown - fixed to ensure proper rendering
+  // NEW: Simplified map modal initialization - rebuilt from scratch
   useEffect(() => {
-    if (!showMapModal) {
+    if (!showMapModal || !mapRef.current) {
       // Cleanup when modal closes
       if (modalLeafletMapRef.current) {
-        console.log('🗑️ Cleaning up map instance...');
         modalLeafletMapRef.current.remove();
         modalLeafletMapRef.current = null;
         modalMarkersLayerRef.current = null;
@@ -1918,137 +1917,100 @@ const AdminDashboard = () => {
       return;
     }
 
-    // Wait for DOM to be ready
-    if (!mapRef.current) {
-      console.log('⏳ Waiting for map container...');
-      return;
-    }
-
-    console.log('🗺️ Map modal opened, checking map instance...');
-    
-    // Kapalong, Davao del Norte coordinates - precise center
-    const kapalongCoords = [7.5815, 125.8235];
-    const kapalongZoom = 13;
-    
-    // Always destroy and recreate to ensure fresh map
+    // Always destroy existing map first
     if (modalLeafletMapRef.current) {
-      console.log('🗑️ Removing existing map instance...');
       modalLeafletMapRef.current.remove();
       modalLeafletMapRef.current = null;
       modalMarkersLayerRef.current = null;
     }
 
-    // Helper function to initialize the map
-    const initializeMap = () => {
+    // Wait for modal to be fully rendered
+    const timer = setTimeout(() => {
       if (!mapRef.current) return;
 
-      console.log('🗺️ Creating new map instance...');
-      
+      const container = mapRef.current;
+      if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+        console.warn('Map container not ready, retrying...');
+        setTimeout(() => {
+          if (mapRef.current && mapRef.current.offsetWidth > 0) {
+            initMap();
+          }
+        }, 500);
+        return;
+      }
+
+      initMap();
+    }, 300);
+
+    const initMap = () => {
+      if (!mapRef.current || modalLeafletMapRef.current) return;
+
       try {
-        // Initialize the map with dark theme
-        modalLeafletMapRef.current = L.map(mapRef.current, {
-          zoomControl: false,
-          preferCanvas: false
-        }).setView(kapalongCoords, kapalongZoom);
-
-        // Add CartoDB Dark Matter tile layer for blockchain vibe
-        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-          subdomains: 'abcd',
-          maxZoom: 20,
-          minZoom: 3
-        }).addTo(modalLeafletMapRef.current);
+        console.log('🗺️ Initializing new map...');
         
-        // Add custom zoom control
-        L.control.zoom({
-          position: 'topright'
+        // Kapalong coordinates
+        const kapalongCoords = [7.5815, 125.8235];
+        const kapalongZoom = 13;
+
+        // Create map
+        modalLeafletMapRef.current = L.map(mapRef.current).setView(kapalongCoords, kapalongZoom);
+
+        // Add tile layer
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: '© OpenStreetMap contributors',
+          maxZoom: 19
         }).addTo(modalLeafletMapRef.current);
 
-        // Create a layer for markers
+        // Add zoom control
+        L.control.zoom().addTo(modalLeafletMapRef.current);
+
+        // Create markers layer
         modalMarkersLayerRef.current = L.layerGroup().addTo(modalLeafletMapRef.current);
 
-        // Add click handler for adding new locations
+        // Click handler for selecting location
         modalLeafletMapRef.current.on("click", (e) => {
           if (mapMode === "add") {
-            setSelectedLocation({
-              lat: e.latlng.lat,
-              lng: e.latlng.lng,
-            });
+            const { lat, lng } = e.latlng;
+            setSelectedLocation({ lat, lng });
 
-            // Clear existing markers in add mode
+            // Clear and add marker
             if (modalMarkersLayerRef.current) {
               modalMarkersLayerRef.current.clearLayers();
+              L.marker([lat, lng], {
+                icon: L.divIcon({
+                  className: 'custom-marker-lime',
+                  html: '<div style="background-color: #84cc16; width: 24px; height: 24px; border-radius: 50%; border: 3px solid #000;"></div>',
+                  iconSize: [24, 24],
+                  iconAnchor: [12, 12]
+                })
+              }).addTo(modalMarkersLayerRef.current);
             }
 
-            // Add a new marker at the clicked location with lime marker
-            L.marker([e.latlng.lat, e.latlng.lng], {
-              icon: L.divIcon({
-                className: 'custom-marker-lime',
-                html: '<div style="background-color: #84cc16; width: 24px; height: 24px; border-radius: 50%; border: 3px solid #000; box-shadow: 0 0 15px rgba(132, 204, 22, 0.9);"></div>',
-                iconSize: [24, 24],
-                iconAnchor: [12, 12]
-              })
-            }).addTo(modalMarkersLayerRef.current);
-
-            // Reverse geocode to get address and update form
-            reverseGeocode(e.latlng.lat, e.latlng.lng);
+            // Reverse geocode
+            reverseGeocode(lat, lng);
           }
         });
-        
-        // Force invalidate size after initialization
+
+        // Invalidate size after a short delay
         setTimeout(() => {
           if (modalLeafletMapRef.current) {
             modalLeafletMapRef.current.invalidateSize();
-            console.log('✅ Map size invalidated after initialization');
-          }
-        }, 100);
-
-        console.log('✅ Map initialized and centered on Kapalong');
-        
-        // Add existing farm locations to the map
-        setTimeout(() => {
-          if (modalMarkersLayerRef.current) {
-            addFarmersToMap();
           }
         }, 200);
+
+        // Add existing farmers if in view mode
+        if (mapMode === "view" && modalMarkersLayerRef.current) {
+          setTimeout(() => addFarmersToMap(), 300);
+        }
+
+        console.log('✅ Map initialized successfully');
       } catch (error) {
-        console.error('❌ Error initializing map:', error);
+        console.error('❌ Map initialization error:', error);
       }
     };
 
-    // Small delay to ensure container is visible
-    const initTimeout = setTimeout(() => {
-      if (!mapRef.current) {
-        console.error('❌ Map container not available');
-        return;
-      }
-
-      // Check if container is visible
-      const container = mapRef.current;
-      const styles = window.getComputedStyle(container);
-      console.log('📊 Map container info:', {
-        width: container.offsetWidth,
-        height: container.offsetHeight,
-        display: styles.display,
-        visibility: styles.visibility,
-        opacity: styles.opacity
-      });
-
-      if (container.offsetWidth === 0 || container.offsetHeight === 0) {
-        console.warn('⚠️ Map container has zero dimensions, retrying...');
-        setTimeout(() => {
-          if (mapRef.current && mapRef.current.offsetWidth > 0) {
-            initializeMap();
-          }
-        }, 300);
-        return;
-      }
-
-      initializeMap();
-    }, 150);
-
     return () => {
-      clearTimeout(initTimeout);
+      clearTimeout(timer);
     };
   }, [showMapModal, mapMode])
 
