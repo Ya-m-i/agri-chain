@@ -46,6 +46,7 @@ const FarmerRegistration = ({
   setMapMode,
   selectedLocation,
   setSelectedLocation,
+  onNavigateToDashboardMap, // Add callback to navigate to dashboard map
 }) => {
   // React Query hooks
   const { data: farmers = [], isLoading: farmersLoading, refetch: refetchFarmers } = useFarmers()
@@ -314,6 +315,17 @@ const FarmerRegistration = ({
 
   // Handle location view - navigate to dashboard map
   const handleLocationView = (farmer) => {
+    if (!farmer.location || !farmer.location.lat || !farmer.location.lng) {
+      useNotificationStore.getState().addAdminNotification({
+        id: generateUniqueId(),
+        type: 'error',
+        title: 'Location Not Found',
+        message: `No location data available for ${farmer.farmerName || farmer.firstName}`,
+        timestamp: new Date()
+      })
+      return
+    }
+    
     // Store farmer location data for dashboard map
     const farmerLocationData = {
       farmerId: farmer._id || farmer.id,
@@ -329,15 +341,18 @@ const FarmerRegistration = ({
     // Show notification
     useNotificationStore.getState().addAdminNotification({
       id: generateUniqueId(),
-      type: 'info',
-      title: 'Location View',
-      message: `Viewing location for ${farmerLocationData.farmerName} on dashboard map`,
+      type: 'success',
+      title: '📍 Location View',
+      message: `Navigating to ${farmerLocationData.farmerName}'s farm location on map`,
       timestamp: new Date()
     })
     
-    // Navigate to dashboard (this will be handled by the parent component)
-    // The dashboard will check for selectedFarmerLocation in localStorage
     console.log('Location view requested for farmer:', farmerLocationData)
+    
+    // Call the callback to navigate to dashboard map
+    if (onNavigateToDashboardMap) {
+      onNavigateToDashboardMap(farmerLocationData)
+    }
   }
 
   useEffect(() => {
@@ -424,14 +439,16 @@ const FarmerRegistration = ({
         </div>
         <div className="flex gap-4">
           <button
-            className="bg-lime-600 text-white px-4 py-2 rounded-lg hover:bg-lime-700 transition-colors flex items-center justify-center shadow-sm"
+            className="bg-lime-500 text-black px-4 py-2 rounded-lg hover:bg-lime-400 transition-all duration-200 flex items-center justify-center shadow-lg font-bold"
+            style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
             onClick={() => setShowRegisterForm(true)}
           >
             <UserPlus className="mr-2 h-5 w-5" />
             Register New Farmer
           </button>
           <button
-            className="text-lime-600 px-4 py-2 rounded-lg hover:bg-lime-50 transition-colors flex items-center justify-center border border-lime-600"
+            className="bg-lime-500 text-black px-4 py-2 rounded-lg hover:bg-lime-400 transition-all duration-200 flex items-center justify-center border-2 border-lime-600 font-bold"
+            style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
             onClick={() => {
               console.log('Manual refresh triggered')
               refetchFarmers()
@@ -810,12 +827,13 @@ const FarmerRegistration = ({
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.lotNumber}</td>
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.lotArea}</td>
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.isCertified ? (<span className="px-2 py-1 bg-green-100 text-lime-800 rounded-full text-xs font-medium"><CheckCircle size={12} className="inline mr-1" /> Yes</span>) : (<span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">No</span>)}</td>
-                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.location ? (<button onClick={() => handleLocationView(farmer)} className="text-blue-600 hover:text-blue-800 flex items-center"><MapPin className="h-4 w-4 mr-1" />View</button>) : (<button className="text-gray-500 hover:text-gray-700 flex items-center"><Plus className="h-4 w-4 mr-1" />Add</button>)}</td>
+                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.location ? (<button onClick={() => handleLocationView(farmer)} className="bg-black text-lime-500 hover:font-bold flex items-center px-3 py-1.5 rounded-lg transition-all duration-200" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.3)' }}><MapPin className="h-4 w-4 mr-1" />View</button>) : (<button className="bg-gray-200 text-gray-600 hover:bg-gray-300 flex items-center px-3 py-1.5 rounded-lg transition-all duration-200"><Plus className="h-4 w-4 mr-1" />Add</button>)}</td>
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">
                     <div className="flex space-x-2">
                       <button 
                         onClick={() => { setSelectedFarmer(farmer); setShowFarmerDetails(true); }} 
-                        className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
+                        className="bg-black text-lime-500 hover:font-bold flex items-center px-2 py-1 rounded-lg transition-all duration-200"
+                        style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.3)' }}
                       >
                         <User size={14} className="mr-1" />View
                       </button>
@@ -824,7 +842,8 @@ const FarmerRegistration = ({
                           setSelectedFarmerForProfile(farmer); 
                           setShowProfileModal(true); 
                         }} 
-                        className="text-green-600 hover:text-green-800 font-medium flex items-center"
+                        className="bg-black text-lime-500 hover:font-bold flex items-center px-2 py-1 rounded-lg transition-all duration-200"
+                        style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.3)' }}
                       >
                         <UserPlus size={14} className="mr-1" />Set Profile
                       </button>
@@ -835,7 +854,8 @@ const FarmerRegistration = ({
                           setShowDeleteConfirmation(true); 
                           console.log('Modal should be open now'); 
                         }} 
-                        className="text-red-600 hover:text-red-800 font-medium flex items-center"
+                        className="bg-black text-red-500 hover:font-bold flex items-center px-2 py-1 rounded-lg transition-all duration-200"
+                        style={{ boxShadow: '0 0 8px rgba(220, 38, 38, 0.3)' }}
                       >
                         <X size={14} className="mr-1" />Delete
                       </button>

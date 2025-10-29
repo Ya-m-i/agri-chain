@@ -985,7 +985,7 @@ const AdminDashboard = () => {
       }
     })
     
-    // Add custom CSS for enhanced popups
+    // Add custom CSS for enhanced popups and neon lime map styling
     if (!document.getElementById('enhanced-popup-styles')) {
       const style = document.createElement('style')
       style.id = 'enhanced-popup-styles'
@@ -1004,11 +1004,86 @@ const AdminDashboard = () => {
         .enhanced-crop-marker:hover {
           transform: scale(1.1);
         }
+        /* Neon Lime Blockchain Map Styling */
+        .leaflet-control-zoom a {
+          background-color: #000 !important;
+          border: 2px solid rgb(132, 204, 22) !important;
+          color: rgb(132, 204, 22) !important;
+          box-shadow: 0 0 10px rgba(132, 204, 22, 0.5) !important;
+          transition: all 0.3s ease !important;
+        }
+        .leaflet-control-zoom a:hover {
+          background-color: rgb(132, 204, 22) !important;
+          color: #000 !important;
+          box-shadow: 0 0 20px rgba(132, 204, 22, 0.8) !important;
+          transform: scale(1.1);
+        }
+        .leaflet-popup-content-wrapper {
+          background: #000 !important;
+          border: 2px solid rgb(132, 204, 22) !important;
+          box-shadow: 0 0 20px rgba(132, 204, 22, 0.6) !important;
+        }
+        .leaflet-popup-tip {
+          background: #000 !important;
+          border: 2px solid rgb(132, 204, 22) !important;
+        }
+        .leaflet-container {
+          background: #1a1a1a !important;
+        }
+        /* Pulsing animation for markers */
+        @keyframes pulse-lime {
+          0%, 100% {
+            box-shadow: 0 0 10px rgba(132, 204, 22, 0.5);
+          }
+          50% {
+            box-shadow: 0 0 20px rgba(132, 204, 22, 0.8);
+          }
+        }
       `
       document.head.appendChild(style)
     }
     
   }, [farmers, insuranceByFarmer, cropFilter, monthFilter, yearFilter, claims, allApplications, showWeatherOverlay, weatherData])
+
+  // Handle navigation to dashboard map from farmer registration
+  const handleNavigateToDashboardMap = useCallback((farmerLocationData) => {
+    console.log('Navigating to dashboard map for farmer:', farmerLocationData)
+    
+    // Switch to home tab (dashboard)
+    setActiveTab('home')
+    
+    // Set selected farmer location for highlighting
+    setSelectedLocation(farmerLocationData.location)
+    
+    // Center map on farmer location with higher zoom
+    setMapCenter([farmerLocationData.location.lat, farmerLocationData.location.lng])
+    setMapZoom(15)
+    
+    // After a short delay to let the map render, highlight the farmer
+    setTimeout(() => {
+      if (overviewLeafletMapRef.current && farmerLocationData.location) {
+        overviewLeafletMapRef.current.setView(
+          [farmerLocationData.location.lat, farmerLocationData.location.lng], 
+          15,
+          { animate: true, duration: 1 }
+        )
+        
+        // Find and open the popup for this farmer
+        if (overviewMarkersLayerRef.current) {
+          overviewMarkersLayerRef.current.eachLayer((layer) => {
+            if (layer.getLatLng) {
+              const latLng = layer.getLatLng()
+              // Check if this marker matches the farmer's location (with small tolerance for floating point)
+              if (Math.abs(latLng.lat - farmerLocationData.location.lat) < 0.0001 &&
+                  Math.abs(latLng.lng - farmerLocationData.location.lng) < 0.0001) {
+                layer.openPopup()
+              }
+            }
+          })
+        }
+      }
+    }, 500)
+  }, [setActiveTab, setSelectedLocation, setMapCenter, setMapZoom])
 
         // Load claims function using React Query
         const loadClaims = useCallback(async () => {
@@ -1655,12 +1730,21 @@ const AdminDashboard = () => {
     if (showMapModal && mapRef.current) {
       // If map doesn't exist yet, create it
       if (!leafletMapRef.current) {
-        // Initialize the map
-        leafletMapRef.current = L.map(mapRef.current).setView(mapCenter, 12)
+        // Initialize the map with dark theme
+        leafletMapRef.current = L.map(mapRef.current, {
+          zoomControl: false
+        }).setView(mapCenter, 12)
 
-        // Add tile layer (OpenStreetMap)
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        // Add CartoDB Dark Matter tile layer for blockchain vibe
+        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          subdomains: 'abcd',
+          maxZoom: 20
+        }).addTo(leafletMapRef.current)
+        
+        // Add custom zoom control
+        L.control.zoom({
+          position: 'topright'
         }).addTo(leafletMapRef.current)
 
         // Create a layer for markers
@@ -1729,12 +1813,31 @@ const AdminDashboard = () => {
     if (!overviewMapRef.current) return
 
     if (!overviewLeafletMapRef.current) {
-      overviewLeafletMapRef.current = L.map(overviewMapRef.current).setView(mapCenter, 12)
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      overviewLeafletMapRef.current = L.map(overviewMapRef.current, {
+        zoomControl: false // Remove default zoom control for custom styling
+      }).setView(mapCenter, 12)
+      
+      // Use CartoDB Dark Matter for blockchain vibe
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+      }).addTo(overviewLeafletMapRef.current)
+      
+      // Add custom zoom control with neon lime styling
+      L.control.zoom({
+        position: 'topright'
       }).addTo(overviewLeafletMapRef.current)
 
       overviewMarkersLayerRef.current = L.layerGroup().addTo(overviewLeafletMapRef.current)
+      
+      // Add custom map styling
+      const mapContainer = overviewMapRef.current
+      if (mapContainer) {
+        mapContainer.style.border = '3px solid rgb(132, 204, 22)'
+        mapContainer.style.boxShadow = '0 0 20px rgba(132, 204, 22, 0.5), inset 0 0 20px rgba(132, 204, 22, 0.1)'
+        mapContainer.style.borderRadius = '12px'
+      }
     }
 
     setTimeout(() => {
@@ -3623,6 +3726,7 @@ const AdminDashboard = () => {
               formData={formData}
               setFormData={setFormData}
               reverseGeocode={reverseGeocode}
+              onNavigateToDashboardMap={handleNavigateToDashboardMap}
             />
           )}
 
