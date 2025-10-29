@@ -1834,86 +1834,97 @@ const AdminDashboard = () => {
     console.log('AdminDashboard: Total pages:', totalPages);
   }, [currentItems, currentPage, totalPages]);
 
-  // Load Leaflet when map modal is shown - optimized to prevent refresh
+  // Load Leaflet when map modal is shown - fixed to ensure proper rendering
   useEffect(() => {
-    if (showMapModal && mapRef.current && !leafletMapRef.current) {
-      console.log('🗺️ Initializing Select Farm Location map...');
+    if (showMapModal && mapRef.current) {
+      console.log('🗺️ Map modal opened, checking map instance...');
       
       // Kapalong, Davao del Norte coordinates - precise center
       const kapalongCoords = [7.5815, 125.8235];
       const kapalongZoom = 13;
       
-      // Initialize the map with dark theme - only once
-      leafletMapRef.current = L.map(mapRef.current, {
-        zoomControl: false,
-        center: kapalongCoords,
-        zoom: kapalongZoom
-      });
+      // If map doesn't exist, create it
+      if (!leafletMapRef.current) {
+        console.log('🗺️ Creating new map instance...');
+        
+        // Initialize the map with dark theme
+        leafletMapRef.current = L.map(mapRef.current, {
+          zoomControl: false
+        }).setView(kapalongCoords, kapalongZoom);
 
-      // Add CartoDB Dark Matter tile layer for blockchain vibe
-      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: 'abcd',
-        maxZoom: 20
-      }).addTo(leafletMapRef.current);
-      
-      // Add custom zoom control
-      L.control.zoom({
-        position: 'topright'
-      }).addTo(leafletMapRef.current);
+        // Add CartoDB Dark Matter tile layer for blockchain vibe
+        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          subdomains: 'abcd',
+          maxZoom: 20
+        }).addTo(leafletMapRef.current);
+        
+        // Add custom zoom control
+        L.control.zoom({
+          position: 'topright'
+        }).addTo(leafletMapRef.current);
 
-      // Create a layer for markers
-      markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current);
+        // Create a layer for markers
+        markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current);
 
-      // Add click handler for adding new locations
-      leafletMapRef.current.on("click", (e) => {
-        if (mapMode === "add") {
-          setSelectedLocation({
-            lat: e.latlng.lat,
-            lng: e.latlng.lng,
-          });
+        // Add click handler for adding new locations
+        leafletMapRef.current.on("click", (e) => {
+          if (mapMode === "add") {
+            setSelectedLocation({
+              lat: e.latlng.lat,
+              lng: e.latlng.lng,
+            });
 
-          // Clear existing markers in add mode
-          if (markersLayerRef.current) {
-            markersLayerRef.current.clearLayers();
+            // Clear existing markers in add mode
+            if (markersLayerRef.current) {
+              markersLayerRef.current.clearLayers();
+            }
+
+            // Add a new marker at the clicked location with lime marker
+            L.marker([e.latlng.lat, e.latlng.lng], {
+              icon: L.divIcon({
+                className: 'custom-marker-lime',
+                html: '<div style="background-color: #84cc16; width: 24px; height: 24px; border-radius: 50%; border: 3px solid #000; box-shadow: 0 0 15px rgba(132, 204, 22, 0.9);"></div>',
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+              })
+            }).addTo(markersLayerRef.current);
+
+            // Reverse geocode to get address and update form
+            reverseGeocode(e.latlng.lat, e.latlng.lng);
           }
-
-          // Add a new marker at the clicked location with lime marker
-          L.marker([e.latlng.lat, e.latlng.lng], {
-            icon: L.divIcon({
-              className: 'custom-marker-lime',
-              html: '<div style="background-color: #84cc16; width: 24px; height: 24px; border-radius: 50%; border: 3px solid #000; box-shadow: 0 0 15px rgba(132, 204, 22, 0.9);"></div>',
-              iconSize: [24, 24],
-              iconAnchor: [12, 12]
-            })
-          }).addTo(markersLayerRef.current);
-
-          // Reverse geocode to get address and update form
-          reverseGeocode(e.latlng.lat, e.latlng.lng);
-        }
-      });
-      
-      console.log('✅ Map initialized and centered on Kapalong');
-    }
-    
-    // Update map view and markers when modal opens or mode changes (but don't reinitialize)
-    if (showMapModal && leafletMapRef.current) {
-      // Recenter on Kapalong when opening modal
-      const kapalongCoords = [7.5815, 125.8235];
-      leafletMapRef.current.setView(kapalongCoords, 13);
-      
-      // Force a resize to ensure the map renders correctly in the modal
-      setTimeout(() => {
-        if (leafletMapRef.current) {
-          leafletMapRef.current.invalidateSize();
-        }
-      }, 100);
+        });
+        
+        console.log('✅ Map initialized and centered on Kapalong');
+      } else {
+        // Map exists, just update view and invalidate size
+        console.log('🗺️ Map exists, updating view...');
+        leafletMapRef.current.setView(kapalongCoords, kapalongZoom);
+        
+        // Force a resize to ensure the map renders correctly
+        setTimeout(() => {
+          if (leafletMapRef.current) {
+            leafletMapRef.current.invalidateSize();
+            console.log('✅ Map size invalidated and rerendered');
+          }
+        }, 200);
+      }
       
       // Add existing farm locations to the map
-      addFarmersToMap();
+      if (markersLayerRef.current) {
+        addFarmersToMap();
+      }
     }
 
-    // NO cleanup - keep map instance alive to prevent refresh
+    // Cleanup when modal closes
+    return () => {
+      if (!showMapModal && leafletMapRef.current) {
+        console.log('🗑️ Cleaning up map instance...');
+        leafletMapRef.current.remove();
+        leafletMapRef.current = null;
+        markersLayerRef.current = null;
+      }
+    };
   }, [showMapModal, mapMode, addFarmersToMap])
 
   // Load crop insurance records and group by farmer for dashboard overview
