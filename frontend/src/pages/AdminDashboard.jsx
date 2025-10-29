@@ -5083,18 +5083,18 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Map Modal - Blockchain Farm Vibe */}
+      {/* Map Modal - White Background Blockchain Farm Vibe */}
       {showMapModal && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-black rounded-xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col border-4 border-lime-500 relative" style={{ boxShadow: '0 0 40px rgba(132, 204, 22, 0.7)' }}>
-            {/* Corner Accents */}
-            <div className="absolute top-0 left-0 w-20 h-20 border-t-4 border-l-4 border-black pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(0, 0, 0, 0.5))' }}></div>
-            <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-black pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(0, 0, 0, 0.5))' }}></div>
-            <div className="absolute bottom-0 left-0 w-20 h-20 border-b-4 border-l-4 border-black pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(0, 0, 0, 0.5))' }}></div>
-            <div className="absolute bottom-0 right-0 w-20 h-20 border-b-4 border-r-4 border-black pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(0, 0, 0, 0.5))' }}></div>
+          <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col border-4 border-lime-500 relative" style={{ boxShadow: '0 0 40px rgba(132, 204, 22, 0.7)' }}>
+            {/* Corner Accents - Lime */}
+            <div className="absolute top-0 left-0 w-20 h-20 border-t-4 border-l-4 border-lime-500 pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(132, 204, 22, 0.6))' }}></div>
+            <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-lime-500 pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(132, 204, 22, 0.6))' }}></div>
+            <div className="absolute bottom-0 left-0 w-20 h-20 border-b-4 border-l-4 border-lime-500 pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(132, 204, 22, 0.6))' }}></div>
+            <div className="absolute bottom-0 right-0 w-20 h-20 border-b-4 border-r-4 border-lime-500 pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(132, 204, 22, 0.6))' }}></div>
             
             {/* Header */}
-            <div className="sticky top-0 bg-lime-500 text-black p-4 rounded-t-lg flex justify-between items-center border-b-4 border-black z-20" style={{ boxShadow: '0 4px 20px rgba(132, 204, 22, 0.4)' }}>
+            <div className="sticky top-0 bg-lime-500 text-black p-4 rounded-t-lg flex justify-between items-center border-b-4 border-lime-500 z-20" style={{ boxShadow: '0 4px 20px rgba(132, 204, 22, 0.4)' }}>
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-black rounded-lg border-2 border-lime-500" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.6)' }}>
                   <MapPin className="h-6 w-6 text-lime-500" />
@@ -5108,14 +5108,14 @@ const AdminDashboard = () => {
               </div>
               <button
                 onClick={() => setShowMapModal(false)}
-                className="text-black hover:text-red-600 focus:outline-none transition-all hover:rotate-90 duration-300 p-2 hover:bg-black hover:text-lime-500 rounded-lg"
+                className="text-black hover:text-red-600 focus:outline-none transition-all hover:rotate-90 duration-300 p-2 hover:bg-white hover:bg-opacity-20 rounded-lg"
               >
                 <X size={28} strokeWidth={3} />
               </button>
             </div>
 
             {/* Search Bar */}
-            <div className="p-4 bg-black border-b-2 border-lime-500 flex flex-wrap gap-3 items-center">
+            <div className="p-4 bg-white border-b-2 border-lime-500 flex flex-wrap gap-3 items-center">
               <div className="flex-1 min-w-[200px]">
                 <div className="relative">
                   <input
@@ -5123,7 +5123,7 @@ const AdminDashboard = () => {
                     placeholder="🔍 Search location in Kapalong..."
                     value={mapSearchQuery}
                     onChange={(e) => setMapSearchQuery(e.target.value)}
-                    className="w-full p-3 pr-12 border-2 border-lime-500 rounded-lg bg-gray-900 text-lime-500 placeholder-lime-700 font-semibold focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-400 transition-all"
+                    className="w-full p-3 pr-12 border-2 border-lime-500 rounded-lg bg-white text-black placeholder-gray-500 font-semibold focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-400 transition-all"
                     style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -5133,7 +5133,7 @@ const AdminDashboard = () => {
                   />
                   <button
                     onClick={searchLocation}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-lime-500 hover:text-lime-300 bg-black p-1.5 rounded-lg border border-lime-500 hover:border-lime-300 transition-all"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-black hover:text-lime-500 bg-lime-500 hover:bg-lime-400 p-1.5 rounded-lg border-2 border-black transition-all"
                     style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
                   >
                     <Search className="h-5 w-5" />
@@ -5155,7 +5155,7 @@ const AdminDashboard = () => {
               {mapMode === "add" && (
                 <button
                   onClick={() => setMapMode("view")}
-                  className="bg-black text-lime-500 px-4 py-3 rounded-lg hover:bg-gray-900 flex items-center font-bold border-2 border-lime-500 transition-all"
+                  className="bg-white text-black px-4 py-3 rounded-lg hover:bg-gray-100 flex items-center font-bold border-2 border-lime-500 transition-all"
                   style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
                 >
                   <Layers className="mr-2 h-5 w-5" />
@@ -5171,19 +5171,19 @@ const AdminDashboard = () => {
 
             {/* Footer - Add Mode */}
             {mapMode === "add" && (
-              <div className="p-4 border-t-4 border-lime-500 bg-black">
+              <div className="p-4 border-t-4 border-lime-500 bg-white">
                 <div className="flex justify-between items-center flex-wrap gap-4">
                   <div className="flex-1">
                     {selectedLocation ? (
-                      <div className="bg-lime-500 bg-opacity-10 border-2 border-lime-500 rounded-lg p-3">
-                        <p className="text-sm text-lime-500 font-bold uppercase mb-1">📍 Selected Coordinates:</p>
-                        <p className="text-xs text-white font-mono">
+                      <div className="bg-lime-500 bg-opacity-20 border-2 border-lime-500 rounded-lg p-3">
+                        <p className="text-sm text-black font-bold uppercase mb-1">📍 Selected Coordinates:</p>
+                        <p className="text-xs text-black font-mono">
                           Lat: {selectedLocation.lat.toFixed(6)} | Lng: {selectedLocation.lng.toFixed(6)}
                         </p>
                       </div>
                     ) : (
-                      <div className="bg-gray-900 border-2 border-gray-700 rounded-lg p-3">
-                        <p className="text-sm text-gray-400 font-semibold">
+                      <div className="bg-gray-100 border-2 border-gray-300 rounded-lg p-3">
+                        <p className="text-sm text-gray-600 font-semibold">
                           👆 Click on the map to select a farm location
                         </p>
                       </div>
