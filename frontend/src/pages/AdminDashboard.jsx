@@ -687,7 +687,6 @@ const AdminDashboard = () => {
   }
 
   // Function to reverse geocode coordinates to address
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const reverseGeocode = (lat, lng) => {
     fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
       .then((response) => response.json())
@@ -1372,7 +1371,10 @@ const AdminDashboard = () => {
   
   // Handle sending pickup alert to farmer
   const sendPickupAlert = (claim) => {
+    console.log('🚨 sendPickupAlert called with claim:', claim);
+    
     if (!claim || !claim.farmerId) {
+      console.error('❌ Alert failed - missing claim or farmerId:', { claim, farmerId: claim?.farmerId });
       useNotificationStore.getState().addAdminNotification({
         id: generateUniqueId(),
         type: 'error',
@@ -1387,22 +1389,31 @@ const AdminDashboard = () => {
     const farmerIdToNotify = claim.farmerId?._id || claim.farmerId;
     const compensationAmount = claim.compensation ? `₱${claim.compensation.toLocaleString()}` : 'your compensation';
     
+    console.log('📨 Sending pickup alert to farmer ID:', farmerIdToNotify);
+    
     let alertMessage = `🔔 CLAIM READY FOR PICKUP! Your approved claim for ${claim.crop} damage can now be claimed. Compensation: ${compensationAmount}.`;
     
     // Add pickup schedule if available
     if (claim.pickupSchedule && claim.pickupSchedule.date && claim.pickupSchedule.time) {
       alertMessage += ` 📅 Scheduled Pickup: ${claim.pickupSchedule.date} at ${claim.pickupSchedule.time}.`;
+      console.log('📅 Including pickup schedule:', claim.pickupSchedule);
     }
     
     alertMessage += ' Please bring a valid ID and necessary documents.';
     
-    useNotificationStore.getState().addFarmerNotification({
+    const notification = {
       id: `claim-pickup-alert-${claim._id || claim.id}-${generateUniqueId()}`,
       type: 'info',
       title: '🚨 Claim Ready for Pickup',
       message: alertMessage,
       timestamp: new Date()
-    }, farmerIdToNotify);
+    };
+    
+    console.log('📬 Pickup alert notification:', notification);
+    
+    useNotificationStore.getState().addFarmerNotification(notification, farmerIdToNotify);
+    
+    console.log('✅ Pickup alert sent to farmer store for ID:', farmerIdToNotify);
     
     // Show admin confirmation
     useNotificationStore.getState().addAdminNotification({
@@ -1466,8 +1477,17 @@ const AdminDashboard = () => {
       if (claim && (claim.farmerId || farmerId)) {
         // Handle both populated (object) and non-populated (string) farmerId
         const farmerIdToNotify = claim.farmerId?._id || claim.farmerId || farmerId;
+        
+        console.log('🔔 Sending claim notification to farmer:', {
+          claimId: actionClaimId,
+          actionType,
+          farmerIdToNotify,
+          claimFarmerId: claim.farmerId,
+          paramFarmerId: farmerId
+        });
+        
         const notificationType = actionType === 'approved' ? 'success' : 'error';
-        const notificationTitle = actionType === 'approved' ? 'Claim Approved!' : 'Claim Rejected';
+        const notificationTitle = actionType === 'approved' ? '✅ Claim Approved!' : '❌ Claim Rejected';
         
         let notificationMessage;
         if (actionType === 'approved') {
@@ -1486,13 +1506,25 @@ const AdminDashboard = () => {
           notificationMessage = `Your claim for ${claim.crop} damage has been rejected. ${feedbackText ? `Reason: ${feedbackText}` : ''}`;
         }
 
-        useNotificationStore.getState().addFarmerNotification({
+        const notification = {
           id: `claim-${actionType}-${actionClaimId}-${generateUniqueId()}`,
           type: notificationType,
           title: notificationTitle,
           message: notificationMessage,
           timestamp: new Date()
-        }, farmerIdToNotify);
+        };
+        
+        console.log('📬 Notification being sent:', notification);
+        
+        useNotificationStore.getState().addFarmerNotification(notification, farmerIdToNotify);
+        
+        console.log('✅ Notification sent to farmer store for ID:', farmerIdToNotify);
+      } else {
+        console.warn('⚠️ Cannot send notification - missing claim or farmerId:', {
+          hasClaim: !!claim,
+          claimFarmerId: claim?.farmerId,
+          paramFarmerId: farmerId
+        });
       }
     } catch (error) {
       useNotificationStore.getState().addAdminNotification({
@@ -1801,75 +1833,87 @@ const AdminDashboard = () => {
     console.log('AdminDashboard: Total pages:', totalPages);
   }, [currentItems, currentPage, totalPages]);
 
-  // Load Leaflet when map modal is shown
+  // Load Leaflet when map modal is shown - optimized to prevent refresh
   useEffect(() => {
-    if (showMapModal && mapRef.current) {
-      // If map doesn't exist yet, create it
-      if (!leafletMapRef.current) {
-        // Initialize the map with dark theme
-        leafletMapRef.current = L.map(mapRef.current, {
-          zoomControl: false
-        }).setView(mapCenter, 12)
+    if (showMapModal && mapRef.current && !leafletMapRef.current) {
+      console.log('🗺️ Initializing Select Farm Location map...');
+      
+      // Kapalong, Davao del Norte coordinates - precise center
+      const kapalongCoords = [7.5815, 125.8235];
+      const kapalongZoom = 13;
+      
+      // Initialize the map with dark theme - only once
+      leafletMapRef.current = L.map(mapRef.current, {
+        zoomControl: false,
+        center: kapalongCoords,
+        zoom: kapalongZoom
+      });
 
-        // Add CartoDB Dark Matter tile layer for blockchain vibe
-        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-          subdomains: 'abcd',
-          maxZoom: 20
-        }).addTo(leafletMapRef.current)
-        
-        // Add custom zoom control
-        L.control.zoom({
-          position: 'topright'
-        }).addTo(leafletMapRef.current)
+      // Add CartoDB Dark Matter tile layer for blockchain vibe
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 20
+      }).addTo(leafletMapRef.current);
+      
+      // Add custom zoom control
+      L.control.zoom({
+        position: 'topright'
+      }).addTo(leafletMapRef.current);
 
-        // Create a layer for markers
-        markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current)
+      // Create a layer for markers
+      markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current);
 
-        // Add click handler for adding new locations
-        leafletMapRef.current.on("click", (e) => {
-          if (mapMode === "add") {
-            setSelectedLocation({
-              lat: e.latlng.lat,
-              lng: e.latlng.lng,
+      // Add click handler for adding new locations
+      leafletMapRef.current.on("click", (e) => {
+        if (mapMode === "add") {
+          setSelectedLocation({
+            lat: e.latlng.lat,
+            lng: e.latlng.lng,
+          });
+
+          // Clear existing markers in add mode
+          if (markersLayerRef.current) {
+            markersLayerRef.current.clearLayers();
+          }
+
+          // Add a new marker at the clicked location with lime marker
+          L.marker([e.latlng.lat, e.latlng.lng], {
+            icon: L.divIcon({
+              className: 'custom-marker-lime',
+              html: '<div style="background-color: #84cc16; width: 24px; height: 24px; border-radius: 50%; border: 3px solid #000; box-shadow: 0 0 15px rgba(132, 204, 22, 0.9);"></div>',
+              iconSize: [24, 24],
+              iconAnchor: [12, 12]
             })
+          }).addTo(markersLayerRef.current);
 
-            // Clear existing markers in add mode
-            if (markersLayerRef.current) {
-              markersLayerRef.current.clearLayers()
-            }
-
-            // Add a new marker at the clicked location
-            L.marker([e.latlng.lat, e.latlng.lng]).addTo(markersLayerRef.current)
-
-            // Reverse geocode to get address and update form
-            reverseGeocode(e.latlng.lat, e.latlng.lng)
-          }
-        })
-      } else {
-        // If map exists, just update the view
-        leafletMapRef.current.setView(mapCenter, mapZoom)
-
-        // Force a resize to ensure the map renders correctly in the modal
-        setTimeout(() => {
-          if (leafletMapRef.current) {
-            leafletMapRef.current.invalidateSize()
-          }
-        }, 100)
-      }
-
+          // Reverse geocode to get address and update form
+          reverseGeocode(e.latlng.lat, e.latlng.lng);
+        }
+      });
+      
+      console.log('✅ Map initialized and centered on Kapalong');
+    }
+    
+    // Update map view and markers when modal opens or mode changes (but don't reinitialize)
+    if (showMapModal && leafletMapRef.current) {
+      // Recenter on Kapalong when opening modal
+      const kapalongCoords = [7.5815, 125.8235];
+      leafletMapRef.current.setView(kapalongCoords, 13);
+      
+      // Force a resize to ensure the map renders correctly in the modal
+      setTimeout(() => {
+        if (leafletMapRef.current) {
+          leafletMapRef.current.invalidateSize();
+        }
+      }, 100);
+      
       // Add existing farm locations to the map
-      addFarmersToMap()
+      addFarmersToMap();
     }
 
-    // Cleanup function
-    return () => {
-      if (leafletMapRef.current && !showMapModal) {
-        leafletMapRef.current.remove()
-        leafletMapRef.current = null
-      }
-    }
-  }, [showMapModal, mapCenter, mapZoom, mapMode, farmers, reverseGeocode, addFarmersToMap])
+    // NO cleanup - keep map instance alive to prevent refresh
+  }, [showMapModal, mapMode, addFarmersToMap])
 
   // Load crop insurance records and group by farmer for dashboard overview
   // Note: This useEffect removed as we now use React Query data directly
@@ -2073,42 +2117,106 @@ const AdminDashboard = () => {
     overviewLeafletMapRef.current.fitBounds(bounds, { padding: [20, 20] })
   }, [farmers])
 
-  // Function to search for a location on the map
-  const searchLocation = () => {
-    if (!mapSearchQuery.trim()) return
+  // Function to search for a location on the map - Enhanced with Kapalong focus
+  const searchLocation = async () => {
+    if (!mapSearchQuery.trim()) {
+      useNotificationStore.getState().addAdminNotification({
+        id: generateUniqueId(),
+        type: 'warning',
+        title: 'Search Empty',
+        message: 'Please enter a location to search',
+        timestamp: new Date()
+      });
+      return;
+    }
 
-    // Use Nominatim API for geocoding
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearchQuery)}`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data && data.length > 0) {
-          const { lat, lon } = data[0]
+    console.log('🔍 Searching for location:', mapSearchQuery);
 
-          if (leafletMapRef.current) {
-            leafletMapRef.current.setView([lat, lon], 13)
-
-            if (mapMode === "add") {
-              setSelectedLocation({ lat, lng: lon })
-
-              // Clear existing markers
-              markersLayerRef.current.clearLayers()
-
-              // Add a new marker at the searched location
-              L.marker([lat, lon]).addTo(markersLayerRef.current)
-
-              // Reverse geocode to get address and update form
-              reverseGeocode(lat, lon)
-            }
+    try {
+      // Add "Kapalong" to search query if not already present to focus on local area
+      const searchQuery = mapSearchQuery.toLowerCase().includes('kapalong') 
+        ? mapSearchQuery 
+        : `${mapSearchQuery}, Kapalong, Davao del Norte, Philippines`;
+      
+      // Use Nominatim API for geocoding with better parameters
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?` +
+        `format=json&` +
+        `q=${encodeURIComponent(searchQuery)}&` +
+        `limit=5&` +
+        `countrycodes=ph&` +
+        `addressdetails=1`,
+        {
+          headers: {
+            'User-Agent': 'AGRI-CHAIN-App'
           }
-        } else {
-          alert("Location not found. Please try a different search term.")
         }
-      })
-      .catch((error) => {
-        console.error("Error searching for location:", error)
-        alert("Error searching for location. Please try again.")
-      })
-  }
+      );
+
+      if (!response.ok) {
+        throw new Error('Search service unavailable');
+      }
+
+      const data = await response.json();
+      console.log('📍 Search results:', data);
+
+      if (data && data.length > 0) {
+        const { lat, lon } = data[0];
+
+        if (leafletMapRef.current) {
+          leafletMapRef.current.setView([parseFloat(lat), parseFloat(lon)], 15);
+
+          if (mapMode === "add") {
+            setSelectedLocation({ lat: parseFloat(lat), lng: parseFloat(lon) });
+
+            // Clear existing markers
+            if (markersLayerRef.current) {
+              markersLayerRef.current.clearLayers();
+            }
+
+            // Add a new marker at the searched location with lime style
+            L.marker([parseFloat(lat), parseFloat(lon)], {
+              icon: L.divIcon({
+                className: 'custom-marker-lime',
+                html: '<div style="background-color: #84cc16; width: 24px; height: 24px; border-radius: 50%; border: 3px solid #000; box-shadow: 0 0 15px rgba(132, 204, 22, 0.9);"></div>',
+                iconSize: [24, 24],
+                iconAnchor: [12, 12]
+              })
+            }).addTo(markersLayerRef.current);
+
+            // Reverse geocode to get address and update form
+            reverseGeocode(parseFloat(lat), parseFloat(lon));
+          }
+
+          useNotificationStore.getState().addAdminNotification({
+            id: generateUniqueId(),
+            type: 'success',
+            title: '✅ Location Found',
+            message: `Found: ${data[0].display_name}`,
+            timestamp: new Date()
+          });
+        }
+      } else {
+        useNotificationStore.getState().addAdminNotification({
+          id: generateUniqueId(),
+          type: 'error',
+          title: '❌ Location Not Found',
+          message: 'No results found. Try a different search term or be more specific.',
+          timestamp: new Date()
+        });
+      }
+    } catch (error) {
+      console.error('❌ Search error:', error);
+      useNotificationStore.getState().addAdminNotification({
+        id: generateUniqueId(),
+        type: 'error',
+        title: '❌ Search Failed',
+        message: `Error: ${error.message}. Please try again.`,
+        timestamp: new Date()
+      });
+    }
+  };
+
 
   // 1. Add state for feedback modal
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -4963,31 +5071,48 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Map Modal */}
+      {/* Map Modal - Blockchain Farm Vibe */}
       {showMapModal && (
-        <div className="fixed inset-0 z-50 bg-transparent bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="sticky top-0 text-white p-4 rounded-t-xl flex justify-between items-center" style={{ backgroundColor: 'rgb(43, 158, 102)' }}>
-              <h2 className="text-xl font-bold">
-                {mapMode === "view" ? "Farm Locations Map" : "Select Farm Location"}
-              </h2>
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-70 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-black rounded-xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col border-4 border-lime-500 relative" style={{ boxShadow: '0 0 40px rgba(132, 204, 22, 0.7)' }}>
+            {/* Corner Accents */}
+            <div className="absolute top-0 left-0 w-20 h-20 border-t-4 border-l-4 border-black pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(0, 0, 0, 0.5))' }}></div>
+            <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-black pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(0, 0, 0, 0.5))' }}></div>
+            <div className="absolute bottom-0 left-0 w-20 h-20 border-b-4 border-l-4 border-black pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(0, 0, 0, 0.5))' }}></div>
+            <div className="absolute bottom-0 right-0 w-20 h-20 border-b-4 border-r-4 border-black pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(0, 0, 0, 0.5))' }}></div>
+            
+            {/* Header */}
+            <div className="sticky top-0 bg-lime-500 text-black p-4 rounded-t-lg flex justify-between items-center border-b-4 border-black z-20" style={{ boxShadow: '0 4px 20px rgba(132, 204, 22, 0.4)' }}>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-black rounded-lg border-2 border-lime-500" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.6)' }}>
+                  <MapPin className="h-6 w-6 text-lime-500" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black uppercase tracking-wide">
+                    {mapMode === "view" ? "🗺️ Farm Locations Map" : "📍 Select Farm Location"}
+                  </h2>
+                  <p className="text-xs text-black opacity-75 font-semibold uppercase tracking-wider">Kapalong, Davao del Norte</p>
+                </div>
+              </div>
               <button
                 onClick={() => setShowMapModal(false)}
-                className="text-white hover:text-gray-200 focus:outline-none"
+                className="text-black hover:text-red-600 focus:outline-none transition-all hover:rotate-90 duration-300 p-2 hover:bg-black hover:text-lime-500 rounded-lg"
               >
-                <X size={24} />
+                <X size={28} strokeWidth={3} />
               </button>
             </div>
 
-            <div className="p-4 border-b border-gray-200 flex flex-wrap gap-4 items-center">
+            {/* Search Bar */}
+            <div className="p-4 bg-black border-b-2 border-lime-500 flex flex-wrap gap-3 items-center">
               <div className="flex-1 min-w-[200px]">
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Search for a location..."
+                    placeholder="🔍 Search location in Kapalong..."
                     value={mapSearchQuery}
                     onChange={(e) => setMapSearchQuery(e.target.value)}
-                    className="w-full p-2 pr-10 border rounded-md"
+                    className="w-full p-3 pr-12 border-2 border-lime-500 rounded-lg bg-gray-900 text-lime-500 placeholder-lime-700 font-semibold focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-400 transition-all"
+                    style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         searchLocation()
@@ -4996,7 +5121,8 @@ const AdminDashboard = () => {
                   />
                   <button
                     onClick={searchLocation}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-lime-500 hover:text-lime-300 bg-black p-1.5 rounded-lg border border-lime-500 hover:border-lime-300 transition-all"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
                   >
                     <Search className="h-5 w-5" />
                   </button>
@@ -5006,7 +5132,8 @@ const AdminDashboard = () => {
               {mapMode === "view" && (
                 <button
                   onClick={() => setMapMode("add")}
-                  className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 flex items-center"
+                  className="bg-lime-500 text-black px-4 py-3 rounded-lg hover:bg-lime-400 flex items-center font-bold border-2 border-black transition-all"
+                  style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
                 >
                   <Plus className="mr-2 h-5 w-5" />
                   Add Location
@@ -5016,7 +5143,8 @@ const AdminDashboard = () => {
               {mapMode === "add" && (
                 <button
                   onClick={() => setMapMode("view")}
-                  className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 flex items-center"
+                  className="bg-black text-lime-500 px-4 py-3 rounded-lg hover:bg-gray-900 flex items-center font-bold border-2 border-lime-500 transition-all"
+                  style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
                 >
                   <Layers className="mr-2 h-5 w-5" />
                   View All Locations
@@ -5024,26 +5152,35 @@ const AdminDashboard = () => {
               )}
             </div>
 
-            <div className="flex-1 min-h-[400px] relative">
-              <div ref={mapRef} className="w-full h-[500px]"></div>
+            {/* Map Container */}
+            <div className="flex-1 min-h-[500px] relative border-4 border-lime-500 m-2 rounded-lg overflow-hidden" style={{ boxShadow: 'inset 0 0 30px rgba(132, 204, 22, 0.3)' }}>
+              <div ref={mapRef} className="w-full h-full"></div>
             </div>
 
+            {/* Footer - Add Mode */}
             {mapMode === "add" && (
-              <div className="p-4 border-t border-gray-200 bg-gray-50">
-                <div className="flex justify-between items-center">
-                  <div>
+              <div className="p-4 border-t-4 border-lime-500 bg-black">
+                <div className="flex justify-between items-center flex-wrap gap-4">
+                  <div className="flex-1">
                     {selectedLocation ? (
-                      <p className="text-sm text-gray-600">
-                        Selected coordinates: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
-                      </p>
+                      <div className="bg-lime-500 bg-opacity-10 border-2 border-lime-500 rounded-lg p-3">
+                        <p className="text-sm text-lime-500 font-bold uppercase mb-1">📍 Selected Coordinates:</p>
+                        <p className="text-xs text-white font-mono">
+                          Lat: {selectedLocation.lat.toFixed(6)} | Lng: {selectedLocation.lng.toFixed(6)}
+                        </p>
+                      </div>
                     ) : (
-                      <p className="text-sm text-gray-600">Click on the map to select a location</p>
+                      <div className="bg-gray-900 border-2 border-gray-700 rounded-lg p-3">
+                        <p className="text-sm text-gray-400 font-semibold">
+                          👆 Click on the map to select a farm location
+                        </p>
+                      </div>
                     )}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <button
                       onClick={() => setShowMapModal(false)}
-                      className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                      className="px-6 py-3 bg-white border-2 border-black text-black rounded-lg hover:bg-gray-100 transition-all font-bold"
                     >
                       Cancel
                     </button>
@@ -5052,15 +5189,24 @@ const AdminDashboard = () => {
                         if (selectedLocation) {
                           setShowMapModal(false)
                         } else {
-                          alert("Please select a location on the map first.")
+                          useNotificationStore.getState().addAdminNotification({
+                            id: generateUniqueId(),
+                            type: 'warning',
+                            title: 'No Location Selected',
+                            message: 'Please select a location on the map first.',
+                            timestamp: new Date()
+                          });
                         }
                       }}
                       disabled={!selectedLocation}
-                      className={`px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-800 ${
-                        !selectedLocation ? "opacity-50 cursor-not-allowed" : ""
+                      className={`px-6 py-3 bg-lime-500 text-black rounded-lg font-bold border-2 border-black transition-all ${
+                        !selectedLocation 
+                          ? "opacity-50 cursor-not-allowed" 
+                          : "hover:bg-lime-400"
                       }`}
+                      style={selectedLocation ? { boxShadow: '0 0 20px rgba(132, 204, 22, 0.6)' } : {}}
                     >
-                      Confirm Location
+                      ✅ Confirm Location
                     </button>
                   </div>
                 </div>
