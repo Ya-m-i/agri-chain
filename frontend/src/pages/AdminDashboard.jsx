@@ -675,7 +675,14 @@ const AdminDashboard = () => {
         const lotArea = farmer.lotArea || farmer.cropArea || 'Not specified';
         const isCertified = farmer.isCertified ? "✓ Certified" : "";
 
-        const marker = L.marker([farmer.location.lat, farmer.location.lng]).bindPopup(`
+        const marker = L.marker([farmer.location.lat, farmer.location.lng], {
+          icon: L.divIcon({
+            className: 'custom-marker-lime',
+            html: '<div style="background-color: #84cc16; width: 24px; height: 24px; border-radius: 50%; border: 3px solid #000; box-shadow: 0 0 15px rgba(132, 204, 22, 0.9);"></div>',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+          })
+        }).bindPopup(`
           <strong>${farmerName}</strong><br>
           Crop: ${cropType}<br>
           Area: ${lotArea}<br>
