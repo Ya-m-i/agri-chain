@@ -15,12 +15,6 @@ import {
   Layers,
   AlertTriangle,
 } from "lucide-react"
-// Import image assets
-import registerIcon from '../assets/Images/register.png'
-import cropsIcon from '../assets/Images/crops.png'
-import barangayIcon from '../assets/Images/barangay.png'
-import certIcon from '../assets/Images/cert.png'
-import farmersIcon from '../assets/Images/farmers.png'
 // Import action button icons
 import viewIcon from '../assets/Images/View.png'
 import profileIcon from '../assets/Images/Profile.png'
@@ -438,7 +432,6 @@ const FarmerRegistration = ({
       {/* Register Farmer Button */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
-          <img src={registerIcon} alt="Register" className="h-10 w-10 mr-3" />
           <h2 className="text-2xl font-bold text-gray-800">Farmer Registration</h2>
         </div>
         <div className="flex gap-4">
@@ -470,8 +463,7 @@ const FarmerRegistration = ({
 
       {/* Combined Filters Widget */}
       <div className="w-full bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-          <Search className="h-5 w-5 text-gray-600 mr-2" />
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">
           Filter Farmers
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
@@ -481,7 +473,6 @@ const FarmerRegistration = ({
               onClick={() => setShowCropFilter(!showCropFilter)}
               className="w-full bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-lime-500 flex items-center justify-center transition-colors"
             >
-              <img src={cropsIcon} alt="Crops" className="h-6 w-6 mr-2" />
               <span className="text-sm font-medium text-gray-700">
                 {formData.cropType || "All Crops"}
               </span>
@@ -523,7 +514,6 @@ const FarmerRegistration = ({
               onClick={() => setShowBarangayFilter(!showBarangayFilter)}
               className="w-full bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center transition-colors"
             >
-              <img src={barangayIcon} alt="Barangay" className="h-6 w-6 mr-2" />
               <span className="text-sm font-medium text-gray-700">
                 {formData.barangay || "All Barangays"}
               </span>
@@ -565,7 +555,6 @@ const FarmerRegistration = ({
               onClick={() => setShowCertFilter(!showCertFilter)}
               className="w-full bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 flex items-center justify-center transition-colors"
             >
-              <img src={certIcon} alt="Certification" className="h-6 w-6 mr-2" />
               <span className="text-sm font-medium text-gray-700">
                 {formData.isCertified === true ? "Certified" : formData.isCertified === false ? "Not Certified" : "All Certifications"}
               </span>
@@ -773,7 +762,6 @@ const FarmerRegistration = ({
       {/* Farm List Title */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
-          <img src={farmersIcon} alt="Farmers" className="h-8 w-8 mr-3" />
           <h2 className="text-xl font-semibold text-gray-800">Farm List</h2>
         </div>
         <div className="text-sm text-gray-500">
@@ -832,18 +820,24 @@ const FarmerRegistration = ({
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.lotArea}</td>
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.isCertified ? (<span className="px-2 py-1 bg-green-100 text-lime-800 rounded-full text-xs font-medium"><CheckCircle size={12} className="inline mr-1" /> Yes</span>) : (<span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">No</span>)}</td>
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.location ? (<button onClick={() => handleLocationView(farmer)} className="bg-black text-lime-500 hover:font-bold flex items-center px-3 py-1.5 rounded-lg transition-all duration-200" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.3)' }}><MapPin className="h-4 w-4 mr-1" />View</button>) : (<button className="bg-gray-200 text-gray-600 hover:bg-gray-300 flex items-center px-3 py-1.5 rounded-lg transition-all duration-200"><Plus className="h-4 w-4 mr-1" />Add</button>)}</td>
-                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">
-                    <div className="flex space-x-3 items-center">
+                  <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div className="flex space-x-3 items-center justify-start min-w-[160px]">
                       <button 
                         onClick={() => { setSelectedFarmer(farmer); setShowFarmerDetails(true); }} 
-                        className="hover:scale-110 transition-all duration-200 p-1"
+                        className="hover:scale-110 transition-all duration-200 p-1 flex-shrink-0"
                         title="View Details"
                       >
                         <img 
                           src={viewIcon} 
                           alt="View" 
-                          className="h-7 w-7"
-                          style={{ filter: 'drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5))' }}
+                          className="h-10 w-10"
+                          style={{ 
+                            filter: 'drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5))',
+                            width: '40px',
+                            height: '40px',
+                            minWidth: '40px',
+                            minHeight: '40px'
+                          }}
                         />
                       </button>
                       <button 
@@ -851,14 +845,20 @@ const FarmerRegistration = ({
                           setSelectedFarmerForProfile(farmer); 
                           setShowProfileModal(true); 
                         }} 
-                        className="hover:scale-110 transition-all duration-200 p-1"
+                        className="hover:scale-110 transition-all duration-200 p-1 flex-shrink-0"
                         title="Set Profile"
                       >
                         <img 
                           src={profileIcon} 
                           alt="Set Profile" 
-                          className="h-7 w-7"
-                          style={{ filter: 'drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5))' }}
+                          className="h-10 w-10"
+                          style={{ 
+                            filter: 'drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5))',
+                            width: '40px',
+                            height: '40px',
+                            minWidth: '40px',
+                            minHeight: '40px'
+                          }}
                         />
                       </button>
                       <button 
@@ -868,14 +868,20 @@ const FarmerRegistration = ({
                           setShowDeleteConfirmation(true); 
                           console.log('Modal should be open now'); 
                         }} 
-                        className="hover:scale-110 transition-all duration-200 p-1"
+                        className="hover:scale-110 transition-all duration-200 p-1 flex-shrink-0"
                         title="Delete"
                       >
                         <img 
                           src={deleteIcon} 
                           alt="Delete" 
-                          className="h-7 w-7"
-                          style={{ filter: 'drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5))' }}
+                          className="h-10 w-10"
+                          style={{ 
+                            filter: 'drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5))',
+                            width: '40px',
+                            height: '40px',
+                            minWidth: '40px',
+                            minHeight: '40px'
+                          }}
                         />
                       </button>
                     </div>
@@ -1337,56 +1343,106 @@ const FarmerRegistration = ({
         </div>
       )}
 
-      {/* Farmer Details Modal */}
+      {/* Farmer Details Modal - Blockchain Farm Vibe */}
       {showFarmerDetails && selectedFarmer && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-30 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-lime-700 text-white p-4 rounded-t-xl flex justify-between items-center">
-              <h2 className="text-xl font-bold">Farmer Details</h2>
-              <button
-                onClick={() => setShowFarmerDetails(false)}
-                className="text-white hover:text-gray-200 focus:outline-none"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <h3 className="text-lg font-semibold text-lime-800 mb-3 flex items-center gap-2">
-                    <User size={20} /> Personal Information
-                  </h3>
-                  <div className="space-y-3">
-                    <div><span className="text-gray-500 text-sm">Full Name</span><p className="font-medium">{selectedFarmer.farmerName}</p></div>
-                    <div><span className="text-gray-500 text-sm">Birthday</span><p className="font-medium">{selectedFarmer.birthday || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-sm">Gender</span><p className="font-medium">{selectedFarmer.gender || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-sm">Contact Number</span><p className="font-medium">{selectedFarmer.contactNum || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-sm">Address</span><p className="font-medium">{selectedFarmer.address}</p></div>
-                  </div>
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl border-4 border-lime-500 max-w-3xl w-full max-h-[90vh] overflow-y-auto relative" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6)' }}>
+            {/* Corner Accents */}
+            <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            
+            <div className="sticky top-0 bg-white border-b-4 border-lime-500 p-6 flex justify-between items-center z-20" style={{ boxShadow: '0 4px 15px rgba(132, 204, 22, 0.3)' }}>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-black rounded-lg" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.6)' }}>
+                  <User className="h-6 w-6 text-lime-500" />
                 </div>
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <h3 className="text-lg font-semibold text-blue-800 mb-3">Farm Information</h3>
-                  <div className="space-y-3">
-                    <div><span className="text-gray-500 text-sm">Crop Type</span><p className="font-medium">{selectedFarmer.cropType}</p></div>
-                    <div><span className="text-gray-500 text-sm">Crop Area</span><p className="font-medium">{selectedFarmer.cropArea} hectares</p></div>
-                    <div><span className="text-gray-500 text-sm">Lot Number</span><p className="font-medium">{selectedFarmer.lotNumber || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-sm">Lot Area</span><p className="font-medium">{selectedFarmer.lotArea || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-sm">Certified</span><p className="font-medium">{selectedFarmer.isCertified ? (<span className="text-green-600 flex items-center"><CheckCircle size={16} className="mr-1" /> Yes</span>) : (<span className="text-gray-600">No</span>)}</p></div>
+                <div>
+                  <h2 className="text-xl font-black text-black uppercase tracking-wide">⛓️ Farmer Details</h2>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
+                    <span className="text-[10px] text-gray-600 uppercase tracking-wider">Blockchain Record</span>
                   </div>
                 </div>
               </div>
-              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-6">
-                <h3 className="text-lg font-semibold text-yellow-800 mb-3">Insurance Information</h3>
+              <button
+                onClick={() => setShowFarmerDetails(false)}
+                className="text-lime-500 hover:text-lime-600 focus:outline-none transition-all hover:rotate-90 duration-300"
+                style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.6))' }}
+              >
+                <X size={28} strokeWidth={3} />
+              </button>
+            </div>
+            <div className="p-6 relative z-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white p-5 rounded-lg border-2 border-lime-500 relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
+                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
+                      <User size={18} className="text-lime-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Personal Info</h3>
+                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
+                        Verified Data
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div><span className="text-gray-500 text-xs font-bold uppercase">Full Name</span><p className="font-bold text-black">{selectedFarmer.farmerName}</p></div>
+                    <div><span className="text-gray-500 text-xs font-bold uppercase">Birthday</span><p className="font-bold text-black">{selectedFarmer.birthday || "Not provided"}</p></div>
+                    <div><span className="text-gray-500 text-xs font-bold uppercase">Gender</span><p className="font-bold text-black">{selectedFarmer.gender || "Not provided"}</p></div>
+                    <div><span className="text-gray-500 text-xs font-bold uppercase">Contact Number</span><p className="font-bold text-black">{selectedFarmer.contactNum || "Not provided"}</p></div>
+                    <div><span className="text-gray-500 text-xs font-bold uppercase">Address</span><p className="font-bold text-black">{selectedFarmer.address}</p></div>
+                  </div>
+                </div>
+                <div className="bg-white p-5 rounded-lg border-2 border-lime-500 relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
+                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
+                      <Layers size={18} className="text-lime-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Farm Info</h3>
+                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
+                        Registry Data
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div><span className="text-gray-500 text-xs font-bold uppercase">Crop Type</span><p className="font-bold text-black">{selectedFarmer.cropType}</p></div>
+                    <div><span className="text-gray-500 text-xs font-bold uppercase">Crop Area</span><p className="font-bold text-black">{selectedFarmer.cropArea} hectares</p></div>
+                    <div><span className="text-gray-500 text-xs font-bold uppercase">Lot Number</span><p className="font-bold text-black">{selectedFarmer.lotNumber || "Not provided"}</p></div>
+                    <div><span className="text-gray-500 text-xs font-bold uppercase">Lot Area</span><p className="font-bold text-black">{selectedFarmer.lotArea || "Not provided"}</p></div>
+                    <div><span className="text-gray-500 text-xs font-bold uppercase">Certified</span><p className="font-bold text-black">{selectedFarmer.isCertified ? (<span className="text-lime-600 flex items-center"><CheckCircle size={16} className="mr-1" /> Yes</span>) : (<span className="text-gray-600">No</span>)}</p></div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white p-5 rounded-lg border-2 border-lime-500 relative mt-6" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
+                <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
+                  <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
+                    <FileText size={18} className="text-lime-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-black uppercase tracking-wider">Insurance Info</h3>
+                    <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
+                      Policy Data
+                    </span>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div><span className="text-gray-500 text-sm">Insurance Type</span><p className="font-medium">{selectedFarmer.insuranceType || "Not provided"}</p></div>
-                  <div><span className="text-gray-500 text-sm">Premium Amount</span><p className="font-medium">{selectedFarmer.premiumAmount || "Not provided"}</p></div>
-                  <div><span className="text-gray-500 text-sm">Agency</span><p className="font-medium">{selectedFarmer.agency || "Not provided"}</p></div>
+                  <div><span className="text-gray-500 text-xs font-bold uppercase">Insurance Type</span><p className="font-bold text-black">{selectedFarmer.insuranceType || "Not provided"}</p></div>
+                  <div><span className="text-gray-500 text-xs font-bold uppercase">Premium Amount</span><p className="font-bold text-black">{selectedFarmer.premiumAmount || "Not provided"}</p></div>
+                  <div><span className="text-gray-500 text-xs font-bold uppercase">Agency</span><p className="font-bold text-black">{selectedFarmer.agency || "Not provided"}</p></div>
                 </div>
               </div>
               <div className="mt-6 flex justify-end">
                 <button
                   onClick={() => setShowFarmerDetails(false)}
-                  className="bg-lime-700 text-white px-6 py-2 rounded-lg hover:bg-lime-800 transition"
+                  className="bg-lime-500 text-black px-6 py-3 rounded-lg hover:bg-lime-400 transition-all font-bold uppercase tracking-wide"
+                  style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.5)' }}
                 >
                   Close
                 </button>
@@ -1396,17 +1452,38 @@ const FarmerRegistration = ({
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal - Blockchain Farm Vibe */}
       {showDeleteConfirmation && farmerToDelete && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-30 flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4 text-gray-800 flex items-center">
-              <AlertTriangle className="mr-2 text-red-500" size={24} />
-              Delete Farmer
-            </h3>
-            <p className="mb-6 text-gray-600">
-              Are you sure you want to delete <strong>{farmerToDelete.farmerName}</strong>? This action cannot be undone.
-            </p>
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl border-4 border-lime-500 p-8 w-full max-w-md relative" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6)' }}>
+            {/* Corner Accents */}
+            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-lime-400 pointer-events-none animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-lime-400 pointer-events-none animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-lime-400 pointer-events-none animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-lime-400 pointer-events-none animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            
+            <div className="flex items-center mb-6 pb-4 border-b-4 border-lime-500">
+              <div className="p-3 bg-black rounded-lg mr-4" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.6)' }}>
+                <AlertTriangle className="text-lime-500" size={28} />
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-black uppercase tracking-wide">⚠️ Delete Record</h3>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" style={{ boxShadow: '0 0 8px rgba(239, 68, 68, 1)' }}></span>
+                  <span className="text-[10px] text-gray-600 uppercase tracking-wider">Permanent Action</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mb-8 p-4 bg-white border-2 border-lime-500 rounded-lg" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.3)' }}>
+              <p className="text-black font-semibold text-center">
+                Are you sure you want to delete <span className="text-lime-600 font-black">{farmerToDelete.farmerName}</span>?
+              </p>
+              <p className="text-gray-600 text-sm text-center mt-2">
+                ⛓️ This action cannot be undone from the blockchain
+              </p>
+            </div>
+            
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => {
@@ -1414,7 +1491,7 @@ const FarmerRegistration = ({
                   setShowDeleteConfirmation(false);
                   setFarmerToDelete(null);
                 }}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                className="px-6 py-3 bg-white text-black border-2 border-black rounded-lg hover:bg-gray-100 transition-all font-bold uppercase tracking-wide"
               >
                 Cancel
               </button>
@@ -1468,9 +1545,10 @@ const FarmerRegistration = ({
                     })
                   }
                 }}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
+                className="px-6 py-3 bg-lime-500 text-black rounded-lg hover:bg-lime-400 transition-all font-bold uppercase tracking-wide flex items-center"
+                style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.5)' }}
               >
-                <X size={16} className="mr-1" />
+                <AlertTriangle size={18} className="mr-2" />
                 Delete
               </button>
             </div>
@@ -1478,45 +1556,70 @@ const FarmerRegistration = ({
         </div>
       )}
 
-      {/* Set Profile Modal */}
+      {/* Set Profile Modal - Blockchain Farm Vibe */}
       {showProfileModal && selectedFarmerForProfile && (
-        <div className="fixed inset-0 z-50 bg-transparent flex items-center justify-center p-4">
-          <div className="bg-white rounded-[5px] shadow-xl max-w-md w-full">
-            <div className="sticky top-0 bg-lime-700 text-white p-4 rounded-t-xl flex justify-between items-center">
-              <h2 className="text-xl font-bold">Set Profile Picture</h2>
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl border-4 border-lime-500 max-w-md w-full relative" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6)' }}>
+            {/* Corner Accents */}
+            <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+            
+            <div className="sticky top-0 bg-white border-b-4 border-lime-500 p-6 flex justify-between items-center z-20" style={{ boxShadow: '0 4px 15px rgba(132, 204, 22, 0.3)' }}>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-black rounded-lg" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.6)' }}>
+                  <User className="h-6 w-6 text-lime-500" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-black uppercase tracking-wide">📸 Profile Setup</h2>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
+                    <span className="text-[10px] text-gray-600 uppercase tracking-wider">Identity Update</span>
+                  </div>
+                </div>
+              </div>
               <button
                 onClick={() => setShowProfileModal(false)}
-                className="text-white hover:text-gray-200 focus:outline-none"
+                className="text-lime-500 hover:text-lime-600 focus:outline-none transition-all hover:rotate-90 duration-300"
+                style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.6))' }}
               >
-                <X size={24} />
+                <X size={28} strokeWidth={3} />
               </button>
             </div>
-            <div className="p-6">
-              <div className="text-center mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+            
+            <div className="p-8 relative z-10">
+              <div className="text-center mb-6 bg-white border-2 border-lime-500 rounded-lg p-4" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.3)' }}>
+                <h3 className="text-lg font-black text-black uppercase tracking-wide mb-1">
                   {selectedFarmerForProfile.farmerName || 
                    `${selectedFarmerForProfile.firstName || ''} ${selectedFarmerForProfile.middleName || ''} ${selectedFarmerForProfile.lastName || ''}`.replace(/  +/g, ' ').trim()}
                 </h3>
-                <p className="text-gray-600">Upload a profile picture for this farmer</p>
+                <p className="text-gray-600 text-sm font-semibold">⛓️ Upload identity image</p>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="flex justify-center">
                   {profileImages[selectedFarmerForProfile._id || selectedFarmerForProfile.id] ? (
-                    <img 
-                      src={profileImages[selectedFarmerForProfile._id || selectedFarmerForProfile.id]} 
-                      alt="Current Profile" 
-                      className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
-                    />
+                    <div className="relative">
+                      <img 
+                        src={profileImages[selectedFarmerForProfile._id || selectedFarmerForProfile.id]} 
+                        alt="Current Profile" 
+                        className="h-32 w-32 rounded-full object-cover border-4 border-lime-500"
+                        style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.6)' }}
+                      />
+                      <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-lime-500 rounded-full flex items-center justify-center border-4 border-white animate-pulse" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.8)' }}>
+                        <CheckCircle className="h-5 w-5 text-black" />
+                      </div>
+                    </div>
                   ) : (
-                    <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center">
-                      <User className="h-12 w-12 text-gray-400" />
+                    <div className="h-32 w-32 rounded-full bg-white border-4 border-lime-500 flex items-center justify-center" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.3)' }}>
+                      <User className="h-16 w-16 text-lime-500" />
                     </div>
                   )}
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-black text-black uppercase mb-3 tracking-wider">
                     Choose Profile Image
                   </label>
                   <input
@@ -1536,14 +1639,15 @@ const FarmerRegistration = ({
                         reader.readAsDataURL(file);
                       }
                     }}
-                    className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-lime-500"
+                    className="w-full border-2 border-lime-500 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-lime-400 text-black font-semibold"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
                   />
                 </div>
                 
-                <div className="flex justify-end space-x-3">
+                <div className="flex justify-end space-x-3 mt-8">
                   <button
                     onClick={() => setShowProfileModal(false)}
-                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                    className="px-6 py-3 bg-white text-black border-2 border-black rounded-lg hover:bg-gray-100 transition-all font-bold uppercase tracking-wide"
                   >
                     Cancel
                   </button>
@@ -1589,8 +1693,10 @@ const FarmerRegistration = ({
                         });
                       }
                     }}
-                    className="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700 transition-colors"
+                    className="px-6 py-3 bg-lime-500 text-black rounded-lg hover:bg-lime-400 transition-all font-bold uppercase tracking-wide flex items-center"
+                    style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.5)' }}
                   >
+                    <CheckCircle size={18} className="mr-2" />
                     Save Profile
                   </button>
                 </div>
@@ -1604,3 +1710,4 @@ const FarmerRegistration = ({
 }
 
 export default FarmerRegistration
+
