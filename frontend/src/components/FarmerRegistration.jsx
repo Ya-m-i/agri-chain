@@ -21,6 +21,10 @@ import cropsIcon from '../assets/Images/crops.png'
 import barangayIcon from '../assets/Images/barangay.png'
 import certIcon from '../assets/Images/cert.png'
 import farmersIcon from '../assets/Images/farmers.png'
+// Import action button icons
+import viewIcon from '../assets/Images/View.png'
+import profileIcon from '../assets/Images/Profile.png'
+import deleteIcon from '../assets/Images/delete.png'
 import {
   useRegisterFarmer,
   useFarmers,
@@ -829,23 +833,33 @@ const FarmerRegistration = ({
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.isCertified ? (<span className="px-2 py-1 bg-green-100 text-lime-800 rounded-full text-xs font-medium"><CheckCircle size={12} className="inline mr-1" /> Yes</span>) : (<span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">No</span>)}</td>
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.location ? (<button onClick={() => handleLocationView(farmer)} className="bg-black text-lime-500 hover:font-bold flex items-center px-3 py-1.5 rounded-lg transition-all duration-200" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.3)' }}><MapPin className="h-4 w-4 mr-1" />View</button>) : (<button className="bg-gray-200 text-gray-600 hover:bg-gray-300 flex items-center px-3 py-1.5 rounded-lg transition-all duration-200"><Plus className="h-4 w-4 mr-1" />Add</button>)}</td>
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-3 items-center">
                       <button 
                         onClick={() => { setSelectedFarmer(farmer); setShowFarmerDetails(true); }} 
-                        className="bg-black text-lime-500 hover:font-bold flex items-center px-2 py-1 rounded-lg transition-all duration-200"
-                        style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.3)' }}
+                        className="hover:scale-110 transition-all duration-200 p-1"
+                        title="View Details"
                       >
-                        <User size={14} className="mr-1" />View
+                        <img 
+                          src={viewIcon} 
+                          alt="View" 
+                          className="h-7 w-7"
+                          style={{ filter: 'drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5))' }}
+                        />
                       </button>
                       <button 
                         onClick={() => { 
                           setSelectedFarmerForProfile(farmer); 
                           setShowProfileModal(true); 
                         }} 
-                        className="bg-black text-lime-500 hover:font-bold flex items-center px-2 py-1 rounded-lg transition-all duration-200"
-                        style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.3)' }}
+                        className="hover:scale-110 transition-all duration-200 p-1"
+                        title="Set Profile"
                       >
-                        <UserPlus size={14} className="mr-1" />Set Profile
+                        <img 
+                          src={profileIcon} 
+                          alt="Set Profile" 
+                          className="h-7 w-7"
+                          style={{ filter: 'drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5))' }}
+                        />
                       </button>
                       <button 
                         onClick={() => { 
@@ -854,10 +868,15 @@ const FarmerRegistration = ({
                           setShowDeleteConfirmation(true); 
                           console.log('Modal should be open now'); 
                         }} 
-                        className="bg-black text-red-500 hover:font-bold flex items-center px-2 py-1 rounded-lg transition-all duration-200"
-                        style={{ boxShadow: '0 0 8px rgba(220, 38, 38, 0.3)' }}
+                        className="hover:scale-110 transition-all duration-200 p-1"
+                        title="Delete"
                       >
-                        <X size={14} className="mr-1" />Delete
+                        <img 
+                          src={deleteIcon} 
+                          alt="Delete" 
+                          className="h-7 w-7"
+                          style={{ filter: 'drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5))' }}
+                        />
                       </button>
                     </div>
                   </td>

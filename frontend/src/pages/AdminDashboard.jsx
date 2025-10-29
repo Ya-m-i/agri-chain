@@ -3328,7 +3328,7 @@ const AdminDashboard = () => {
                 <div className="absolute top-8 left-8 w-24 h-0.5 bg-gradient-to-r from-lime-500 to-transparent opacity-60 z-10"></div>
                 <div className="absolute top-8 right-8 w-24 h-0.5 bg-gradient-to-l from-lime-500 to-transparent opacity-60 z-10"></div>
                 
-                <div className="sticky top-0 bg-white flex items-center justify-between mb-6 relative z-10 pb-4 border-b-4 border-lime-500" style={{ boxShadow: '0 6px 20px rgba(132, 204, 22, 0.4)' }}>
+                <div className="sticky top-0 flex items-center justify-between mb-6 relative z-10 pb-4">
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-black rounded-lg animate-pulse" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.8)' }}>
                       <img src={locationImage} alt="Geo-Tagging Map" className="h-7 w-7" />
@@ -3474,8 +3474,8 @@ const AdminDashboard = () => {
                 
                 {/* Weather Legend - Minimalist Blockchain Style */}
                 {showWeatherOverlay && (
-                  <div className="mt-6 p-5 bg-white rounded-lg border-2 border-lime-500 relative z-10" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
-                    <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
+                  <div className="mt-6 p-5 bg-lime-500 rounded-lg border-2 border-black relative z-10" style={{ boxShadow: '0 0 15px rgba(0, 0, 0, 0.3)' }}>
+                    <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
                       <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
                         <Cloud size={18} className="text-lime-500" />
                       </div>
@@ -3488,32 +3488,32 @@ const AdminDashboard = () => {
                       </div>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
-                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
+                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-black" style={{ boxShadow: '0 0 8px rgba(0, 0, 0, 0.15)' }}>
                         <div className="w-3 h-3 rounded-full bg-green-500 flex-shrink-0"></div>
                         <span className="text-gray-700 font-semibold">Excellent</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
+                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-black" style={{ boxShadow: '0 0 8px rgba(0, 0, 0, 0.15)' }}>
                         <div className="w-3 h-3 rounded-full bg-blue-500 flex-shrink-0"></div>
                         <span className="text-gray-700 font-semibold">Good</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
+                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-black" style={{ boxShadow: '0 0 8px rgba(0, 0, 0, 0.15)' }}>
                         <div className="w-3 h-3 rounded-full bg-yellow-500 flex-shrink-0"></div>
                         <span className="text-gray-700 font-semibold">Moderate</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
+                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-black" style={{ boxShadow: '0 0 8px rgba(0, 0, 0, 0.15)' }}>
                         <div className="w-3 h-3 rounded-full bg-orange-500 flex-shrink-0"></div>
                         <span className="text-gray-700 font-semibold">Caution</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
+                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-black" style={{ boxShadow: '0 0 8px rgba(0, 0, 0, 0.15)' }}>
                         <div className="w-3 h-3 rounded-full bg-red-500 flex-shrink-0"></div>
                         <span className="text-gray-700 font-semibold">Warning</span>
                       </div>
-                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
+                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-black" style={{ boxShadow: '0 0 8px rgba(0, 0, 0, 0.15)' }}>
                         <div className="w-3 h-3 rounded-full bg-red-700 flex-shrink-0"></div>
                         <span className="text-gray-700 font-semibold">Danger</span>
                       </div>
                     </div>
-                    <div className="mt-4 pt-4 border-t-2 border-lime-500 text-xs text-gray-700 flex items-center bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
+                    <div className="mt-4 pt-4 border-t-2 border-black text-xs text-gray-700 flex items-center bg-white p-3 rounded-lg border border-black" style={{ boxShadow: '0 0 8px rgba(0, 0, 0, 0.15)' }}>
                       <span className="text-lime-500 mr-2 font-bold">►</span>
                       <span className="font-medium">Click markers for detailed weather data</span>
                     </div>
