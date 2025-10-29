@@ -3670,25 +3670,38 @@ const AdminDashboard = () => {
           {activeTab === "claims" && (
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Cash Assistance Claims</h2>
+                <div className="flex gap-3 items-center">
+                  <h2 className="text-2xl font-bold text-gray-800">Cash Assistance Claims</h2>
+                  <button
+                    onClick={() => setShowClaimsSummaryModal(true)}
+                    className="bg-lime-500 text-black px-4 py-2 rounded-lg hover:bg-lime-400 transition-all duration-200 flex items-center justify-center font-bold border-2 border-black whitespace-nowrap text-sm"
+                    style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
+                  >
+                    <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                    Generate Summary
+                  </button>
+                </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setClaimsTabView("pending")}
-                    className={`px-4 py-2 rounded-lg ${
+                    className={`px-4 py-2 rounded-lg font-bold border-2 border-black transition-all ${
                       claimsTabView === "pending"
-                        ? "bg-lime-700 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        ? "bg-black text-lime-500"
+                        : "bg-transparent text-black hover:bg-black hover:text-lime-500"
                     }`}
                   >
                     Pending Cash Assistance Claims
                   </button>
                   <button
                     onClick={() => setClaimsTabView("all")}
-                    className={`px-4 py-2 rounded-lg ${
+                    className={`px-4 py-2 rounded-lg font-bold border-2 border-black transition-all ${
                       claimsTabView === "all"
-                        ? "bg-lime-700 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        ? "bg-lime-500 text-black"
+                        : "bg-lime-500 text-black hover:bg-lime-400"
                     }`}
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.4)' }}
                   >
                     All Claims
                   </button>
