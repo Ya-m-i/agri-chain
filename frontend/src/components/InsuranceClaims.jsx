@@ -48,6 +48,9 @@ const InsuranceClaims = ({
   openClaimDetails = () => {},
   initiateStatusUpdate = () => {},
   confirmStatusUpdate = () => {},
+  sendPickupAlert = () => {},
+  showClaimsSummaryModal = false,
+  setShowClaimsSummaryModal = () => {},
 }) => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -376,33 +379,43 @@ const InsuranceClaims = ({
 
 
       <div className="mb-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
-          <div className="flex space-x-1">
-            <button
-              onClick={() => setClaimsTabView("pending")}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                claimsTabView === "pending" ? "bg-lime-600 text-white" : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Pending Claims
-            </button>
-            <button
-              onClick={() => setClaimsTabView("approved")}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors border-2 ${
-                claimsTabView === "approved" ? "border-lime-600 text-lime-600" : "border-transparent text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Approved Claims
-            </button>
-            <button
-              onClick={() => setClaimsTabView("rejected")}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors border-2 ${
-                claimsTabView === "rejected" ? "border-lime-600 text-lime-600" : "border-transparent text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Rejected Claims
-            </button>
+        <div className="flex gap-3 items-center">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2 flex-1">
+            <div className="flex space-x-1">
+              <button
+                onClick={() => setClaimsTabView("pending")}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                  claimsTabView === "pending" ? "bg-lime-600 text-white" : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                Pending Claims
+              </button>
+              <button
+                onClick={() => setClaimsTabView("approved")}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors border-2 ${
+                  claimsTabView === "approved" ? "border-lime-600 text-lime-600" : "border-transparent text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                Approved Claims
+              </button>
+              <button
+                onClick={() => setClaimsTabView("rejected")}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors border-2 ${
+                  claimsTabView === "rejected" ? "border-lime-600 text-lime-600" : "border-transparent text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                Rejected Claims
+              </button>
+            </div>
           </div>
+          <button
+            onClick={() => setShowClaimsSummaryModal(true)}
+            className="bg-lime-500 text-black px-6 py-2 rounded-lg hover:bg-lime-400 transition-all duration-200 flex items-center justify-center font-bold border-2 border-black whitespace-nowrap"
+            style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
+          >
+            <BarChart3 className="mr-2 h-5 w-5" />
+            Generate Summary
+          </button>
         </div>
       </div>
 
@@ -519,6 +532,17 @@ const InsuranceClaims = ({
                               Reject
                             </button>
                           </>
+                        )}
+                        {claim.status === "approved" && (
+                          <button
+                            onClick={() => sendPickupAlert(claim)}
+                            className="bg-lime-500 text-black px-3 py-1 rounded hover:bg-lime-400 text-sm inline-flex items-center font-bold border-2 border-black transition-all"
+                            style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
+                            title="Send pickup alert to farmer"
+                          >
+                            <AlertTriangle size={14} className="mr-1" />
+                            🔔 Alert
+                          </button>
                         )}
                       </td>
                     </tr>
@@ -1005,6 +1029,215 @@ const InsuranceClaims = ({
               >
                 {confirmationAction.type === "approved" ? "Yes, Approve" : "Yes, Reject"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Generate Summary Modal */}
+      {showClaimsSummaryModal && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl border-4 border-lime-500 max-w-6xl w-full max-h-[90vh] overflow-y-auto relative" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6)' }}>
+            {/* Corner Accents */}
+            <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-black pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 8px rgba(0, 0, 0, 0.3))' }}></div>
+            <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-black pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 8px rgba(0, 0, 0, 0.3))' }}></div>
+            <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-black pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 8px rgba(0, 0, 0, 0.3))' }}></div>
+            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-black pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 8px rgba(0, 0, 0, 0.3))' }}></div>
+            
+            <div className="sticky top-0 bg-white border-b-4 border-lime-500 p-6 flex justify-between items-center z-20" style={{ boxShadow: '0 4px 15px rgba(132, 204, 22, 0.3)' }}>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-lime-500 rounded-lg border-2 border-black" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.6)' }}>
+                  <BarChart3 className="h-6 w-6 text-black" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-black uppercase tracking-wide">📊 Claims Summary Report</h2>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
+                    <span className="text-[10px] text-gray-600 uppercase tracking-wider">Data Visualization</span>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowClaimsSummaryModal(false)}
+                className="text-lime-500 hover:text-lime-600 focus:outline-none transition-all hover:rotate-90 duration-300"
+                style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.6))' }}
+              >
+                <XCircle size={28} strokeWidth={3} />
+              </button>
+            </div>
+
+            <div className="p-6 relative z-10">
+              {/* Chart Visualizations Section */}
+              <div className="w-full flex flex-col md:flex-row gap-6">
+                {/* Bar Chart: Status Comparison Over Time */}
+                <div className="flex-1 p-6 bg-white border-4 border-lime-500 rounded-lg relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
+                  <h3 className="text-lg font-semibold text-black flex items-center gap-2 uppercase mb-4">
+                    <BarChart3 className="h-5 w-5 text-lime-600" /> Status Comparison Over Time
+                  </h3>
+                  <div className="h-64">
+                    <Bar
+                      data={{
+                        labels: ['Pending', 'Approved', 'Rejected'],
+                        datasets: [
+                          {
+                            label: 'Number of Claims',
+                            data: [
+                              claims.filter(c => c.status === 'pending').length,
+                              claims.filter(c => c.status === 'approved').length,
+                              claims.filter(c => c.status === 'rejected').length
+                            ],
+                            backgroundColor: ['#fbbf24', '#84cc16', '#ef4444'],
+                            borderColor: '#000',
+                            borderWidth: 3,
+                          },
+                        ],
+                      }}
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                          legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                              color: '#000',
+                              font: {
+                                weight: 'bold',
+                                size: 12
+                              }
+                            }
+                          },
+                          tooltip: {
+                            enabled: true,
+                            backgroundColor: '#fff',
+                            titleColor: '#000',
+                            bodyColor: '#000',
+                            borderColor: '#000',
+                            borderWidth: 2,
+                            titleFont: {
+                              weight: 'bold'
+                            },
+                            bodyFont: {
+                              weight: 'bold'
+                            }
+                          },
+                        },
+                        scales: {
+                          y: {
+                            beginAtZero: true,
+                            ticks: {
+                              color: '#000',
+                              font: {
+                                weight: 'bold'
+                              }
+                            },
+                            grid: {
+                              color: '#00000020'
+                            }
+                          },
+                          x: {
+                            ticks: {
+                              color: '#000',
+                              font: {
+                                weight: 'bold'
+                              }
+                            },
+                            grid: {
+                              color: '#00000020'
+                            }
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Donut Pie Chart: Claims Distribution */}
+                <div className="flex-1 p-6 bg-white border-4 border-lime-500 rounded-lg relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
+                  <h3 className="text-lg font-semibold mb-4 text-black flex items-center gap-2 uppercase">
+                    <PieChart className="h-5 w-5 text-lime-600" /> Claims Distribution
+                  </h3>
+                  <div className="h-64 flex items-center justify-center">
+                    <Doughnut
+                      data={{
+                        labels: ['Pending', 'Approved', 'Rejected'],
+                        datasets: [
+                          {
+                            data: [
+                              claims.filter(c => c.status === 'pending').length,
+                              claims.filter(c => c.status === 'approved').length,
+                              claims.filter(c => c.status === 'rejected').length
+                            ],
+                            backgroundColor: ['#fbbf24', '#84cc16', '#ef4444'],
+                            borderColor: '#000',
+                            borderWidth: 3,
+                          },
+                        ],
+                      }}
+                      options={{
+                        cutout: '70%',
+                        plugins: {
+                          legend: { 
+                            display: true, 
+                            position: 'bottom', 
+                            labels: { 
+                              boxWidth: 16,
+                              color: '#000',
+                              font: {
+                                weight: 'bold'
+                              }
+                            } 
+                          },
+                          tooltip: { 
+                            enabled: true,
+                            backgroundColor: '#fff',
+                            titleColor: '#000',
+                            bodyColor: '#000',
+                            borderColor: '#000',
+                            borderWidth: 2,
+                            titleFont: {
+                              weight: 'bold'
+                            },
+                            bodyFont: {
+                              weight: 'bold'
+                            }
+                          },
+                        },
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Summary Statistics */}
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="p-4 bg-lime-500 bg-opacity-10 border-2 border-lime-500 rounded-lg">
+                  <h4 className="text-sm font-bold text-gray-700 uppercase">Total Claims</h4>
+                  <p className="text-3xl font-black text-black">{claims.length}</p>
+                </div>
+                <div className="p-4 bg-lime-500 bg-opacity-10 border-2 border-lime-500 rounded-lg">
+                  <h4 className="text-sm font-bold text-gray-700 uppercase">Approval Rate</h4>
+                  <p className="text-3xl font-black text-black">
+                    {claims.length > 0 ? Math.round((claims.filter(c => c.status === 'approved').length / claims.length) * 100) : 0}%
+                  </p>
+                </div>
+                <div className="p-4 bg-lime-500 bg-opacity-10 border-2 border-lime-500 rounded-lg">
+                  <h4 className="text-sm font-bold text-gray-700 uppercase">Total Compensation</h4>
+                  <p className="text-2xl font-black text-black">
+                    ₱{claims.filter(c => c.status === 'approved' && c.compensation).reduce((sum, c) => sum + (c.compensation || 0), 0).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setShowClaimsSummaryModal(false)}
+                  className="bg-lime-500 text-black px-6 py-3 rounded-lg hover:bg-lime-400 transition-all font-bold uppercase tracking-wide border-2 border-black"
+                  style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.5)' }}
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
