@@ -296,7 +296,7 @@ const AdminDashboard = () => {
   // eslint-disable-next-line no-unused-vars
   const { data: claims = [], isLoading: claimsLoading, refetch: refetchClaims } = useClaims()
   // eslint-disable-next-line no-unused-vars
-  const { data: farmers = [], isLoading: farmersLoading } = useFarmers()
+  const { data: farmers = [], isLoading: farmersLoading, refetch: refetchFarmers } = useFarmers()
   // eslint-disable-next-line no-unused-vars
   const { data: activeFarmersData = { activeCount: 0, farmers: [] }, isLoading: activeFarmersLoading } = useActiveFarmers()
   // eslint-disable-next-line no-unused-vars
