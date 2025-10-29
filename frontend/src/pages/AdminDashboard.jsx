@@ -391,7 +391,8 @@ const AdminDashboard = () => {
         socket.off('farmer-location-updated', handleFarmerLocationUpdated)
       }
     }
-  }, [socket, isConnected, refetchFarmers, addFarmersToOverviewMap]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket, isConnected, refetchFarmers]);
   
   // React Query mutations
   const updateClaimMutation = useUpdateClaim()
