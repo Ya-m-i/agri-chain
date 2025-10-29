@@ -82,6 +82,7 @@ const FarmerRegistration = ({
   const [showFarmerDetails, setShowFarmerDetails] = useState(false);
   const [farmerToDelete, setFarmerToDelete] = useState(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
 
   // Add state for crop insurance-based crop type distribution
   const [insuranceCropTypeDistribution, setInsuranceCropTypeDistribution] = useState({})
@@ -444,6 +445,16 @@ const FarmerRegistration = ({
             Register New Farmer
           </button>
           <button
+            className="bg-lime-500 text-black px-4 py-2 rounded-lg hover:bg-lime-400 transition-all duration-200 flex items-center justify-center shadow-lg font-bold"
+            style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
+            onClick={() => setShowSummaryModal(true)}
+          >
+            <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            Generate Summary
+          </button>
+          <button
             className="bg-lime-500 text-black px-4 py-2 rounded-lg hover:bg-lime-400 transition-all duration-200 flex items-center justify-center border-2 border-lime-600 font-bold"
             style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
             onClick={() => {
@@ -461,30 +472,35 @@ const FarmerRegistration = ({
       </div>
 
 
-      {/* Combined Filters Widget */}
-      <div className="w-full bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Filter Farmers
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Charts moved to Summary Modal */}
+
+      {/* Farm List Title with Filters */}
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
+        <div className="flex items-center gap-4">
+          <h2 className="text-xl font-semibold text-gray-800">Farm List</h2>
+          <div className="text-sm text-gray-500">
+            Total: <span className="font-semibold">{farmers.length}</span> farmers
+          </div>
+        </div>
+        
+        {/* Filters - Moved here */}
+        <div className="flex gap-2 flex-wrap">
           {/* Crop Type Filter */}
           <div className="relative">
             <button
               onClick={() => setShowCropFilter(!showCropFilter)}
-              className="w-full bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-lime-500 flex items-center justify-center transition-colors"
+              className="bg-lime-500 text-black border-2 border-black rounded-lg px-3 py-2 hover:bg-lime-400 focus:outline-none transition-colors font-semibold text-sm flex items-center"
             >
-              <span className="text-sm font-medium text-gray-700">
-                {formData.cropType || "All Crops"}
-              </span>
-              <svg className="ml-2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span>{formData.cropType || "All Crops"}</span>
+              <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             
             {showCropFilter && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-10 w-full mt-1 bg-white border-2 border-black rounded-lg shadow-lg max-h-60 overflow-y-auto">
                 <div
-                  className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer"
+                  className="px-3 py-2 text-sm text-gray-700 hover:bg-lime-500 hover:text-black cursor-pointer font-semibold"
                   onClick={() => {
                     setFormData(prev => ({ ...prev, cropType: "" }));
                     setShowCropFilter(false);
@@ -495,7 +511,7 @@ const FarmerRegistration = ({
                 {getAllCropTypes().map((crop, i) => (
                   <div
                     key={i}
-                    className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    className="px-3 py-2 text-sm text-gray-700 hover:bg-lime-500 hover:text-black cursor-pointer font-semibold"
                     onClick={() => {
                       setFormData(prev => ({ ...prev, cropType: crop }));
                       setShowCropFilter(false);
@@ -504,7 +520,7 @@ const FarmerRegistration = ({
                     {crop}
                   </div>
                 ))}
-          </div>
+              </div>
             )}
           </div>
           
@@ -512,20 +528,18 @@ const FarmerRegistration = ({
           <div className="relative">
             <button
               onClick={() => setShowBarangayFilter(!showBarangayFilter)}
-              className="w-full bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center transition-colors"
+              className="bg-lime-500 text-black border-2 border-black rounded-lg px-3 py-2 hover:bg-lime-400 focus:outline-none transition-colors font-semibold text-sm flex items-center"
             >
-              <span className="text-sm font-medium text-gray-700">
-                {formData.barangay || "All Barangays"}
-              </span>
-              <svg className="ml-2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span>{formData.barangay || "All Barangays"}</span>
+              <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             
             {showBarangayFilter && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-10 w-full mt-1 bg-white border-2 border-black rounded-lg shadow-lg max-h-60 overflow-y-auto">
                 <div
-                  className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer"
+                  className="px-3 py-2 text-sm text-gray-700 hover:bg-lime-500 hover:text-black cursor-pointer font-semibold"
                   onClick={() => {
                     setFormData(prev => ({ ...prev, barangay: "" }));
                     setShowBarangayFilter(false);
@@ -533,10 +547,10 @@ const FarmerRegistration = ({
                 >
                   All Barangays
                 </div>
-              {[...new Set(farmers.map((f) => f.address?.split(",")[0]?.trim()).filter(Boolean))].map((barangay, i) => (
+                {[...new Set(farmers.map((f) => f.address?.split(",")[0]?.trim()).filter(Boolean))].map((barangay, i) => (
                   <div
                     key={i}
-                    className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                    className="px-3 py-2 text-sm text-gray-700 hover:bg-lime-500 hover:text-black cursor-pointer font-semibold"
                     onClick={() => {
                       setFormData(prev => ({ ...prev, barangay: barangay }));
                       setShowBarangayFilter(false);
@@ -545,7 +559,7 @@ const FarmerRegistration = ({
                     {barangay}
                   </div>
                 ))}
-          </div>
+              </div>
             )}
           </div>
           
@@ -553,38 +567,36 @@ const FarmerRegistration = ({
           <div className="relative">
             <button
               onClick={() => setShowCertFilter(!showCertFilter)}
-              className="w-full bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 flex items-center justify-center transition-colors"
+              className="bg-lime-500 text-black border-2 border-black rounded-lg px-3 py-2 hover:bg-lime-400 focus:outline-none transition-colors font-semibold text-sm flex items-center"
             >
-              <span className="text-sm font-medium text-gray-700">
-                {formData.isCertified === true ? "Certified" : formData.isCertified === false ? "Not Certified" : "All Certifications"}
-              </span>
-              <svg className="ml-2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span>{formData.isCertified === true ? "Certified" : formData.isCertified === false ? "Not Certified" : "All Certifications"}</span>
+              <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             
             {showCertFilter && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+              <div className="absolute z-10 w-full mt-1 bg-white border-2 border-black rounded-lg shadow-lg">
                 <div
-                  className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer"
+                  className="px-3 py-2 text-sm text-gray-700 hover:bg-lime-500 hover:text-black cursor-pointer font-semibold"
                   onClick={() => {
                     setFormData(prev => ({ ...prev, isCertified: "" }));
                     setShowCertFilter(false);
                   }}
                 >
                   All Certifications
-          </div>
+                </div>
                 <div
-                  className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                  className="px-3 py-2 text-sm text-gray-700 hover:bg-lime-500 hover:text-black cursor-pointer font-semibold"
                   onClick={() => {
                     setFormData(prev => ({ ...prev, isCertified: true }));
                     setShowCertFilter(false);
                   }}
                 >
                   Certified
-          </div>
+                </div>
                 <div
-                  className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                  className="px-3 py-2 text-sm text-gray-700 hover:bg-lime-500 hover:text-black cursor-pointer font-semibold"
                   onClick={() => {
                     setFormData(prev => ({ ...prev, isCertified: false }));
                     setShowCertFilter(false);
@@ -600,23 +612,21 @@ const FarmerRegistration = ({
           <div className="relative">
             <button
               onClick={() => setShowSearchFilter(!showSearchFilter)}
-              className="w-full bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 flex items-center justify-center transition-colors"
+              className="bg-lime-500 text-black border-2 border-black rounded-lg px-3 py-2 hover:bg-lime-400 focus:outline-none transition-colors font-semibold text-sm flex items-center"
             >
-              <Search className="h-6 w-6 text-gray-600 mr-2" />
-              <span className="text-sm font-medium text-gray-700">
-                {searchQuery || "Search by name"}
-              </span>
-              <svg className="ml-2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <Search className="h-4 w-4 mr-1" />
+              <span>{searchQuery || "Search"}</span>
+              <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             
             {showSearchFilter && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+              <div className="absolute z-10 w-64 mt-1 bg-white border-2 border-black rounded-lg shadow-lg">
                 <div className="p-3">
                   <input
                     type="text"
-                    className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm"
+                    className="w-full border-2 border-lime-500 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-lime-400 text-sm font-semibold"
                     placeholder="Search by name"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -628,13 +638,13 @@ const FarmerRegistration = ({
                         setSearchQuery("");
                         setShowSearchFilter(false);
                       }}
-                      className="px-3 py-1 text-xs text-gray-500 hover:text-gray-700"
+                      className="px-3 py-1 text-xs text-gray-700 hover:text-black font-semibold"
                     >
                       Clear
                     </button>
                     <button
                       onClick={() => setShowSearchFilter(false)}
-                      className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                      className="px-3 py-1 text-xs bg-lime-500 text-black rounded hover:bg-lime-400 font-semibold"
                     >
                       Done
                     </button>
@@ -643,129 +653,6 @@ const FarmerRegistration = ({
               </div>
             )}
           </div>
-            </div>
-      </div>
-
-      {/* Chart Visualizations Section */}
-      <div className="w-full flex flex-col md:flex-row gap-6 mb-6">
-        {/* Area Chart: Registered Farmers Over Time */}
-        <div className="flex-1 p-6 border border-gray-200 rounded-lg">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-lime-700 flex items-center gap-2">
-              <Users className="h-5 w-5 text-lime-600" /> Registered Farmers Over Time
-            </h3>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">Period:</span>
-              <select
-                value={timePeriod}
-                onChange={(e) => setTimePeriod(e.target.value)}
-                className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent"
-              >
-                <option value="monthly">Monthly</option>
-                <option value="quarterly">Quarterly</option>
-              </select>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent"
-              >
-                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={generateTimeBasedData()}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-              >
-                <XAxis 
-                  dataKey="period" 
-                  stroke="#6b7280" 
-                  fontSize={12}
-                  tick={{ fontSize: 10 }}
-                />
-                <YAxis 
-                  stroke="#6b7280" 
-                  fontSize={12} 
-                  allowDecimals={false}
-                  label={{ value: 'Number of Registered Farmers', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 12 } }}
-                />
-                <RechartsTooltip 
-                  formatter={(value, name) => [
-                    `${value} farmers`, 
-                    name === 'cumulative' ? 'Total Registered' : 'New Registrations'
-                  ]}
-                  labelFormatter={(label) => `${label} ${selectedYear}`}
-                />
-                <defs>
-                  <linearGradient id="farmerGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#bbf7d0" stopOpacity={0.3}/>
-                  </linearGradient>
-                </defs>
-                <Area 
-                  type="monotone" 
-                  dataKey="cumulative" 
-                  stroke="#22c55e" 
-                  fill="url(#farmerGradient)" 
-                  strokeWidth={3}
-                  name="cumulative"
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="count" 
-                  stroke="#059669" 
-                  fill="#10b981" 
-                  fillOpacity={0.4} 
-                  strokeWidth={2} 
-                  name="count"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-        {/* Donut Pie Chart: Crop Type Distribution */}
-        <div className="flex-1 p-6 border border-gray-200 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4 text-emerald-700 flex items-center gap-2">
-            <Layers className="h-5 w-5 text-emerald-600" /> Crop Type Distribution
-          </h3>
-          <div className="h-64 flex items-center justify-center">
-            <Doughnut
-              data={{
-                labels: Object.keys(insuranceCropTypeDistribution),
-                datasets: [
-                  {
-                    data: Object.values(insuranceCropTypeDistribution),
-                    backgroundColor: [
-                      '#bbf7d0', '#6ee7b7', '#34d399', '#10b981', '#059669', '#047857', '#065f46', '#fef08a', '#fde68a', '#fca5a5', '#f87171', '#a7f3d0', '#f9fafb'
-                    ],
-                    borderColor: '#fff',
-                    borderWidth: 2,
-                  },
-                ],
-              }}
-              options={{
-                cutout: '70%',
-                plugins: {
-                  legend: { display: true, position: 'bottom', labels: { boxWidth: 16 } },
-                  tooltip: { enabled: true },
-                },
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Farm List Title */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center">
-          <h2 className="text-xl font-semibold text-gray-800">Farm List</h2>
-        </div>
-        <div className="text-sm text-gray-500">
-          Total: <span className="font-semibold">{farmers.length}</span> farmers
         </div>
       </div>
 
@@ -830,13 +717,12 @@ const FarmerRegistration = ({
                         <img 
                           src={viewIcon} 
                           alt="View" 
-                          className="h-10 w-10"
+                          className="h-8 w-8"
                           style={{ 
-                            filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))',
-                            width: '40px',
-                            height: '40px',
-                            minWidth: '40px',
-                            minHeight: '40px'
+                            width: '32px',
+                            height: '32px',
+                            minWidth: '32px',
+                            minHeight: '32px'
                           }}
                         />
                       </button>
@@ -851,13 +737,12 @@ const FarmerRegistration = ({
                         <img 
                           src={profileIcon} 
                           alt="Set Profile" 
-                          className="h-10 w-10"
+                          className="h-8 w-8"
                           style={{ 
-                            filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))',
-                            width: '40px',
-                            height: '40px',
-                            minWidth: '40px',
-                            minHeight: '40px'
+                            width: '32px',
+                            height: '32px',
+                            minWidth: '32px',
+                            minHeight: '32px'
                           }}
                         />
                       </button>
@@ -874,13 +759,12 @@ const FarmerRegistration = ({
                         <img 
                           src={deleteIcon} 
                           alt="Delete" 
-                          className="h-10 w-10"
+                          className="h-8 w-8"
                           style={{ 
-                            filter: 'drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.7))',
-                            width: '40px',
-                            height: '40px',
-                            minWidth: '40px',
-                            minHeight: '40px'
+                            width: '32px',
+                            height: '32px',
+                            minWidth: '32px',
+                            minHeight: '32px'
                           }}
                         />
                       </button>
@@ -1702,6 +1586,195 @@ const FarmerRegistration = ({
                     Save Profile
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Generate Summary Modal */}
+      {showSummaryModal && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl border-4 border-lime-500 max-w-6xl w-full max-h-[90vh] overflow-y-auto relative" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6)' }}>
+            {/* Corner Accents */}
+            <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-black pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 8px rgba(0, 0, 0, 0.3))' }}></div>
+            <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-black pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 8px rgba(0, 0, 0, 0.3))' }}></div>
+            <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-black pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 8px rgba(0, 0, 0, 0.3))' }}></div>
+            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-black pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 8px rgba(0, 0, 0, 0.3))' }}></div>
+            
+            <div className="sticky top-0 bg-white border-b-4 border-lime-500 p-6 flex justify-between items-center z-20" style={{ boxShadow: '0 4px 15px rgba(132, 204, 22, 0.3)' }}>
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-lime-500 rounded-lg border-2 border-black" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.6)' }}>
+                  <svg className="h-6 w-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-black uppercase tracking-wide">📊 Farmer Summary Report</h2>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
+                    <span className="text-[10px] text-gray-600 uppercase tracking-wider">Data Visualization</span>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSummaryModal(false)}
+                className="text-lime-500 hover:text-lime-600 focus:outline-none transition-all hover:rotate-90 duration-300"
+                style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.6))' }}
+              >
+                <X size={28} strokeWidth={3} />
+              </button>
+            </div>
+
+            <div className="p-6 relative z-10">
+              {/* Chart Visualizations Section */}
+              <div className="w-full flex flex-col md:flex-row gap-6">
+                {/* Area Chart: Registered Farmers Over Time */}
+                <div className="flex-1 p-6 bg-white border-4 border-lime-500 rounded-lg relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-black flex items-center gap-2 uppercase">
+                      <Users className="h-5 w-5 text-lime-600" /> Registered Farmers Over Time
+                    </h3>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-black font-semibold">Period:</span>
+                      <select
+                        value={timePeriod}
+                        onChange={(e) => setTimePeriod(e.target.value)}
+                        className="px-3 py-1 text-sm border-2 border-black bg-lime-500 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-lime-600 font-bold"
+                      >
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly</option>
+                      </select>
+                      <select
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                        className="px-3 py-1 text-sm border-2 border-black bg-lime-500 text-black rounded-md focus:outline-none focus:ring-2 focus:ring-lime-600 font-bold"
+                      >
+                        {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                          <option key={year} value={year}>{year}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart
+                        data={generateTimeBasedData()}
+                        margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#000" strokeOpacity={0.2} />
+                        <XAxis 
+                          dataKey="period" 
+                          stroke="#000" 
+                          fontSize={12}
+                          tick={{ fontSize: 10, fill: '#000', fontWeight: 'bold' }}
+                        />
+                        <YAxis 
+                          stroke="#000" 
+                          fontSize={12} 
+                          allowDecimals={false}
+                          tick={{ fill: '#000', fontWeight: 'bold' }}
+                          label={{ value: 'Number of Registered Farmers', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 12, fill: '#000', fontWeight: 'bold' } }}
+                        />
+                        <RechartsTooltip 
+                          formatter={(value, name) => [
+                            `${value} farmers`, 
+                            name === 'cumulative' ? 'Total Registered' : 'New Registrations'
+                          ]}
+                          labelFormatter={(label) => `${label} ${selectedYear}`}
+                          contentStyle={{ backgroundColor: '#fff', border: '2px solid #000', borderRadius: '8px', fontWeight: 'bold' }}
+                        />
+                        <defs>
+                          <linearGradient id="farmerGradientModal" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#84cc16" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#ecfccb" stopOpacity={0.3}/>
+                          </linearGradient>
+                        </defs>
+                        <Area 
+                          type="monotone" 
+                          dataKey="cumulative" 
+                          stroke="#84cc16" 
+                          fill="url(#farmerGradientModal)" 
+                          strokeWidth={3}
+                          name="cumulative"
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="count" 
+                          stroke="#65a30d" 
+                          fill="#84cc16" 
+                          fillOpacity={0.4} 
+                          strokeWidth={2} 
+                          name="count"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Donut Pie Chart: Crop Type Distribution */}
+                <div className="flex-1 p-6 bg-white border-4 border-lime-500 rounded-lg relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
+                  <h3 className="text-lg font-semibold mb-4 text-black flex items-center gap-2 uppercase">
+                    <Layers className="h-5 w-5 text-lime-600" /> Crop Type Distribution
+                  </h3>
+                  <div className="h-64 flex items-center justify-center">
+                    <Doughnut
+                      data={{
+                        labels: Object.keys(insuranceCropTypeDistribution),
+                        datasets: [
+                          {
+                            data: Object.values(insuranceCropTypeDistribution),
+                            backgroundColor: [
+                              '#84cc16', '#65a30d', '#4d7c0f', '#365314', '#fef08a', '#fde68a', '#fca5a5', '#f87171', '#a7f3d0', '#bbf7d0', '#6ee7b7', '#34d399', '#f9fafb'
+                            ],
+                            borderColor: '#000',
+                            borderWidth: 3,
+                          },
+                        ],
+                      }}
+                      options={{
+                        cutout: '70%',
+                        plugins: {
+                          legend: { 
+                            display: true, 
+                            position: 'bottom', 
+                            labels: { 
+                              boxWidth: 16,
+                              color: '#000',
+                              font: {
+                                weight: 'bold'
+                              }
+                            } 
+                          },
+                          tooltip: { 
+                            enabled: true,
+                            backgroundColor: '#fff',
+                            titleColor: '#000',
+                            bodyColor: '#000',
+                            borderColor: '#000',
+                            borderWidth: 2,
+                            titleFont: {
+                              weight: 'bold'
+                            },
+                            bodyFont: {
+                              weight: 'bold'
+                            }
+                          },
+                        },
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={() => setShowSummaryModal(false)}
+                  className="bg-lime-500 text-black px-6 py-3 rounded-lg hover:bg-lime-400 transition-all font-bold uppercase tracking-wide border-2 border-black"
+                  style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.5)' }}
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>
