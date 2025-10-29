@@ -3963,8 +3963,8 @@ const AdminDashboard = () => {
               mapZoom={mapZoom}
               setMapZoom={setMapZoom}
               mapRef={mapRef}
-              leafletMapRef={leafletMapRef}
-              markersLayerRef={markersLayerRef}
+              leafletMapRef={modalLeafletMapRef}
+              markersLayerRef={modalMarkersLayerRef}
               mapSearchQuery={mapSearchQuery}
               setMapSearchQuery={setMapSearchQuery}
               searchLocation={searchLocation}
