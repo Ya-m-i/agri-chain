@@ -14,6 +14,24 @@ const createFarmer = async (req, res) => {
             farmerData.password = await bcrypt.hash(farmerData.password, salt);
         }
         const farmer = await Farmer.create(farmerData)
+        
+        // Emit socket event if farmer has location data (for real-time map updates)
+        if (farmer.location && farmer.location.lat && farmer.location.lng) {
+            const io = req.app.get('io');
+            if (io) {
+                const farmerDataForSocket = {
+                    _id: farmer._id,
+                    farmerName: farmerData.farmerName || `${farmer.firstName} ${farmer.middleName || ''} ${farmer.lastName}`.trim(),
+                    location: farmer.location,
+                    cropType: farmer.cropType,
+                    address: farmer.address
+                };
+                
+                console.log('🗺️ Emitting farmer-registered event with location:', farmerDataForSocket);
+                io.to('admin-room').emit('farmer-registered', farmerDataForSocket);
+            }
+        }
+        
         res.status(201).json(farmer)
     } catch (error) {
         res.status(400).json({ message: error.message })

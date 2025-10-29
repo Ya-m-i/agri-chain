@@ -330,6 +330,68 @@ const AdminDashboard = () => {
       refetchClaims();
     }
   });
+
+  // Real-time map updates - listen for new farmer registrations
+  useEffect(() => {
+    if (socket && isConnected) {
+      console.log('📡 Setting up real-time map updates listener')
+      
+      // Listen for new farmer registrations
+      const handleFarmerRegistered = (farmerData) => {
+        console.log('🆕 New farmer registered with location:', farmerData)
+        
+        // Check if farmer has location data
+        if (farmerData && farmerData.location && farmerData.location.lat && farmerData.location.lng) {
+          // Refresh farmers list to include new farmer
+          refetchFarmers()
+          
+          // Add notification for admin
+          useNotificationStore.getState().addAdminNotification({
+            id: `farmer-reg-${Date.now()}`,
+            type: 'success',
+            title: '🗺️ New Farm Location Added',
+            message: `${farmerData.farmerName || 'New farmer'} registered with farm location. Map updated!`,
+            timestamp: new Date()
+          })
+          
+          // Update map to show new location
+          if (overviewLeafletMapRef.current && overviewMarkersLayerRef.current) {
+            // Re-add farmers to map with new farmer included
+            setTimeout(() => {
+              addFarmersToOverviewMap()
+              // Optionally center map on new farmer location
+              if (overviewLeafletMapRef.current) {
+                overviewLeafletMapRef.current.setView([farmerData.location.lat, farmerData.location.lng], 14)
+              }
+            }, 500)
+          }
+        }
+      }
+      
+      // Listen for farmer location updates
+      const handleFarmerLocationUpdated = (farmerData) => {
+        console.log('📍 Farmer location updated:', farmerData)
+        
+        // Refresh farmers list
+        refetchFarmers()
+        
+        // Update map
+        if (overviewLeafletMapRef.current && overviewMarkersLayerRef.current) {
+          setTimeout(() => {
+            addFarmersToOverviewMap()
+          }, 500)
+        }
+      }
+      
+      socket.on('farmer-registered', handleFarmerRegistered)
+      socket.on('farmer-location-updated', handleFarmerLocationUpdated)
+      
+      return () => {
+        socket.off('farmer-registered', handleFarmerRegistered)
+        socket.off('farmer-location-updated', handleFarmerLocationUpdated)
+      }
+    }
+  }, [socket, isConnected, refetchFarmers, addFarmersToOverviewMap]);
   
   // React Query mutations
   const updateClaimMutation = useUpdateClaim()
@@ -3460,19 +3522,89 @@ const AdminDashboard = () => {
                 <hr className="border-gray-200" />
               </div>
 
-              {/* Overview: Farmers Map (embedded) - Minimalist Blockchain Style */}
-              <div className="bg-white rounded-xl p-6 mt-6 border border-gray-300 relative overflow-hidden shadow-sm" style={{ boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
-                {/* Corner Accents */}
-                <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-                <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-                <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-                <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
+              {/* ENHANCED Geo-Tagging Map Overview Section */}
+              <div className="bg-gradient-to-br from-gray-50 to-lime-50 rounded-2xl p-6 mt-6 border-2 border-lime-500 relative overflow-hidden shadow-lg" style={{ boxShadow: '0 4px 20px rgba(132, 204, 22, 0.3)' }}>
+                {/* Enhanced Corner Accents */}
+                <div className="absolute top-0 left-0 w-20 h-20 border-t-4 border-l-4 border-lime-500 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 12px rgba(132, 204, 22, 1))' }}></div>
+                <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-lime-500 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 12px rgba(132, 204, 22, 1))' }}></div>
+                <div className="absolute bottom-0 left-0 w-20 h-20 border-b-4 border-l-4 border-lime-500 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 12px rgba(132, 204, 22, 1))' }}></div>
+                <div className="absolute bottom-0 right-0 w-20 h-20 border-b-4 border-r-4 border-lime-500 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 12px rgba(132, 204, 22, 1))' }}></div>
                 
-                {/* Decorative Lines */}
-                <div className="absolute top-8 left-8 w-24 h-0.5 bg-gradient-to-r from-lime-500 to-transparent opacity-60 z-10"></div>
-                <div className="absolute top-8 right-8 w-24 h-0.5 bg-gradient-to-l from-lime-500 to-transparent opacity-60 z-10"></div>
+                {/* Animated Background Grid */}
+                <div className="absolute inset-0 opacity-5 pointer-events-none">
+                  <div className="absolute inset-0" style={{ 
+                    backgroundImage: 'linear-gradient(rgba(132, 204, 22, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(132, 204, 22, 0.5) 1px, transparent 1px)',
+                    backgroundSize: '20px 20px'
+                  }}></div>
+                </div>
                 
-                <div className="sticky top-0 flex items-center justify-between mb-6 relative z-10 pb-4">
+                {/* Map Statistics Dashboard - Above Map */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 relative z-10">
+                  <div className="bg-white rounded-xl p-4 border-2 border-lime-500 shadow-md hover:scale-105 transition-transform">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Total Locations</p>
+                        <p className="text-3xl font-black text-lime-600">
+                          {farmers.filter(f => f.location && typeof f.location.lat === 'number' && typeof f.location.lng === 'number').length}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-lime-100 rounded-lg">
+                        <MapPin className="h-8 w-8 text-lime-600" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-xl p-4 border-2 border-blue-500 shadow-md hover:scale-105 transition-transform">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Crop Types</p>
+                        <p className="text-3xl font-black text-blue-600">
+                          {availableCrops.length}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-blue-100 rounded-lg">
+                        <Layers className="h-8 w-8 text-blue-600" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-xl p-4 border-2 border-green-500 shadow-md hover:scale-105 transition-transform">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Active Farms</p>
+                        <p className="text-3xl font-black text-green-600">
+                          {farmers.filter(f => f.isOnline || (f.location && f.location.lat)).length}
+                        </p>
+                      </div>
+                      <div className="p-3 bg-green-100 rounded-lg">
+                        <CheckCircle className="h-8 w-8 text-green-600" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-xl p-4 border-2 border-amber-500 shadow-md hover:scale-105 transition-transform">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Coverage Area</p>
+                        <p className="text-2xl font-black text-amber-600">
+                          {(() => {
+                            const totalArea = farmers.reduce((sum, f) => {
+                              const area = parseFloat(f.cropArea || f.lotArea || 0);
+                              return sum + area;
+                            }, 0);
+                            return totalArea > 1000 ? `${(totalArea / 1000).toFixed(1)}K` : totalArea.toFixed(0);
+                          })()}<span className="text-sm ml-1">ha</span>
+                        </p>
+                      </div>
+                      <div className="p-3 bg-amber-100 rounded-lg">
+                        <Map className="h-8 w-8 text-amber-600" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Main Map Header with Enhanced Controls */}
+                <div className="sticky top-0 flex items-center justify-between mb-6 relative z-10 pb-4 border-b-2 border-lime-200">
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-black rounded-lg animate-pulse" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.8)' }}>
                       <img src={locationImage} alt="Geo-Tagging Map" className="h-7 w-7" />
@@ -3612,8 +3744,105 @@ const AdminDashboard = () => {
                   </div>
                 </div>
                 
-                <div className="w-full h-[420px] rounded-lg border-2 border-lime-500 overflow-hidden relative z-10" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.4)' }}>
+                {/* Enhanced Map Container with Better Height */}
+                <div className="w-full h-[550px] rounded-xl border-4 border-lime-500 overflow-hidden relative z-10 shadow-2xl" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6), inset 0 0 20px rgba(132, 204, 22, 0.1)' }}>
                   <div ref={overviewMapRef} className="w-full h-full" />
+                  
+                  {/* Map Loading Overlay */}
+                  {!overviewLeafletMapRef.current && (
+                    <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-50">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-16 w-16 border-4 border-lime-500 border-t-transparent mx-auto mb-4"></div>
+                        <p className="text-lime-400 font-bold">Loading Map...</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Map Info Badge */}
+                  <div className="absolute top-4 left-4 z-[1000] bg-black/90 backdrop-blur-sm px-4 py-2 rounded-lg border-2 border-lime-500 shadow-lg">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-lime-500 rounded-full animate-pulse"></div>
+                      <span className="text-lime-400 text-sm font-bold">
+                        {farmers.filter(f => f.location && typeof f.location.lat === 'number').length} Farms Mapped
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Crop Types Legend - Enhanced with More Info */}
+                <div className="mt-6 bg-white/95 backdrop-blur-sm rounded-xl p-6 border-2 border-lime-500 shadow-lg relative z-10">
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-200">
+                    <div className="p-2 bg-lime-500 rounded-lg mr-3 shadow-md">
+                      <Layers size={20} className="text-white" />
+                    </div>
+                    <div>
+                      <h4 className="text-lg font-black text-gray-800 uppercase tracking-wider">Crop Types Distribution</h4>
+                      <span className="text-xs text-gray-600 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse"></span>
+                        Click on map markers to view farmer details
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    {availableCrops.map((crop, index) => {
+                      const cropCount = farmers.filter(f => 
+                        (f.cropType || '').toLowerCase().includes(crop.toLowerCase()) && 
+                        f.location && 
+                        typeof f.location.lat === 'number'
+                      ).length;
+                      
+                      const getCropIcon = (cropName) => {
+                        const c = cropName.toLowerCase();
+                        if (c.includes('rice') || c.includes('palay')) return '🌾';
+                        if (c.includes('corn')) return '🌽';
+                        if (c.includes('banana')) return '🍌';
+                        if (c.includes('coconut')) return '🥥';
+                        if (c.includes('coffee')) return '☕';
+                        if (c.includes('cacao')) return '🍫';
+                        if (c.includes('sugar')) return '🌿';
+                        if (c.includes('pineapple')) return '🍍';
+                        if (c.includes('mango')) return '🥭';
+                        if (c.includes('vegetable')) return '🥬';
+                        return '🌱';
+                      };
+                      
+                      return (
+                        <div 
+                          key={crop} 
+                          className="flex items-center gap-2 bg-white hover:bg-lime-50 p-3 rounded-lg border-2 border-gray-200 hover:border-lime-500 transition-all cursor-pointer shadow-sm hover:shadow-md group"
+                          onClick={() => setCropFilter(crop)}
+                          title={`Filter map to show ${crop} farms`}
+                        >
+                          <div className="text-2xl group-hover:scale-125 transition-transform">
+                            {getCropIcon(crop)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <span className="text-xs font-semibold text-gray-800 block truncate group-hover:text-lime-600">{crop}</span>
+                            <span className="text-xs font-bold text-lime-600">{cropCount} farms</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Map Instructions */}
+                  <div className="mt-4 pt-4 border-t-2 border-lime-200">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                      <div className="flex items-center gap-2 bg-lime-50 p-3 rounded-lg border border-lime-200">
+                        <div className="w-2 h-2 rounded-full bg-lime-500 flex-shrink-0 animate-pulse"></div>
+                        <span className="text-gray-700 font-semibold">🖱️ Click markers for farm details</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-blue-50 p-3 rounded-lg border border-blue-200">
+                        <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0"></div>
+                        <span className="text-gray-700 font-semibold">🔍 Zoom in/out to explore</span>
+                      </div>
+                      <div className="flex items-center gap-2 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                        <div className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0"></div>
+                        <span className="text-gray-700 font-semibold">🌾 Filter by crop type above</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Weather Legend - Minimalist Blockchain Style */}
