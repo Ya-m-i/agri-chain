@@ -22,6 +22,7 @@ import {
   TrendingUp,
   Calendar,
   Map,
+  MapPin,
   Download,
   Plus,
   Search,
