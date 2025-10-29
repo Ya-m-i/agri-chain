@@ -1375,19 +1375,51 @@ const AdminModals = ({
               )}
             </div>
 
-            <div className="flex-1 min-h-[500px] relative bg-white p-2">
-              <div 
-                ref={mapRef} 
-                id="location-picker-map"
-                className="w-full h-full min-h-[500px] rounded-lg border-2 border-lime-500"
-                style={{ 
-                  minHeight: '500px',
-                  height: '500px',
-                  position: 'relative',
-                  zIndex: 1,
-                  backgroundColor: '#f0f0f0'
-                }}
-              ></div>
+            <div className="flex-1 min-h-[500px] relative bg-white p-4">
+              {mapMode === "add" ? (
+                <MapPicker
+                  onLocationSelect={(location) => {
+                    setSelectedLocation(location);
+                    // Reverse geocode to get address
+                    fetch(
+                      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.lat}&lon=${location.lng}&addressdetails=1`,
+                      {
+                        headers: {
+                          'User-Agent': 'AGRI-CHAIN-App'
+                        }
+                      }
+                    )
+                      .then((res) => res.json())
+                      .then((data) => {
+                        if (data && data.display_name) {
+                          const address = data.display_name;
+                          // Update form data if callback exists
+                          if (window.updateFarmerAddress) {
+                            window.updateFarmerAddress(address, location.lat, location.lng);
+                          }
+                        }
+                      })
+                      .catch((error) => {
+                        console.error('Error reverse geocoding:', error);
+                      });
+                  }}
+                  initialCenter={[7.5815, 125.8235]}
+                  initialZoom={13}
+                />
+              ) : (
+                <div 
+                  ref={mapRef} 
+                  id="location-picker-map"
+                  className="w-full h-full min-h-[500px] rounded-lg border-2 border-lime-500"
+                  style={{ 
+                    minHeight: '500px',
+                    height: '500px',
+                    position: 'relative',
+                    zIndex: 1,
+                    backgroundColor: '#f0f0f0'
+                  }}
+                ></div>
+              )}
             </div>
 
             {mapMode === "add" && (

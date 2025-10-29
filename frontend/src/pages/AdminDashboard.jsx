@@ -1905,9 +1905,29 @@ const AdminDashboard = () => {
     console.log('AdminDashboard: Total pages:', totalPages);
   }, [currentItems, currentPage, totalPages]);
 
-  // NEW: Simplified map modal initialization - rebuilt from scratch
+  // Setup window callback for MapPicker to update farmer registration form
   useEffect(() => {
-    if (!showMapModal || !mapRef.current) {
+    window.updateFarmerAddress = (address, lat, lng) => {
+      console.log('📍 Updating farmer address:', { address, lat, lng });
+      setFormData(prev => ({
+        ...prev,
+        address: address,
+        location: {
+          type: 'Point',
+          coordinates: [lng, lat]
+        }
+      }));
+    };
+
+    return () => {
+      delete window.updateFarmerAddress;
+    };
+  }, [setFormData]);
+
+  // Map modal initialization for "view" mode (showing all farmers)
+  useEffect(() => {
+    // Only initialize if in view mode
+    if (!showMapModal || mapMode !== "view" || !mapRef.current) {
       // Cleanup when modal closes
       if (modalLeafletMapRef.current) {
         modalLeafletMapRef.current.remove();
@@ -1946,7 +1966,7 @@ const AdminDashboard = () => {
       if (!mapRef.current || modalLeafletMapRef.current) return;
 
       try {
-        console.log('🗺️ Initializing new map...');
+        console.log('🗺️ Initializing view mode map...');
         
         // Kapalong coordinates
         const kapalongCoords = [7.5815, 125.8235];
@@ -1967,30 +1987,6 @@ const AdminDashboard = () => {
         // Create markers layer
         modalMarkersLayerRef.current = L.layerGroup().addTo(modalLeafletMapRef.current);
 
-        // Click handler for selecting location
-        modalLeafletMapRef.current.on("click", (e) => {
-          if (mapMode === "add") {
-            const { lat, lng } = e.latlng;
-            setSelectedLocation({ lat, lng });
-
-            // Clear and add marker
-            if (modalMarkersLayerRef.current) {
-              modalMarkersLayerRef.current.clearLayers();
-              L.marker([lat, lng], {
-                icon: L.divIcon({
-                  className: 'custom-marker-lime',
-                  html: '<div style="background-color: #84cc16; width: 24px; height: 24px; border-radius: 50%; border: 3px solid #000;"></div>',
-                  iconSize: [24, 24],
-                  iconAnchor: [12, 12]
-                })
-              }).addTo(modalMarkersLayerRef.current);
-            }
-
-            // Reverse geocode
-            reverseGeocode(lat, lng);
-          }
-        });
-
         // Invalidate size after a short delay
         setTimeout(() => {
           if (modalLeafletMapRef.current) {
@@ -1998,12 +1994,14 @@ const AdminDashboard = () => {
           }
         }, 200);
 
-        // Add existing farmers if in view mode
-        if (mapMode === "view" && modalMarkersLayerRef.current) {
-          setTimeout(() => addFarmersToMap(), 300);
-        }
+        // Add existing farmers
+        setTimeout(() => {
+          if (modalMarkersLayerRef.current) {
+            addFarmersToMap();
+          }
+        }, 300);
 
-        console.log('✅ Map initialized successfully');
+        console.log('✅ View mode map initialized successfully');
       } catch (error) {
         console.error('❌ Map initialization error:', error);
       }
