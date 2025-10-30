@@ -13,12 +13,24 @@ const MapPicker = ({ onLocationSelect, initialCenter = [7.5815, 125.8235], initi
 
     console.log('🗺️ MapPicker: Initializing map...');
 
+    // Always use Kapalong as center
+    const kapalongCenter = [7.5815, 125.8235];
+    const kapalongZoom = 13;
+
     // Create map instance
     const map = L.map(mapContainerRef.current, {
-      center: initialCenter,
-      zoom: initialZoom,
+      center: kapalongCenter,
+      zoom: kapalongZoom,
       zoomControl: true,
       scrollWheelZoom: true,
+      minZoom: 11,
+      maxZoom: 18,
+      // Keep map centered on Kapalong area
+      maxBounds: [
+        [7.3, 125.5],  // Southwest corner
+        [7.9, 126.1]   // Northeast corner
+      ],
+      maxBoundsViscosity: 0.5,
     });
 
     // Add tile layer
@@ -29,6 +41,12 @@ const MapPicker = ({ onLocationSelect, initialCenter = [7.5815, 125.8235], initi
 
     // Store map instance
     mapInstanceRef.current = map;
+    
+    // Force set view to Kapalong after initialization
+    setTimeout(() => {
+      map.setView(kapalongCenter, kapalongZoom);
+      console.log('📍 MapPicker centered on Kapalong:', kapalongCenter);
+    }, 100);
 
     // Add click handler
     map.on('click', (e) => {
@@ -63,11 +81,12 @@ const MapPicker = ({ onLocationSelect, initialCenter = [7.5815, 125.8235], initi
       }
     });
 
-    // Invalidate size after short delay
+    // Invalidate size after short delay and ensure centered
     setTimeout(() => {
       map.invalidateSize();
-      console.log('✅ MapPicker: Map initialized successfully');
-    }, 200);
+      map.setView(kapalongCenter, kapalongZoom); // Ensure centered after size calculation
+      console.log('✅ MapPicker: Map initialized and centered on Kapalong successfully');
+    }, 300);
 
     // Cleanup on unmount
     return () => {
@@ -80,7 +99,7 @@ const MapPicker = ({ onLocationSelect, initialCenter = [7.5815, 125.8235], initi
         markerRef.current = null;
       }
     };
-  }, [initialCenter, initialZoom, onLocationSelect]);
+  }, []); // Empty dependency array - only run once on mount
 
   return (
     <div

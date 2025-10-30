@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import {
   X,
   MapPin,
@@ -69,6 +70,17 @@ const AdminModals = ({
   setFarmerToDelete,
   farmers,
 }) => {
+  // State to force map remount when modal opens
+  const [mapKey, setMapKey] = useState(Date.now());
+
+  // Update map key when map modal opens to ensure fresh Kapalong-centered map
+  useEffect(() => {
+    if (showMapModal && mapMode === "add") {
+      setMapKey(Date.now());
+      console.log('🗺️ Map modal opened - resetting map to Kapalong center');
+    }
+  }, [showMapModal, mapMode]);
+
   // Custom scrollbar styling
   const scrollbarStyle = `
     /* Hide scrollbar but maintain functionality */
@@ -1379,6 +1391,7 @@ const AdminModals = ({
             <div className="flex-1 min-h-[500px] relative bg-white p-4">
               {mapMode === "add" ? (
                 <MapPicker
+                  key={`map-picker-${mapKey}`}
                   onLocationSelect={(location) => {
                     setSelectedLocation(location);
                     // Reverse geocode to get address

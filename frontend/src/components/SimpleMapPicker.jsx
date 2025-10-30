@@ -28,9 +28,11 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
     try {
       // Create map centered on Kapalong, Davao del Norte with fixed bounds
       const kapalongCenter = [7.5815, 125.8235];
+      const kapalongZoom = 13;
+      
       const map = L.map(mapContainerRef.current, {
         center: kapalongCenter,
-        zoom: 13,
+        zoom: kapalongZoom,
         zoomControl: true,
         minZoom: 11,  // Prevent zooming out too far
         maxZoom: 18,  // Allow zooming in for precision
@@ -43,6 +45,12 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
       });
 
       mapInstanceRef.current = map;
+      
+      // Force set view to Kapalong after initialization
+      setTimeout(() => {
+        map.setView(kapalongCenter, kapalongZoom);
+        console.log('📍 Map centered on Kapalong:', kapalongCenter);
+      }, 100);
 
       // Add OpenStreetMap tiles
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -115,9 +123,10 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
       // Map loaded
       setTimeout(() => {
         map.invalidateSize();
+        map.setView(kapalongCenter, kapalongZoom); // Ensure centered after size calculation
         setLoading(false);
-        console.log('✅ Farm location picker ready!');
-      }, 200);
+        console.log('✅ Farm location picker ready and centered on Kapalong!');
+      }, 300);
 
     } catch (error) {
       console.error('❌ Error initializing map:', error);
@@ -133,7 +142,7 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
         markerRef.current = null;
       }
     };
-  }, [onLocationSelect]);
+  }, []); // Empty dependency array - only run once on mount
 
   return (
     <div className="fixed inset-0 bg-white bg-opacity-50 backdrop-blur-md flex items-center justify-center z-50 p-4">
