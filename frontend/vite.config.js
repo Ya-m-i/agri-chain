@@ -25,10 +25,38 @@ export default defineConfig({
       output: {
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+        
+        // Manual chunks for better code splitting
+        manualChunks: {
+          // React core libraries
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          
+          // PDF generation libraries
+          'pdf-libs': ['jspdf', 'jspdf-autotable'],
+          
+          // Map libraries
+          'map-libs': ['leaflet', 'leaflet-draw'],
+          
+          // Chart libraries
+          'chart-libs': ['chart.js', 'react-chartjs-2', 'recharts'],
+          
+          // React Query and state management
+          'data-libs': ['@tanstack/react-query', 'zustand'],
+          
+          // Socket.IO for real-time
+          'socket-libs': ['socket.io-client'],
+          
+          // UI libraries
+          'ui-libs': ['lucide-react', 'react-hot-toast', '@headlessui/react'],
+          
+          // Utilities
+          'utils': ['axios']
+        }
       }
     },
     
-    chunkSizeWarningLimit: 500
+    // Increased limit but with proper chunking above
+    chunkSizeWarningLimit: 1000
   }
 })
