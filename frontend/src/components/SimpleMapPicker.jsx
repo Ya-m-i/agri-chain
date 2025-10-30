@@ -26,37 +26,32 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
     console.log('🗺️ Initializing farm location picker...');
 
     try {
-      // Create map centered on Maniki, Kapalong, Davao del Norte (Department of Agriculture scope)
-      const manikiKapalongCenter = [7.5750, 125.8280]; // Maniki area coordinates
-      const manikiZoom = 14; // Higher zoom for Maniki focus
+      // Create map centered on Kapalong Pag-asa/Maniki area (Department of Agriculture)
+      // Kapalong Department of Agriculture and nearby barangays
+      const kapalongDACenter = [7.6042, 125.8450]; // Kapalong center (near DA office and Pag-asa)
+      const kapalongZoom = 13; // Good zoom to see the area
       
       const map = L.map(mapContainerRef.current, {
-        center: manikiKapalongCenter,
-        zoom: manikiZoom,
+        center: kapalongDACenter,
+        zoom: kapalongZoom,
         zoomControl: true,
-        minZoom: 12,  // Prevent zooming out too far from Maniki
+        minZoom: 11,  // Allow some zoom out to see surrounding areas
         maxZoom: 18,  // Allow zooming in for precision
-        // Keep map focused on Maniki, Kapalong area (Department of Agriculture scope)
+        // Wider bounds to allow movement within Kapalong municipality
         maxBounds: [
-          [7.52, 125.78],  // Southwest corner - Maniki bounds
-          [7.63, 125.88]   // Northeast corner - Maniki bounds
+          [7.50, 125.75],  // Southwest - covers Kapalong area
+          [7.70, 125.95]   // Northeast - covers Kapalong area
         ],
-        maxBoundsViscosity: 0.5, // Smooth bounce back when panning outside
+        maxBoundsViscosity: 1.0, // Allow easier movement within bounds
       });
 
       mapInstanceRef.current = map;
       
-      // Force set view to Maniki, Kapalong after initialization
+      // Force set view to Kapalong DA area after initialization
       setTimeout(() => {
-        map.setView(manikiKapalongCenter, manikiZoom, { animate: false });
-        console.log('📍 Map centered on Maniki, Kapalong:', manikiKapalongCenter);
+        map.setView(kapalongDACenter, kapalongZoom, { animate: false });
+        console.log('📍 Map centered on Kapalong (Pag-asa/Maniki area):', kapalongDACenter);
       }, 100);
-
-      // Additional force center to ensure Maniki focus
-      setTimeout(() => {
-        map.setView(manikiKapalongCenter, manikiZoom, { animate: false });
-        console.log('🔒 Map locked to Maniki, Kapalong center');
-      }, 250);
 
       // Add OpenStreetMap tiles
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -126,19 +121,13 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
         }
       });
 
-      // Map loaded - final center lock
+      // Map loaded - final center
       setTimeout(() => {
         map.invalidateSize();
-        map.setView(manikiKapalongCenter, manikiZoom, { animate: false, reset: true }); // Force reset to Maniki center
+        map.setView(kapalongDACenter, kapalongZoom, { animate: false }); 
         setLoading(false);
-        console.log('✅ Farm location picker ready and locked on Maniki, Kapalong!');
-      }, 400);
-
-      // Ultra final center lock to prevent any drift
-      setTimeout(() => {
-        map.setView(manikiKapalongCenter, manikiZoom, { animate: false, reset: true });
-        console.log('🔐 Final lock: Maniki, Kapalong center confirmed');
-      }, 600);
+        console.log('✅ Farm location picker ready - Kapalong DA area centered!');
+      }, 300);
 
     } catch (error) {
       console.error('❌ Error initializing map:', error);
@@ -169,7 +158,7 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
               </div>
               <div>
                 <h2 className="text-2xl font-bold">🌾 Select Farm Location</h2>
-                <p className="text-lime-100 text-sm mt-1">Maniki, Kapalong - Click on the map to mark your farm location</p>
+                <p className="text-lime-100 text-sm mt-1">Kapalong, Davao del Norte - Click on the map to mark your farm location</p>
               </div>
             </div>
             <button
@@ -189,7 +178,7 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
             <div className="absolute inset-0 bg-lime-50 flex items-center justify-center z-10">
               <div className="text-center">
                 <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-lime-200 border-t-lime-600 mb-3"></div>
-                <p className="text-lime-700 font-semibold text-lg">Loading Maniki, Kapalong farm map...</p>
+                <p className="text-lime-700 font-semibold text-lg">Loading Kapalong farm map...</p>
               </div>
             </div>
           )}

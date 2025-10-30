@@ -1417,8 +1417,8 @@ const AdminModals = ({
                         console.error('Error reverse geocoding:', error);
                       });
                   }}
-                  initialCenter={[7.5750, 125.8280]}
-                  initialZoom={14}
+                  initialCenter={[7.6042, 125.8450]}
+                  initialZoom={13}
                 />
               ) : (
                 <div 

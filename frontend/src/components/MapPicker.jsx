@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const MapPicker = ({ onLocationSelect, initialCenter = [7.5750, 125.8280], initialZoom = 14 }) => {
+const MapPicker = ({ onLocationSelect, initialCenter = [7.6042, 125.8450], initialZoom = 13 }) => {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
@@ -13,24 +13,24 @@ const MapPicker = ({ onLocationSelect, initialCenter = [7.5750, 125.8280], initi
 
     console.log('🗺️ MapPicker: Initializing map...');
 
-    // Always use Maniki, Kapalong as center (Department of Agriculture scope)
-    const manikiKapalongCenter = [7.5750, 125.8280]; // Maniki area coordinates
-    const manikiZoom = 14; // Higher zoom for Maniki focus
+    // Always use Kapalong DA area as center (Pag-asa/Maniki area)
+    const kapalongDACenter = [7.6042, 125.8450]; // Kapalong center (near DA office and Pag-asa)
+    const kapalongZoom = 13; // Good zoom to see the area
 
     // Create map instance
     const map = L.map(mapContainerRef.current, {
-      center: manikiKapalongCenter,
-      zoom: manikiZoom,
+      center: kapalongDACenter,
+      zoom: kapalongZoom,
       zoomControl: true,
       scrollWheelZoom: true,
-      minZoom: 12,  // Prevent zooming out too far from Maniki
+      minZoom: 11,  // Allow some zoom out to see surrounding areas
       maxZoom: 18,
-      // Keep map focused on Maniki, Kapalong area (Department of Agriculture scope)
+      // Wider bounds to allow movement within Kapalong municipality
       maxBounds: [
-        [7.52, 125.78],  // Southwest corner - Maniki bounds
-        [7.63, 125.88]   // Northeast corner - Maniki bounds
+        [7.50, 125.75],  // Southwest - covers Kapalong area
+        [7.70, 125.95]   // Northeast - covers Kapalong area
       ],
-      maxBoundsViscosity: 0.5,
+      maxBoundsViscosity: 1.0, // Allow easier movement within bounds
     });
 
     // Add tile layer
@@ -42,17 +42,11 @@ const MapPicker = ({ onLocationSelect, initialCenter = [7.5750, 125.8280], initi
     // Store map instance
     mapInstanceRef.current = map;
     
-    // Force set view to Maniki, Kapalong after initialization
+    // Force set view to Kapalong DA area after initialization
     setTimeout(() => {
-      map.setView(manikiKapalongCenter, manikiZoom, { animate: false });
-      console.log('📍 MapPicker centered on Maniki, Kapalong:', manikiKapalongCenter);
+      map.setView(kapalongDACenter, kapalongZoom, { animate: false });
+      console.log('📍 MapPicker centered on Kapalong (Pag-asa area):', kapalongDACenter);
     }, 100);
-
-    // Additional force center to ensure Maniki focus
-    setTimeout(() => {
-      map.setView(manikiKapalongCenter, manikiZoom, { animate: false });
-      console.log('🔒 MapPicker locked to Maniki, Kapalong center');
-    }, 250);
 
     // Add click handler
     map.on('click', (e) => {
@@ -87,18 +81,12 @@ const MapPicker = ({ onLocationSelect, initialCenter = [7.5750, 125.8280], initi
       }
     });
 
-    // Invalidate size after short delay and ensure centered on Maniki
+    // Invalidate size after short delay and ensure centered on Kapalong
     setTimeout(() => {
       map.invalidateSize();
-      map.setView(manikiKapalongCenter, manikiZoom, { animate: false, reset: true }); // Force immediate center
-      console.log('✅ MapPicker: Map initialized and centered on Maniki, Kapalong successfully');
-    }, 400);
-
-    // Additional forced center after map is fully loaded
-    setTimeout(() => {
-      map.setView(manikiKapalongCenter, manikiZoom, { animate: false, reset: true });
-      console.log('🔄 MapPicker: Final center lock on Maniki, Kapalong');
-    }, 600);
+      map.setView(kapalongDACenter, kapalongZoom, { animate: false }); 
+      console.log('✅ MapPicker: Map initialized and centered on Kapalong DA area');
+    }, 300);
 
     // Cleanup on unmount
     return () => {
