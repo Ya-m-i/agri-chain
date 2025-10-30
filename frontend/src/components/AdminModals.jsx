@@ -1327,11 +1327,11 @@ const AdminModals = ({
         </div>
       )}
 
-      {/* Map Modal */}
+      {/* Map Modal - Fullscreen */}
       {showMapModal && (
-        <div className="fixed inset-0 z-50 bg-white bg-opacity-50 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="sticky top-0 bg-lime-700 text-white p-4 rounded-t-xl flex justify-between items-center">
+        <div className="fixed inset-0 z-50 bg-white bg-opacity-50 backdrop-blur-md">
+          <div className="bg-white w-full h-full overflow-hidden flex flex-col">
+            <div className="sticky top-0 bg-lime-700 text-white p-4 flex justify-between items-center">
               <h2 className="text-xl font-bold">
                 {mapMode === "view" ? "Farm Locations Map" : "Select Farm Location"}
               </h2>
@@ -1388,7 +1388,7 @@ const AdminModals = ({
               )}
             </div>
 
-            <div className="flex-1 min-h-[500px] relative bg-white p-4">
+            <div className="flex-1 relative bg-white overflow-hidden">
               {mapMode === "add" ? (
                 <MapPicker
                   key={`map-picker-${mapKey}`}
@@ -1417,17 +1417,15 @@ const AdminModals = ({
                         console.error('Error reverse geocoding:', error);
                       });
                   }}
-                  initialCenter={[7.5815, 125.8235]}
-                  initialZoom={13}
+                  initialCenter={[7.5750, 125.8280]}
+                  initialZoom={14}
                 />
               ) : (
                 <div 
                   ref={mapRef} 
                   id="location-picker-map"
-                  className="w-full h-full min-h-[500px] rounded-lg border-2 border-lime-500"
-                  style={{ 
-                    minHeight: '500px',
-                    height: '500px',
+                  className="w-full h-full"
+                  style={{
                     position: 'relative',
                     zIndex: 1,
                     backgroundColor: '#f0f0f0'

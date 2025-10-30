@@ -26,30 +26,30 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
     console.log('🗺️ Initializing farm location picker...');
 
     try {
-      // Create map centered on Kapalong, Davao del Norte with fixed bounds
-      const kapalongCenter = [7.5815, 125.8235];
-      const kapalongZoom = 13;
+      // Create map centered on Maniki, Kapalong, Davao del Norte (Department of Agriculture scope)
+      const manikiKapalongCenter = [7.5750, 125.8280]; // Maniki area coordinates
+      const manikiZoom = 14; // Higher zoom for Maniki focus
       
       const map = L.map(mapContainerRef.current, {
-        center: kapalongCenter,
-        zoom: kapalongZoom,
+        center: manikiKapalongCenter,
+        zoom: manikiZoom,
         zoomControl: true,
-        minZoom: 11,  // Prevent zooming out too far
+        minZoom: 12,  // Prevent zooming out too far from Maniki
         maxZoom: 18,  // Allow zooming in for precision
-        // Keep map centered on Kapalong area
+        // Keep map focused on Maniki, Kapalong area (Department of Agriculture scope)
         maxBounds: [
-          [7.3, 125.5],  // Southwest corner
-          [7.9, 126.1]   // Northeast corner
+          [7.52, 125.78],  // Southwest corner - Maniki bounds
+          [7.63, 125.88]   // Northeast corner - Maniki bounds
         ],
         maxBoundsViscosity: 0.5, // Smooth bounce back when panning outside
       });
 
       mapInstanceRef.current = map;
       
-      // Force set view to Kapalong after initialization
+      // Force set view to Maniki, Kapalong after initialization
       setTimeout(() => {
-        map.setView(kapalongCenter, kapalongZoom);
-        console.log('📍 Map centered on Kapalong:', kapalongCenter);
+        map.setView(manikiKapalongCenter, manikiZoom);
+        console.log('📍 Map centered on Maniki, Kapalong:', manikiKapalongCenter);
       }, 100);
 
       // Add OpenStreetMap tiles
@@ -123,9 +123,9 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
       // Map loaded
       setTimeout(() => {
         map.invalidateSize();
-        map.setView(kapalongCenter, kapalongZoom); // Ensure centered after size calculation
+        map.setView(manikiKapalongCenter, manikiZoom); // Ensure centered after size calculation
         setLoading(false);
-        console.log('✅ Farm location picker ready and centered on Kapalong!');
+        console.log('✅ Farm location picker ready and centered on Maniki, Kapalong!');
       }, 300);
 
     } catch (error) {
@@ -145,8 +145,8 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
   }, []); // Empty dependency array - only run once on mount
 
   return (
-    <div className="fixed inset-0 bg-white bg-opacity-50 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden" style={{ maxHeight: '90vh' }}>
+    <div className="fixed inset-0 bg-white bg-opacity-50 backdrop-blur-md z-50">
+      <div className="bg-white w-full h-full overflow-hidden flex flex-col">
         
         {/* Farm-themed header */}
         <div className="bg-gradient-to-r from-lime-600 to-green-600 p-6 text-white">
@@ -157,7 +157,7 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
               </div>
               <div>
                 <h2 className="text-2xl font-bold">🌾 Select Farm Location</h2>
-                <p className="text-lime-100 text-sm mt-1">Click anywhere on the map to mark your farm</p>
+                <p className="text-lime-100 text-sm mt-1">Maniki, Kapalong - Click on the map to mark your farm location</p>
               </div>
             </div>
             <button
@@ -171,24 +171,20 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
           </div>
         </div>
 
-        {/* Map container */}
-        <div className="relative">
+        {/* Map container - fills remaining space */}
+        <div className="relative flex-1">
           {loading && (
             <div className="absolute inset-0 bg-lime-50 flex items-center justify-center z-10">
               <div className="text-center">
-                <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-lime-200 border-t-lime-600 mb-3"></div>
-                <p className="text-lime-700 font-semibold">Loading farm map...</p>
+                <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-lime-200 border-t-lime-600 mb-3"></div>
+                <p className="text-lime-700 font-semibold text-lg">Loading Maniki, Kapalong farm map...</p>
               </div>
             </div>
           )}
           
           <div
             ref={mapContainerRef}
-            className="w-full bg-lime-50"
-            style={{ 
-              height: '500px',
-              minHeight: '500px',
-            }}
+            className="w-full h-full bg-lime-50"
           />
         </div>
 

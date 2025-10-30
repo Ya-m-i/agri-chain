@@ -13,22 +13,22 @@ const MapPicker = ({ onLocationSelect, initialCenter = [7.5815, 125.8235], initi
 
     console.log('🗺️ MapPicker: Initializing map...');
 
-    // Always use Kapalong as center
-    const kapalongCenter = [7.5815, 125.8235];
-    const kapalongZoom = 13;
+    // Always use Maniki, Kapalong as center (Department of Agriculture scope)
+    const manikiKapalongCenter = [7.5750, 125.8280]; // Maniki area coordinates
+    const manikiZoom = 14; // Higher zoom for Maniki focus
 
     // Create map instance
     const map = L.map(mapContainerRef.current, {
-      center: kapalongCenter,
-      zoom: kapalongZoom,
+      center: manikiKapalongCenter,
+      zoom: manikiZoom,
       zoomControl: true,
       scrollWheelZoom: true,
-      minZoom: 11,
+      minZoom: 12,  // Prevent zooming out too far from Maniki
       maxZoom: 18,
-      // Keep map centered on Kapalong area
+      // Keep map focused on Maniki, Kapalong area (Department of Agriculture scope)
       maxBounds: [
-        [7.3, 125.5],  // Southwest corner
-        [7.9, 126.1]   // Northeast corner
+        [7.52, 125.78],  // Southwest corner - Maniki bounds
+        [7.63, 125.88]   // Northeast corner - Maniki bounds
       ],
       maxBoundsViscosity: 0.5,
     });
@@ -42,10 +42,10 @@ const MapPicker = ({ onLocationSelect, initialCenter = [7.5815, 125.8235], initi
     // Store map instance
     mapInstanceRef.current = map;
     
-    // Force set view to Kapalong after initialization
+    // Force set view to Maniki, Kapalong after initialization
     setTimeout(() => {
-      map.setView(kapalongCenter, kapalongZoom);
-      console.log('📍 MapPicker centered on Kapalong:', kapalongCenter);
+      map.setView(manikiKapalongCenter, manikiZoom);
+      console.log('📍 MapPicker centered on Maniki, Kapalong:', manikiKapalongCenter);
     }, 100);
 
     // Add click handler
@@ -84,8 +84,8 @@ const MapPicker = ({ onLocationSelect, initialCenter = [7.5815, 125.8235], initi
     // Invalidate size after short delay and ensure centered
     setTimeout(() => {
       map.invalidateSize();
-      map.setView(kapalongCenter, kapalongZoom); // Ensure centered after size calculation
-      console.log('✅ MapPicker: Map initialized and centered on Kapalong successfully');
+      map.setView(manikiKapalongCenter, manikiZoom); // Ensure centered after size calculation
+      console.log('✅ MapPicker: Map initialized and centered on Maniki, Kapalong successfully');
     }, 300);
 
     // Cleanup on unmount
@@ -104,13 +104,9 @@ const MapPicker = ({ onLocationSelect, initialCenter = [7.5815, 125.8235], initi
   return (
     <div
       ref={mapContainerRef}
+      className="w-full h-full"
       style={{
-        width: '100%',
-        height: '500px',
-        minHeight: '500px',
         backgroundColor: '#e5e7eb',
-        borderRadius: '8px',
-        border: '2px solid #84cc16',
       }}
     />
   );
