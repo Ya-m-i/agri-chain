@@ -3,11 +3,6 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapPin, Navigation } from 'lucide-react';
 
-// Ensure Leaflet is available globally
-if (typeof window !== 'undefined') {
-  window.L = L;
-}
-
 const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);

@@ -2,11 +2,6 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Ensure Leaflet is available globally
-if (typeof window !== 'undefined') {
-  window.L = L;
-}
-
 const MapPicker = ({ onLocationSelect, initialCenter = [7.6042, 125.8450], initialZoom = 13 }) => {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
