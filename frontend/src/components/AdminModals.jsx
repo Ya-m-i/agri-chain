@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import { calculateCompensation, getDamageSeverity, getCoverageDetails } from "../utils/insuranceUtils"
 import { useNotificationStore } from "../store/notificationStore"
+import MapPicker from "./MapPicker"
 
 const AdminModals = ({
   showModal,
