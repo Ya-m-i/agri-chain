@@ -35,11 +35,6 @@ const claimSchema = mongoose.Schema({
   },
   claimNumber: { type: String, unique: true },
   filedBy: { type: String, default: 'farmer', enum: ['farmer', 'admin'] }, // Track who filed the claim
-  pickupSchedule: {
-    date: { type: String },
-    time: { type: String },
-    scheduledAt: { type: Date }
-  }
 }, { timestamps: true })
 
 module.exports = mongoose.model('Claim', claimSchema) 

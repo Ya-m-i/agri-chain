@@ -19,25 +19,15 @@ export const useNotificationStore = create(
 
       // Add a notification for specific farmer
       addFarmerNotification: (notification, farmerId) => {
-        console.log('📥 NotificationStore - Adding farmer notification:', {
-          farmerId,
-          notification,
-          currentNotifications: get().farmerNotifications[farmerId]?.length || 0
-        });
-        
         set((state) => {
           const farmerNotifications = state.farmerNotifications[farmerId] || []
-          const newState = {
+          return {
             farmerNotifications: {
               ...state.farmerNotifications,
               [farmerId]: [{ ...notification, read: false }, ...farmerNotifications],
             },
             unreadFarmerCount: state.unreadFarmerCount + 1,
-          };
-          
-          console.log('✅ NotificationStore - Notification added. New count:', newState.farmerNotifications[farmerId].length);
-          
-          return newState;
+          }
         })
       },
 
@@ -119,21 +109,13 @@ export const useNotificationStore = create(
 
       // Get notifications for a specific farmer
       getFarmerNotifications: (farmerId) => {
-        const notifications = get().farmerNotifications[farmerId] || [];
-        console.log('📖 NotificationStore - getFarmerNotifications called:', {
-          farmerId,
-          count: notifications.length,
-          allFarmerIds: Object.keys(get().farmerNotifications)
-        });
-        return notifications;
+        return get().farmerNotifications[farmerId] || []
       },
 
       // Get unread count for a specific farmer
       getFarmerUnreadCount: (farmerId) => {
         const farmerNotifications = get().farmerNotifications[farmerId] || []
-        const unreadCount = farmerNotifications.filter(n => !n.read).length;
-        console.log('📊 NotificationStore - getFarmerUnreadCount:', { farmerId, unreadCount });
-        return unreadCount;
+        return farmerNotifications.filter(n => !n.read).length
       },
 
       // Clear all notifications for a specific farmer

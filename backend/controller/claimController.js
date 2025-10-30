@@ -99,9 +99,6 @@ const createClaim = async (req, res) => {
     // Log claim to hosted blockchain
     await logClaimToBlockchain(claim);
     
-    // Populate farmerId before emitting events
-    await claim.populate('farmerId', 'firstName lastName _id');
-    
     // Emit Socket.IO event for real-time updates to ALL connected devices
     const io = req.app.get('io');
     if (io) {
@@ -113,16 +110,14 @@ const createClaim = async (req, res) => {
       
       // Emit to specific farmer room for the claim creator
       if (claim.farmerId) {
-        const farmerIdString = claim.farmerId._id || claim.farmerId;
-        io.to(`farmer-${farmerIdString}`).emit('claim-created', claim);
-        console.log(`Socket event emitted to farmer-${farmerIdString}: claim-created`);
+        io.to(`farmer-${claim.farmerId}`).emit('claim-created', claim);
+        console.log(`Socket event emitted to farmer-${claim.farmerId}: claim-created`);
       }
       
       // Also emit a global newClaim event for backward compatibility
-      const farmerIdForGlobal = claim.farmerId?._id || claim.farmerId;
       io.emit('newClaim', {
         claimNumber: claim.claimNumber,
-        farmerId: farmerIdForGlobal,
+        farmerId: claim.farmerId,
         crop: claim.crop,
         status: claim.status,
         _id: claim._id
@@ -159,7 +154,7 @@ const createClaim = async (req, res) => {
 // @access  Public
 const updateClaim = async (req, res) => {
   try {
-    const { status, adminFeedback, compensation, reviewDate, completionDate, pickupSchedule } = req.body;
+    const { status, adminFeedback, compensation, reviewDate, completionDate } = req.body;
     const claim = await Claim.findById(req.params.id);
     if (!claim) return res.status(404).json({ message: 'Claim not found' });
     
@@ -168,7 +163,6 @@ const updateClaim = async (req, res) => {
     if (adminFeedback !== undefined) claim.adminFeedback = adminFeedback;
     if (reviewDate !== undefined) claim.reviewDate = reviewDate;
     if (completionDate !== undefined) claim.completionDate = completionDate;
-    if (pickupSchedule !== undefined) claim.pickupSchedule = pickupSchedule;
     
     // Handle compensation calculation when claim is approved
     if (status === 'approved') {
@@ -200,9 +194,6 @@ const updateClaim = async (req, res) => {
     // Log claim status update to hosted blockchain
     await logClaimToBlockchain(claim);
     
-    // Populate farmerId before emitting events and sending response
-    await claim.populate('farmerId', 'firstName lastName _id');
-    
     // Emit Socket.IO event for real-time updates
     const io = req.app.get('io');
     if (io) {
@@ -211,8 +202,7 @@ const updateClaim = async (req, res) => {
       
       // Emit to specific farmer room
       if (claim.farmerId) {
-        const farmerIdString = claim.farmerId._id || claim.farmerId;
-        io.to(`farmer-${farmerIdString}`).emit('claim-updated', claim);
+        io.to(`farmer-${claim.farmerId}`).emit('claim-updated', claim);
       }
       
       console.log('Socket event emitted: claim-updated');
@@ -232,9 +222,9 @@ const getClaims = async (req, res) => {
     const { farmerId } = req.query
     let claims
     if (farmerId) {
-      claims = await Claim.find({ farmerId }).populate('farmerId', 'firstName lastName _id')
+      claims = await Claim.find({ farmerId })
     } else {
-      claims = await Claim.find().populate('farmerId', 'firstName lastName _id')
+      claims = await Claim.find()
     }
     res.status(200).json(claims)
   } catch (error) {

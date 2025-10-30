@@ -85,18 +85,15 @@ const FarmerDashboard = () => {
     }, 800);
   };
   
-  // Get notifications for current farmer - use Zustand state selector for reactivity
-  const farmerNotifications = useNotificationStore((state) => {
-    const notifications = state.getFarmerNotifications(user?.id) || [];
-    console.log('🔔 Farmer Dashboard - Current notifications for user:', user?.id, notifications);
-    return notifications;
-  });
-  
-  const unreadFarmerCount = useNotificationStore((state) => {
-    const count = state.getFarmerUnreadCount(user?.id) || 0;
-    console.log('📊 Farmer Dashboard - Unread count for user:', user?.id, count);
-    return count;
-  });
+  // Get notifications for current farmer - use Zustand subscription for reactive updates
+  const farmerNotifications = useMemo(() => 
+    useNotificationStore.getState().getFarmerNotifications(user?.id) || [], 
+    [user?.id]
+  )
+  const unreadFarmerCount = useMemo(() => 
+    useNotificationStore.getState().getFarmerUnreadCount(user?.id) || 0, 
+    [user?.id]
+  )
 
   // State for claim details modal
   const [showClaimDetails, setShowClaimDetails] = useState(false)

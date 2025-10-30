@@ -1355,104 +1355,29 @@ const AdminDashboard = () => {
     }
   };
 
-  // Add a new state variable for feedback and schedule
+  // Add a new state variable for feedback
   const [feedbackText, setFeedbackText] = useState("")
-  const [pickupDate, setPickupDate] = useState("")
-  const [pickupTime, setPickupTime] = useState("")
-  const [showClaimsSummaryModal, setShowClaimsSummaryModal] = useState(false)
 
   // Handle claim status updates with confirmation
   const initiateStatusUpdate = (claimId, newStatus, farmerId) => {
     setConfirmationAction({ type: newStatus, claimId, farmerId })
     setFeedbackText("") // Reset feedback text
-    setPickupDate("") // Reset pickup date
-    setPickupTime("") // Reset pickup time
     setShowConfirmationModal(true)
-  }
-  
-  // Handle sending pickup alert to farmer
-  const sendPickupAlert = (claim) => {
-    console.log('🚨 sendPickupAlert called with claim:', claim);
-    
-    if (!claim || !claim.farmerId) {
-      console.error('❌ Alert failed - missing claim or farmerId:', { claim, farmerId: claim?.farmerId });
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'error',
-        title: 'Alert Failed',
-        message: 'Unable to send alert: Farmer information not found',
-        timestamp: new Date()
-      });
-      return;
-    }
-    
-    // Handle both populated (object) and non-populated (string) farmerId
-    const farmerIdToNotify = claim.farmerId?._id || claim.farmerId;
-    const compensationAmount = claim.compensation ? `₱${claim.compensation.toLocaleString()}` : 'your compensation';
-    
-    console.log('📨 Sending pickup alert to farmer ID:', farmerIdToNotify);
-    
-    let alertMessage = `🔔 CLAIM READY FOR PICKUP! Your approved claim for ${claim.crop} damage can now be claimed. Compensation: ${compensationAmount}.`;
-    
-    // Add pickup schedule if available
-    if (claim.pickupSchedule && claim.pickupSchedule.date && claim.pickupSchedule.time) {
-      alertMessage += ` 📅 Scheduled Pickup: ${claim.pickupSchedule.date} at ${claim.pickupSchedule.time}.`;
-      console.log('📅 Including pickup schedule:', claim.pickupSchedule);
-    }
-    
-    alertMessage += ' Please bring a valid ID and necessary documents.';
-    
-    const notification = {
-      id: `claim-pickup-alert-${claim._id || claim.id}-${generateUniqueId()}`,
-      type: 'info',
-      title: '🚨 Claim Ready for Pickup',
-      message: alertMessage,
-      timestamp: new Date()
-    };
-    
-    console.log('📬 Pickup alert notification:', notification);
-    
-    useNotificationStore.getState().addFarmerNotification(notification, farmerIdToNotify);
-    
-    console.log('✅ Pickup alert sent to farmer store for ID:', farmerIdToNotify);
-    
-    // Show admin confirmation
-    useNotificationStore.getState().addAdminNotification({
-      id: generateUniqueId(),
-      type: 'success',
-      title: 'Pickup Alert Sent',
-      message: `Farmer has been notified about claim pickup.`,
-      timestamp: new Date()
-    });
   }
 
   const confirmStatusUpdate = async () => {
     const { type: actionType, claimId: actionClaimId, farmerId } = confirmationAction;
     try {
-      // Prepare update data with schedule if approving
-      const updateData = {
-        status: actionType,
-        adminFeedback: feedbackText,
-      };
-      
-      // Add schedule for approved claims
-      if (actionType === 'approved' && pickupDate && pickupTime) {
-        updateData.pickupSchedule = {
-          date: pickupDate,
-          time: pickupTime,
-          scheduledAt: new Date()
-        };
-      }
-      
       await updateClaimMutation.mutateAsync({
         id: actionClaimId,
-        updateData
+        updateData: {
+          status: actionType,
+          adminFeedback: feedbackText,
+        }
       });
       
       setShowConfirmationModal(false);
       setFeedbackText("");
-      setPickupDate("");
-      setPickupTime("");
       
       // Find the claim to get farmer details
       const claim = claims.find(c => c._id === actionClaimId || c.id === actionClaimId);
@@ -1461,9 +1386,6 @@ const AdminDashboard = () => {
       let adminMessage = `Claim has been ${actionType} successfully.`;
       if (actionType === 'approved' && claim && claim.compensation) {
         adminMessage = `Claim approved! Compensation: ₱${claim.compensation.toLocaleString()}. Total Insurance Paid updated.`;
-        if (pickupDate && pickupTime) {
-          adminMessage += ` Pickup scheduled for ${pickupDate} at ${pickupTime}.`;
-        }
       }
       
       useNotificationStore.getState().addAdminNotification({
@@ -1476,56 +1398,25 @@ const AdminDashboard = () => {
 
       // Send notification to the farmer
       if (claim && (claim.farmerId || farmerId)) {
-        // Handle both populated (object) and non-populated (string) farmerId
-        const farmerIdToNotify = claim.farmerId?._id || claim.farmerId || farmerId;
-        
-        console.log('🔔 Sending claim notification to farmer:', {
-          claimId: actionClaimId,
-          actionType,
-          farmerIdToNotify,
-          claimFarmerId: claim.farmerId,
-          paramFarmerId: farmerId
-        });
-        
+        const farmerIdToNotify = claim.farmerId || farmerId;
         const notificationType = actionType === 'approved' ? 'success' : 'error';
-        const notificationTitle = actionType === 'approved' ? '✅ Claim Approved!' : '❌ Claim Rejected';
+        const notificationTitle = actionType === 'approved' ? 'Claim Approved!' : 'Claim Rejected';
         
         let notificationMessage;
         if (actionType === 'approved') {
           const compensationAmount = claim.compensation ? `₱${claim.compensation.toLocaleString()}` : 'calculated amount';
-          notificationMessage = `Your claim for ${claim.crop} damage has been approved! Compensation: ${compensationAmount}.`;
-          
-          // Add pickup schedule to notification
-          if (pickupDate && pickupTime) {
-            notificationMessage += ` 📅 Pickup Schedule: ${pickupDate} at ${pickupTime}. Please be present at the designated location.`;
-          }
-          
-          if (feedbackText) {
-            notificationMessage += ` Feedback: ${feedbackText}`;
-          }
+          notificationMessage = `Your claim for ${claim.crop} damage has been approved! Compensation: ${compensationAmount}. ${feedbackText ? `Feedback: ${feedbackText}` : ''}`;
         } else {
           notificationMessage = `Your claim for ${claim.crop} damage has been rejected. ${feedbackText ? `Reason: ${feedbackText}` : ''}`;
         }
 
-        const notification = {
+        useNotificationStore.getState().addFarmerNotification({
           id: `claim-${actionType}-${actionClaimId}-${generateUniqueId()}`,
           type: notificationType,
           title: notificationTitle,
           message: notificationMessage,
           timestamp: new Date()
-        };
-        
-        console.log('📬 Notification being sent:', notification);
-        
-        useNotificationStore.getState().addFarmerNotification(notification, farmerIdToNotify);
-        
-        console.log('✅ Notification sent to farmer store for ID:', farmerIdToNotify);
-      } else {
-        console.warn('⚠️ Cannot send notification - missing claim or farmerId:', {
-          hasClaim: !!claim,
-          claimFarmerId: claim?.farmerId,
-          paramFarmerId: farmerId
-        });
+        }, farmerIdToNotify);
       }
     } catch (error) {
       useNotificationStore.getState().addAdminNotification({
@@ -3705,38 +3596,25 @@ const AdminDashboard = () => {
           {activeTab === "claims" && (
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
-                <div className="flex gap-3 items-center">
-                  <h2 className="text-2xl font-bold text-gray-800">Cash Assistance Claims</h2>
-                  <button
-                    onClick={() => setShowClaimsSummaryModal(true)}
-                    className="bg-lime-500 text-black px-4 py-2 rounded-lg hover:bg-lime-400 transition-all duration-200 flex items-center justify-center font-bold border-2 border-black whitespace-nowrap text-sm"
-                    style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
-                  >
-                    <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    Generate Summary
-                  </button>
-                </div>
+                <h2 className="text-2xl font-bold text-gray-800">Cash Assistance Claims</h2>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setClaimsTabView("pending")}
-                    className={`px-4 py-2 rounded-lg font-bold border-2 border-black transition-all ${
+                    className={`px-4 py-2 rounded-lg ${
                       claimsTabView === "pending"
-                        ? "bg-black text-lime-500"
-                        : "bg-transparent text-black hover:bg-black hover:text-lime-500"
+                        ? "bg-lime-700 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
                     Pending Cash Assistance Claims
                   </button>
                   <button
                     onClick={() => setClaimsTabView("all")}
-                    className={`px-4 py-2 rounded-lg font-bold border-2 border-black transition-all ${
+                    className={`px-4 py-2 rounded-lg ${
                       claimsTabView === "all"
-                        ? "bg-lime-500 text-black"
-                        : "bg-lime-500 text-black hover:bg-lime-400"
+                        ? "bg-lime-700 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
-                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.4)' }}
                   >
                     All Claims
                   </button>
@@ -3758,11 +3636,8 @@ const AdminDashboard = () => {
                   openClaimDetails={openClaimDetails}
                   initiateStatusUpdate={initiateStatusUpdate}
                   confirmStatusUpdate={confirmStatusUpdate}
-                  sendPickupAlert={sendPickupAlert}
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}
-                  showClaimsSummaryModal={showClaimsSummaryModal}
-                  setShowClaimsSummaryModal={setShowClaimsSummaryModal}
                 />
               ) : (
                 <div className="text-center py-10 text-gray-500 italic text-lg">No claims found.</div>
@@ -5289,99 +5164,42 @@ const AdminDashboard = () => {
       {/* Confirmation Modal for Claim Status Update */}
       {showConfirmationModal && (
         <div className="fixed inset-0 z-50 bg-transparent bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full border-4 border-lime-500" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6)' }}>
-            {/* Corner Accents */}
-            <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-black pointer-events-none" style={{ filter: 'drop-shadow(0 0 8px rgba(0, 0, 0, 0.3))' }}></div>
-            <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-black pointer-events-none" style={{ filter: 'drop-shadow(0 0 8px rgba(0, 0, 0, 0.3))' }}></div>
-            <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-black pointer-events-none" style={{ filter: 'drop-shadow(0 0 8px rgba(0, 0, 0, 0.3))' }}></div>
-            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-black pointer-events-none" style={{ filter: 'drop-shadow(0 0 8px rgba(0, 0, 0, 0.3))' }}></div>
-            
-            <h3 className="text-xl font-bold mb-4 text-black uppercase tracking-wide">
-              {confirmationAction.type === "approved" ? "✅ Approve Claim" : "❌ Reject Claim"}
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">
+              {confirmationAction.type === "approved" ? "Approve Claim" : "Reject Claim"}
             </h3>
-            <p className="mb-4 text-gray-700 font-semibold">
+            <p className="mb-4 text-gray-600">
               Are you sure you want to {confirmationAction.type === "approved" ? "approve" : "reject"} this claim? This action cannot be undone.
             </p>
-            
-            {/* Schedule Fields for Approval */}
-            {confirmationAction.type === "approved" && (
-              <div className="mb-4 p-4 bg-lime-500 bg-opacity-10 border-2 border-lime-500 rounded-lg">
-                <h4 className="text-md font-bold text-black mb-3 flex items-center">
-                  📅 Pickup Schedule (Required)
-                </h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label htmlFor="pickupDate" className="block text-sm font-bold text-gray-700 mb-1">
-                      Pickup Date
-                    </label>
-                    <input
-                      type="date"
-                      id="pickupDate"
-                      value={pickupDate}
-                      onChange={(e) => setPickupDate(e.target.value)}
-                      min={new Date().toISOString().split('T')[0]}
-                      className="w-full px-3 py-2 border-2 border-black rounded-md focus:outline-none focus:ring-2 focus:ring-lime-500 font-semibold"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="pickupTime" className="block text-sm font-bold text-gray-700 mb-1">
-                      Pickup Time
-                    </label>
-                    <input
-                      type="time"
-                      id="pickupTime"
-                      value={pickupTime}
-                      onChange={(e) => setPickupTime(e.target.value)}
-                      className="w-full px-3 py-2 border-2 border-black rounded-md focus:outline-none focus:ring-2 focus:ring-lime-500 font-semibold"
-                      required
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-gray-600 mt-2 italic">
-                  ℹ️ The farmer will be notified with this pickup schedule
-                </p>
-              </div>
-            )}
-            
             <div className="mb-4">
-              <label htmlFor="feedback" className="block text-sm font-bold text-gray-700 mb-2">
+              <label htmlFor="feedback" className="block text-sm font-medium text-gray-700 mb-2">
                 Feedback (optional)
               </label>
               <textarea
                 id="feedback"
                 value={feedbackText}
                 onChange={(e) => setFeedbackText(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-black rounded-md focus:outline-none focus:ring-2 focus:ring-lime-500 font-semibold"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lime-500"
                 rows={3}
                 placeholder="Add feedback for the farmer..."
               />
             </div>
             <div className="flex justify-end space-x-3">
               <button
-                onClick={() => {
-                  setShowConfirmationModal(false);
-                  setPickupDate("");
-                  setPickupTime("");
-                  setFeedbackText("");
-                }}
-                className="px-4 py-2 bg-white border-2 border-black text-black rounded-lg hover:bg-gray-100 transition-colors font-bold"
+                onClick={() => setShowConfirmationModal(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmStatusUpdate}
-                disabled={confirmationAction.type === "approved" && (!pickupDate || !pickupTime)}
-                className={`px-4 py-2 rounded-lg text-black font-bold border-2 border-black ${
+                className={`px-4 py-2 rounded-lg text-white ${
                   confirmationAction.type === "approved"
-                    ? (!pickupDate || !pickupTime)
-                      ? "bg-gray-300 cursor-not-allowed"
-                      : "bg-lime-500 hover:bg-lime-400"
-                    : "bg-red-500 hover:bg-red-600 text-white"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
                 }`}
-                style={confirmationAction.type === "approved" && pickupDate && pickupTime ? { boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' } : {}}
               >
-                {confirmationAction.type === "approved" ? "Yes, Approve & Schedule" : "Yes, Reject"}
+                {confirmationAction.type === "approved" ? "Yes, Approve" : "Yes, Reject"}
               </button>
             </div>
           </div>
