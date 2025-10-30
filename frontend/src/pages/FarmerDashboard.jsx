@@ -20,6 +20,7 @@ import {
   MessageSquare,
   Shield,
   TrendingUp,
+  RefreshCw,
 } from "lucide-react"
 import { useAuthStore } from "../store/authStore"
 import { useNotificationStore } from "../store/notificationStore"
@@ -105,17 +106,16 @@ const FarmerDashboard = () => {
     }, 800);
   };
   
-  // Get notifications for current farmer - use Zustand state selector for reactivity
+  // Get notifications for current farmer - use proper Zustand selectors
   const farmerNotifications = useNotificationStore((state) => {
-    const notifications = state.getFarmerNotifications(user?.id) || [];
-    console.log('🔔 Farmer Dashboard - Current notifications for user:', user?.id, notifications);
-    return notifications;
+    if (!user?.id) return [];
+    return state.farmerNotifications[user.id] || [];
   });
   
   const unreadFarmerCount = useNotificationStore((state) => {
-    const count = state.getFarmerUnreadCount(user?.id) || 0;
-    console.log('📊 Farmer Dashboard - Unread count for user:', user?.id, count);
-    return count;
+    if (!user?.id) return 0;
+    const notifications = state.farmerNotifications[user.id] || [];
+    return notifications.filter(n => !n.read).length;
   });
 
   // State for claim details modal
@@ -346,11 +346,37 @@ const FarmerDashboard = () => {
     setShowClaimDetails(true)
   }
 
+  // State for notification refresh
+  const [isRefreshingNotifications, setIsRefreshingNotifications] = useState(false)
+  
   // Toggle notification panel and mark as read
   const toggleNotificationPanel = () => {
     setNotificationOpen(!notificationOpen)
     if (!notificationOpen && user?.id) {
       useNotificationStore.getState().markFarmerNotificationsAsRead(user.id)
+    }
+  }
+  
+  // Manual refresh notifications from backend
+  const refreshNotifications = async () => {
+    if (!user?.id) return;
+    
+    setIsRefreshingNotifications(true);
+    
+    try {
+      // Fetch latest claims data to check for updates
+      await refetchClaims();
+      
+      // You can add more data fetching here if needed
+      // For example: fetch latest applications, insurance updates, etc.
+      
+      console.log('✅ Notifications refreshed successfully');
+    } catch (error) {
+      console.error('❌ Error refreshing notifications:', error);
+    } finally {
+      setTimeout(() => {
+        setIsRefreshingNotifications(false);
+      }, 500); // Minimum 500ms to show the animation
     }
   }
 
@@ -592,17 +618,33 @@ const FarmerDashboard = () => {
                 <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl z-50 overflow-hidden notification-panel">
                   <div className="p-4 bg-lime-700 text-white flex justify-between items-center">
                     <h3 className="font-semibold">Notifications</h3>
-                    {farmerNotifications.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      {/* Refresh Button */}
                       <button
-                        onClick={() => {
-                          useNotificationStore.getState().clearFarmerNotifications(user?.id)
-                        }}
-                        className="text-white hover:text-gray-200 text-sm"
-                        title="Clear all notifications"
+                        onClick={refreshNotifications}
+                        disabled={isRefreshingNotifications}
+                        className="text-white hover:text-gray-200 transition-colors p-1 rounded"
+                        title="Refresh notifications"
                       >
-                        Clear All
+                        <RefreshCw 
+                          size={16} 
+                          className={isRefreshingNotifications ? 'animate-spin' : ''}
+                        />
                       </button>
-                    )}
+                      
+                      {/* Clear All Button */}
+                      {farmerNotifications.length > 0 && (
+                        <button
+                          onClick={() => {
+                            useNotificationStore.getState().clearFarmerNotifications(user?.id)
+                          }}
+                          className="text-white hover:text-gray-200 text-sm"
+                          title="Clear all notifications"
+                        >
+                          Clear All
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="max-h-96 overflow-y-auto hide-scrollbar">
