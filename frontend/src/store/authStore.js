@@ -47,10 +47,20 @@ export const useAuthStore = create(
           
           // For farmer, userData should always be provided from login response
           if (!user && userType === "farmer") {
+            console.error("Auth Store: Farmer authentication requires user data");
             throw new Error("Farmer authentication requires user data");
           }
           
-          console.log('Auth Store: Logging in user:', { userType, user });
+          console.log('Auth Store: Logging in user');
+          console.log('Auth Store: userType:', userType);
+          console.log('Auth Store: user.id:', user?.id);
+          console.log('Auth Store: Complete user object:', JSON.stringify(user, null, 2));
+          
+          // Verify user has required fields
+          if (userType === "farmer" && !user.id) {
+            console.error("Auth Store: Farmer user object missing 'id' field:", user);
+            throw new Error("Farmer user data must include 'id' field");
+          }
           
           // Set auth state
           set({

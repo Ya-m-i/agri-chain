@@ -66,6 +66,7 @@ export const useClaims = (farmerId = null) => {
   return useQuery({
     queryKey: farmerId ? QUERY_KEYS.FARMER_CLAIMS(farmerId) : [QUERY_KEYS.CLAIMS],
     queryFn: () => api.fetchClaims(farmerId),
+    enabled: farmerId ? !!farmerId : true, // Only run farmer-specific query if farmerId exists
   })
 }
 
@@ -172,6 +173,7 @@ export const useCropInsurance = (farmerId = null) => {
   return useQuery({
     queryKey: farmerId ? QUERY_KEYS.FARMER_CROP_INSURANCE(farmerId) : [QUERY_KEYS.CROP_INSURANCE],
     queryFn: () => api.fetchCropInsurance(farmerId),
+    enabled: farmerId ? !!farmerId : true, // Only run farmer-specific query if farmerId exists
   })
 }
 

@@ -45,15 +45,35 @@ const FarmerDashboard = () => {
   // Redirect if not authenticated or not a farmer
   useEffect(() => {
     if (!user) {
+      console.error('FarmerDashboard: No user found, redirecting to login')
+      navigate("/")
+      return
+    }
+    
+    if (!user.id) {
+      console.error('FarmerDashboard: User object missing id field:', user)
       navigate("/")
       return
     }
     
     if (userType !== "farmer") {
+      console.log('FarmerDashboard: User is not a farmer, redirecting to admin')
       navigate("/admin")
       return
     }
   }, [user, userType, navigate])
+  
+  // Early return with loading state if user is not ready
+  if (!user || !user.id) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading farmer dashboard...</p>
+        </div>
+      </div>
+    )
+  }
   
   const [activeTab, setActiveTab] = useState("home")
   const [notificationOpen, setNotificationOpen] = useState(false)

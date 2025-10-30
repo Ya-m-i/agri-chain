@@ -63,6 +63,7 @@ const Login = () => {
       try {
         console.log('Login: Attempting farmer login...');
         const farmer = await loginFarmer(form.username, form.password);
+        console.log('Login: Backend response:', farmer);
         
         localStorage.setItem("isFarmer", "true");
         localStorage.removeItem("isAdmin") // Clear admin auth
@@ -75,7 +76,11 @@ const Login = () => {
           phone: farmer.contactNum,
         };
         
-        console.log("Farmer login successful, userData:", userData);
+        console.log("Farmer login successful");
+        console.log("Farmer _id from backend:", farmer._id);
+        console.log("Mapped userData.id:", userData.id);
+        console.log("Complete userData object:", JSON.stringify(userData, null, 2));
+        
         login("farmer", userData);
         
         // Add delay for loading animation
