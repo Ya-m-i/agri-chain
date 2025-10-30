@@ -6,6 +6,15 @@ import './index.css'
 import App from './App.jsx'
 import { queryClient } from './utils/queryClient.js'
 
+// Import Leaflet early to ensure it's available globally
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import 'leaflet-draw'
+import 'leaflet-draw/dist/leaflet.draw.css'
+
+// Make Leaflet available globally to fix bundling issues
+window.L = L
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>

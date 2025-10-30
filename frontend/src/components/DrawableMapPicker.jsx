@@ -2,8 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
+// Import leaflet-draw and ensure L is available globally
 import 'leaflet-draw';
 import { MapPin, X, Ruler, Square, Pentagon } from 'lucide-react';
+
+// Ensure Leaflet is available globally for leaflet-draw
+if (typeof window !== 'undefined') {
+  window.L = L;
+}
 
 const DrawableMapPicker = ({ onLocationSelect, onAreaCalculated, onClose, initialArea }) => {
   const mapContainerRef = useRef(null);

@@ -7,7 +7,7 @@ export default defineConfig({
   base: '/',
   plugins: [react(), tailwindcss()],
   optimizeDeps: {
-    include: ["react", "react-dom", "react-router-dom"]
+    include: ["react", "react-dom", "react-router-dom", "leaflet", "leaflet-draw"]
   },
   server: {
     host: '0.0.0.0',
@@ -28,30 +28,46 @@ export default defineConfig({
         assetFileNames: 'assets/[name]-[hash].[ext]',
         
         // Manual chunks for better code splitting
-        manualChunks: {
+        manualChunks(id) {
           // React core libraries
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          
-          // PDF generation libraries
-          'pdf-libs': ['jspdf', 'jspdf-autotable'],
-          
-          // Map libraries
-          'map-libs': ['leaflet', 'leaflet-draw'],
-          
-          // Chart libraries
-          'chart-libs': ['chart.js', 'react-chartjs-2', 'recharts'],
-          
-          // React Query and state management
-          'data-libs': ['@tanstack/react-query', 'zustand'],
-          
-          // Socket.IO for real-time
-          'socket-libs': ['socket.io-client'],
-          
-          // UI libraries
-          'ui-libs': ['lucide-react', 'react-hot-toast', '@headlessui/react'],
-          
-          // Utilities
-          'utils': ['axios']
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+              return 'react-vendor';
+            }
+            
+            // PDF generation libraries
+            if (id.includes('jspdf')) {
+              return 'pdf-libs';
+            }
+            
+            // Map libraries - Keep leaflet and leaflet-draw together
+            if (id.includes('leaflet')) {
+              return 'map-libs';
+            }
+            
+            // Chart libraries
+            if (id.includes('chart.js') || id.includes('react-chartjs-2') || id.includes('recharts')) {
+              return 'chart-libs';
+            }
+            
+            // React Query and state management
+            if (id.includes('@tanstack/react-query') || id.includes('zustand')) {
+              return 'data-libs';
+            }
+            
+            // Socket.IO for real-time
+            if (id.includes('socket.io-client')) {
+              return 'socket-libs';
+            }
+            
+            // UI libraries
+            if (id.includes('lucide-react') || id.includes('react-hot-toast') || id.includes('@headlessui')) {
+              return 'ui-libs';
+            }
+            
+            // All other node_modules
+            return 'vendor';
+          }
         }
       }
     },
