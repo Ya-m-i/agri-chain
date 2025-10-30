@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const MapPicker = ({ onLocationSelect, initialCenter = [7.5815, 125.8235], initialZoom = 13 }) => {
+const MapPicker = ({ onLocationSelect, initialCenter = [7.5750, 125.8280], initialZoom = 14 }) => {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
@@ -44,9 +44,15 @@ const MapPicker = ({ onLocationSelect, initialCenter = [7.5815, 125.8235], initi
     
     // Force set view to Maniki, Kapalong after initialization
     setTimeout(() => {
-      map.setView(manikiKapalongCenter, manikiZoom);
+      map.setView(manikiKapalongCenter, manikiZoom, { animate: false });
       console.log('📍 MapPicker centered on Maniki, Kapalong:', manikiKapalongCenter);
     }, 100);
+
+    // Additional force center to ensure Maniki focus
+    setTimeout(() => {
+      map.setView(manikiKapalongCenter, manikiZoom, { animate: false });
+      console.log('🔒 MapPicker locked to Maniki, Kapalong center');
+    }, 250);
 
     // Add click handler
     map.on('click', (e) => {
@@ -81,12 +87,18 @@ const MapPicker = ({ onLocationSelect, initialCenter = [7.5815, 125.8235], initi
       }
     });
 
-    // Invalidate size after short delay and ensure centered
+    // Invalidate size after short delay and ensure centered on Maniki
     setTimeout(() => {
       map.invalidateSize();
-      map.setView(manikiKapalongCenter, manikiZoom); // Ensure centered after size calculation
+      map.setView(manikiKapalongCenter, manikiZoom, { animate: false, reset: true }); // Force immediate center
       console.log('✅ MapPicker: Map initialized and centered on Maniki, Kapalong successfully');
-    }, 300);
+    }, 400);
+
+    // Additional forced center after map is fully loaded
+    setTimeout(() => {
+      map.setView(manikiKapalongCenter, manikiZoom, { animate: false, reset: true });
+      console.log('🔄 MapPicker: Final center lock on Maniki, Kapalong');
+    }, 600);
 
     // Cleanup on unmount
     return () => {

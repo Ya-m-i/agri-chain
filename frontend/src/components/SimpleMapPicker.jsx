@@ -48,9 +48,15 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
       
       // Force set view to Maniki, Kapalong after initialization
       setTimeout(() => {
-        map.setView(manikiKapalongCenter, manikiZoom);
+        map.setView(manikiKapalongCenter, manikiZoom, { animate: false });
         console.log('📍 Map centered on Maniki, Kapalong:', manikiKapalongCenter);
       }, 100);
+
+      // Additional force center to ensure Maniki focus
+      setTimeout(() => {
+        map.setView(manikiKapalongCenter, manikiZoom, { animate: false });
+        console.log('🔒 Map locked to Maniki, Kapalong center');
+      }, 250);
 
       // Add OpenStreetMap tiles
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -120,13 +126,19 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
         }
       });
 
-      // Map loaded
+      // Map loaded - final center lock
       setTimeout(() => {
         map.invalidateSize();
-        map.setView(manikiKapalongCenter, manikiZoom); // Ensure centered after size calculation
+        map.setView(manikiKapalongCenter, manikiZoom, { animate: false, reset: true }); // Force reset to Maniki center
         setLoading(false);
-        console.log('✅ Farm location picker ready and centered on Maniki, Kapalong!');
-      }, 300);
+        console.log('✅ Farm location picker ready and locked on Maniki, Kapalong!');
+      }, 400);
+
+      // Ultra final center lock to prevent any drift
+      setTimeout(() => {
+        map.setView(manikiKapalongCenter, manikiZoom, { animate: false, reset: true });
+        console.log('🔐 Final lock: Maniki, Kapalong center confirmed');
+      }, 600);
 
     } catch (error) {
       console.error('❌ Error initializing map:', error);
