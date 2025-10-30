@@ -34,7 +34,6 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tool
 import { Doughnut } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { getCropTypeDistributionFromInsurance } from '../utils/cropTypeDistribution'
-import SimpleMapPicker from './SimpleMapPicker'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
@@ -84,7 +83,6 @@ const FarmerRegistration = ({
   const [farmerToDelete, setFarmerToDelete] = useState(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
-  const [showSimpleMapPicker, setShowSimpleMapPicker] = useState(false);
 
   // Add state for crop insurance-based crop type distribution
   const [insuranceCropTypeDistribution, setInsuranceCropTypeDistribution] = useState({})
@@ -293,7 +291,7 @@ const FarmerRegistration = ({
         lotNumber: "",
         lotArea: "",
         agency: "",
-        isCertified: true, // Reset filter back to show certified farmers
+        isCertified: false,
         periodFrom: "",
         periodTo: "",
         username: "",
@@ -441,35 +439,10 @@ const FarmerRegistration = ({
           <button
             className="bg-lime-500 text-black px-4 py-2 rounded-lg hover:bg-lime-400 transition-all duration-200 flex items-center justify-center shadow-lg font-bold"
             style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
-            onClick={() => {
-              // Reset form for new farmer registration
-              setFormData({
-                firstName: "",
-                middleName: "",
-                lastName: "",
-                birthday: "",
-                gender: "",
-                contactNum: "",
-                address: "",
-                cropType: "",
-                cropArea: "",
-                insuranceType: "",
-                lotNumber: "",
-                lotArea: "",
-                agency: "",
-                isCertified: false, // New farmers start as uncertified
-                periodFrom: "",
-                periodTo: "",
-                username: "",
-                password: "",
-                rsbsaRegistered: false,
-              });
-              setSelectedLocation(null);
-              setShowRegisterForm(true);
-            }}
+            onClick={() => setShowRegisterForm(true)}
           >
             <UserPlus className="mr-2 h-5 w-5" />
-            Register Farmer
+            Register New Farmer
           </button>
           <button
             className="bg-lime-500 text-black px-4 py-2 rounded-lg hover:bg-lime-400 transition-all duration-200 flex items-center justify-center shadow-lg font-bold"
@@ -886,11 +859,7 @@ const FarmerRegistration = ({
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  // Reset filter back to certified farmers when closing
-                  setFormData(prev => ({ ...prev, isCertified: true }));
-                  setShowRegisterForm(false);
-                }}
+                onClick={() => setShowRegisterForm(false)}
                 className="text-lime-500 hover:text-lime-600 focus:outline-none transition-all hover:rotate-90 duration-300"
                 style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.6))' }}
               >
@@ -1025,7 +994,7 @@ const FarmerRegistration = ({
                     <div>
                       <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Address</label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-auto cursor-pointer" onClick={() => { setShowSimpleMapPicker(true); }}>
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-auto cursor-pointer" onClick={() => { setShowMapModal(true); setMapMode('add'); }}>
                           <MapPin size={16} className="text-lime-500" />
                         </div>
                         <input
@@ -1236,11 +1205,7 @@ const FarmerRegistration = ({
                 <div className="md:col-span-2 flex gap-3 pt-6 border-t-2 border-lime-500 mt-6">
                   <button
                     type="button"
-                    onClick={() => {
-                      // Reset filter back to certified farmers when canceling
-                      setFormData(prev => ({ ...prev, isCertified: true }));
-                      setShowRegisterForm(false);
-                    }}
+                    onClick={() => setShowRegisterForm(false)}
                     className="flex-1 bg-white text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-black hover:text-white transition-all font-bold uppercase tracking-wide text-sm"
                   >
                     Cancel
@@ -1814,26 +1779,6 @@ const FarmerRegistration = ({
             </div>
           </div>
         </div>
-      )}
-
-      {/* Simple Farm Location Picker */}
-      {showSimpleMapPicker && (
-        <SimpleMapPicker
-          onLocationSelect={(locationData) => {
-            console.log('🌾 Farm location selected:', locationData);
-            const { lat, lng, address } = locationData;
-            setFormData(prev => ({
-              ...prev,
-              address: address || `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`,
-              location: {
-                type: 'Point',
-                coordinates: [lng, lat]
-              }
-            }));
-            setSelectedLocation({ lat, lng });
-          }}
-          onClose={() => setShowSimpleMapPicker(false)}
-        />
       )}
     </div>
   )

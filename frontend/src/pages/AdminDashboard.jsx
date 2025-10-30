@@ -22,7 +22,6 @@ import {
   TrendingUp,
   Calendar,
   Map,
-  MapPin,
   Download,
   Plus,
   Search,
@@ -296,7 +295,7 @@ const AdminDashboard = () => {
   // eslint-disable-next-line no-unused-vars
   const { data: claims = [], isLoading: claimsLoading, refetch: refetchClaims } = useClaims()
   // eslint-disable-next-line no-unused-vars
-  const { data: farmers = [], isLoading: farmersLoading, refetch: refetchFarmers } = useFarmers()
+  const { data: farmers = [], isLoading: farmersLoading } = useFarmers()
   // eslint-disable-next-line no-unused-vars
   const { data: activeFarmersData = { activeCount: 0, farmers: [] }, isLoading: activeFarmersLoading } = useActiveFarmers()
   // eslint-disable-next-line no-unused-vars
@@ -330,69 +329,6 @@ const AdminDashboard = () => {
       refetchClaims();
     }
   });
-
-  // Real-time map updates - listen for new farmer registrations
-  useEffect(() => {
-    if (socket && isConnected) {
-      console.log('📡 Setting up real-time map updates listener')
-      
-      // Listen for new farmer registrations
-      const handleFarmerRegistered = (farmerData) => {
-        console.log('🆕 New farmer registered with location:', farmerData)
-        
-        // Check if farmer has location data
-        if (farmerData && farmerData.location && farmerData.location.lat && farmerData.location.lng) {
-          // Refresh farmers list to include new farmer
-          refetchFarmers()
-          
-          // Add notification for admin
-          useNotificationStore.getState().addAdminNotification({
-            id: `farmer-reg-${Date.now()}`,
-            type: 'success',
-            title: '🗺️ New Farm Location Added',
-            message: `${farmerData.farmerName || 'New farmer'} registered with farm location. Map updated!`,
-            timestamp: new Date()
-          })
-          
-          // Update map to show new location
-          if (overviewLeafletMapRef.current && overviewMarkersLayerRef.current) {
-            // Re-add farmers to map with new farmer included
-            setTimeout(() => {
-              addFarmersToOverviewMap()
-              // Optionally center map on new farmer location
-              if (overviewLeafletMapRef.current) {
-                overviewLeafletMapRef.current.setView([farmerData.location.lat, farmerData.location.lng], 14)
-              }
-            }, 500)
-          }
-        }
-      }
-      
-      // Listen for farmer location updates
-      const handleFarmerLocationUpdated = (farmerData) => {
-        console.log('📍 Farmer location updated:', farmerData)
-        
-        // Refresh farmers list
-        refetchFarmers()
-        
-        // Update map
-        if (overviewLeafletMapRef.current && overviewMarkersLayerRef.current) {
-          setTimeout(() => {
-            addFarmersToOverviewMap()
-          }, 500)
-        }
-      }
-      
-      socket.on('farmer-registered', handleFarmerRegistered)
-      socket.on('farmer-location-updated', handleFarmerLocationUpdated)
-      
-      return () => {
-        socket.off('farmer-registered', handleFarmerRegistered)
-        socket.off('farmer-location-updated', handleFarmerLocationUpdated)
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, isConnected, refetchFarmers]);
   
   // React Query mutations
   const updateClaimMutation = useUpdateClaim()
@@ -495,10 +431,9 @@ const AdminDashboard = () => {
 
   const [showAnalyticsModal, setShowAnalyticsModal] = useState(false)
   const [showMapModal, setShowMapModal] = useState(false)
-  // Modal map refs (for farmer registration location picker)
   const mapRef = useRef(null)
-  const modalLeafletMapRef = useRef(null)
-  const modalMarkersLayerRef = useRef(null)
+  const leafletMapRef = useRef(null)
+  const markersLayerRef = useRef(null)
   // Embedded overview map (dashboard)
   // NOTE: declared once here for the dashboard view
   const overviewMapRef = useRef(null)
@@ -629,7 +564,7 @@ const AdminDashboard = () => {
     lotNumber: "",
     lotArea: "",
     agency: "",
-    isCertified: true, // Default filter to show certified farmers
+    isCertified: false,
     periodFrom: "",
     periodTo: "",
     username: "",
@@ -710,10 +645,10 @@ const AdminDashboard = () => {
   // Function to add farmers to map
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const addFarmersToMap = () => {
-    if (!modalMarkersLayerRef.current || !modalLeafletMapRef.current) return
+    if (!markersLayerRef.current || !leafletMapRef.current) return
 
     // Clear existing markers
-    modalMarkersLayerRef.current.clearLayers()
+    markersLayerRef.current.clearLayers()
 
     // Add markers for each farmer with location data
     farmers.forEach((farmer) => {
@@ -739,26 +674,20 @@ const AdminDashboard = () => {
         const lotArea = farmer.lotArea || farmer.cropArea || 'Not specified';
         const isCertified = farmer.isCertified ? "✓ Certified" : "";
 
-        const marker = L.marker([farmer.location.lat, farmer.location.lng], {
-          icon: L.divIcon({
-            className: 'custom-marker-lime',
-            html: '<div style="background-color: #84cc16; width: 24px; height: 24px; border-radius: 50%; border: 3px solid #000; box-shadow: 0 0 15px rgba(132, 204, 22, 0.9);"></div>',
-            iconSize: [24, 24],
-            iconAnchor: [12, 12]
-          })
-        }).bindPopup(`
+        const marker = L.marker([farmer.location.lat, farmer.location.lng]).bindPopup(`
           <strong>${farmerName}</strong><br>
           Crop: ${cropType}<br>
           Area: ${lotArea}<br>
           ${isCertified}
         `)
 
-        marker.addTo(modalMarkersLayerRef.current)
+        marker.addTo(markersLayerRef.current)
       }
     })
   }
 
   // Function to reverse geocode coordinates to address
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const reverseGeocode = (lat, lng) => {
     fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
       .then((response) => response.json())
@@ -1905,112 +1834,75 @@ const AdminDashboard = () => {
     console.log('AdminDashboard: Total pages:', totalPages);
   }, [currentItems, currentPage, totalPages]);
 
-  // Setup window callback for MapPicker to update farmer registration form
+  // Load Leaflet when map modal is shown
   useEffect(() => {
-    window.updateFarmerAddress = (address, lat, lng) => {
-      console.log('📍 Updating farmer address:', { address, lat, lng });
-      setFormData(prev => ({
-        ...prev,
-        address: address,
-        location: {
-          type: 'Point',
-          coordinates: [lng, lat]
-        }
-      }));
-    };
+    if (showMapModal && mapRef.current) {
+      // If map doesn't exist yet, create it
+      if (!leafletMapRef.current) {
+        // Initialize the map with dark theme
+        leafletMapRef.current = L.map(mapRef.current, {
+          zoomControl: false
+        }).setView(mapCenter, 12)
 
-    return () => {
-      delete window.updateFarmerAddress;
-    };
-  }, [setFormData]);
-
-  // Map modal initialization for "view" mode (showing all farmers)
-  useEffect(() => {
-    // Only initialize if in view mode
-    if (!showMapModal || mapMode !== "view" || !mapRef.current) {
-      // Cleanup when modal closes
-      if (modalLeafletMapRef.current) {
-        modalLeafletMapRef.current.remove();
-        modalLeafletMapRef.current = null;
-        modalMarkersLayerRef.current = null;
-      }
-      return;
-    }
-
-    // Always destroy existing map first
-    if (modalLeafletMapRef.current) {
-      modalLeafletMapRef.current.remove();
-      modalLeafletMapRef.current = null;
-      modalMarkersLayerRef.current = null;
-    }
-
-    // Wait for modal to be fully rendered
-    const timer = setTimeout(() => {
-      if (!mapRef.current) return;
-
-      const container = mapRef.current;
-      if (container.offsetWidth === 0 || container.offsetHeight === 0) {
-        console.warn('Map container not ready, retrying...');
-        setTimeout(() => {
-          if (mapRef.current && mapRef.current.offsetWidth > 0) {
-            initMap();
-          }
-        }, 500);
-        return;
-      }
-
-      initMap();
-    }, 300);
-
-    const initMap = () => {
-      if (!mapRef.current || modalLeafletMapRef.current) return;
-
-      try {
-        console.log('🗺️ Initializing view mode map...');
+        // Add CartoDB Dark Matter tile layer for blockchain vibe
+        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          subdomains: 'abcd',
+          maxZoom: 20
+        }).addTo(leafletMapRef.current)
         
-        // Kapalong coordinates
-        const kapalongCoords = [7.5815, 125.8235];
-        const kapalongZoom = 13;
+        // Add custom zoom control
+        L.control.zoom({
+          position: 'topright'
+        }).addTo(leafletMapRef.current)
 
-        // Create map
-        modalLeafletMapRef.current = L.map(mapRef.current).setView(kapalongCoords, kapalongZoom);
+        // Create a layer for markers
+        markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current)
 
-        // Add tile layer
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: '© OpenStreetMap contributors',
-          maxZoom: 19
-        }).addTo(modalLeafletMapRef.current);
+        // Add click handler for adding new locations
+        leafletMapRef.current.on("click", (e) => {
+          if (mapMode === "add") {
+            setSelectedLocation({
+              lat: e.latlng.lat,
+              lng: e.latlng.lng,
+            })
 
-        // Add zoom control
-        L.control.zoom().addTo(modalLeafletMapRef.current);
+            // Clear existing markers in add mode
+            if (markersLayerRef.current) {
+              markersLayerRef.current.clearLayers()
+            }
 
-        // Create markers layer
-        modalMarkersLayerRef.current = L.layerGroup().addTo(modalLeafletMapRef.current);
+            // Add a new marker at the clicked location
+            L.marker([e.latlng.lat, e.latlng.lng]).addTo(markersLayerRef.current)
 
-        // Invalidate size after a short delay
-        setTimeout(() => {
-          if (modalLeafletMapRef.current) {
-            modalLeafletMapRef.current.invalidateSize();
+            // Reverse geocode to get address and update form
+            reverseGeocode(e.latlng.lat, e.latlng.lng)
           }
-        }, 200);
+        })
+      } else {
+        // If map exists, just update the view
+        leafletMapRef.current.setView(mapCenter, mapZoom)
 
-        // Add existing farmers
+        // Force a resize to ensure the map renders correctly in the modal
         setTimeout(() => {
-          if (modalMarkersLayerRef.current) {
-            addFarmersToMap();
+          if (leafletMapRef.current) {
+            leafletMapRef.current.invalidateSize()
           }
-        }, 300);
-
-        console.log('✅ View mode map initialized successfully');
-      } catch (error) {
-        console.error('❌ Map initialization error:', error);
+        }, 100)
       }
-    };
 
+      // Add existing farm locations to the map
+      addFarmersToMap()
+    }
+
+    // Cleanup function
     return () => {
-      clearTimeout(timer);
-    };
-  }, [showMapModal, mapMode])
+      if (leafletMapRef.current && !showMapModal) {
+        leafletMapRef.current.remove()
+        leafletMapRef.current = null
+      }
+    }
+  }, [showMapModal, mapCenter, mapZoom, mapMode, farmers, reverseGeocode, addFarmersToMap])
 
   // Load crop insurance records and group by farmer for dashboard overview
   // Note: This useEffect removed as we now use React Query data directly
@@ -2031,15 +1923,7 @@ const AdminDashboard = () => {
 
     if (!overviewLeafletMapRef.current) {
       overviewLeafletMapRef.current = L.map(overviewMapRef.current, {
-        zoomControl: false, // Remove default zoom control for custom styling
-        minZoom: 11,  // Prevent zooming out too far
-        maxZoom: 18,  // Allow zooming in for precision
-        // Keep map centered on Kapalong area
-        maxBounds: [
-          [7.3, 125.5],  // Southwest corner
-          [7.9, 126.1]   // Northeast corner
-        ],
-        maxBoundsViscosity: 0.5, // Smooth bounce back when panning outside
+        zoomControl: false // Remove default zoom control for custom styling
       }).setView(mapCenter, 12)
       
       // Use CartoDB Dark Matter for blockchain vibe
@@ -2222,106 +2106,42 @@ const AdminDashboard = () => {
     overviewLeafletMapRef.current.fitBounds(bounds, { padding: [20, 20] })
   }, [farmers])
 
-  // Function to search for a location on the map - Enhanced with Kapalong focus
-  const searchLocation = async () => {
-    if (!mapSearchQuery.trim()) {
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'warning',
-        title: 'Search Empty',
-        message: 'Please enter a location to search',
-        timestamp: new Date()
-      });
-      return;
-    }
+  // Function to search for a location on the map
+  const searchLocation = () => {
+    if (!mapSearchQuery.trim()) return
 
-    console.log('🔍 Searching for location:', mapSearchQuery);
+    // Use Nominatim API for geocoding
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearchQuery)}`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (data && data.length > 0) {
+          const { lat, lon } = data[0]
 
-    try {
-      // Add "Kapalong" to search query if not already present to focus on local area
-      const searchQuery = mapSearchQuery.toLowerCase().includes('kapalong') 
-        ? mapSearchQuery 
-        : `${mapSearchQuery}, Kapalong, Davao del Norte, Philippines`;
-      
-      // Use Nominatim API for geocoding with better parameters
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?` +
-        `format=json&` +
-        `q=${encodeURIComponent(searchQuery)}&` +
-        `limit=5&` +
-        `countrycodes=ph&` +
-        `addressdetails=1`,
-        {
-          headers: {
-            'User-Agent': 'AGRI-CHAIN-App'
-          }
-        }
-      );
+          if (leafletMapRef.current) {
+            leafletMapRef.current.setView([lat, lon], 13)
 
-      if (!response.ok) {
-        throw new Error('Search service unavailable');
-      }
+            if (mapMode === "add") {
+              setSelectedLocation({ lat, lng: lon })
 
-      const data = await response.json();
-      console.log('📍 Search results:', data);
+              // Clear existing markers
+              markersLayerRef.current.clearLayers()
 
-      if (data && data.length > 0) {
-        const { lat, lon } = data[0];
+              // Add a new marker at the searched location
+              L.marker([lat, lon]).addTo(markersLayerRef.current)
 
-        if (modalLeafletMapRef.current) {
-          modalLeafletMapRef.current.setView([parseFloat(lat), parseFloat(lon)], 15);
-
-          if (mapMode === "add") {
-            setSelectedLocation({ lat: parseFloat(lat), lng: parseFloat(lon) });
-
-            // Clear existing markers
-            if (modalMarkersLayerRef.current) {
-              modalMarkersLayerRef.current.clearLayers();
+              // Reverse geocode to get address and update form
+              reverseGeocode(lat, lon)
             }
-
-            // Add a new marker at the searched location with lime style
-            L.marker([parseFloat(lat), parseFloat(lon)], {
-              icon: L.divIcon({
-                className: 'custom-marker-lime',
-                html: '<div style="background-color: #84cc16; width: 24px; height: 24px; border-radius: 50%; border: 3px solid #000; box-shadow: 0 0 15px rgba(132, 204, 22, 0.9);"></div>',
-                iconSize: [24, 24],
-                iconAnchor: [12, 12]
-              })
-            }).addTo(modalMarkersLayerRef.current);
-
-            // Reverse geocode to get address and update form
-            reverseGeocode(parseFloat(lat), parseFloat(lon));
           }
-
-          useNotificationStore.getState().addAdminNotification({
-            id: generateUniqueId(),
-            type: 'success',
-            title: '✅ Location Found',
-            message: `Found: ${data[0].display_name}`,
-            timestamp: new Date()
-          });
+        } else {
+          alert("Location not found. Please try a different search term.")
         }
-      } else {
-        useNotificationStore.getState().addAdminNotification({
-          id: generateUniqueId(),
-          type: 'error',
-          title: '❌ Location Not Found',
-          message: 'No results found. Try a different search term or be more specific.',
-          timestamp: new Date()
-        });
-      }
-    } catch (error) {
-      console.error('❌ Search error:', error);
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'error',
-        title: '❌ Search Failed',
-        message: `Error: ${error.message}. Please try again.`,
-        timestamp: new Date()
-      });
-    }
-  };
-
+      })
+      .catch((error) => {
+        console.error("Error searching for location:", error)
+        alert("Error searching for location. Please try again.")
+      })
+  }
 
   // 1. Add state for feedback modal
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -3546,7 +3366,7 @@ const AdminDashboard = () => {
                 <hr className="border-gray-200" />
               </div>
 
-              {/* Geo-Tagging Map Overview Section */}
+              {/* Overview: Farmers Map (embedded) - Minimalist Blockchain Style */}
               <div className="bg-white rounded-xl p-6 mt-6 border border-gray-300 relative overflow-hidden shadow-sm" style={{ boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
                 {/* Corner Accents */}
                 <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
@@ -3558,7 +3378,6 @@ const AdminDashboard = () => {
                 <div className="absolute top-8 left-8 w-24 h-0.5 bg-gradient-to-r from-lime-500 to-transparent opacity-60 z-10"></div>
                 <div className="absolute top-8 right-8 w-24 h-0.5 bg-gradient-to-l from-lime-500 to-transparent opacity-60 z-10"></div>
                 
-                {/* Main Map Header */}
                 <div className="sticky top-0 flex items-center justify-between mb-6 relative z-10 pb-4">
                   <div className="flex items-center gap-3">
                     <div className="p-3 bg-black rounded-lg animate-pulse" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.8)' }}>
@@ -3699,33 +3518,12 @@ const AdminDashboard = () => {
                   </div>
                 </div>
                 
-                {/* Enhanced Map Container with Better Height */}
-                <div className="w-full h-[550px] rounded-xl border-4 border-lime-500 overflow-hidden relative z-10 shadow-2xl" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6), inset 0 0 20px rgba(132, 204, 22, 0.1)' }}>
+                <div className="w-full h-[420px] rounded-lg border-2 border-lime-500 overflow-hidden relative z-10" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.4)' }}>
                   <div ref={overviewMapRef} className="w-full h-full" />
-                  
-                  {/* Map Loading Overlay */}
-                  {!overviewLeafletMapRef.current && (
-                    <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-50">
-                      <div className="text-center">
-                        <div className="animate-spin rounded-full h-16 w-16 border-4 border-lime-500 border-t-transparent mx-auto mb-4"></div>
-                        <p className="text-lime-400 font-bold">Loading Map...</p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Map Info Badge */}
-                  <div className="absolute top-4 left-4 z-[1000] bg-black/90 backdrop-blur-sm px-4 py-2 rounded-lg border-2 border-lime-500 shadow-lg">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-lime-500 rounded-full animate-pulse"></div>
-                      <span className="text-lime-400 text-sm font-bold">
-                        {farmers.filter(f => f.location && typeof f.location.lat === 'number').length} Farms Mapped
-                      </span>
-                    </div>
-                  </div>
                 </div>
                 
                 {/* Weather Legend - Minimalist Blockchain Style */}
-                {showWeatherOverlay && false && (
+                {showWeatherOverlay && (
                   <div className="mt-6 p-5 bg-lime-500 rounded-lg border-2 border-black relative z-10" style={{ boxShadow: '0 0 15px rgba(0, 0, 0, 0.3)' }}>
                     <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
                       <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
@@ -3985,8 +3783,8 @@ const AdminDashboard = () => {
               mapZoom={mapZoom}
               setMapZoom={setMapZoom}
               mapRef={mapRef}
-              leafletMapRef={modalLeafletMapRef}
-              markersLayerRef={modalMarkersLayerRef}
+              leafletMapRef={leafletMapRef}
+              markersLayerRef={markersLayerRef}
               mapSearchQuery={mapSearchQuery}
               setMapSearchQuery={setMapSearchQuery}
               searchLocation={searchLocation}
@@ -5198,48 +4996,31 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Map Modal - White Background Blockchain Farm Vibe */}
+      {/* Map Modal */}
       {showMapModal && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-70 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col border-4 border-lime-500 relative" style={{ boxShadow: '0 0 40px rgba(132, 204, 22, 0.7)' }}>
-            {/* Corner Accents - Lime */}
-            <div className="absolute top-0 left-0 w-20 h-20 border-t-4 border-l-4 border-lime-500 pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(132, 204, 22, 0.6))' }}></div>
-            <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-lime-500 pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(132, 204, 22, 0.6))' }}></div>
-            <div className="absolute bottom-0 left-0 w-20 h-20 border-b-4 border-l-4 border-lime-500 pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(132, 204, 22, 0.6))' }}></div>
-            <div className="absolute bottom-0 right-0 w-20 h-20 border-b-4 border-r-4 border-lime-500 pointer-events-none z-10" style={{ filter: 'drop-shadow(0 0 10px rgba(132, 204, 22, 0.6))' }}></div>
-            
-            {/* Header */}
-            <div className="sticky top-0 bg-lime-500 text-black p-4 rounded-t-lg flex justify-between items-center border-b-4 border-lime-500 z-20" style={{ boxShadow: '0 4px 20px rgba(132, 204, 22, 0.4)' }}>
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-black rounded-lg border-2 border-lime-500" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.6)' }}>
-                  <MapPin className="h-6 w-6 text-lime-500" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-black uppercase tracking-wide">
-                    {mapMode === "view" ? "🗺️ Farm Locations Map" : "📍 Select Farm Location"}
-                  </h2>
-                  <p className="text-xs text-black opacity-75 font-semibold uppercase tracking-wider">Kapalong, Davao del Norte</p>
-                </div>
-              </div>
+        <div className="fixed inset-0 z-50 bg-transparent bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="sticky top-0 text-white p-4 rounded-t-xl flex justify-between items-center" style={{ backgroundColor: 'rgb(43, 158, 102)' }}>
+              <h2 className="text-xl font-bold">
+                {mapMode === "view" ? "Farm Locations Map" : "Select Farm Location"}
+              </h2>
               <button
                 onClick={() => setShowMapModal(false)}
-                className="text-black hover:text-red-600 focus:outline-none transition-all hover:rotate-90 duration-300 p-2 hover:bg-white hover:bg-opacity-20 rounded-lg"
+                className="text-white hover:text-gray-200 focus:outline-none"
               >
-                <X size={28} strokeWidth={3} />
+                <X size={24} />
               </button>
             </div>
 
-            {/* Search Bar */}
-            <div className="p-4 bg-white border-b-2 border-lime-500 flex flex-wrap gap-3 items-center">
+            <div className="p-4 border-b border-gray-200 flex flex-wrap gap-4 items-center">
               <div className="flex-1 min-w-[200px]">
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="🔍 Search location in Kapalong..."
+                    placeholder="Search for a location..."
                     value={mapSearchQuery}
                     onChange={(e) => setMapSearchQuery(e.target.value)}
-                    className="w-full p-3 pr-12 border-2 border-lime-500 rounded-lg bg-white text-black placeholder-gray-500 font-semibold focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-400 transition-all"
-                    style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                    className="w-full p-2 pr-10 border rounded-md"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         searchLocation()
@@ -5248,8 +5029,7 @@ const AdminDashboard = () => {
                   />
                   <button
                     onClick={searchLocation}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-black hover:text-lime-500 bg-lime-500 hover:bg-lime-400 p-1.5 rounded-lg border-2 border-black transition-all"
-                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
                   >
                     <Search className="h-5 w-5" />
                   </button>
@@ -5259,8 +5039,7 @@ const AdminDashboard = () => {
               {mapMode === "view" && (
                 <button
                   onClick={() => setMapMode("add")}
-                  className="bg-lime-500 text-black px-4 py-3 rounded-lg hover:bg-lime-400 flex items-center font-bold border-2 border-black transition-all"
-                  style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
+                  className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 flex items-center"
                 >
                   <Plus className="mr-2 h-5 w-5" />
                   Add Location
@@ -5270,8 +5049,7 @@ const AdminDashboard = () => {
               {mapMode === "add" && (
                 <button
                   onClick={() => setMapMode("view")}
-                  className="bg-white text-black px-4 py-3 rounded-lg hover:bg-gray-100 flex items-center font-bold border-2 border-lime-500 transition-all"
-                  style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
+                  className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 flex items-center"
                 >
                   <Layers className="mr-2 h-5 w-5" />
                   View All Locations
@@ -5279,35 +5057,26 @@ const AdminDashboard = () => {
               )}
             </div>
 
-            {/* Map Container */}
-            <div className="flex-1 min-h-[500px] relative border-4 border-lime-500 m-2 rounded-lg overflow-hidden" style={{ boxShadow: 'inset 0 0 30px rgba(132, 204, 22, 0.3)' }}>
-              <div ref={mapRef} className="w-full h-full"></div>
+            <div className="flex-1 min-h-[400px] relative">
+              <div ref={mapRef} className="w-full h-[500px]"></div>
             </div>
 
-            {/* Footer - Add Mode */}
             {mapMode === "add" && (
-              <div className="p-4 border-t-4 border-lime-500 bg-white">
-                <div className="flex justify-between items-center flex-wrap gap-4">
-                  <div className="flex-1">
+              <div className="p-4 border-t border-gray-200 bg-gray-50">
+                <div className="flex justify-between items-center">
+                  <div>
                     {selectedLocation ? (
-                      <div className="bg-lime-500 bg-opacity-20 border-2 border-lime-500 rounded-lg p-3">
-                        <p className="text-sm text-black font-bold uppercase mb-1">📍 Selected Coordinates:</p>
-                        <p className="text-xs text-black font-mono">
-                          Lat: {selectedLocation.lat.toFixed(6)} | Lng: {selectedLocation.lng.toFixed(6)}
-                        </p>
-                      </div>
+                      <p className="text-sm text-gray-600">
+                        Selected coordinates: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
+                      </p>
                     ) : (
-                      <div className="bg-gray-100 border-2 border-gray-300 rounded-lg p-3">
-                        <p className="text-sm text-gray-600 font-semibold">
-                          👆 Click on the map to select a farm location
-                        </p>
-                      </div>
+                      <p className="text-sm text-gray-600">Click on the map to select a location</p>
                     )}
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex gap-2">
                     <button
                       onClick={() => setShowMapModal(false)}
-                      className="px-6 py-3 bg-white border-2 border-black text-black rounded-lg hover:bg-gray-100 transition-all font-bold"
+                      className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                     >
                       Cancel
                     </button>
@@ -5316,24 +5085,15 @@ const AdminDashboard = () => {
                         if (selectedLocation) {
                           setShowMapModal(false)
                         } else {
-                          useNotificationStore.getState().addAdminNotification({
-                            id: generateUniqueId(),
-                            type: 'warning',
-                            title: 'No Location Selected',
-                            message: 'Please select a location on the map first.',
-                            timestamp: new Date()
-                          });
+                          alert("Please select a location on the map first.")
                         }
                       }}
                       disabled={!selectedLocation}
-                      className={`px-6 py-3 bg-lime-500 text-black rounded-lg font-bold border-2 border-black transition-all ${
-                        !selectedLocation 
-                          ? "opacity-50 cursor-not-allowed" 
-                          : "hover:bg-lime-400"
+                      className={`px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-800 ${
+                        !selectedLocation ? "opacity-50 cursor-not-allowed" : ""
                       }`}
-                      style={selectedLocation ? { boxShadow: '0 0 20px rgba(132, 204, 22, 0.6)' } : {}}
                     >
-                      ✅ Confirm Location
+                      Confirm Location
                     </button>
                   </div>
                 </div>

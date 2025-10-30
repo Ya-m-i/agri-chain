@@ -20,7 +20,6 @@ import {
   MessageSquare,
   Shield,
   TrendingUp,
-  RefreshCw,
 } from "lucide-react"
 import { useAuthStore } from "../store/authStore"
 import { useNotificationStore } from "../store/notificationStore"
@@ -46,25 +45,16 @@ const FarmerDashboard = () => {
   // Redirect if not authenticated or not a farmer
   useEffect(() => {
     if (!user) {
-      console.error('FarmerDashboard: No user found, redirecting to login')
-      navigate("/")
-      return
-    }
-    
-    if (!user.id) {
-      console.error('FarmerDashboard: User object missing id field:', user)
       navigate("/")
       return
     }
     
     if (userType !== "farmer") {
-      console.log('FarmerDashboard: User is not a farmer, redirecting to admin')
       navigate("/admin")
       return
     }
   }, [user, userType, navigate])
   
-  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const [activeTab, setActiveTab] = useState("home")
   const [notificationOpen, setNotificationOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -95,16 +85,17 @@ const FarmerDashboard = () => {
     }, 800);
   };
   
-  // Get notifications for current farmer - use proper Zustand selectors
+  // Get notifications for current farmer - use Zustand state selector for reactivity
   const farmerNotifications = useNotificationStore((state) => {
-    if (!user?.id) return [];
-    return state.farmerNotifications[user.id] || [];
+    const notifications = state.getFarmerNotifications(user?.id) || [];
+    console.log('🔔 Farmer Dashboard - Current notifications for user:', user?.id, notifications);
+    return notifications;
   });
   
   const unreadFarmerCount = useNotificationStore((state) => {
-    if (!user?.id) return 0;
-    const notifications = state.farmerNotifications[user.id] || [];
-    return notifications.filter(n => !n.read).length;
+    const count = state.getFarmerUnreadCount(user?.id) || 0;
+    console.log('📊 Farmer Dashboard - Unread count for user:', user?.id, count);
+    return count;
   });
 
   // State for claim details modal
@@ -335,37 +326,11 @@ const FarmerDashboard = () => {
     setShowClaimDetails(true)
   }
 
-  // State for notification refresh
-  const [isRefreshingNotifications, setIsRefreshingNotifications] = useState(false)
-  
   // Toggle notification panel and mark as read
   const toggleNotificationPanel = () => {
     setNotificationOpen(!notificationOpen)
     if (!notificationOpen && user?.id) {
       useNotificationStore.getState().markFarmerNotificationsAsRead(user.id)
-    }
-  }
-  
-  // Manual refresh notifications from backend
-  const refreshNotifications = async () => {
-    if (!user?.id) return;
-    
-    setIsRefreshingNotifications(true);
-    
-    try {
-      // Fetch latest claims data to check for updates
-      await refetchClaims();
-      
-      // You can add more data fetching here if needed
-      // For example: fetch latest applications, insurance updates, etc.
-      
-      console.log('✅ Notifications refreshed successfully');
-    } catch (error) {
-      console.error('❌ Error refreshing notifications:', error);
-    } finally {
-      setTimeout(() => {
-        setIsRefreshingNotifications(false);
-      }, 500); // Minimum 500ms to show the animation
     }
   }
 
@@ -551,19 +516,6 @@ const FarmerDashboard = () => {
     }
   }
 
-  // Early return with loading state if user is not ready
-  // MUST BE AFTER ALL HOOKS (Rules of Hooks)
-  if (!user || !user.id) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading farmer dashboard...</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       {/* Top Navbar */}
@@ -620,33 +572,17 @@ const FarmerDashboard = () => {
                 <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl z-50 overflow-hidden notification-panel">
                   <div className="p-4 bg-lime-700 text-white flex justify-between items-center">
                     <h3 className="font-semibold">Notifications</h3>
-                    <div className="flex items-center gap-2">
-                      {/* Refresh Button */}
+                    {farmerNotifications.length > 0 && (
                       <button
-                        onClick={refreshNotifications}
-                        disabled={isRefreshingNotifications}
-                        className="text-white hover:text-gray-200 transition-colors p-1 rounded"
-                        title="Refresh notifications"
+                        onClick={() => {
+                          useNotificationStore.getState().clearFarmerNotifications(user?.id)
+                        }}
+                        className="text-white hover:text-gray-200 text-sm"
+                        title="Clear all notifications"
                       >
-                        <RefreshCw 
-                          size={16} 
-                          className={isRefreshingNotifications ? 'animate-spin' : ''}
-                        />
+                        Clear All
                       </button>
-                      
-                      {/* Clear All Button */}
-                      {farmerNotifications.length > 0 && (
-                        <button
-                          onClick={() => {
-                            useNotificationStore.getState().clearFarmerNotifications(user?.id)
-                          }}
-                          className="text-white hover:text-gray-200 text-sm"
-                          title="Clear all notifications"
-                        >
-                          Clear All
-                        </button>
-                      )}
-                    </div>
+                    )}
                   </div>
 
                   <div className="max-h-96 overflow-y-auto hide-scrollbar">
