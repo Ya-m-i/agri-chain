@@ -19,10 +19,12 @@ import {
   Search,
   Camera,
   HandHeart,
+  Ruler,
 } from "lucide-react"
 import { calculateCompensation, getDamageSeverity, getCoverageDetails } from "../utils/insuranceUtils"
 import { useNotificationStore } from "../store/notificationStore"
 import MapPicker from "./MapPicker"
+import DrawableMapPicker from "./DrawableMapPicker"
 
 const AdminModals = ({
   showModal,
@@ -72,6 +74,9 @@ const AdminModals = ({
 }) => {
   // State to force map remount when modal opens
   const [mapKey, setMapKey] = useState(Date.now());
+  
+  // State for drawable map modal
+  const [showDrawableMap, setShowDrawableMap] = useState(false);
 
   // Update map key when map modal opens to ensure fresh Kapalong-centered map
   useEffect(() => {
@@ -701,14 +706,30 @@ const AdminModals = ({
 
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">Crop Area (hectares)</label>
-                  <input
-                    type="text"
-                    name="cropArea"
-                    value={formData.cropArea}
-                    onChange={handleChange}
-                    className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.0001"
+                      name="cropArea"
+                      value={formData.cropArea}
+                      onChange={handleChange}
+                      className="w-full border border-gray-300 p-3 pr-12 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                      required
+                      placeholder="Enter area or draw on map"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowDrawableMap(true)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 bg-lime-600 hover:bg-lime-700 text-white p-2 rounded-lg transition-all shadow-sm"
+                      title="Draw field area on map"
+                    >
+                      <Ruler size={20} />
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <Ruler size={12} />
+                    Click the ruler icon to draw your field boundary on the map for automatic area calculation
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -1641,6 +1662,24 @@ const AdminModals = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Drawable Map Modal for Crop Area */}
+      {showDrawableMap && (
+        <DrawableMapPicker
+          onLocationSelect={(location) => {
+            // Update location if needed
+            setSelectedLocation(location);
+          }}
+          onAreaCalculated={(data) => {
+            // Auto-fill crop area field with calculated hectares
+            if (data.area > 0) {
+              handleChange({ target: { name: 'cropArea', value: data.area.toString() } });
+              console.log('✅ Crop area auto-filled:', data.area, 'hectares');
+            }
+          }}
+          onClose={() => setShowDrawableMap(false)}
+        />
       )}
     </>
   )
