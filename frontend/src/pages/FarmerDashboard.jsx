@@ -64,18 +64,7 @@ const FarmerDashboard = () => {
     }
   }, [user, userType, navigate])
   
-  // Early return with loading state if user is not ready
-  if (!user || !user.id) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading farmer dashboard...</p>
-        </div>
-      </div>
-    )
-  }
-  
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const [activeTab, setActiveTab] = useState("home")
   const [notificationOpen, setNotificationOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -560,6 +549,19 @@ const FarmerDashboard = () => {
         timestamp: new Date()
       }, user.id);
     }
+  }
+
+  // Early return with loading state if user is not ready
+  // MUST BE AFTER ALL HOOKS (Rules of Hooks)
+  if (!user || !user.id) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading farmer dashboard...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
