@@ -6,6 +6,9 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   base: '/',
   plugins: [react(), tailwindcss()],
+  resolve: {
+    dedupe: ['react', 'react-dom', 'react-router-dom']
+  },
   optimizeDeps: {
     include: ["react", "react-dom", "react-router-dom", "leaflet", "leaflet-draw"]
   },
@@ -29,9 +32,9 @@ export default defineConfig({
         
         // Manual chunks for better code splitting
         manualChunks(id) {
-          // React core libraries
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+            // React core libraries - be very specific to avoid matching react-* packages
+            if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('/react-router-dom/')) {
               return 'react-vendor';
             }
             
@@ -46,7 +49,12 @@ export default defineConfig({
             }
             
             // Chart libraries
-            if (id.includes('chart.js') || id.includes('react-chartjs-2') || id.includes('recharts')) {
+            if (id.includes('chart.js') || id.includes('recharts')) {
+              return 'chart-libs';
+            }
+            
+            // React-related chart library (separate to avoid React conflicts)
+            if (id.includes('react-chartjs-2')) {
               return 'chart-libs';
             }
             
@@ -61,7 +69,7 @@ export default defineConfig({
             }
             
             // UI libraries
-            if (id.includes('lucide-react') || id.includes('react-hot-toast') || id.includes('@headlessui')) {
+            if (id.includes('lucide-react') || id.includes('react-hot-toast') || id.includes('@headlessui') || id.includes('react-icons')) {
               return 'ui-libs';
             }
             
