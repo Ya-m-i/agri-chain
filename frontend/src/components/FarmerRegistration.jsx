@@ -34,6 +34,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tool
 import { Doughnut } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { getCropTypeDistributionFromInsurance } from '../utils/cropTypeDistribution'
+import SimpleMapPicker from './SimpleMapPicker'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
@@ -83,6 +84,7 @@ const FarmerRegistration = ({
   const [farmerToDelete, setFarmerToDelete] = useState(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [showSimpleMapPicker, setShowSimpleMapPicker] = useState(false);
 
   // Add state for crop insurance-based crop type distribution
   const [insuranceCropTypeDistribution, setInsuranceCropTypeDistribution] = useState({})
@@ -1023,7 +1025,7 @@ const FarmerRegistration = ({
                     <div>
                       <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Address</label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-auto cursor-pointer" onClick={() => { setShowMapModal(true); setMapMode('add'); }}>
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-auto cursor-pointer" onClick={() => { setShowSimpleMapPicker(true); }}>
                           <MapPin size={16} className="text-lime-500" />
                         </div>
                         <input
@@ -1812,6 +1814,26 @@ const FarmerRegistration = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Simple Farm Location Picker */}
+      {showSimpleMapPicker && (
+        <SimpleMapPicker
+          onLocationSelect={(locationData) => {
+            console.log('🌾 Farm location selected:', locationData);
+            const { lat, lng, address } = locationData;
+            setFormData(prev => ({
+              ...prev,
+              address: address || `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`,
+              location: {
+                type: 'Point',
+                coordinates: [lng, lat]
+              }
+            }));
+            setSelectedLocation({ lat, lng });
+          }}
+          onClose={() => setShowSimpleMapPicker(false)}
+        />
       )}
     </div>
   )
