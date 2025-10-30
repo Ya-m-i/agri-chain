@@ -2031,7 +2031,15 @@ const AdminDashboard = () => {
 
     if (!overviewLeafletMapRef.current) {
       overviewLeafletMapRef.current = L.map(overviewMapRef.current, {
-        zoomControl: false // Remove default zoom control for custom styling
+        zoomControl: false, // Remove default zoom control for custom styling
+        minZoom: 11,  // Prevent zooming out too far
+        maxZoom: 18,  // Allow zooming in for precision
+        // Keep map centered on Kapalong area
+        maxBounds: [
+          [7.3, 125.5],  // Southwest corner
+          [7.9, 126.1]   // Northeast corner
+        ],
+        maxBoundsViscosity: 0.5, // Smooth bounce back when panning outside
       }).setView(mapCenter, 12)
       
       // Use CartoDB Dark Matter for blockchain vibe

@@ -26,11 +26,20 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
     console.log('🗺️ Initializing farm location picker...');
 
     try {
-      // Create map centered on Kapalong, Davao del Norte
+      // Create map centered on Kapalong, Davao del Norte with fixed bounds
+      const kapalongCenter = [7.5815, 125.8235];
       const map = L.map(mapContainerRef.current, {
-        center: [7.5815, 125.8235],
+        center: kapalongCenter,
         zoom: 13,
         zoomControl: true,
+        minZoom: 11,  // Prevent zooming out too far
+        maxZoom: 18,  // Allow zooming in for precision
+        // Keep map centered on Kapalong area
+        maxBounds: [
+          [7.3, 125.5],  // Southwest corner
+          [7.9, 126.1]   // Northeast corner
+        ],
+        maxBoundsViscosity: 0.5, // Smooth bounce back when panning outside
       });
 
       mapInstanceRef.current = map;
@@ -127,7 +136,7 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
   }, [onLocationSelect]);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden" style={{ maxHeight: '90vh' }}>
         
         {/* Farm-themed header */}
