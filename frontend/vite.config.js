@@ -18,17 +18,22 @@ export default defineConfig({
     target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari13'],
     outDir: 'dist',
     assetsDir: 'assets',
-    sourcemap: false,
+    sourcemap: true, // Enable sourcemaps for better error tracking
     minify: 'esbuild',
+    chunkSizeWarningLimit: 500,
     
     rollupOptions: {
       output: {
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+        manualChunks: undefined
+      },
+      onwarn(warning, warn) {
+        // Suppress certain warnings
+        if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return;
+        warn(warning);
       }
-    },
-    
-    chunkSizeWarningLimit: 500
+    }
   }
 })
