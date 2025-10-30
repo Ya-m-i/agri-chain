@@ -469,7 +469,7 @@ const FarmerRegistration = ({
             }}
           >
             <UserPlus className="mr-2 h-5 w-5" />
-            Register New Farmer
+            Register Farmer
           </button>
           <button
             className="bg-lime-500 text-black px-4 py-2 rounded-lg hover:bg-lime-400 transition-all duration-200 flex items-center justify-center shadow-lg font-bold"

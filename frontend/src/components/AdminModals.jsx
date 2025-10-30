@@ -1317,7 +1317,7 @@ const AdminModals = ({
 
       {/* Map Modal */}
       {showMapModal && (
-        <div className="fixed inset-0 z-50 bg-transparent bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-white bg-opacity-50 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             <div className="sticky top-0 bg-lime-700 text-white p-4 rounded-t-xl flex justify-between items-center">
               <h2 className="text-xl font-bold">
