@@ -2330,13 +2330,13 @@ const AdminDashboard = () => {
           id="mobile-sidebar"
           className={`fixed inset-y-0 left-0 transform ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } md:hidden transition duration-150 ease-out z-30 w-64 border-r border-black`}
+          } md:hidden transition duration-150 ease-out z-30 w-64`}
           style={{ 
-            backgroundColor: '#84cc16',
+            backgroundColor: '#65a30d',
             boxShadow: '2px 0 8px rgba(0, 0, 0, 0.15)'
           }}
         >
-          <div className="p-6" style={{ backgroundColor: '#84cc16' }}>
+          <div className="p-6" style={{ backgroundColor: '#65a30d' }}>
             <div className="flex flex-col items-center">
               <button 
                 onClick={() => {
@@ -2366,7 +2366,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "home" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
                 >
-                  <img src={dashboardIcon} alt="Dashboard" className="w-12 h-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] mr-3 object-contain" />
+                  <img src={dashboardIcon} alt="Dashboard" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] mr-3 object-contain" />
                   Dashboard
                 </button>
               </li>
@@ -2380,7 +2380,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "farmer-registration" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
                 >
-                  <img src={registrationIcon} alt="Registration" className="w-12 h-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] mr-3 object-contain" />
+                  <img src={registrationIcon} alt="Registration" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] mr-3 object-contain" />
                   Farmer Registration
                 </button>
               </li>
@@ -2409,7 +2409,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "claims" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
                 >
-                  <img src={cashIcon} alt="Cash" className="w-12 h-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] mr-3 object-contain" />
+                  <img src={cashIcon} alt="Cash" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] mr-3 object-contain" />
                   Cash Assistance Claims
                 </button>
               </li>
@@ -2424,7 +2424,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "distribution" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
                 >
-                  <img src={distributionIcon} alt="Distribution" className="w-12 h-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] mr-3 object-contain" />
+                  <img src={distributionIcon} alt="Distribution" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] mr-3 object-contain" />
                   Distribution Records
                 </button>
               </li>
@@ -2439,7 +2439,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "assistance" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
                 >
-                  <img src={inventoryIcon} alt="Inventory" className="w-12 h-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] mr-3 object-contain" />
+                  <img src={inventoryIcon} alt="Inventory" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] mr-3 object-contain" />
                   Assistance Inventory
                 </button>
               </li>
@@ -2454,7 +2454,7 @@ const AdminDashboard = () => {
                   }`}
                   style={activeTab === "admin-filing" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
                 >
-                  <img src={fileIcon} alt="File" className="w-12 h-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] mr-3 object-contain" />
+                  <img src={fileIcon} alt="File" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] mr-3 object-contain" />
                   File for Farmers
                 </button>
               </li>
@@ -2464,16 +2464,16 @@ const AdminDashboard = () => {
 
         {/* Desktop Sidebar */}
         <aside 
-          className={`hidden md:block ${sidebarExpanded ? 'w-64' : 'w-16'} text-black space-y-6 fixed top-0 left-0 h-screen overflow-y-auto transition-all duration-150 ease-out group z-20 scrollbar-hide border-r border-black`}
+          className={`hidden md:block ${sidebarExpanded ? 'w-64' : 'w-16'} text-black space-y-6 fixed top-0 left-0 h-screen overflow-y-auto transition-all duration-150 ease-out group z-20 scrollbar-hide`}
           style={{ 
-            backgroundColor: '#84cc16',
+            backgroundColor: '#65a30d',
             boxShadow: '2px 0 8px rgba(0, 0, 0, 0.15)'
           }}
           onMouseEnter={() => setSidebarExpanded(true)}
           onMouseLeave={() => setSidebarExpanded(false)}
         >
           {/* Admin Logo Section */}
-          <div className={`p-6 transition-opacity duration-300 ${sidebarExpanded ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundColor: '#84cc16' }}>
+          <div className={`p-6 transition-opacity duration-300 ${sidebarExpanded ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundColor: '#65a30d' }}>
             <div className="flex flex-col items-center">
               <button 
                 onClick={() => handleTabSwitch("home")}
@@ -2502,10 +2502,10 @@ const AdminDashboard = () => {
                   ? "text-black font-bold" 
                   : "text-black hover:bg-lime-600"
               }`}
-              style={activeTab === "home" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
+              style={activeTab === "home" && sidebarExpanded ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
               title={!sidebarExpanded ? "Dashboard" : ""}
             >
-              <img src={dashboardIcon} alt="Dashboard" className="w-12 h-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] flex-shrink-0 object-contain" />
+              <img src={dashboardIcon} alt="Dashboard" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
               {sidebarExpanded && <span className="text-black">Dashboard</span>}
             </button>
 
@@ -2518,10 +2518,10 @@ const AdminDashboard = () => {
                   ? "text-black font-bold"
                   : "text-black hover:bg-lime-600"
               }`}
-              style={activeTab === "farmer-registration" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
+              style={activeTab === "farmer-registration" && sidebarExpanded ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
               title={!sidebarExpanded ? "Farmer Registration" : ""}
             >
-              <img src={registrationIcon} alt="Registration" className="w-12 h-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] flex-shrink-0 object-contain" />
+              <img src={registrationIcon} alt="Registration" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
               {sidebarExpanded && <span className="text-black">Farmer Registration</span>}
             </button>
 
@@ -2532,10 +2532,10 @@ const AdminDashboard = () => {
                   ? "text-black font-bold" 
                   : "text-black hover:bg-lime-600"
               }`}
-              style={activeTab === "claims" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
+              style={activeTab === "claims" && sidebarExpanded ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
               title={!sidebarExpanded ? "Cash Assistance Claims" : ""}
             >
-              <img src={cashIcon} alt="Cash" className="w-12 h-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] flex-shrink-0 object-contain" />
+              <img src={cashIcon} alt="Cash" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
               {sidebarExpanded && <span className="text-black">Cash Assistance Claims</span>}
             </button>
 
@@ -2546,10 +2546,10 @@ const AdminDashboard = () => {
                   ? "text-black font-bold"
                   : "text-black hover:bg-lime-600"
               }`}
-              style={activeTab === "distribution" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
+              style={activeTab === "distribution" && sidebarExpanded ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
               title={!sidebarExpanded ? "Distribution Records" : ""}
             >
-              <img src={distributionIcon} alt="Distribution" className="w-12 h-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] flex-shrink-0 object-contain" />
+              <img src={distributionIcon} alt="Distribution" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
               {sidebarExpanded && <span className="text-black">Distribution Records</span>}
             </button>
           </div>
@@ -2563,10 +2563,10 @@ const AdminDashboard = () => {
                   ? "text-black font-bold"
                   : "text-black hover:bg-lime-600"
               }`}
-              style={activeTab === "assistance" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
+              style={activeTab === "assistance" && sidebarExpanded ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
               title={!sidebarExpanded ? "Assistance Inventory" : ""}
             >
-              <img src={inventoryIcon} alt="Inventory" className="w-12 h-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] flex-shrink-0 object-contain" />
+              <img src={inventoryIcon} alt="Inventory" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
               {sidebarExpanded && <span className="text-black">Assistance Inventory</span>}
             </button>
 
@@ -2577,10 +2577,10 @@ const AdminDashboard = () => {
                   ? "text-black font-bold"
                   : "text-black hover:bg-lime-600"
               }`}
-              style={activeTab === "admin-filing" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
+              style={activeTab === "admin-filing" && sidebarExpanded ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
               title={!sidebarExpanded ? "File for Farmers" : ""}
             >
-              <img src={fileIcon} alt="File" className="w-12 h-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] flex-shrink-0 object-contain" />
+              <img src={fileIcon} alt="File" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
               {sidebarExpanded && <span className="text-black">File for Farmers</span>}
             </button>
 
