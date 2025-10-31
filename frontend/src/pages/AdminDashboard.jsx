@@ -2330,7 +2330,7 @@ const AdminDashboard = () => {
           id="mobile-sidebar"
           className={`fixed inset-y-0 left-0 transform ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } md:hidden transition duration-150 ease-out z-30 w-64`}
+          } md:hidden transition duration-150 ease-out z-30 w-64 border-r-4 border-black`}
           style={{ 
             backgroundColor: '#65a30d',
             boxShadow: '2px 0 8px rgba(0, 0, 0, 0.15)'
@@ -2464,7 +2464,7 @@ const AdminDashboard = () => {
 
         {/* Desktop Sidebar */}
         <aside 
-          className={`hidden md:block ${sidebarExpanded ? 'w-64' : 'w-16'} text-black space-y-6 fixed top-0 left-0 h-screen overflow-y-auto transition-all duration-150 ease-out group z-20 scrollbar-hide`}
+          className={`hidden md:block ${sidebarExpanded ? 'w-64' : 'w-16'} text-black space-y-6 fixed top-0 left-0 h-screen overflow-y-auto transition-all duration-150 ease-out group z-20 scrollbar-hide border-r-4 border-black`}
           style={{ 
             backgroundColor: '#65a30d',
             boxShadow: '2px 0 8px rgba(0, 0, 0, 0.15)'
