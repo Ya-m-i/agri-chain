@@ -14,6 +14,7 @@ import {
   FileText,
   Layers,
   AlertTriangle,
+  Shield,
 } from "lucide-react"
 // Import image assets
 import registerIcon from '../assets/Images/register.png'
@@ -46,6 +47,7 @@ const FarmerRegistration = ({
   setMapMode,
   selectedLocation,
   setSelectedLocation,
+  onTabSwitch,
 }) => {
   // React Query hooks
   const { data: farmers = [], isLoading: farmersLoading, refetch: refetchFarmers } = useFarmers()
@@ -429,6 +431,17 @@ const FarmerRegistration = ({
           >
             <UserPlus className="mr-2 h-5 w-5" />
             Register New Farmer
+          </button>
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center shadow-sm"
+            onClick={() => {
+              if (onTabSwitch) {
+                onTabSwitch('crop-insurance')
+              }
+            }}
+          >
+            <Shield className="mr-2 h-5 w-5" />
+            Crop Insurance
           </button>
           <button
             className="text-lime-600 px-4 py-2 rounded-lg hover:bg-lime-50 transition-colors flex items-center justify-center border border-lime-600"
