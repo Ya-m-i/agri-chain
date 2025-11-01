@@ -3556,12 +3556,12 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === "assistance" && (
-            <div className="p-6">
-              <div className="flex items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800 mr-4">Assistance Inventory</h2>
+            <div className="p-6 bg-white min-h-screen">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-black">Assistance Inventory</h2>
                 <button
                   onClick={() => setShowEventModal(true)}
-                  className="flex items-center gap-2 bg-gradient-to-r from-lime-500 to-lime-600 text-white px-4 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                  className="flex items-center gap-2 bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-all duration-300 font-semibold border-2 border-black"
                 >
                   <span className="text-xl font-bold">+</span>
                   <span className="font-semibold">Add New Assistance</span>
@@ -3571,94 +3571,107 @@ const AdminDashboard = () => {
               {/* Loading State */}
               {assistanceLoading && (
                 <div className="text-center py-8">
-                  <p className="text-gray-500">Loading assistance inventory...</p>
+                  <p className="text-black">Loading assistance inventory...</p>
                 </div>
               )}
 
               {/* Error State */}
               {assistanceError && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                  <p>Error: {assistanceError}</p>
+                <div className="bg-white border-2 border-black text-red-700 px-4 py-3 rounded mb-4">
+                  <p className="text-black">Error: {assistanceError}</p>
                 </div>
               )}
 
               {/* Assistance Inventory List */}
               {!assistanceLoading && !assistanceError && (
-              <div className="bg-white/60 rounded-2xl shadow-xl p-6 mb-8">
+              <div className="bg-white rounded-lg border-2 border-black p-8 mb-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {currentItems.length > 0 ? (
                     currentItems.map((item, index) => (
                       <div
                         key={item._id || index}
-                        className="relative group rounded-[5px] shadow-xl p-0 bg-gradient-to-br from-lime-100 via-white to-lime-50 border-2 border-lime-200 hover:shadow-2xl transition-all duration-300 flex items-stretch min-h-[260px]"
+                        className="relative group rounded-lg shadow-lg bg-white border-2 border-black hover:shadow-xl transition-all duration-300 flex flex-col min-h-[300px] p-6 m-2"
                       >
                         {/* KPI Ribbon */}
-                        <div className="absolute top-0 right-0 px-4 py-1 rounded-bl-[5px] text-xs font-bold tracking-wider z-10 bg-lime-600 text-white shadow-md">
+                        <div className="absolute top-0 right-0 px-4 py-1 rounded-bl-lg text-xs font-bold tracking-wider z-10 bg-lime-400 text-black border-l-2 border-b-2 border-black">
                           {item.assistanceType}
                         </div>
                         
-                        {/* Left Section - Text Content */}
-                        <div className="flex-1 flex flex-col justify-between p-5 gap-2">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${
+                        {/* Content Section */}
+                        <div className="flex-1 flex flex-col">
+                          {/* Text Content */}
+                          <div className="flex-1 space-y-3 mt-6 mb-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className={`text-xs font-bold px-2 py-0.5 rounded-full border-2 border-black ${
                                 (item.availableQuantity || 0) < 5
-                                  ? 'bg-red-100 text-red-700 border border-red-300'
-                                  : 'bg-lime-100 text-lime-800 border-lime-300'
+                                  ? 'bg-red-100 text-red-700'
+                                  : 'bg-lime-200 text-black'
                               }`}>
                                 {(item.availableQuantity || 0) < 5 ? 'Low Stock' : 'Available'}
                             </span>
                               {item.requiresRSBSA && (
-                                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 border border-orange-300 ml-2">
+                                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-lime-200 text-black border-2 border-black">
                                   RSBSA Required
                                 </span>
                               )}
                             </div>
-                            <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-                              <span>Crop: <span className="font-semibold text-gray-700">{item.cropType}</span></span>
-                              <span>Founder: <span className="font-semibold text-gray-700">{item.founderName}</span></span>
-                            </div>
-                            <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-                              <span>Available: <span className="font-semibold text-gray-700">{item.availableQuantity || 0}</span></span>
-                              <span>Max/Farmer: <span className="font-semibold text-gray-700">{item.maxQuantityPerFarmer || 100}kg</span></span>
-                            </div>
-                            <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-                              <span>Date Added: <span className="font-semibold text-gray-700">{new Date(item.dateAdded).toLocaleDateString()}</span></span>
+                            <div className="space-y-2 text-sm text-black">
+                              <div className="flex flex-wrap gap-2">
+                                <span className="font-semibold">Crop:</span>
+                                <span>{item.cropType}</span>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                <span className="font-semibold">Founder:</span>
+                                <span>{item.founderName}</span>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                <span className="font-semibold">Available:</span>
+                                <span>{item.availableQuantity || 0}</span>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                <span className="font-semibold">Max/Farmer:</span>
+                                <span>{item.maxQuantityPerFarmer || 100}kg</span>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                <span className="font-semibold">Date Added:</span>
+                                <span>{new Date(item.dateAdded).toLocaleDateString()}</span>
+                              </div>
                             </div>
                           </div>
+                          
+                          {/* Image Section - Centered on Right */}
+                          {item.photo && (
+                            <div className="flex items-center justify-center mb-4 p-4 border-2 border-black rounded-lg bg-lime-50">
+                              <img src={item.photo} alt="Assistance Logo" className="object-contain max-h-32 max-w-full" />
+                            </div>
+                          )}
+                          
                           {/* Actions */}
                           <div className="flex gap-2 mt-4">
                             <button
                               onClick={() => handleViewAssistance(item)}
-                              className="flex-1 flex items-center justify-center gap-1 bg-transparent text-blue-600 px-3 py-2 rounded-[5px] font-semibold border border-blue-600 hover:bg-blue-50 transition"
+                              className="flex-1 bg-lime-400 text-black px-3 py-2 rounded-lg font-semibold border-2 border-black hover:bg-lime-500 transition"
                             >
                               View
                             </button>
                             <button
                               onClick={() => handleEditEvent(index)}
-                              className="flex-1 flex items-center justify-center gap-1 bg-transparent text-lime-600 px-3 py-2 rounded-[5px] font-semibold border border-lime-600 hover:bg-lime-50 transition"
+                              className="flex-1 bg-lime-400 text-black px-3 py-2 rounded-lg font-semibold border-2 border-black hover:bg-lime-500 transition"
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => handleDeleteEvent(index)}
-                              className="flex-1 flex items-center justify-center gap-1 bg-transparent text-red-600 px-3 py-2 rounded-[5px] font-semibold border border-red-600 hover:bg-red-50 transition"
+                              className="flex-1 bg-lime-400 text-black px-3 py-2 rounded-lg font-semibold border-2 border-black hover:bg-lime-500 transition"
                             >
                               Delete
                             </button>
                           </div>
                         </div>
-                        
-                        {/* Right Section - Image */}
-                        {item.photo && (
-                          <div className="flex items-center justify-center w-32 h-32 rounded-r-[5px] border-l border-lime-100 overflow-hidden flex-shrink-0">
-                            <img src={item.photo} alt="Assistance Logo" className="object-contain w-full h-full" />
-                          </div>
-                        )}
                       </div>
                     ))
                   ) : (
-                    <div className="col-span-full text-center py-8 text-gray-500">
+                    <div className="col-span-full text-center py-8 text-black">
                       No assistance items available
                     </div>
                   )}
@@ -3673,10 +3686,10 @@ const AdminDashboard = () => {
                     <button
                       onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                       disabled={currentPage === 1}
-                      className={`px-3 py-1 rounded-md ${
+                      className={`px-3 py-1 rounded-md border-2 border-black font-semibold ${
                         currentPage === 1
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : "bg-lime-100 text-lime-800 hover:bg-lime-200"
+                          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                          : "bg-lime-400 text-black hover:bg-lime-500"
                       }`}
                     >
                       Previous
@@ -3685,10 +3698,10 @@ const AdminDashboard = () => {
                       <button
                         key={index}
                         onClick={() => setCurrentPage(index + 1)}
-                        className={`px-3 py-1 rounded-md ${
+                        className={`px-3 py-1 rounded-md border-2 border-black font-semibold ${
                           currentPage === index + 1
-                            ? "bg-lime-700 text-white"
-                            : "bg-lime-100 text-lime-800 hover:bg-lime-200"
+                            ? "bg-black text-lime-400"
+                            : "bg-lime-400 text-black hover:bg-lime-500"
                         }`}
                       >
                         {index + 1}
@@ -3697,10 +3710,10 @@ const AdminDashboard = () => {
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                       disabled={currentPage === totalPages}
-                      className={`px-3 py-1 rounded-md ${
+                      className={`px-3 py-1 rounded-md border-2 border-black font-semibold ${
                         currentPage === totalPages
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                          : "bg-lime-100 text-lime-800 hover:bg-lime-200"
+                          ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                          : "bg-lime-400 text-black hover:bg-lime-500"
                       }`}
                     >
                       Next
@@ -3712,7 +3725,7 @@ const AdminDashboard = () => {
               {/* Assistance Applications Management */}
               <div className="mt-8">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                  <h3 className="text-xl font-semibold text-gray-800">Assistance Applications</h3>
+                  <h3 className="text-xl font-semibold text-black">Assistance Applications</h3>
                   <div className="flex flex-col sm:flex-row gap-2">
                     {/* Status Filter */}
                     <select 
@@ -3721,7 +3734,7 @@ const AdminDashboard = () => {
                         setApplicationStatusFilter(e.target.value);
                         setCurrentApplicationPage(1);
                       }}
-                      className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-lime-500 focus:border-lime-500"
+                      className="px-3 py-2 border-2 border-black rounded-md text-sm bg-white text-black focus:outline-none focus:ring-2 focus:ring-lime-400 font-semibold"
                     >
                       <option value="">All Status</option>
                       <option value="pending">Pending</option>
@@ -3732,7 +3745,7 @@ const AdminDashboard = () => {
                     
                     {/* Search by Application ID or Farmer Name */}
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-black h-4 w-4" />
                       <input
                         type="text"
                         placeholder="Search ID or farmer name..."
@@ -3741,7 +3754,7 @@ const AdminDashboard = () => {
                           setApplicationSearchTerm(e.target.value);
                           setCurrentApplicationPage(1);
                         }}
-                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-lime-500 focus:border-lime-500 w-64"
+                        className="pl-10 pr-4 py-2 border-2 border-black rounded-md text-sm bg-white text-black focus:outline-none focus:ring-2 focus:ring-lime-400 w-64 font-semibold"
                       />
                     </div>
                     
@@ -3752,7 +3765,7 @@ const AdminDashboard = () => {
                         // TODO: Add refetch for allApplications when available
                         console.log('React Query will automatically refresh data');
                       }}
-                      className="px-4 py-2 bg-lime-600 text-white rounded-md hover:bg-lime-700 transition text-sm font-medium flex items-center gap-2"
+                      className="px-4 py-2 bg-lime-400 text-black rounded-md hover:bg-lime-500 transition text-sm font-semibold flex items-center gap-2 border-2 border-black"
                     >
                       <Activity className="h-4 w-4" />
                       Refresh
@@ -3760,119 +3773,125 @@ const AdminDashboard = () => {
                   </div>
                 </div>
                 
-                <div className="bg-white rounded-lg shadow">
+                <div className="bg-white rounded-lg border-2 border-black shadow-lg">
                   {filteredApplications.length > 0 ? (
                     <>
-                      <div className="p-4 border-b text-sm text-gray-600 bg-gray-50 rounded-t-lg">
+                      <div className="p-4 border-b-2 border-black text-sm text-black bg-white rounded-t-lg">
                         <div className="flex justify-between items-center">
-                          <span>
+                          <span className="font-semibold">
                             Showing {((currentApplicationPage - 1) * applicationsPerPage) + 1} to {Math.min(currentApplicationPage * applicationsPerPage, filteredApplications.length)} of {filteredApplications.length} applications
                             {applicationStatusFilter && ` (filtered by: ${applicationStatusFilter})`}
                             {applicationSearchTerm && ` (search: "${applicationSearchTerm}")`}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-black font-medium">
                             Total in database: {allApplications.length}
                           </span>
                         </div>
                       </div>
-                      <div className="overflow-x-auto">
+                      <div 
+                        className="overflow-x-auto scrollbar-hide" 
+                        style={{ 
+                          maxHeight: '450px', 
+                          overflowY: 'auto'
+                        }}
+                      >
                         <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-gray-50">
+                          <thead className="bg-white sticky top-0 z-10 border-b-2 border-black">
                             <tr>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Application ID</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Farmer Name</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Assistance Type</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity Requested</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quarter</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Applied</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                              <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wider border-r border-gray-300">Application ID</th>
+                              <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wider border-r border-gray-300">Farmer Name</th>
+                              <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wider border-r border-gray-300">Assistance Type</th>
+                              <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wider border-r border-gray-300">Quantity Requested</th>
+                              <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wider border-r border-gray-300">Quarter</th>
+                              <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wider border-r border-gray-300">Date Applied</th>
+                              <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wider border-r border-gray-300">Status</th>
+                              <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wider">Actions</th>
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
                             {paginatedApplications.map((application) => (
                               <tr key={application._id} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-black">
                                   <div className="flex items-center gap-2">
                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                       {application._id.slice(-6).toUpperCase()}
                                     </span>
                                   </div>
-                                  <div className="text-xs text-gray-500 mt-1 truncate max-w-[120px]" title={application._id}>
+                                  <div className="text-xs text-black mt-1 truncate max-w-[120px]" title={application._id}>
                                     {application._id}
                                   </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  <div className="font-medium text-gray-900">
+                                  <div className="font-medium text-black">
                                     {application.farmerId ? `${application.farmerId.firstName} ${application.farmerId.lastName}` : 'N/A'}
                                   </div>
                                   {application.farmerId?.cropType && (
-                                    <div className="text-xs text-gray-500 mt-1">
+                                    <div className="text-xs text-black mt-1">
                                       Primary crop: {application.farmerId.cropType}
                                     </div>
                                   )}
                                   {application.farmerId?.rsbsaRegistered && (
-                                    <div className="text-xs text-green-600 mt-1">✓ RSBSA Registered</div>
+                                    <div className="text-xs text-lime-600 mt-1 font-semibold">✓ RSBSA Registered</div>
                                   )}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  <div className="font-medium text-gray-900">
+                                  <div className="font-medium text-black">
                                     {application.assistanceId?.assistanceType || 'N/A'}
                                   </div>
                                   {application.assistanceId?.cropType && (
-                                    <div className="text-xs text-gray-500 mt-1">
+                                    <div className="text-xs text-black mt-1">
                                       For: {application.assistanceId.cropType} farmers
                                     </div>
                                   )}
                                   {application.assistanceId?.founderName && (
-                                    <div className="text-xs text-gray-500 mt-1">
+                                    <div className="text-xs text-black mt-1">
                                       By: {application.assistanceId.founderName}
                                     </div>
                                   )}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                                   <div className="font-medium">{application.requestedQuantity}kg</div>
                                   {application.assistanceId?.maxQuantityPerFarmer && (
-                                    <div className="text-xs text-gray-500 mt-1">
+                                    <div className="text-xs text-black mt-1">
                                       Max allowed: {application.assistanceId.maxQuantityPerFarmer}kg
                                     </div>
                                   )}
                                   {application.assistanceId?.availableQuantity !== undefined && (
-                                    <div className="text-xs text-gray-500 mt-1">
+                                    <div className="text-xs text-black mt-1">
                                       Available: {application.assistanceId.availableQuantity}kg
                                     </div>
                                   )}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-lime-200 text-black border-2 border-black">
                                     {application.quarter}
                                   </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
                                   <div>{new Date(application.applicationDate).toLocaleDateString()}</div>
-                                  <div className="text-xs text-gray-400 mt-1">
+                                  <div className="text-xs text-black mt-1 opacity-70">
                                     {new Date(application.applicationDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                   </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full border-2 border-black ${
                                     application.status === "approved"
-                                      ? "bg-green-100 text-green-800"
+                                      ? "bg-lime-200 text-black"
                                       : application.status === "rejected"
-                                      ? "bg-red-100 text-red-800"
+                                      ? "bg-red-100 text-black"
                                       : application.status === "distributed"
-                                      ? "bg-blue-100 text-blue-800"
-                                      : "bg-yellow-100 text-yellow-800"
+                                      ? "bg-lime-300 text-black"
+                                      : "bg-yellow-100 text-black"
                                   }`}>
                                     {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
                                   </span>
                                   {application.reviewDate && (
-                                    <div className="text-xs text-gray-400 mt-1">
+                                    <div className="text-xs text-black mt-1 opacity-70">
                                       Reviewed: {new Date(application.reviewDate).toLocaleDateString()}
                                     </div>
                                   )}
                                   {application.distributionDate && (
-                                    <div className="text-xs text-gray-400 mt-1">
+                                    <div className="text-xs text-black mt-1 opacity-70">
                                       Distributed: {new Date(application.distributionDate).toLocaleDateString()}
                                     </div>
                                   )}
@@ -3882,13 +3901,13 @@ const AdminDashboard = () => {
                                     <div className="flex gap-2">
                                       <button 
                                         onClick={() => handleApproveApplication(application._id)}
-                                        className="text-green-600 hover:text-green-800 font-medium px-3 py-1 rounded border border-green-200 hover:bg-green-50 transition text-xs"
+                                        className="bg-lime-400 text-black hover:bg-lime-500 font-semibold px-3 py-1 rounded border-2 border-black transition text-xs"
                                       >
                                         Approve
                                       </button>
                                       <button 
                                         onClick={() => handleRejectApplication(application._id)}
-                                        className="text-red-600 hover:text-red-800 font-medium px-3 py-1 rounded border border-red-200 hover:bg-red-50 transition text-xs"
+                                        className="bg-lime-400 text-black hover:bg-lime-500 font-semibold px-3 py-1 rounded border-2 border-black transition text-xs"
                                       >
                                         Reject
                                       </button>
@@ -3897,16 +3916,16 @@ const AdminDashboard = () => {
                                   {application.status === 'approved' && (
                                     <button 
                                       onClick={() => handleDistributeApplication(application._id)}
-                                      className="text-blue-600 hover:text-blue-800 font-medium px-3 py-1 rounded border border-blue-200 hover:bg-blue-50 transition text-xs"
+                                      className="bg-lime-400 text-black hover:bg-lime-500 font-semibold px-3 py-1 rounded border-2 border-black transition text-xs"
                                     >
                                       Mark Distributed
                                     </button>
                                   )}
                                   {(application.status === 'rejected' || application.status === 'distributed') && (
-                                    <span className="text-gray-400 text-xs">No actions available</span>
+                                    <span className="text-black text-xs">No actions available</span>
                                   )}
                                   {application.officerNotes && (
-                                    <div className="text-xs text-gray-500 mt-2 italic" title={application.officerNotes}>
+                                    <div className="text-xs text-black mt-2 italic" title={application.officerNotes}>
                                       Note: {application.officerNotes.length > 20 ? application.officerNotes.substring(0, 20) + '...' : application.officerNotes}
                                     </div>
                                   )}
@@ -3919,18 +3938,18 @@ const AdminDashboard = () => {
                       
                       {/* Pagination for Applications */}
                       {applicationPages > 1 && (
-                        <div className="flex justify-between items-center p-4 border-t bg-gray-50 rounded-b-lg">
-                          <div className="text-sm text-gray-500">
+                        <div className="flex justify-between items-center p-4 border-t-2 border-black bg-white rounded-b-lg">
+                          <div className="text-sm text-black font-semibold">
                             Page {currentApplicationPage} of {applicationPages}
                           </div>
                           <nav className="flex items-center gap-2">
                             <button
                               onClick={() => setCurrentApplicationPage(1)}
                               disabled={currentApplicationPage === 1}
-                              className={`px-3 py-1 rounded-md text-sm ${
+                              className={`px-3 py-1 rounded-md text-sm border-2 border-black font-semibold ${
                                 currentApplicationPage === 1
-                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                  : "bg-lime-100 text-lime-800 hover:bg-lime-200"
+                                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                  : "bg-lime-400 text-black hover:bg-lime-500"
                               }`}
                             >
                               First
@@ -3938,10 +3957,10 @@ const AdminDashboard = () => {
                             <button
                               onClick={() => setCurrentApplicationPage(prev => Math.max(prev - 1, 1))}
                               disabled={currentApplicationPage === 1}
-                              className={`px-3 py-1 rounded-md text-sm ${
+                              className={`px-3 py-1 rounded-md text-sm border-2 border-black font-semibold ${
                                 currentApplicationPage === 1
-                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                  : "bg-lime-100 text-lime-800 hover:bg-lime-200"
+                                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                  : "bg-lime-400 text-black hover:bg-lime-500"
                               }`}
                             >
                               Previous
@@ -3955,10 +3974,10 @@ const AdminDashboard = () => {
                                   <button
                                     key={pageNumber}
                                     onClick={() => setCurrentApplicationPage(pageNumber)}
-                                    className={`px-3 py-1 rounded-md text-sm ${
+                                    className={`px-3 py-1 rounded-md text-sm border-2 border-black font-semibold ${
                                       currentApplicationPage === pageNumber
-                                        ? "bg-lime-700 text-white"
-                                        : "bg-lime-100 text-lime-800 hover:bg-lime-200"
+                                        ? "bg-black text-lime-400"
+                                        : "bg-lime-400 text-black hover:bg-lime-500"
                                     }`}
                                   >
                                     {pageNumber}
@@ -3970,10 +3989,10 @@ const AdminDashboard = () => {
                             <button
                               onClick={() => setCurrentApplicationPage(prev => Math.min(prev + 1, applicationPages))}
                               disabled={currentApplicationPage === applicationPages}
-                              className={`px-3 py-1 rounded-md text-sm ${
+                              className={`px-3 py-1 rounded-md text-sm border-2 border-black font-semibold ${
                                 currentApplicationPage === applicationPages
-                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                  : "bg-lime-100 text-lime-800 hover:bg-lime-200"
+                                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                  : "bg-lime-400 text-black hover:bg-lime-500"
                               }`}
                             >
                               Next
@@ -3981,10 +4000,10 @@ const AdminDashboard = () => {
                             <button
                               onClick={() => setCurrentApplicationPage(applicationPages)}
                               disabled={currentApplicationPage === applicationPages}
-                              className={`px-3 py-1 rounded-md text-sm ${
+                              className={`px-3 py-1 rounded-md text-sm border-2 border-black font-semibold ${
                                 currentApplicationPage === applicationPages
-                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                                  : "bg-lime-100 text-lime-800 hover:bg-lime-200"
+                                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                  : "bg-lime-400 text-black hover:bg-lime-500"
                               }`}
                             >
                               Last
@@ -3995,25 +4014,25 @@ const AdminDashboard = () => {
                     </>
                   ) : (
                     <div className="p-8">
-                      <div className="text-center py-8 text-gray-500">
+                      <div className="text-center py-8 text-black">
                         {allApplications.length === 0 ? (
                           <>
-                            <ClipboardCheck className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                            <p className="text-lg font-medium">No assistance applications found</p>
-                            <p className="text-sm mt-2">Applications from farmers will appear here once they apply for assistance.</p>
+                            <ClipboardCheck className="h-16 w-16 text-black mx-auto mb-4" />
+                            <p className="text-lg font-semibold text-black">No assistance applications found</p>
+                            <p className="text-sm mt-2 text-black">Applications from farmers will appear here once they apply for assistance.</p>
                           </>
                         ) : (
                           <>
-                            <Search className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                            <p className="text-lg font-medium">No applications match your filters</p>
-                            <p className="text-sm mt-2">Try adjusting your search criteria or clearing filters.</p>
+                            <Search className="h-16 w-16 text-black mx-auto mb-4" />
+                            <p className="text-lg font-semibold text-black">No applications match your filters</p>
+                            <p className="text-sm mt-2 text-black">Try adjusting your search criteria or clearing filters.</p>
                             <button
                               onClick={() => {
                                 setApplicationStatusFilter('');
                                 setApplicationSearchTerm('');
                                 setCurrentApplicationPage(1);
                               }}
-                              className="mt-4 px-4 py-2 bg-lime-600 text-white rounded-md hover:bg-lime-700 transition text-sm font-medium"
+                              className="mt-4 px-4 py-2 bg-lime-400 text-black rounded-md hover:bg-lime-500 transition text-sm font-semibold border-2 border-black"
                             >
                               Clear All Filters
                             </button>
@@ -4093,99 +4112,88 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === "admin-filing" && (
-            <div className="p-6 bg-gradient-to-br from-black via-gray-900 to-black min-h-screen">
+            <div className="p-6 bg-white min-h-screen">
               <div className="max-w-6xl mx-auto">
-                {/* Header with Blockchain Vibe */}
+                {/* Header */}
                 <div className="mb-8 text-center relative">
-                  <div className="absolute inset-0 bg-lime-500 opacity-5 blur-3xl"></div>
-                  <h1 className="text-4xl font-bold text-white mb-3 relative" style={{ textShadow: '0 0 20px rgba(132, 204, 22, 0.6)' }}>
-                    <span className="text-lime-400">⛓️ BLOCKCHAIN</span> FILE SYSTEM
+                  <h1 className="text-4xl font-bold text-black mb-3 relative">
+                    <span className="text-black">⛓️ BLOCKCHAIN</span> FILE SYSTEM
                   </h1>
-                  <p className="text-gray-300 relative max-w-2xl mx-auto">
+                  <p className="text-black relative max-w-2xl mx-auto">
                     Secure, transparent, and immutable filing system powered by blockchain technology.
                     Help farmers file claims and assistance applications with complete data integrity.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* File Claim Card - Blockchain Style */}
-                  <div className="bg-black rounded-lg border-2 border-lime-500 p-6 relative overflow-hidden group hover:shadow-2xl transition-all duration-300" 
-                       style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.3)' }}>
-                    {/* Animated Background Effect */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-lime-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    
+                  {/* File Claim Card */}
+                  <div className="bg-white rounded-lg border-2 border-black p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300">
                     {/* Corner Accents */}
-                    <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-lime-400"></div>
-                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-lime-400"></div>
+                    <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-black"></div>
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-black"></div>
                     
                     <div className="flex items-center mb-6 relative z-10">
-                      <div className="p-4 bg-lime-500 rounded-lg mr-4" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.6)' }}>
+                      <div className="p-4 bg-lime-400 rounded-lg mr-4 border-2 border-black">
                         <FileText className="h-8 w-8 text-black" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold text-lime-400 mb-1">FILE INSURANCE CLAIM</h2>
-                        <p className="text-gray-400 text-sm flex items-center">
-                          <span className="w-2 h-2 bg-lime-400 rounded-full mr-2 animate-pulse"></span>
+                        <h2 className="text-xl font-bold text-black mb-1">FILE INSURANCE CLAIM</h2>
+                        <p className="text-black text-sm flex items-center">
+                          <span className="w-2 h-2 bg-lime-400 rounded-full mr-2 border border-black"></span>
                           Blockchain-Verified Claims
                         </p>
                       </div>
                     </div>
                     
                     <div className="relative z-10 mb-6 space-y-3">
-                      <p className="text-gray-300 text-sm">
+                      <p className="text-black text-sm">
                         🔗 Submit insurance claims with blockchain verification
                       </p>
-                      <p className="text-gray-400 text-xs">
+                      <p className="text-black text-xs">
                         ✓ Immutable records • Instant verification • Transparent tracking
                       </p>
                     </div>
                     
                     <button
                       onClick={() => setShowAdminClaimFiling(true)}
-                      className="w-full bg-lime-500 text-black py-3 px-4 rounded-lg hover:bg-lime-400 transition-all duration-300 flex items-center justify-center space-x-2 font-bold relative z-10 group-hover:scale-105"
-                      style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
+                      className="w-full bg-lime-400 text-black py-3 px-4 rounded-lg hover:bg-lime-500 transition-all duration-300 flex items-center justify-center space-x-2 font-bold relative z-10 border-2 border-black"
                     >
                       <FileText className="h-5 w-5" />
                       <span>INITIATE CLAIM FILING</span>
                     </button>
                   </div>
 
-                  {/* File Assistance Card - Blockchain Style */}
-                  <div className="bg-black rounded-lg border-2 border-lime-500 p-6 relative overflow-hidden group hover:shadow-2xl transition-all duration-300" 
-                       style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.3)' }}>
-                    {/* Animated Background Effect */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-lime-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    
+                  {/* File Assistance Card */}
+                  <div className="bg-white rounded-lg border-2 border-black p-6 relative overflow-hidden group hover:shadow-xl transition-all duration-300">
                     {/* Corner Accents */}
-                    <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-lime-400"></div>
-                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-lime-400"></div>
+                    <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-black"></div>
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-black"></div>
                     
                     <div className="flex items-center mb-6 relative z-10">
-                      <div className="p-4 bg-lime-500 rounded-lg mr-4" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.6)' }}>
+                      <div className="p-4 bg-lime-400 rounded-lg mr-4 border-2 border-black">
                         <HandHeart className="h-8 w-8 text-black" />
                       </div>
                       <div>
-                        <h2 className="text-xl font-bold text-lime-400 mb-1">FILE ASSISTANCE APP</h2>
-                        <p className="text-gray-400 text-sm flex items-center">
-                          <span className="w-2 h-2 bg-lime-400 rounded-full mr-2 animate-pulse"></span>
+                        <h2 className="text-xl font-bold text-black mb-1">FILE ASSISTANCE APP</h2>
+                        <p className="text-black text-sm flex items-center">
+                          <span className="w-2 h-2 bg-lime-400 rounded-full mr-2 border border-black"></span>
                           Smart Contract Enabled
                         </p>
                       </div>
                     </div>
                     
                     <div className="relative z-10 mb-6 space-y-3">
-                      <p className="text-gray-300 text-sm">
+                      <p className="text-black text-sm">
                         🔗 Process assistance applications via blockchain
                       </p>
-                      <p className="text-gray-400 text-xs">
+                      <p className="text-black text-xs">
                         ✓ Automated eligibility • Secure distribution • Real-time updates
                       </p>
                     </div>
                     
                     <button
                       onClick={() => setShowAdminAssistanceFiling(true)}
-                      className="w-full bg-lime-500 text-black py-3 px-4 rounded-lg hover:bg-lime-400 transition-all duration-300 flex items-center justify-center space-x-2 font-bold relative z-10 group-hover:scale-105"
-                      style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.5)' }}
+                      className="w-full bg-lime-400 text-black py-3 px-4 rounded-lg hover:bg-lime-500 transition-all duration-300 flex items-center justify-center space-x-2 font-bold relative z-10 border-2 border-black"
                     >
                       <HandHeart className="h-5 w-5" />
                       <span>INITIATE ASSISTANCE FILING</span>
@@ -4194,35 +4202,33 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Blockchain Instructions Panel */}
-                <div className="mt-8 bg-black border-2 border-lime-500 rounded-lg p-6 relative overflow-hidden" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.3)' }}>
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-lime-500 opacity-5 blur-2xl"></div>
-                  
+                <div className="mt-8 bg-white border-2 border-black rounded-lg p-6 relative overflow-hidden">
                   <div className="flex items-center mb-4 relative z-10">
-                    <div className="w-1 h-8 bg-lime-500 mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.8)' }}></div>
-                    <h3 className="text-xl font-bold text-lime-400">SYSTEM PROTOCOL FOR DA STAFF</h3>
+                    <div className="w-1 h-8 bg-lime-400 mr-3 border border-black"></div>
+                    <h3 className="text-xl font-bold text-black">SYSTEM PROTOCOL FOR DA STAFF</h3>
                   </div>
                   
-                  <div className="space-y-3 text-gray-300 relative z-10">
-                    <div className="flex items-start space-x-3 p-3 bg-gray-900 rounded border-l-2 border-lime-500">
+                  <div className="space-y-3 text-black relative z-10">
+                    <div className="flex items-start space-x-3 p-3 bg-white rounded border-2 border-black">
                       <span className="text-lime-400 font-bold">►</span>
-                      <p><span className="text-white font-semibold">CLAIMS PROTOCOL:</span> Select farmer from database → Fill damage assessment form → Submit to blockchain → Generate verification hash → Farmer signature required</p>
+                      <p><span className="text-black font-semibold">CLAIMS PROTOCOL:</span> Select farmer from database → Fill damage assessment form → Submit to blockchain → Generate verification hash → Farmer signature required</p>
                     </div>
-                    <div className="flex items-start space-x-3 p-3 bg-gray-900 rounded border-l-2 border-lime-500">
+                    <div className="flex items-start space-x-3 p-3 bg-white rounded border-2 border-black">
                       <span className="text-lime-400 font-bold">►</span>
-                      <p><span className="text-white font-semibold">ASSISTANCE PROTOCOL:</span> Verify eligibility via smart contract → Select program → Submit application → Automated approval process → Track on blockchain ledger</p>
+                      <p><span className="text-black font-semibold">ASSISTANCE PROTOCOL:</span> Verify eligibility via smart contract → Select program → Submit application → Automated approval process → Track on blockchain ledger</p>
                     </div>
-                    <div className="flex items-start space-x-3 p-3 bg-gray-900 rounded border-l-2 border-lime-500">
+                    <div className="flex items-start space-x-3 p-3 bg-white rounded border-2 border-black">
                       <span className="text-lime-400 font-bold">►</span>
-                      <p><span className="text-white font-semibold">SECURITY:</span> All records are encrypted and stored on distributed ledger → Verify farmer identity → Collect digital/physical signatures → Maintain audit trail</p>
+                      <p><span className="text-black font-semibold">SECURITY:</span> All records are encrypted and stored on distributed ledger → Verify farmer identity → Collect digital/physical signatures → Maintain audit trail</p>
                     </div>
-                    <div className="flex items-start space-x-3 p-3 bg-gray-900 rounded border-l-2 border-lime-500">
+                    <div className="flex items-start space-x-3 p-3 bg-white rounded border-2 border-black">
                       <span className="text-lime-400 font-bold">►</span>
-                      <p><span className="text-white font-semibold">TRACKING:</span> Real-time status monitoring → Blockchain transaction history → Automated notifications → Transparent verification system</p>
+                      <p><span className="text-black font-semibold">TRACKING:</span> Real-time status monitoring → Blockchain transaction history → Automated notifications → Transparent verification system</p>
                     </div>
                   </div>
                   
-                  <div className="mt-4 pt-4 border-t border-lime-500/30 flex items-center justify-center space-x-4 text-xs text-gray-500 relative z-10">
-                    <span className="flex items-center"><span className="w-2 h-2 bg-lime-400 rounded-full mr-2 animate-pulse"></span>SYSTEM ONLINE</span>
+                  <div className="mt-4 pt-4 border-t border-black flex items-center justify-center space-x-4 text-xs text-black relative z-10">
+                    <span className="flex items-center"><span className="w-2 h-2 bg-lime-400 rounded-full mr-2 border border-black"></span>SYSTEM ONLINE</span>
                     <span>|</span>
                     <span>BLOCKCHAIN SECURED</span>
                     <span>|</span>
