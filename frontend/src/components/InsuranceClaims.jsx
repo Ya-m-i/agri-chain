@@ -52,6 +52,9 @@ const InsuranceClaims = ({
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(5)
+  
+  // Report state
+  const [showReport, setShowReport] = useState(false)
   // Handler for downloading claim PDF
   const handleDownloadPDF = (claim) => {
     try {
@@ -106,272 +109,237 @@ const InsuranceClaims = ({
   return (
     <div className="mt-6">
       {/* Outside Title */}
-      <div className="flex items-center mb-4">
-        <FileText size={24} className="text-lime-600 mr-2" />
-        <h1 className="text-2xl font-bold text-gray-800">Insurance Claims</h1>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
+          <FileText size={24} className="text-lime-600 mr-2" />
+          <h1 className="text-2xl font-bold text-gray-800">Insurance Claims</h1>
+        </div>
+        <button
+          className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-sm font-semibold"
+          onClick={() => setShowReport(!showReport)}
+        >
+          <Download className="mr-2 h-5 w-5" />
+          Generate Report
+        </button>
       </div>
 
-      {/* Claims Overview Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {/* Pending Claims KPI Card */}
-        <div className="p-4 border border-gray-200 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <p className="text-sm text-gray-600">Pending Claims</p>
-              <h3 className="text-2xl font-bold text-gray-800">
-                {claims.filter(claim => claim.status === "pending").length}
-              </h3>
-              <p className="text-xs text-gray-500 mt-1">
-                {claims.length > 0 ? ((claims.filter(claim => claim.status === "pending").length / claims.length) * 100).toFixed(1) : "0.0"}% of total
-              </p>
+      {/* Charts Section - Only show when report is generated */}
+      {showReport && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Status Comparison Over Time - Grouped Bar Chart */}
+          <div className="p-6 border-2 border-black rounded-lg">
+            <div className="flex items-center mb-4">
+              <BarChart3 size={20} className="text-black mr-2" />
+              <h3 className="text-lg font-semibold text-black">Status Comparison Over Time</h3>
             </div>
-            <div className="ml-4">
-              <img src={claimsIcon} alt="Pending Claims" className="h-12 w-12" />
-            </div>
-          </div>
-        </div>
-
-        {/* Approved Claims KPI Card */}
-        <div className="p-4 border border-gray-200 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <p className="text-sm text-gray-600">Approved Claims</p>
-              <h3 className="text-2xl font-bold text-green-600">
-                {claims.filter(claim => claim.status === "approved").length}
-              </h3>
-              <p className="text-xs text-gray-500 mt-1">
-                {claims.length > 0 ? ((claims.filter(claim => claim.status === "approved").length / claims.length) * 100).toFixed(1) : "0.0"}% of total
-              </p>
-            </div>
-            <div className="ml-4">
-              <img src={approveIcon} alt="Approved Claims" className="h-12 w-12" />
-            </div>
-          </div>
-        </div>
-
-        {/* Rejected Claims KPI Card */}
-        <div className="p-4 border border-gray-200 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <p className="text-sm text-gray-600">Rejected Claims</p>
-              <h3 className="text-2xl font-bold text-red-600">
-                {claims.filter(claim => claim.status === "rejected").length}
-              </h3>
-              <p className="text-xs text-gray-500 mt-1">
-                {claims.length > 0 ? ((claims.filter(claim => claim.status === "rejected").length / claims.length) * 100).toFixed(1) : "0.0"}% of total
-              </p>
-            </div>
-            <div className="ml-4">
-              <img src={rejectedIcon} alt="Rejected Claims" className="h-12 w-12" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Charts Section - Status Comparison Over Time and Claims Distribution */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        {/* Status Comparison Over Time - Grouped Bar Chart */}
-        <div className="p-6 border border-gray-200 rounded-lg">
-          <div className="flex items-center mb-4">
-            <BarChart3 size={20} className="text-emerald-600 mr-2" />
-            <h3 className="text-lg font-semibold text-gray-800">Status Comparison Over Time</h3>
-          </div>
-          <div className="h-[400px]">
-            <Bar
-              data={(() => {
-                // Generate monthly data for the current year
-                const currentYear = new Date().getFullYear();
-                const monthNames = [
-                  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-                ];
-                
-                const monthlyData = monthNames.map((month, index) => {
-                  const monthClaims = claims.filter(claim => {
-                    const claimDate = new Date(claim.date);
-                    return claimDate.getFullYear() === currentYear && claimDate.getMonth() === index;
+            <div className="h-[400px]">
+              <Bar
+                data={(() => {
+                  // Generate monthly data for the current year
+                  const currentYear = new Date().getFullYear();
+                  const monthNames = [
+                    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                  ];
+                  
+                  const monthlyData = monthNames.map((month, index) => {
+                    const monthClaims = claims.filter(claim => {
+                      const claimDate = new Date(claim.date);
+                      return claimDate.getFullYear() === currentYear && claimDate.getMonth() === index;
+                    });
+                    
+                    return {
+                      month: month,
+                      pending: monthClaims.filter(claim => claim.status === 'pending').length,
+                      approved: monthClaims.filter(claim => claim.status === 'approved').length,
+                      rejected: monthClaims.filter(claim => claim.status === 'rejected').length
+                    };
                   });
                   
                   return {
-                    month: month,
-                    pending: monthClaims.filter(claim => claim.status === 'pending').length,
-                    approved: monthClaims.filter(claim => claim.status === 'approved').length,
-                    rejected: monthClaims.filter(claim => claim.status === 'rejected').length
+                    labels: monthlyData.map(d => d.month),
+                    datasets: [
+                      {
+                        label: 'Pending',
+                        data: monthlyData.map(d => d.pending),
+                        backgroundColor: '#bef264',
+                        borderColor: '#000000',
+                        borderWidth: 2,
+                      },
+                      {
+                        label: 'Approved',
+                        data: monthlyData.map(d => d.approved),
+                        backgroundColor: '#84cc16',
+                        borderColor: '#000000',
+                        borderWidth: 2,
+                      },
+                      {
+                        label: 'Rejected',
+                        data: monthlyData.map(d => d.rejected),
+                        backgroundColor: '#65a30d',
+                        borderColor: '#000000',
+                        borderWidth: 2,
+                      }
+                    ]
                   };
-                });
-                
-                return {
-                  labels: monthlyData.map(d => d.month),
+                })()}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'top',
+                      labels: {
+                        usePointStyle: true,
+                        pointStyle: 'rect',
+                        padding: 20,
+                        font: {
+                          size: 12,
+                          color: '#000000'
+                        },
+                        color: '#000000'
+                      }
+                    },
+                    tooltip: {
+                      backgroundColor: '#ffffff',
+                      titleColor: '#000000',
+                      bodyColor: '#000000',
+                      borderColor: '#000000',
+                      borderWidth: 2,
+                      callbacks: {
+                        label: function(context) {
+                          const label = context.dataset.label || '';
+                          const value = context.parsed.y;
+                          return `${label}: ${value} claims`;
+                        }
+                      }
+                    }
+                  },
+                  scales: {
+                    x: {
+                      title: {
+                        display: true,
+                        text: 'Month',
+                        color: '#000000',
+                        font: {
+                          size: 14,
+                          weight: 'bold'
+                        }
+                      },
+                      ticks: {
+                        color: '#000000'
+                      },
+                      grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                      }
+                    },
+                    y: {
+                      title: {
+                        display: true,
+                        text: 'Number of Claims',
+                        color: '#000000',
+                        font: {
+                          size: 14,
+                          weight: 'bold'
+                        }
+                      },
+                      ticks: {
+                        color: '#000000'
+                      },
+                      beginAtZero: true,
+                      grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                      }
+                    }
+                  }
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Claims Distribution Donut Chart */}
+          <div className="p-6 border-2 border-black rounded-lg">
+            <div className="flex items-center mb-4">
+              <PieChart size={20} className="text-black mr-2" />
+              <h3 className="text-lg font-semibold text-black">Claims Distribution</h3>
+            </div>
+            <div className="relative" style={{ height: "400px" }}>
+              <Doughnut
+                data={{
+                  labels: ['Pending', 'Approved', 'Rejected'],
                   datasets: [
                     {
-                      label: 'Pending',
-                      data: monthlyData.map(d => d.pending),
-                      backgroundColor: 'rgba(251, 191, 36, 0.8)',
-                      borderColor: 'rgba(251, 191, 36, 1)',
-                      borderWidth: 1,
+                      data: [
+                        claims.filter(claim => claim.status === "pending").length,
+                        claims.filter(claim => claim.status === "approved").length,
+                        claims.filter(claim => claim.status === "rejected").length
+                      ],
+                      backgroundColor: [
+                        '#bef264',  // light lime
+                        '#84cc16',  // neon lime
+                        '#65a30d',  // dark lime
+                      ],
+                      borderColor: [
+                        '#000000',
+                        '#000000',
+                        '#000000',
+                      ],
+                      borderWidth: 2,
                     },
-                    {
-                      label: 'Approved',
-                      data: monthlyData.map(d => d.approved),
-                      backgroundColor: 'rgba(34, 197, 94, 0.8)',
-                      borderColor: 'rgba(34, 197, 94, 1)',
-                      borderWidth: 1,
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      position: 'bottom',
+                      labels: {
+                        boxWidth: 12,
+                        padding: 15,
+                        font: {
+                          size: 11,
+                          color: '#000000'
+                        },
+                        color: '#000000'
+                      }
                     },
-                    {
-                      label: 'Rejected',
-                      data: monthlyData.map(d => d.rejected),
-                      backgroundColor: 'rgba(239, 68, 68, 0.8)',
-                      borderColor: 'rgba(239, 68, 68, 1)',
-                      borderWidth: 1,
-                    }
-                  ]
-                };
-              })()}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: 'top',
-                    labels: {
-                      usePointStyle: true,
-                      pointStyle: 'rect',
-                      padding: 20,
-                      font: {
-                        size: 12
+                    tooltip: {
+                      backgroundColor: '#ffffff',
+                      titleColor: '#000000',
+                      bodyColor: '#000000',
+                      borderColor: '#000000',
+                      borderWidth: 2,
+                      callbacks: {
+                        label: function(context) {
+                          const label = context.label || '';
+                          const value = context.raw || 0;
+                          const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                          const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+                          return `${label}: ${value} (${percentage}%)`;
+                        }
                       }
                     }
                   },
-                  tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
-                    borderColor: '#10b981',
-                    borderWidth: 1,
-                    callbacks: {
-                      label: function(context) {
-                        const label = context.dataset.label || '';
-                        const value = context.parsed.y;
-                        return `${label}: ${value} claims`;
-                      }
-                    }
-                  }
-                },
-                scales: {
-                  x: {
-                    title: {
-                      display: true,
-                      text: 'Month',
-                      font: {
-                        size: 14,
-                        weight: 'bold'
-                      }
-                    },
-                    grid: {
-                      display: false
-                    }
-                  },
-                  y: {
-                    title: {
-                      display: true,
-                      text: 'Number of Claims',
-                      font: {
-                        size: 14,
-                        weight: 'bold'
-                      }
-                    },
-                    beginAtZero: true,
-                    grid: {
-                      display: false
-                    }
-                  }
-                }
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Claims Distribution Donut Chart */}
-        <div className="p-6 border border-gray-200 rounded-lg">
-          <div className="flex items-center mb-4">
-            <PieChart size={20} className="text-emerald-600 mr-2" />
-            <h3 className="text-lg font-semibold text-gray-800">Claims Distribution</h3>
-          </div>
-          <div className="relative" style={{ height: "400px" }}>
-            <Doughnut
-              data={{
-                labels: ['Pending', 'Approved', 'Rejected'],
-                datasets: [
-                  {
-                    data: [
-                      claims.filter(claim => claim.status === "pending").length,
-                      claims.filter(claim => claim.status === "approved").length,
-                      claims.filter(claim => claim.status === "rejected").length
-                    ],
-                    backgroundColor: [
-                      'rgba(251, 191, 36, 0.8)',  // yellow
-                      'rgba(34, 197, 94, 0.8)',   // green
-                      'rgba(239, 68, 68, 0.8)',   // red
-                    ],
-                    borderColor: [
-                      'rgba(251, 191, 36, 1)',
-                      'rgba(34, 197, 94, 1)',
-                      'rgba(239, 68, 68, 1)',
-                    ],
-                    borderWidth: 2,
-                  },
-                ],
-              }}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: 'bottom',
-                    labels: {
-                      boxWidth: 12,
-                      padding: 15,
-                      font: {
-                        size: 11
-                      },
-                      color: '#1e40af'
-                    }
-                  },
-                  tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
-                    borderColor: '#3b82f6',
-                    borderWidth: 1,
-                    callbacks: {
-                      label: function(context) {
-                        const label = context.label || '';
-                        const value = context.raw || 0;
-                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
-                        return `${label}: ${value} (${percentage}%)`;
-                      }
-                    }
-                  }
-                },
-                cutout: '70%',
-              }}
-            />
-            <div 
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                textAlign: 'center'
-              }}
-            >
-              <div className="text-3xl font-bold text-gray-800">{claims.length}</div>
-              <div className="text-sm text-gray-600 font-medium">Total Claims</div>
+                  cutout: '70%',
+                }}
+              />
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  textAlign: 'center'
+                }}
+              >
+                <div className="text-3xl font-bold text-black">{claims.length}</div>
+                <div className="text-sm text-black font-medium">Total Claims</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
 
 
@@ -381,23 +349,23 @@ const InsuranceClaims = ({
             <button
               onClick={() => setClaimsTabView("pending")}
               className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                claimsTabView === "pending" ? "bg-lime-600 text-white" : "text-gray-600 hover:bg-gray-100"
+                claimsTabView === "pending" ? "bg-black text-lime-400" : "text-gray-600 hover:bg-gray-100"
               }`}
             >
               Pending Claims
             </button>
             <button
               onClick={() => setClaimsTabView("approved")}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors border-2 ${
-                claimsTabView === "approved" ? "border-lime-600 text-lime-600" : "border-transparent text-gray-600 hover:bg-gray-100"
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                claimsTabView === "approved" ? "bg-black text-lime-400" : "text-gray-600 hover:bg-gray-100"
               }`}
             >
               Approved Claims
             </button>
             <button
               onClick={() => setClaimsTabView("rejected")}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors border-2 ${
-                claimsTabView === "rejected" ? "border-lime-600 text-lime-600" : "border-transparent text-gray-600 hover:bg-gray-100"
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                claimsTabView === "rejected" ? "bg-black text-lime-400" : "text-gray-600 hover:bg-gray-100"
               }`}
             >
               Rejected Claims

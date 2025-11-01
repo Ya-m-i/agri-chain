@@ -3474,9 +3474,9 @@ const AdminDashboard = () => {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setClaimsTabView("pending")}
-                    className={`px-4 py-2 rounded-lg ${
+                    className={`px-4 py-2 rounded-lg font-semibold ${
                       claimsTabView === "pending"
-                        ? "bg-lime-700 text-white"
+                        ? "bg-lime-400 text-black"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
@@ -3484,9 +3484,9 @@ const AdminDashboard = () => {
                   </button>
                   <button
                     onClick={() => setClaimsTabView("all")}
-                    className={`px-4 py-2 rounded-lg ${
+                    className={`px-4 py-2 rounded-lg font-semibold ${
                       claimsTabView === "all"
-                        ? "bg-lime-700 text-white"
+                        ? "bg-lime-200 text-black"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
