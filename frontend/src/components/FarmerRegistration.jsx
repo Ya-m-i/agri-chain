@@ -74,6 +74,9 @@ const FarmerRegistration = ({
   const [showBarangayFilter, setShowBarangayFilter] = useState(false)
   const [showCertFilter, setShowCertFilter] = useState(false)
   const [showSearchFilter, setShowSearchFilter] = useState(false)
+  
+  // Report state
+  const [showReport, setShowReport] = useState(false)
 
   // Generate unique notification ID
   const generateUniqueId = () => {
@@ -421,19 +424,18 @@ const FarmerRegistration = ({
       {/* Register Farmer Button */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
-          <img src={registerIcon} alt="Register" className="h-10 w-10 mr-3" />
           <h2 className="text-2xl font-bold text-gray-800">Farmer Registration</h2>
         </div>
         <div className="flex gap-4">
           <button
-            className="bg-lime-600 text-white px-4 py-2 rounded-lg hover:bg-lime-700 transition-colors flex items-center justify-center shadow-sm"
+            className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-sm font-semibold"
             onClick={() => setShowRegisterForm(true)}
           >
             <UserPlus className="mr-2 h-5 w-5" />
             Register New Farmer
           </button>
           <button
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center shadow-sm"
+            className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-sm font-semibold"
             onClick={() => {
               if (onTabSwitch) {
                 onTabSwitch('crop-insurance')
@@ -456,34 +458,178 @@ const FarmerRegistration = ({
             </svg>
             {farmersLoading || cropInsuranceLoading ? 'Refreshing...' : 'Refresh Data'}
           </button>
+          <button
+            className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-sm font-semibold"
+            onClick={() => setShowReport(!showReport)}
+          >
+            <FileText className="mr-2 h-5 w-5" />
+            Generate Report
+          </button>
         </div>
       </div>
 
 
-      {/* Combined Filters Widget */}
-      <div className="w-full bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-          <Search className="h-5 w-5 text-gray-600 mr-2" />
-          Filter Farmers
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+
+      {/* Chart Visualizations Section - Only show when report is generated */}
+      {showReport && (
+        <div className="w-full flex flex-col md:flex-row gap-6 mb-6">
+          {/* Area Chart: Registered Farmers Over Time */}
+          <div className="flex-1 p-6 border-2 border-black rounded-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-black flex items-center gap-2">
+                <Users className="h-5 w-5 text-black" /> Registered Farmers Over Time
+              </h3>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-black">Period:</span>
+                <select
+                  value={timePeriod}
+                  onChange={(e) => setTimePeriod(e.target.value)}
+                  className="px-3 py-1 text-sm border-2 border-black rounded-md focus:outline-none bg-lime-400 text-black font-semibold"
+                >
+                  <option value="monthly">Monthly</option>
+                  <option value="quarterly">Quarterly</option>
+                </select>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                  className="px-3 py-1 text-sm border-2 border-black rounded-md focus:outline-none bg-lime-400 text-black font-semibold"
+                >
+                  {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
+                    <option key={year} value={year}>{year}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={generateTimeBasedData()}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <XAxis 
+                    dataKey="period" 
+                    stroke="#000000" 
+                    fontSize={12}
+                    tick={{ fontSize: 10, fill: '#000000' }}
+                    axisLine={{ stroke: '#000000' }}
+                  />
+                  <YAxis 
+                    stroke="#000000" 
+                    fontSize={12} 
+                    allowDecimals={false}
+                    tick={{ fill: '#000000' }}
+                    axisLine={{ stroke: '#000000' }}
+                    label={{ value: 'Number of Registered Farmers', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 12, fill: '#000000' } }}
+                  />
+                  <RechartsTooltip 
+                    formatter={(value, name) => [
+                      `${value} farmers`, 
+                      name === 'cumulative' ? 'Total Registered' : 'New Registrations'
+                    ]}
+                    labelFormatter={(label) => `${label} ${selectedYear}`}
+                    contentStyle={{ backgroundColor: '#fff', border: '2px solid #000', color: '#000' }}
+                    labelStyle={{ color: '#000' }}
+                  />
+                  <defs>
+                    <linearGradient id="farmerGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#84cc16" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#bef264" stopOpacity={0.3}/>
+                    </linearGradient>
+                  </defs>
+                  <Area 
+                    type="monotone" 
+                    dataKey="cumulative" 
+                    stroke="#84cc16" 
+                    strokeWidth={3}
+                    fill="url(#farmerGradient)" 
+                    name="cumulative"
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="count" 
+                    stroke="#65a30d" 
+                    strokeWidth={2}
+                    fill="#a3e635" 
+                    fillOpacity={0.4} 
+                    name="count"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          {/* Donut Pie Chart: Crop Type Distribution */}
+          <div className="flex-1 p-6 border-2 border-black rounded-lg">
+            <h3 className="text-lg font-semibold mb-4 text-black flex items-center gap-2">
+              <Layers className="h-5 w-5 text-black" /> Crop Type Distribution
+            </h3>
+            <div className="h-64 flex items-center justify-center">
+              <Doughnut
+                data={{
+                  labels: Object.keys(insuranceCropTypeDistribution),
+                  datasets: [
+                    {
+                      data: Object.values(insuranceCropTypeDistribution),
+                      backgroundColor: [
+                        '#84cc16', '#a3e635', '#bef264', '#d9f99d', '#ecfccb', '#65a30d', '#4d7c0f', '#365314', '#fef08a', '#fde68a', '#fef3c7', '#fef9c3', '#fffbeb'
+                      ],
+                      borderColor: '#000000',
+                      borderWidth: 2,
+                    },
+                  ],
+                }}
+                options={{
+                  cutout: '70%',
+                  plugins: {
+                    legend: { 
+                      display: true, 
+                      position: 'bottom', 
+                      labels: { 
+                        boxWidth: 16,
+                        color: '#000000',
+                        font: { family: 'sans-serif', size: 12 }
+                      } 
+                    },
+                    tooltip: { 
+                      enabled: true,
+                      backgroundColor: '#fff',
+                      titleColor: '#000',
+                      bodyColor: '#000',
+                      borderColor: '#000',
+                      borderWidth: 2
+                    },
+                  },
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Farm List Title */}
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
+        <div className="flex items-center">
+          <h2 className="text-xl font-semibold text-gray-800">Farm List</h2>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="text-sm text-gray-500">
+            Total: <span className="font-semibold">{farmers.length}</span> farmers
+          </div>
           {/* Crop Type Filter */}
           <div className="relative">
             <button
               onClick={() => setShowCropFilter(!showCropFilter)}
-              className="w-full bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-lime-500 flex items-center justify-center transition-colors"
+              className="bg-lime-200 text-black px-3 py-2 rounded-lg hover:bg-black hover:text-lime-400 transition-colors focus:outline-none text-sm font-medium"
             >
-              <img src={cropsIcon} alt="Crops" className="h-6 w-6 mr-2" />
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium">
                 {formData.cropType || "All Crops"}
               </span>
-              <svg className="ml-2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="ml-2 h-4 w-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             
             {showCropFilter && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-10 right-0 mt-1 w-48 bg-white border border-black rounded-lg shadow-lg max-h-60 overflow-y-auto">
                 <div
                   className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer"
                   onClick={() => {
@@ -505,7 +651,7 @@ const FarmerRegistration = ({
                     {crop}
                   </div>
                 ))}
-          </div>
+              </div>
             )}
           </div>
           
@@ -513,19 +659,18 @@ const FarmerRegistration = ({
           <div className="relative">
             <button
               onClick={() => setShowBarangayFilter(!showBarangayFilter)}
-              className="w-full bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center justify-center transition-colors"
+              className="bg-lime-200 text-black px-3 py-2 rounded-lg hover:bg-black hover:text-lime-400 transition-colors focus:outline-none text-sm font-medium"
             >
-              <img src={barangayIcon} alt="Barangay" className="h-6 w-6 mr-2" />
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium">
                 {formData.barangay || "All Barangays"}
               </span>
-              <svg className="ml-2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="ml-2 h-4 w-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             
             {showBarangayFilter && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+              <div className="absolute z-10 right-0 mt-1 w-48 bg-white border border-black rounded-lg shadow-lg max-h-60 overflow-y-auto">
                 <div
                   className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer"
                   onClick={() => {
@@ -547,7 +692,7 @@ const FarmerRegistration = ({
                     {barangay}
                   </div>
                 ))}
-          </div>
+              </div>
             )}
           </div>
           
@@ -555,19 +700,18 @@ const FarmerRegistration = ({
           <div className="relative">
             <button
               onClick={() => setShowCertFilter(!showCertFilter)}
-              className="w-full bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 flex items-center justify-center transition-colors"
+              className="bg-lime-200 text-black px-3 py-2 rounded-lg hover:bg-black hover:text-lime-400 transition-colors focus:outline-none text-sm font-medium"
             >
-              <img src={certIcon} alt="Certification" className="h-6 w-6 mr-2" />
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium">
                 {formData.isCertified === true ? "Certified" : formData.isCertified === false ? "Not Certified" : "All Certifications"}
               </span>
-              <svg className="ml-2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="ml-2 h-4 w-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             
             {showCertFilter && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+              <div className="absolute z-10 right-0 mt-1 w-48 bg-white border border-black rounded-lg shadow-lg">
                 <div
                   className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer"
                   onClick={() => {
@@ -576,7 +720,7 @@ const FarmerRegistration = ({
                   }}
                 >
                   All Certifications
-          </div>
+                </div>
                 <div
                   className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                   onClick={() => {
@@ -585,7 +729,7 @@ const FarmerRegistration = ({
                   }}
                 >
                   Certified
-          </div>
+                </div>
                 <div
                   className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                   onClick={() => {
@@ -599,177 +743,16 @@ const FarmerRegistration = ({
             )}
           </div>
           
-          {/* Search Filter */}
+          {/* Search Filter - Regular Input */}
           <div className="relative">
-            <button
-              onClick={() => setShowSearchFilter(!showSearchFilter)}
-              className="w-full bg-white border border-gray-200 rounded-lg p-3 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 flex items-center justify-center transition-colors"
-            >
-              <Search className="h-6 w-6 text-gray-600 mr-2" />
-              <span className="text-sm font-medium text-gray-700">
-                {searchQuery || "Search by name"}
-              </span>
-              <svg className="ml-2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            
-            {showSearchFilter && (
-              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
-                <div className="p-3">
-                  <input
-                    type="text"
-                    className="w-full border border-gray-200 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-gray-500 text-sm"
-                    placeholder="Search by name"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    autoFocus
-                  />
-                  <div className="flex justify-end mt-2 space-x-2">
-                    <button
-                      onClick={() => {
-                        setSearchQuery("");
-                        setShowSearchFilter(false);
-                      }}
-                      className="px-3 py-1 text-xs text-gray-500 hover:text-gray-700"
-                    >
-                      Clear
-                    </button>
-                    <button
-                      onClick={() => setShowSearchFilter(false)}
-                      className="px-3 py-1 text-xs bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-                    >
-                      Done
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-            </div>
-      </div>
-
-      {/* Chart Visualizations Section */}
-      <div className="w-full flex flex-col md:flex-row gap-6 mb-6">
-        {/* Area Chart: Registered Farmers Over Time */}
-        <div className="flex-1 p-6 border border-gray-200 rounded-lg">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-lime-700 flex items-center gap-2">
-              <Users className="h-5 w-5 text-lime-600" /> Registered Farmers Over Time
-            </h3>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600">Period:</span>
-              <select
-                value={timePeriod}
-                onChange={(e) => setTimePeriod(e.target.value)}
-                className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent"
-              >
-                <option value="monthly">Monthly</option>
-                <option value="quarterly">Quarterly</option>
-              </select>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                className="px-3 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent"
-              >
-                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={generateTimeBasedData()}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-              >
-                <XAxis 
-                  dataKey="period" 
-                  stroke="#6b7280" 
-                  fontSize={12}
-                  tick={{ fontSize: 10 }}
-                />
-                <YAxis 
-                  stroke="#6b7280" 
-                  fontSize={12} 
-                  allowDecimals={false}
-                  label={{ value: 'Number of Registered Farmers', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 12 } }}
-                />
-                <RechartsTooltip 
-                  formatter={(value, name) => [
-                    `${value} farmers`, 
-                    name === 'cumulative' ? 'Total Registered' : 'New Registrations'
-                  ]}
-                  labelFormatter={(label) => `${label} ${selectedYear}`}
-                />
-                <defs>
-                  <linearGradient id="farmerGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
-                    <stop offset="95%" stopColor="#bbf7d0" stopOpacity={0.3}/>
-                  </linearGradient>
-                </defs>
-                <Area 
-                  type="monotone" 
-                  dataKey="cumulative" 
-                  stroke="#22c55e" 
-                  fill="url(#farmerGradient)" 
-                  strokeWidth={3}
-                  name="cumulative"
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="count" 
-                  stroke="#059669" 
-                  fill="#10b981" 
-                  fillOpacity={0.4} 
-                  strokeWidth={2} 
-                  name="count"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-        {/* Donut Pie Chart: Crop Type Distribution */}
-        <div className="flex-1 p-6 border border-gray-200 rounded-lg">
-          <h3 className="text-lg font-semibold mb-4 text-emerald-700 flex items-center gap-2">
-            <Layers className="h-5 w-5 text-emerald-600" /> Crop Type Distribution
-          </h3>
-          <div className="h-64 flex items-center justify-center">
-            <Doughnut
-              data={{
-                labels: Object.keys(insuranceCropTypeDistribution),
-                datasets: [
-                  {
-                    data: Object.values(insuranceCropTypeDistribution),
-                    backgroundColor: [
-                      '#bbf7d0', '#6ee7b7', '#34d399', '#10b981', '#059669', '#047857', '#065f46', '#fef08a', '#fde68a', '#fca5a5', '#f87171', '#a7f3d0', '#f9fafb'
-                    ],
-                    borderColor: '#fff',
-                    borderWidth: 2,
-                  },
-                ],
-              }}
-              options={{
-                cutout: '70%',
-                plugins: {
-                  legend: { display: true, position: 'bottom', labels: { boxWidth: 16 } },
-                  tooltip: { enabled: true },
-                },
-              }}
+            <input
+              type="text"
+              className="bg-lime-200 text-black border border-black px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 text-sm font-medium placeholder-black placeholder-opacity-60 w-40"
+              placeholder="Search by name"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-        </div>
-      </div>
-
-      {/* Farm List Title */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center">
-          <img src={farmersIcon} alt="Farmers" className="h-8 w-8 mr-3" />
-          <h2 className="text-xl font-semibold text-gray-800">Farm List</h2>
-        </div>
-        <div className="text-sm text-gray-500">
-          Total: <span className="font-semibold">{farmers.length}</span> farmers
         </div>
       </div>
 
@@ -823,23 +806,66 @@ const FarmerRegistration = ({
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.lotNumber}</td>
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.lotArea}</td>
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.isCertified ? (<span className="px-2 py-1 bg-green-100 text-lime-800 rounded-full text-xs font-medium"><CheckCircle size={12} className="inline mr-1" /> Yes</span>) : (<span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">No</span>)}</td>
-                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.location ? (<button onClick={() => handleLocationView(farmer)} className="text-blue-600 hover:text-blue-800 flex items-center"><MapPin className="h-4 w-4 mr-1" />View</button>) : (<button className="text-gray-500 hover:text-gray-700 flex items-center"><Plus className="h-4 w-4 mr-1" />Add</button>)}</td>
+                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">
+                    {farmer.location ? (
+                      <button 
+                        onClick={() => handleLocationView(farmer)} 
+                        className="text-gray-600 hover:text-black hover:font-bold hover:cursor-pointer transition-all"
+                        style={{ textShadow: '0 0 0 transparent' }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.textShadow = '0 1px 2px rgba(0,0,0,0.2)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.textShadow = '0 0 0 transparent';
+                        }}
+                      >
+                        View
+                      </button>
+                    ) : (
+                      <button 
+                        className="text-gray-600 hover:text-black hover:font-bold hover:cursor-pointer transition-all"
+                        style={{ textShadow: '0 0 0 transparent' }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.textShadow = '0 1px 2px rgba(0,0,0,0.2)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.textShadow = '0 0 0 transparent';
+                        }}
+                      >
+                        Add
+                      </button>
+                    )}
+                  </td>
                   <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">
                     <div className="flex space-x-2">
                       <button 
                         onClick={() => { setSelectedFarmer(farmer); setShowFarmerDetails(true); }} 
-                        className="text-blue-600 hover:text-blue-800 font-medium flex items-center"
+                        className="text-gray-600 hover:text-black hover:font-bold hover:cursor-pointer transition-all"
+                        style={{ textShadow: '0 0 0 transparent' }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.textShadow = '0 1px 2px rgba(0,0,0,0.2)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.textShadow = '0 0 0 transparent';
+                        }}
                       >
-                        <User size={14} className="mr-1" />View
+                        View
                       </button>
                       <button 
                         onClick={() => { 
                           setSelectedFarmerForProfile(farmer); 
                           setShowProfileModal(true); 
                         }} 
-                        className="text-green-600 hover:text-green-800 font-medium flex items-center"
+                        className="text-gray-600 hover:text-black hover:font-bold hover:cursor-pointer transition-all"
+                        style={{ textShadow: '0 0 0 transparent' }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.textShadow = '0 1px 2px rgba(0,0,0,0.2)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.textShadow = '0 0 0 transparent';
+                        }}
                       >
-                        <UserPlus size={14} className="mr-1" />Set Profile
+                        Profile
                       </button>
                       <button 
                         onClick={() => { 
@@ -848,9 +874,16 @@ const FarmerRegistration = ({
                           setShowDeleteConfirmation(true); 
                           console.log('Modal should be open now'); 
                         }} 
-                        className="text-red-600 hover:text-red-800 font-medium flex items-center"
+                        className="text-gray-600 hover:text-black hover:font-bold hover:cursor-pointer transition-all"
+                        style={{ textShadow: '0 0 0 transparent' }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.textShadow = '0 1px 2px rgba(0,0,0,0.2)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.textShadow = '0 0 0 transparent';
+                        }}
                       >
-                        <X size={14} className="mr-1" />Delete
+                        Delete
                       </button>
                     </div>
                   </td>
