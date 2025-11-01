@@ -2332,11 +2332,11 @@ const AdminDashboard = () => {
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           } md:hidden transition duration-150 ease-out z-30 w-64 border-r-4 border-black`}
           style={{ 
-            backgroundColor: '#65a30d',
+            backgroundColor: 'rgba(132, 204, 22, 0.15)',
             boxShadow: '2px 0 8px rgba(0, 0, 0, 0.15)'
           }}
         >
-          <div className="p-6" style={{ backgroundColor: '#65a30d' }}>
+          <div className="p-6" style={{ backgroundColor: 'transparent' }}>
             <div className="flex flex-col items-center">
               <button 
                 onClick={() => {
@@ -2466,14 +2466,14 @@ const AdminDashboard = () => {
         <aside 
           className={`hidden md:block ${sidebarExpanded ? 'w-64' : 'w-16'} text-black space-y-6 fixed top-0 left-0 h-screen overflow-y-auto transition-all duration-150 ease-out group z-20 scrollbar-hide border-r-4 border-black`}
           style={{ 
-            backgroundColor: '#65a30d',
+            backgroundColor: 'rgba(132, 204, 22, 0.15)',
             boxShadow: '2px 0 8px rgba(0, 0, 0, 0.15)'
           }}
           onMouseEnter={() => setSidebarExpanded(true)}
           onMouseLeave={() => setSidebarExpanded(false)}
         >
           {/* Admin Logo Section */}
-          <div className={`p-6 transition-opacity duration-300 ${sidebarExpanded ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundColor: '#65a30d' }}>
+          <div className={`p-6 transition-opacity duration-300 ${sidebarExpanded ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundColor: 'transparent' }}>
             <div className="flex flex-col items-center">
               <button 
                 onClick={() => handleTabSwitch("home")}
@@ -3334,54 +3334,6 @@ const AdminDashboard = () => {
                 <div className="w-full h-[420px] rounded-lg border-2 border-lime-500 overflow-hidden relative z-10" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.4)' }}>
                   <div ref={overviewMapRef} className="w-full h-full" />
                 </div>
-                
-                {/* Weather Legend - Minimalist Blockchain Style */}
-                {showWeatherOverlay && (
-                  <div className="mt-6 p-5 bg-white rounded-lg border-2 border-lime-500 relative z-10" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
-                    <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
-                      <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
-                        <Cloud size={18} className="text-lime-500" />
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-black text-black uppercase tracking-wider">Weather Status</h4>
-                        <span className="text-[10px] text-gray-600 flex items-center gap-1">
-                          <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
-                          Real-time Data
-                        </span>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
-                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
-                        <div className="w-3 h-3 rounded-full bg-green-500 flex-shrink-0"></div>
-                        <span className="text-gray-700 font-semibold">Excellent</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
-                        <div className="w-3 h-3 rounded-full bg-blue-500 flex-shrink-0"></div>
-                        <span className="text-gray-700 font-semibold">Good</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
-                        <div className="w-3 h-3 rounded-full bg-yellow-500 flex-shrink-0"></div>
-                        <span className="text-gray-700 font-semibold">Moderate</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
-                        <div className="w-3 h-3 rounded-full bg-orange-500 flex-shrink-0"></div>
-                        <span className="text-gray-700 font-semibold">Caution</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
-                        <div className="w-3 h-3 rounded-full bg-red-500 flex-shrink-0"></div>
-                        <span className="text-gray-700 font-semibold">Warning</span>
-                      </div>
-                      <div className="flex items-center gap-2 bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
-                        <div className="w-3 h-3 rounded-full bg-red-700 flex-shrink-0"></div>
-                        <span className="text-gray-700 font-semibold">Danger</span>
-                      </div>
-                    </div>
-                    <div className="mt-4 pt-4 border-t-2 border-lime-500 text-xs text-gray-700 flex items-center bg-white p-3 rounded-lg border border-lime-500" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 0.15)' }}>
-                      <span className="text-lime-500 mr-2 font-bold">►</span>
-                      <span className="font-medium">Click markers for detailed weather data</span>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Pending Insurance Claims Section */}
