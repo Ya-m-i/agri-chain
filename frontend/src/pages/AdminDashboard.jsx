@@ -3561,7 +3561,7 @@ const AdminDashboard = () => {
                 <h2 className="text-2xl font-bold text-black">Assistance Inventory</h2>
                 <button
                   onClick={() => setShowEventModal(true)}
-                  className="flex items-center gap-2 bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-all duration-300 font-semibold border-2 border-black"
+                  className="flex items-center gap-2 bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-all duration-300 font-semibold shadow-md hover:shadow-lg"
                 >
                   <span className="text-xl font-bold">+</span>
                   <span className="font-semibold">Add New Assistance</span>
@@ -3577,97 +3577,95 @@ const AdminDashboard = () => {
 
               {/* Error State */}
               {assistanceError && (
-                <div className="bg-white border-2 border-black text-red-700 px-4 py-3 rounded mb-4">
+                <div className="bg-white shadow-sm text-red-700 px-4 py-3 rounded mb-4">
                   <p className="text-black">Error: {assistanceError}</p>
                 </div>
               )}
 
               {/* Assistance Inventory List */}
               {!assistanceLoading && !assistanceError && (
-              <div className="bg-white rounded-lg border-2 border-black p-8 mb-8">
+              <div className="bg-white rounded-lg shadow-md p-8 mb-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {currentItems.length > 0 ? (
                     currentItems.map((item, index) => (
                       <div
                         key={item._id || index}
-                        className="relative group rounded-lg shadow-lg bg-white border-2 border-black hover:shadow-xl transition-all duration-300 flex flex-col min-h-[300px] p-6 m-2"
+                        className="relative group rounded-lg shadow-md bg-white hover:shadow-lg transition-all duration-300 flex flex-row min-h-[300px] m-2 overflow-hidden"
                       >
                         {/* KPI Ribbon */}
-                        <div className="absolute top-0 right-0 px-4 py-1 rounded-bl-lg text-xs font-bold tracking-wider z-10 bg-lime-400 text-black border-l-2 border-b-2 border-black">
+                        <div className="absolute top-0 right-0 px-4 py-1 rounded-bl-lg text-xs font-bold tracking-wider z-10 bg-lime-400 text-black shadow-sm">
                           {item.assistanceType}
                         </div>
                         
-                        {/* Content Section */}
-                        <div className="flex-1 flex flex-col">
-                          {/* Text Content */}
-                          <div className="flex-1 space-y-3 mt-6 mb-4">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className={`text-xs font-bold px-2 py-0.5 rounded-full border-2 border-black ${
-                                (item.availableQuantity || 0) < 5
-                                  ? 'bg-red-100 text-red-700'
-                                  : 'bg-lime-200 text-black'
-                              }`}>
-                                {(item.availableQuantity || 0) < 5 ? 'Low Stock' : 'Available'}
+                        {/* Left Section - Text Content */}
+                        <div className="flex-1 flex flex-col p-6">
+                          <div className="flex items-center gap-2 mb-3 mt-4">
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full shadow-sm ${
+                              (item.availableQuantity || 0) < 5
+                                ? 'bg-red-100 text-red-700'
+                                : 'bg-lime-200 text-black'
+                            }`}>
+                              {(item.availableQuantity || 0) < 5 ? 'Low Stock' : 'Available'}
                             </span>
-                              {item.requiresRSBSA && (
-                                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-lime-200 text-black border-2 border-black">
-                                  RSBSA Required
-                                </span>
-                              )}
-                            </div>
-                            <div className="space-y-2 text-sm text-black">
-                              <div className="flex flex-wrap gap-2">
-                                <span className="font-semibold">Crop:</span>
-                                <span>{item.cropType}</span>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                <span className="font-semibold">Founder:</span>
-                                <span>{item.founderName}</span>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                <span className="font-semibold">Available:</span>
-                                <span>{item.availableQuantity || 0}</span>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                <span className="font-semibold">Max/Farmer:</span>
-                                <span>{item.maxQuantityPerFarmer || 100}kg</span>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                <span className="font-semibold">Date Added:</span>
-                                <span>{new Date(item.dateAdded).toLocaleDateString()}</span>
-                              </div>
-                            </div>
+                            {item.requiresRSBSA && (
+                              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-lime-200 text-black shadow-sm">
+                                RSBSA Required
+                              </span>
+                            )}
                           </div>
                           
-                          {/* Image Section - Centered on Right */}
-                          {item.photo && (
-                            <div className="flex items-center justify-center mb-4 p-4 border-2 border-black rounded-lg bg-lime-50">
-                              <img src={item.photo} alt="Assistance Logo" className="object-contain max-h-32 max-w-full" />
+                          <div className="space-y-2 text-sm text-black flex-1">
+                            <div className="flex flex-wrap gap-2">
+                              <span className="font-semibold">Crop:</span>
+                              <span>{item.cropType}</span>
                             </div>
-                          )}
+                            <div className="flex flex-wrap gap-2">
+                              <span className="font-semibold">Founder:</span>
+                              <span>{item.founderName}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <span className="font-semibold">Available:</span>
+                              <span>{item.availableQuantity || 0}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <span className="font-semibold">Max/Farmer:</span>
+                              <span>{item.maxQuantityPerFarmer || 100}kg</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <span className="font-semibold">Date Added:</span>
+                              <span>{new Date(item.dateAdded).toLocaleDateString()}</span>
+                            </div>
+                          </div>
                           
                           {/* Actions */}
                           <div className="flex gap-2 mt-4">
                             <button
                               onClick={() => handleViewAssistance(item)}
-                              className="flex-1 bg-lime-400 text-black px-3 py-2 rounded-lg font-semibold border-2 border-black hover:bg-lime-500 transition"
+                              className="flex-1 bg-lime-400 text-black px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-lime-500 transition"
                             >
                               View
                             </button>
                             <button
                               onClick={() => handleEditEvent(index)}
-                              className="flex-1 bg-lime-400 text-black px-3 py-2 rounded-lg font-semibold border-2 border-black hover:bg-lime-500 transition"
+                              className="flex-1 bg-lime-400 text-black px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-lime-500 transition"
                             >
                               Edit
                             </button>
                             <button
                               onClick={() => handleDeleteEvent(index)}
-                              className="flex-1 bg-lime-400 text-black px-3 py-2 rounded-lg font-semibold border-2 border-black hover:bg-lime-500 transition"
+                              className="flex-1 bg-lime-400 text-black px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-lime-500 transition"
                             >
                               Delete
                             </button>
                           </div>
                         </div>
+                        
+                        {/* Right Section - Image */}
+                        {item.photo && (
+                          <div className="w-40 flex items-center justify-center bg-white p-4">
+                            <img src={item.photo} alt="Assistance Logo" className="object-contain max-h-full max-w-full" />
+                          </div>
+                        )}
                       </div>
                     ))
                   ) : (
