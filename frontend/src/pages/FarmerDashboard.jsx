@@ -99,6 +99,11 @@ const FarmerDashboard = () => {
   const lastClaimStatusCheckRef = useRef(null);
   const lastApplicationStatusCheckRef = useRef(null);
   
+  // Generate unique notification ID (must be declared before useCallback that uses it)
+  const generateUniqueId = () => {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  };
+  
   // Initialize timestamps after data loads to avoid showing all existing items as new
   useEffect(() => {
     if (claims.length > 0 && lastClaimStatusCheckRef.current === null) {
@@ -421,11 +426,6 @@ const FarmerDashboard = () => {
 
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 3 // Number of assistance items per page
-
-  // Generate unique notification ID
-  const generateUniqueId = () => {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  };
 
   // Generate claims data for donut chart
   const generateClaimsChartData = () => {
