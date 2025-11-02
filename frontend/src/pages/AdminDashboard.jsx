@@ -161,7 +161,11 @@ import {
   useDeleteAssistance,
   useRegisterFarmer,
   useDeleteFarmer,
-  useCropPrices
+  useCropPrices,
+  useNotifications,
+  useMarkNotificationsAsRead,
+  useClearNotifications,
+  useDeleteNotification
 } from '../hooks/useAPI'
 
 // Utility: Moving Average
@@ -306,6 +310,40 @@ const AdminDashboard = () => {
   const { data: allApplications = [], isLoading: applicationsLoading } = useAllApplications()
   const { data: cropPrices = [], isLoading: cropPricesLoading } = useCropPrices()
   
+  // Notification hooks (API-based, polling every 7 seconds)
+  const { data: apiNotifications = [], refetch: refetchNotifications } = useNotifications('admin', null)
+  const markAsReadMutation = useMarkNotificationsAsRead()
+  const clearNotificationsMutation = useClearNotifications()
+  const deleteNotificationMutation = useDeleteNotification()
+  
+  // Sync API notifications to Zustand store
+  useEffect(() => {
+    if (apiNotifications && apiNotifications.length > 0) {
+      const store = useNotificationStore.getState();
+      apiNotifications.forEach(notification => {
+        // Check if notification already exists (by _id or message content)
+        const exists = store.adminNotifications.some(
+          n => n.id === notification._id || 
+          (n.message === notification.message && 
+           new Date(n.timestamp).getTime() === new Date(notification.timestamp).getTime())
+        );
+        
+        if (!exists) {
+          store.addAdminNotification({
+            id: notification._id || notification.id,
+            type: notification.type || 'info',
+            title: notification.title,
+            message: notification.message,
+            timestamp: new Date(notification.timestamp || notification.createdAt),
+            read: notification.read || false,
+            relatedEntityType: notification.relatedEntityType,
+            relatedEntityId: notification.relatedEntityId,
+          });
+        }
+      });
+    }
+  }, [apiNotifications]);
+  
   // Initialize Socket.IO for real-time updates (disabled for notifications - using polling instead)
   // eslint-disable-next-line no-unused-vars
   const { isConnected, socket } = useSocketQuery({
@@ -313,106 +351,12 @@ const AdminDashboard = () => {
     enableApplicationsListener: false, // Disabled - using polling instead
   });
 
-  // Track last checked timestamps for notifications (initialize after data loads)
-  const lastClaimCheckRef = useRef(null);
-  const lastApplicationCheckRef = useRef(null);
-  
-  // Initialize timestamps after data loads to avoid showing all existing items as new
-  useEffect(() => {
-    if (claims.length > 0 && lastClaimCheckRef.current === null) {
-      const latestClaim = claims.reduce((latest, claim) => {
-        const claimDate = new Date(claim.date || claim.createdAt || claim.timestamp);
-        return claimDate > latest ? claimDate : latest;
-      }, new Date(0));
-      lastClaimCheckRef.current = latestClaim.getTime();
-    }
-    if (allApplications.length > 0 && lastApplicationCheckRef.current === null) {
-      const latestApp = allApplications.reduce((latest, app) => {
-        const appDate = new Date(app.applicationDate || app.createdAt || app.timestamp);
-        return appDate > latest ? appDate : latest;
-      }, new Date(0));
-      lastApplicationCheckRef.current = latestApp.getTime();
-    }
-  }, [claims, allApplications]);
-
-  // Polling function to check for new notifications (non-real-time)
-  const checkForNewNotifications = useCallback(() => {
-    if (lastClaimCheckRef.current === null || lastApplicationCheckRef.current === null) {
-      return; // Skip if timestamps not initialized yet
-    }
-    
-    // Check for new claims
-    const newPendingClaims = claims.filter(claim => {
-      const claimDate = new Date(claim.date || claim.createdAt || claim.timestamp);
-      return claimDate.getTime() > lastClaimCheckRef.current && claim.status === 'pending';
-    });
-
-    if (newPendingClaims.length > 0) {
-      const existingNotifications = getAdminNotifications();
-      newPendingClaims.forEach(claim => {
-        const notificationExists = existingNotifications.some(
-          n => n.message?.includes(claim.claimNumber || claim._id?.slice(-6))
-        );
-        
-        if (!notificationExists) {
-          useNotificationStore.getState().addAdminNotification({
-            id: generateUniqueId(),
-            type: 'info',
-            title: 'New Claim Submitted',
-            message: `New claim ${claim.claimNumber || claim._id?.slice(-6) || 'pending'} submitted for ${claim.crop || 'unknown crop'}`,
-            timestamp: new Date()
-          });
-        }
-      });
-      
-      lastClaimCheckRef.current = Date.now();
-    }
-
-    // Check for new assistance applications
-    const newPendingApplications = allApplications.filter(app => {
-      const appDate = new Date(app.applicationDate || app.createdAt || app.timestamp);
-      return appDate.getTime() > lastApplicationCheckRef.current && app.status === 'pending';
-    });
-
-    if (newPendingApplications.length > 0) {
-      const existingNotifications = getAdminNotifications();
-      newPendingApplications.forEach(app => {
-        const farmerName = app.farmerId ? `${app.farmerId.firstName} ${app.farmerId.lastName}` : 'A farmer';
-        const assistanceType = app.assistanceId?.assistanceType || 'assistance';
-        const notificationExists = existingNotifications.some(
-          n => n.message?.includes(assistanceType) && n.message?.includes(farmerName)
-        );
-        
-        if (!notificationExists) {
-          useNotificationStore.getState().addAdminNotification({
-            id: generateUniqueId(),
-            type: 'info',
-            title: 'New Assistance Application',
-            message: `${farmerName} has applied for ${assistanceType} assistance.`,
-            timestamp: new Date()
-          });
-        }
-      });
-      
-      lastApplicationCheckRef.current = Date.now();
-    }
-  }, [claims, allApplications]);
-
-  // Setup polling for notifications (every 7 seconds)
-  useEffect(() => {
-    const notificationPollingInterval = setInterval(() => {
-      checkForNewNotifications();
-    }, 7000); // 7 seconds - between 5-10 as requested
-
-    return () => clearInterval(notificationPollingInterval);
-  }, [checkForNewNotifications]);
-
-  // Manual refresh function for notifications
+  // Manual refresh function for notifications (fetches from API)
   const refreshNotifications = useCallback(() => {
-    checkForNewNotifications();
+    refetchNotifications();
     refetchClaims();
     // Note: allApplications will auto-refresh via React Query
-  }, [checkForNewNotifications, refetchClaims]);
+  }, [refetchNotifications, refetchClaims]);
   
   // React Query mutations
   const updateClaimMutation = useUpdateClaim()
@@ -1486,10 +1430,40 @@ const AdminDashboard = () => {
   }
 
   // Toggle notification panel and mark as read
-  const toggleNotificationPanel = () => {
+  const toggleNotificationPanel = async () => {
     setNotificationOpen(!notificationOpen)
     if (!notificationOpen) {
-      markAdminNotificationsAsRead()
+      // Mark all unread notifications as read via API
+      const unreadNotifications = adminNotifications.filter(n => !n.read);
+      if (unreadNotifications.length > 0) {
+        const notificationIds = unreadNotifications.map(n => n.id).filter(id => id);
+        try {
+          await markAsReadMutation.mutateAsync({
+            recipientType: 'admin',
+            recipientId: null,
+            notificationIds: notificationIds.length > 0 ? notificationIds : null
+          });
+          // Also update local store
+          markAdminNotificationsAsRead();
+        } catch (error) {
+          console.error('Error marking notifications as read:', error);
+        }
+      }
+    }
+  }
+
+  // Clear all notifications (API + local store)
+  const handleClearAllNotifications = async () => {
+    try {
+      await clearNotificationsMutation.mutateAsync({
+        recipientType: 'admin',
+        recipientId: null
+      });
+      // Also clear local store
+      useNotificationStore.getState().clearAdminNotifications();
+      refetchNotifications();
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
     }
   }
 
@@ -2280,7 +2254,7 @@ const AdminDashboard = () => {
                       </button>
                       {adminNotifications.length > 0 && (
                         <button
-                          onClick={() => useNotificationStore.getState().clearNotifications()}
+                          onClick={handleClearAllNotifications}
                           className="text-black hover:text-gray-700 text-sm"
                           title="Clear all notifications"
                         >
@@ -2311,7 +2285,22 @@ const AdminDashboard = () => {
                                     {formatTimestamp(new Date(notification.timestamp))}
                                   </span>
                                   <button
-                                    onClick={() => useNotificationStore.getState().removeAdminNotification(notification.id)}
+                                    onClick={async () => {
+                                      // Delete from API if notification has _id (MongoDB ObjectId check)
+                                      if (notification.id && notification.id.length > 20) {
+                                        try {
+                                          await deleteNotificationMutation.mutateAsync({
+                                            notificationId: notification.id,
+                                            recipientType: 'admin',
+                                            recipientId: null
+                                          });
+                                        } catch (error) {
+                                          console.error('Error deleting notification:', error);
+                                        }
+                                      }
+                                      // Remove from local store
+                                      useNotificationStore.getState().removeAdminNotification(notification.id);
+                                    }}
                                     className="text-gray-400 hover:text-red-500 transition-colors"
                                     aria-label="Remove notification"
                                   >

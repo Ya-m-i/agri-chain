@@ -389,4 +389,47 @@ export const getAllFarmerProfileImages = async () => {
   return await fetchWithRetry(apiUrl('/api/farmers/profile-images'));
 };
 
+// Notification API functions
+export const fetchNotifications = async (recipientType, recipientId = null) => {
+  const endpoint = recipientType === 'admin' 
+    ? '/api/notifications/admin'
+    : `/api/notifications/farmer/${recipientId}`;
+  return await fetchWithRetry(apiUrl(endpoint));
+};
+
+export const getUnreadNotificationCount = async (recipientType, recipientId = null) => {
+  const endpoint = recipientType === 'admin'
+    ? '/api/notifications/admin/count'
+    : `/api/notifications/farmer/${recipientId}/count`;
+  return await fetchWithRetry(apiUrl(endpoint));
+};
+
+export const markNotificationsAsRead = async (recipientType, recipientId = null, notificationIds = null) => {
+  const endpoint = recipientType === 'admin'
+    ? '/api/notifications/admin/read'
+    : `/api/notifications/farmer/${recipientId}/read`;
+  return await fetchWithRetry(apiUrl(endpoint), {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ notificationIds }),
+  });
+};
+
+export const deleteNotification = async (notificationId) => {
+  return await fetchWithRetry(apiUrl(`/api/notifications/${notificationId}`), {
+    method: 'DELETE',
+  });
+};
+
+export const clearNotifications = async (recipientType, recipientId = null) => {
+  const endpoint = recipientType === 'admin'
+    ? '/api/notifications/admin/clear'
+    : `/api/notifications/farmer/${recipientId}/clear`;
+  return await fetchWithRetry(apiUrl(endpoint), {
+    method: 'DELETE',
+  });
+};
+
 // Removed preload function as caching is disabled

@@ -1,5 +1,6 @@
 const Claim = require('../models/claimModel')
 const Farmer = require('../models/farmerModel')
+const Notification = require('../models/notificationModel')
 const { calculateCompensation } = require('../utils/compensationUtils')
 const axios = require('axios')
 
@@ -99,7 +100,26 @@ const createClaim = async (req, res) => {
     // Log claim to hosted blockchain
     await logClaimToBlockchain(claim);
     
-    // Emit Socket.IO event for real-time updates to ALL connected devices
+    // Save notification to database for admin (polling-based, not real-time)
+    try {
+      await Notification.create({
+        recipientType: 'admin',
+        recipientId: null,
+        type: 'info',
+        title: 'New Claim Submitted',
+        message: `New claim ${claim.claimNumber || claim._id.toString().slice(-6)} submitted for ${claim.crop || 'unknown crop'}`,
+        relatedEntityType: 'claim',
+        relatedEntityId: claim._id,
+        read: false,
+        timestamp: new Date()
+      });
+      console.log('Notification saved to database for admin');
+    } catch (notificationError) {
+      console.error('Error saving notification to database:', notificationError);
+      // Don't fail the claim creation if notification fails
+    }
+    
+    // Emit Socket.IO event for real-time updates (optional, but keeping for other features)
     const io = req.app.get('io');
     if (io) {
       console.log('Emitting socket events for claim:', claim.claimNumber);
@@ -194,7 +214,45 @@ const updateClaim = async (req, res) => {
     // Log claim status update to hosted blockchain
     await logClaimToBlockchain(claim);
     
-    // Emit Socket.IO event for real-time updates
+    // Save notification to database for farmer when status changes (polling-based, not real-time)
+    if (status && claim.farmerId && (status === 'approved' || status === 'rejected')) {
+      try {
+        let notificationType = status === 'approved' ? 'success' : 'error';
+        let title = status === 'approved' ? 'Claim Approved!' : 'Claim Rejected';
+        let message = '';
+        
+        if (status === 'approved') {
+          const compensationText = claim.compensation ? ` Compensation: ₱${claim.compensation.toLocaleString()}` : '';
+          message = `Your claim for ${claim.crop || 'unknown crop'} has been approved!${compensationText}`;
+          if (adminFeedback) {
+            message += ` Feedback: ${adminFeedback}`;
+          }
+        } else {
+          message = `Your claim for ${claim.crop || 'unknown crop'} has been rejected.`;
+          if (adminFeedback) {
+            message += ` Reason: ${adminFeedback}`;
+          }
+        }
+        
+        await Notification.create({
+          recipientType: 'farmer',
+          recipientId: claim.farmerId,
+          type: notificationType,
+          title: title,
+          message: message,
+          relatedEntityType: 'claim',
+          relatedEntityId: claim._id,
+          read: false,
+          timestamp: new Date()
+        });
+        console.log('Notification saved to database for farmer');
+      } catch (notificationError) {
+        console.error('Error saving notification to database:', notificationError);
+        // Don't fail the claim update if notification fails
+      }
+    }
+    
+    // Emit Socket.IO event for real-time updates (optional, but keeping for other features)
     const io = req.app.get('io');
     if (io) {
       // Emit to admin room

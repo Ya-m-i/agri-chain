@@ -1,6 +1,7 @@
 const Assistance = require('../models/assistanceModel');
 const AssistanceApplication = require('../models/assistanceApplicationModel');
 const Farmer = require('../models/farmerModel');
+const Notification = require('../models/notificationModel');
 
 // @desc    Create a new assistance item
 // @route   POST /api/assistance
@@ -162,7 +163,31 @@ const applyForAssistance = async (req, res) => {
       filedBy: req.body.filedBy || 'farmer' // Default to farmer if not specified
     });
     
-    // Emit Socket.IO event for real-time updates
+    // Save notification to database for admin (polling-based, not real-time)
+    try {
+      const farmerName = farmer.firstName && farmer.lastName 
+        ? `${farmer.firstName} ${farmer.lastName}` 
+        : 'A farmer';
+      const assistanceName = assistance.assistanceType || 'assistance';
+      
+      await Notification.create({
+        recipientType: 'admin',
+        recipientId: null,
+        type: 'info',
+        title: 'New Assistance Application',
+        message: `${farmerName} applied for ${assistanceName} (Quantity: ${requestedQuantity})`,
+        relatedEntityType: 'application',
+        relatedEntityId: application._id,
+        read: false,
+        timestamp: new Date()
+      });
+      console.log('Notification saved to database for admin');
+    } catch (notificationError) {
+      console.error('Error saving notification to database:', notificationError);
+      // Don't fail the application creation if notification fails
+    }
+    
+    // Emit Socket.IO event for real-time updates (optional, but keeping for other features)
     const io = req.app.get('io');
     if (io) {
       // Emit to admin room
@@ -273,7 +298,57 @@ const updateApplicationStatus = async (req, res) => {
 
     await application.save();
     
-    // Emit Socket.IO event for real-time updates
+    // Save notification to database for farmer when status changes (polling-based, not real-time)
+    if (status && application.farmerId && (status === 'approved' || status === 'rejected' || status === 'distributed')) {
+      try {
+        let notificationType = 'info';
+        let title = '';
+        let message = '';
+        
+        const assistanceName = application.assistanceId?.assistanceType || 'assistance';
+        
+        if (status === 'approved') {
+          notificationType = 'success';
+          title = 'Application Approved!';
+          message = `Your application for ${assistanceName} has been approved!`;
+          if (officerNotes) {
+            message += ` Notes: ${officerNotes}`;
+          }
+        } else if (status === 'rejected') {
+          notificationType = 'error';
+          title = 'Application Rejected';
+          message = `Your application for ${assistanceName} has been rejected.`;
+          if (officerNotes) {
+            message += ` Reason: ${officerNotes}`;
+          }
+        } else if (status === 'distributed') {
+          notificationType = 'success';
+          title = 'Assistance Distributed!';
+          message = `Your ${assistanceName} has been distributed!`;
+          if (officerNotes) {
+            message += ` Notes: ${officerNotes}`;
+          }
+        }
+        
+        await Notification.create({
+          recipientType: 'farmer',
+          recipientId: application.farmerId,
+          type: notificationType,
+          title: title,
+          message: message,
+          relatedEntityType: 'application',
+          relatedEntityId: application._id,
+          read: false,
+          timestamp: new Date()
+        });
+        console.log('Notification saved to database for farmer');
+      } catch (notificationError) {
+        console.error('Error saving notification to database:', notificationError);
+        // Don't fail the application update if notification fails
+      }
+    }
+    
+    // Emit Socket.IO event for real-time updates (optional, but keeping for other features)
     const io = req.app.get('io');
     if (io) {
       // Emit to admin room
@@ -286,10 +361,6 @@ const updateApplicationStatus = async (req, res) => {
       
       console.log('Socket event emitted: application-updated');
     }
-
-    // TODO: Send notification to farmer about status update
-    // This would typically be done through a notification service
-    // For now, we'll just return the updated application
 
     res.status(200).json({
       message: 'Application status updated successfully',

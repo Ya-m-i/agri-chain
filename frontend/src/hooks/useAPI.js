@@ -17,6 +17,8 @@ export const QUERY_KEYS = {
   CROP_PRICES: 'cropPrices',
   CROP_PRICE: (id) => ['cropPrice', id],
   CROP_PRICE_STATS: 'cropPriceStats',
+  NOTIFICATIONS: (recipientType, recipientId) => ['notifications', recipientType, recipientId],
+  NOTIFICATION_COUNT: (recipientType, recipientId) => ['notificationCount', recipientType, recipientId],
 }
 
 // ============ FARMERS ============
@@ -278,5 +280,72 @@ export const useCropPriceStats = () => {
   return useQuery({
     queryKey: [QUERY_KEYS.CROP_PRICE_STATS],
     queryFn: api.getCropPriceStats,
+  })
+}
+
+// ============ NOTIFICATIONS ============
+export const useNotifications = (recipientType, recipientId = null) => {
+  return useQuery({
+    queryKey: QUERY_KEYS.NOTIFICATIONS(recipientType, recipientId),
+    queryFn: () => api.fetchNotifications(recipientType, recipientId),
+    refetchInterval: 7000, // Poll every 7 seconds
+  })
+}
+
+export const useUnreadNotificationCount = (recipientType, recipientId = null) => {
+  return useQuery({
+    queryKey: QUERY_KEYS.NOTIFICATION_COUNT(recipientType, recipientId),
+    queryFn: () => api.getUnreadNotificationCount(recipientType, recipientId),
+    refetchInterval: 7000, // Poll every 7 seconds
+  })
+}
+
+export const useMarkNotificationsAsRead = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ recipientType, recipientId, notificationIds }) => 
+      api.markNotificationsAsRead(recipientType, recipientId, notificationIds),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ 
+        queryKey: QUERY_KEYS.NOTIFICATIONS(variables.recipientType, variables.recipientId) 
+      })
+      queryClient.invalidateQueries({ 
+        queryKey: QUERY_KEYS.NOTIFICATION_COUNT(variables.recipientType, variables.recipientId) 
+      })
+    },
+  })
+}
+
+export const useDeleteNotification = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ notificationId, recipientType, recipientId }) => 
+      api.deleteNotification(notificationId).then(() => ({ recipientType, recipientId })),
+    onSuccess: (_, variables) => {
+      if (variables.recipientType) {
+        queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.NOTIFICATIONS(variables.recipientType, variables.recipientId) 
+        })
+        queryClient.invalidateQueries({ 
+          queryKey: QUERY_KEYS.NOTIFICATION_COUNT(variables.recipientType, variables.recipientId) 
+        })
+      }
+    },
+  })
+}
+
+export const useClearNotifications = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ recipientType, recipientId }) => 
+      api.clearNotifications(recipientType, recipientId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ 
+        queryKey: QUERY_KEYS.NOTIFICATIONS(variables.recipientType, variables.recipientId) 
+      })
+      queryClient.invalidateQueries({ 
+        queryKey: QUERY_KEYS.NOTIFICATION_COUNT(variables.recipientType, variables.recipientId) 
+      })
+    },
   })
 }

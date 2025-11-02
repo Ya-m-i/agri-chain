@@ -31,7 +31,7 @@ import FarmerCropInsurance from "../components/FarmerCropInsurance"
 import LoadingOverlay from '../components/LoadingOverlay';
 import FarmerCropPrices from "../components/FarmerCropPrices"
 import { calculateCompensation, getPaymentStatus, getExpectedPaymentDate, getDamageSeverity, getCoverageDetails } from "../utils/insuranceUtils"
-import { useClaims, useCropInsurance, useFarmerApplications, useAssistances, useApplyForAssistance } from '../hooks/useAPI'
+import { useClaims, useCropInsurance, useFarmerApplications, useAssistances, useApplyForAssistance, useNotifications, useMarkNotificationsAsRead, useClearNotifications, useDeleteNotification } from '../hooks/useAPI'
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
@@ -116,11 +116,6 @@ const FarmerDashboard = () => {
       lastApplicationStatusCheckRef.current = latestApp.getTime();
     }
   }, [claims, farmerApplications]);
-
-  // Generate unique ID function
-  const generateUniqueId = () => {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  };
 
   // Polling function to check for notification updates (non-real-time)
   const checkForFarmerNotifications = useCallback(() => {
@@ -240,12 +235,12 @@ const FarmerDashboard = () => {
     return () => clearInterval(notificationPollingInterval);
   }, [checkForFarmerNotifications, user?.id]);
 
-  // Manual refresh function for notifications
+  // Manual refresh function for notifications (fetches from API)
   const refreshFarmerNotifications = useCallback(() => {
-    checkForFarmerNotifications();
+    refetchNotifications();
     refetchClaims();
     // Note: farmerApplications will auto-refresh via React Query
-  }, [checkForFarmerNotifications, refetchClaims]);
+  }, [refetchNotifications, refetchClaims]);
 
   // State for claim details modal
   const [showClaimDetails, setShowClaimDetails] = useState(false)
@@ -256,6 +251,40 @@ const FarmerDashboard = () => {
   
   // Use React Query for crop insurance data
   const { data: cropInsuranceRecords = [] } = useCropInsurance(user?.id)
+  
+  // Notification hooks (API-based, polling every 7 seconds)
+  const { data: apiNotifications = [], refetch: refetchNotifications } = useNotifications('farmer', user?.id)
+  const markAsReadMutation = useMarkNotificationsAsRead()
+  const clearNotificationsMutation = useClearNotifications()
+  const deleteNotificationMutation = useDeleteNotification()
+  
+  // Sync API notifications to Zustand store
+  useEffect(() => {
+    if (apiNotifications && apiNotifications.length > 0 && user?.id) {
+      const store = useNotificationStore.getState();
+      apiNotifications.forEach(notification => {
+        // Check if notification already exists (by _id or message content)
+        const exists = store.getFarmerNotifications(user.id).some(
+          n => n.id === notification._id || 
+          (n.message === notification.message && 
+           new Date(n.timestamp).getTime() === new Date(notification.timestamp).getTime())
+        );
+        
+        if (!exists) {
+          store.addFarmerNotification({
+            id: notification._id || notification.id,
+            type: notification.type || 'info',
+            title: notification.title,
+            message: notification.message,
+            timestamp: new Date(notification.timestamp || notification.createdAt),
+            read: notification.read || false,
+            relatedEntityType: notification.relatedEntityType,
+            relatedEntityId: notification.relatedEntityId,
+          }, user.id);
+        }
+      });
+    }
+  }, [apiNotifications, user?.id]);
   
   // Insured crop types derived from crop insurance records using React Query
   const insuredCropTypes = useMemo(() => {
@@ -476,10 +505,41 @@ const FarmerDashboard = () => {
   }
 
   // Toggle notification panel and mark as read
-  const toggleNotificationPanel = () => {
+  const toggleNotificationPanel = async () => {
     setNotificationOpen(!notificationOpen)
     if (!notificationOpen && user?.id) {
-      useNotificationStore.getState().markFarmerNotificationsAsRead(user.id)
+      // Mark all unread notifications as read via API
+      const unreadNotifications = farmerNotifications.filter(n => !n.read);
+      if (unreadNotifications.length > 0) {
+        const notificationIds = unreadNotifications.map(n => n.id).filter(id => id);
+        try {
+          await markAsReadMutation.mutateAsync({
+            recipientType: 'farmer',
+            recipientId: user.id,
+            notificationIds: notificationIds.length > 0 ? notificationIds : null
+          });
+          // Also update local store
+          useNotificationStore.getState().markFarmerNotificationsAsRead(user.id);
+        } catch (error) {
+          console.error('Error marking notifications as read:', error);
+        }
+      }
+    }
+  }
+
+  // Clear all notifications (API + local store)
+  const handleClearAllNotifications = async () => {
+    if (!user?.id) return;
+    try {
+      await clearNotificationsMutation.mutateAsync({
+        recipientType: 'farmer',
+        recipientId: user.id
+      });
+      // Also clear local store
+      useNotificationStore.getState().clearFarmerNotifications(user.id);
+      refetchNotifications();
+    } catch (error) {
+      console.error('Error clearing notifications:', error);
     }
   }
 
@@ -683,9 +743,7 @@ const FarmerDashboard = () => {
                       </button>
                       {farmerNotifications.length > 0 && (
                         <button
-                          onClick={() => {
-                            useNotificationStore.getState().clearFarmerNotifications(user?.id)
-                          }}
+                          onClick={handleClearAllNotifications}
                           className="text-black hover:text-gray-700 text-sm"
                           title="Clear all notifications"
                         >
