@@ -288,6 +288,7 @@ export const useNotifications = (recipientType, recipientId = null) => {
   return useQuery({
     queryKey: QUERY_KEYS.NOTIFICATIONS(recipientType, recipientId),
     queryFn: () => api.fetchNotifications(recipientType, recipientId),
+    enabled: recipientType === 'admin' || (recipientType === 'farmer' && !!recipientId), // Only enable for farmer if recipientId exists
     refetchInterval: 7000, // Poll every 7 seconds
   })
 }

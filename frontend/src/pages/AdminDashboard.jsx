@@ -1429,6 +1429,13 @@ const AdminDashboard = () => {
     }
   }
 
+  // Helper function to check if a string is a valid MongoDB ObjectId
+  const isValidObjectId = (id) => {
+    if (!id || typeof id !== 'string') return false;
+    // MongoDB ObjectId is 24 hex characters
+    return /^[0-9a-fA-F]{24}$/.test(id);
+  };
+
   // Toggle notification panel and mark as read
   const toggleNotificationPanel = async () => {
     setNotificationOpen(!notificationOpen)
@@ -1436,14 +1443,21 @@ const AdminDashboard = () => {
       // Mark all unread notifications as read via API
       const unreadNotifications = adminNotifications.filter(n => !n.read);
       if (unreadNotifications.length > 0) {
-        const notificationIds = unreadNotifications.map(n => n.id).filter(id => id);
+        // Only send MongoDB ObjectIds to the API (filter out local Zustand-generated IDs)
+        const notificationIds = unreadNotifications
+          .map(n => n.id)
+          .filter(id => id && isValidObjectId(id));
+        
         try {
-          await markAsReadMutation.mutateAsync({
-            recipientType: 'admin',
-            recipientId: null,
-            notificationIds: notificationIds.length > 0 ? notificationIds : null
-          });
-          // Also update local store
+          // Only call API if we have valid ObjectIds
+          if (notificationIds.length > 0) {
+            await markAsReadMutation.mutateAsync({
+              recipientType: 'admin',
+              recipientId: null,
+              notificationIds: notificationIds
+            });
+          }
+          // Always update local store regardless (includes both DB and local notifications)
           markAdminNotificationsAsRead();
         } catch (error) {
           console.error('Error marking notifications as read:', error);
@@ -2286,8 +2300,8 @@ const AdminDashboard = () => {
                                   </span>
                                   <button
                                     onClick={async () => {
-                                      // Delete from API if notification has _id (MongoDB ObjectId check)
-                                      if (notification.id && notification.id.length > 20) {
+                                      // Delete from API only if notification has valid MongoDB ObjectId
+                                      if (notification.id && isValidObjectId(notification.id)) {
                                         try {
                                           await deleteNotificationMutation.mutateAsync({
                                             notificationId: notification.id,
@@ -2298,7 +2312,7 @@ const AdminDashboard = () => {
                                           console.error('Error deleting notification:', error);
                                         }
                                       }
-                                      // Remove from local store
+                                      // Always remove from local store (works for both DB and local notifications)
                                       useNotificationStore.getState().removeAdminNotification(notification.id);
                                     }}
                                     className="text-gray-400 hover:text-red-500 transition-colors"

@@ -160,6 +160,14 @@ export const useNotificationStore = create(
         })
       },
 
+      // Clear all admin notifications
+      clearAdminNotifications: () => {
+        set((state) => ({
+          adminNotifications: [],
+          unreadAdminCount: 0,
+        }))
+      },
+
       // Clear notifications for a specific farmer when they logout
       clearFarmerNotificationsOnLogout: (farmerId) => {
         set((state) => {

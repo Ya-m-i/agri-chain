@@ -252,11 +252,18 @@ const FarmerDashboard = () => {
   // Use React Query for crop insurance data
   const { data: cropInsuranceRecords = [] } = useCropInsurance(user?.id)
   
-  // Notification hooks (API-based, polling every 7 seconds)
+  // Notification hooks (API-based, polling every 7 seconds) - only enabled when user?.id exists
   const { data: apiNotifications = [], refetch: refetchNotifications } = useNotifications('farmer', user?.id)
   const markAsReadMutation = useMarkNotificationsAsRead()
   const clearNotificationsMutation = useClearNotifications()
   const deleteNotificationMutation = useDeleteNotification()
+  
+  // Helper function to check if a string is a valid MongoDB ObjectId
+  const isValidObjectId = (id) => {
+    if (!id || typeof id !== 'string') return false;
+    // MongoDB ObjectId is 24 hex characters
+    return /^[0-9a-fA-F]{24}$/.test(id);
+  };
   
   // Sync API notifications to Zustand store
   useEffect(() => {
@@ -511,14 +518,21 @@ const FarmerDashboard = () => {
       // Mark all unread notifications as read via API
       const unreadNotifications = farmerNotifications.filter(n => !n.read);
       if (unreadNotifications.length > 0) {
-        const notificationIds = unreadNotifications.map(n => n.id).filter(id => id);
+        // Only send MongoDB ObjectIds to the API (filter out local Zustand-generated IDs)
+        const notificationIds = unreadNotifications
+          .map(n => n.id)
+          .filter(id => id && isValidObjectId(id));
+        
         try {
-          await markAsReadMutation.mutateAsync({
-            recipientType: 'farmer',
-            recipientId: user.id,
-            notificationIds: notificationIds.length > 0 ? notificationIds : null
-          });
-          // Also update local store
+          // Only call API if we have valid ObjectIds
+          if (notificationIds.length > 0) {
+            await markAsReadMutation.mutateAsync({
+              recipientType: 'farmer',
+              recipientId: user.id,
+              notificationIds: notificationIds
+            });
+          }
+          // Always update local store regardless (includes both DB and local notifications)
           useNotificationStore.getState().markFarmerNotificationsAsRead(user.id);
         } catch (error) {
           console.error('Error marking notifications as read:', error);
@@ -782,7 +796,22 @@ const FarmerDashboard = () => {
                                     {formatTimestamp(new Date(notification.timestamp))}
                                   </span>
                                   <button
-                                    onClick={() => useNotificationStore.getState().removeNotification(notification.id, user?.id)}
+                                    onClick={async () => {
+                                      // Delete from API only if notification has valid MongoDB ObjectId
+                                      if (notification.id && isValidObjectId(notification.id) && user?.id) {
+                                        try {
+                                          await deleteNotificationMutation.mutateAsync({
+                                            notificationId: notification.id,
+                                            recipientType: 'farmer',
+                                            recipientId: user.id
+                                          });
+                                        } catch (error) {
+                                          console.error('Error deleting notification:', error);
+                                        }
+                                      }
+                                      // Always remove from local store (works for both DB and local notifications)
+                                      useNotificationStore.getState().removeNotification(notification.id, user?.id);
+                                    }}
                                     className="text-gray-400 hover:text-red-500 transition-colors"
                                     aria-label="Remove notification"
                                   >
