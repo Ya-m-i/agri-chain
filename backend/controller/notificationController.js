@@ -1,4 +1,22 @@
 const Notification = require('../models/notificationModel');
+const mongoose = require('mongoose');
+
+// Helper function to convert string ID to ObjectId
+const toObjectId = (id) => {
+  if (!id) return null;
+  try {
+    // Check if it's already an ObjectId
+    if (id instanceof mongoose.Types.ObjectId) return id;
+    // Check if it's a valid ObjectId string
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      return new mongoose.Types.ObjectId(id);
+    }
+    // If not valid, return as-is (might be a string ID from another source)
+    return id;
+  } catch (error) {
+    return id;
+  }
+};
 
 // @desc    Get notifications for admin or farmer
 // @route   GET /api/notifications/:recipientType/:recipientId?
@@ -18,7 +36,8 @@ const getNotifications = async (req, res) => {
       if (!recipientId) {
         return res.status(400).json({ message: 'Farmer ID is required for farmer notifications' });
       }
-      query.recipientId = recipientId;
+      // Convert string ID to ObjectId for proper MongoDB query
+      query.recipientId = toObjectId(recipientId);
     } else {
       // For admin, recipientId should be null
       query.recipientId = null;
@@ -56,7 +75,8 @@ const getUnreadCount = async (req, res) => {
       if (!recipientId) {
         return res.status(400).json({ message: 'Farmer ID is required for farmer notifications' });
       }
-      query.recipientId = recipientId;
+      // Convert string ID to ObjectId for proper MongoDB query
+      query.recipientId = toObjectId(recipientId);
     } else {
       query.recipientId = null;
     }
@@ -133,14 +153,21 @@ const markAsRead = async (req, res) => {
       if (!recipientId) {
         return res.status(400).json({ message: 'Farmer ID is required for farmer notifications' });
       }
-      query.recipientId = recipientId;
+      // Convert string ID to ObjectId for proper MongoDB query
+      query.recipientId = toObjectId(recipientId);
     } else {
       query.recipientId = null;
     }
 
     // If specific notification IDs provided, only mark those as read
     if (notificationIds && Array.isArray(notificationIds) && notificationIds.length > 0) {
-      query._id = { $in: notificationIds };
+      // Convert string IDs to ObjectIds for proper MongoDB query
+      const objectIds = notificationIds
+        .map(id => toObjectId(id))
+        .filter(id => id && mongoose.Types.ObjectId.isValid(id));
+      if (objectIds.length > 0) {
+        query._id = { $in: objectIds };
+      }
     }
 
     const result = await Notification.updateMany(query, { read: true });
@@ -190,7 +217,8 @@ const clearNotifications = async (req, res) => {
       if (!recipientId) {
         return res.status(400).json({ message: 'Farmer ID is required for farmer notifications' });
       }
-      query.recipientId = recipientId;
+      // Convert string ID to ObjectId for proper MongoDB query
+      query.recipientId = toObjectId(recipientId);
     } else {
       query.recipientId = null;
     }

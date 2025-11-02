@@ -85,14 +85,12 @@ const FarmerDashboard = () => {
     }, 800);
   };
   
-  // Get notifications for current farmer - use Zustand subscription for reactive updates
-  const farmerNotifications = useMemo(() => 
-    useNotificationStore.getState().getFarmerNotifications(user?.id) || [], 
-    [user?.id]
+  // Get notifications for current farmer - use Zustand store with reactive subscription
+  const farmerNotifications = useNotificationStore((state) => 
+    user?.id ? state.getFarmerNotifications(user.id) : []
   )
-  const unreadFarmerCount = useMemo(() => 
-    useNotificationStore.getState().getFarmerUnreadCount(user?.id) || 0, 
-    [user?.id]
+  const unreadFarmerCount = useNotificationStore((state) => 
+    user?.id ? state.getFarmerUnreadCount(user.id) : 0
   )
 
   // State for claim details modal
@@ -265,10 +263,14 @@ const FarmerDashboard = () => {
   }, [checkForFarmerNotifications, user?.id]);
 
   // Manual refresh function for notifications (fetches from API)
-  const refreshFarmerNotifications = useCallback(() => {
-    refetchNotifications();
-    refetchClaims();
-    // Note: farmerApplications will auto-refresh via React Query
+  const refreshFarmerNotifications = useCallback(async () => {
+    try {
+      await refetchNotifications();
+      await refetchClaims();
+      // Note: farmerApplications will auto-refresh via React Query
+    } catch (error) {
+      console.error('Error refreshing notifications:', error);
+    }
   }, [refetchNotifications, refetchClaims]);
   
   // Helper function to check if a string is a valid MongoDB ObjectId
@@ -280,14 +282,18 @@ const FarmerDashboard = () => {
   
   // Sync API notifications to Zustand store
   useEffect(() => {
-    if (apiNotifications && apiNotifications.length > 0 && user?.id) {
-      const store = useNotificationStore.getState();
+    if (!user?.id) return;
+    
+    const store = useNotificationStore.getState();
+    
+    if (apiNotifications && apiNotifications.length > 0) {
+      // Create a set of API notification IDs for comparison
+      const apiNotificationIds = new Set(apiNotifications.map(n => n._id || n.id).filter(Boolean));
+      
       apiNotifications.forEach(notification => {
-        // Check if notification already exists (by _id or message content)
+        // Check if notification already exists (by _id)
         const exists = store.getFarmerNotifications(user.id).some(
-          n => n.id === notification._id || 
-          (n.message === notification.message && 
-           new Date(n.timestamp).getTime() === new Date(notification.timestamp).getTime())
+          n => n.id === (notification._id || notification.id)
         );
         
         if (!exists) {
@@ -301,7 +307,42 @@ const FarmerDashboard = () => {
             relatedEntityType: notification.relatedEntityType,
             relatedEntityId: notification.relatedEntityId,
           }, user.id);
+        } else {
+          // Update read status if changed in API
+          const existing = store.getFarmerNotifications(user.id).find(
+            n => n.id === (notification._id || notification.id)
+          );
+          if (existing && existing.read !== notification.read) {
+            // Update read status by removing and re-adding
+            store.removeNotification(notification._id || notification.id, user.id);
+            store.addFarmerNotification({
+              ...existing,
+              read: notification.read
+            }, user.id);
+          }
         }
+      });
+      
+      // Remove notifications from Zustand that no longer exist in API (only MongoDB ObjectIds)
+      const currentNotifications = store.getFarmerNotifications(user.id);
+      const notificationsToRemove = currentNotifications.filter(n => 
+        isValidObjectId(n.id) && !apiNotificationIds.has(n.id)
+      );
+      
+      notificationsToRemove.forEach(n => {
+        store.removeNotification(n.id, user.id);
+      });
+    } else if (apiNotifications && apiNotifications.length === 0) {
+      // If API returns empty, clear all DB notifications (keep local Zustand-generated ones)
+      const currentNotifications = store.getFarmerNotifications(user.id);
+      const localNotifications = currentNotifications.filter(n => !isValidObjectId(n.id));
+      
+      // Clear all first
+      store.clearFarmerNotifications(user.id);
+      
+      // Re-add local notifications
+      localNotifications.forEach(n => {
+        store.addFarmerNotification(n, user.id);
       });
     }
   }, [apiNotifications, user?.id]);
@@ -554,9 +595,12 @@ const FarmerDashboard = () => {
       });
       // Also clear local store
       useNotificationStore.getState().clearFarmerNotifications(user.id);
-      refetchNotifications();
+      // Refetch to sync with API
+      await refetchNotifications();
     } catch (error) {
       console.error('Error clearing notifications:', error);
+      // Still clear local store even if API fails
+      useNotificationStore.getState().clearFarmerNotifications(user.id);
     }
   }
 
@@ -800,8 +844,10 @@ const FarmerDashboard = () => {
                                   </span>
                                   <button
                                     onClick={async () => {
+                                      if (!user?.id) return;
+                                      
                                       // Delete from API only if notification has valid MongoDB ObjectId
-                                      if (notification.id && isValidObjectId(notification.id) && user?.id) {
+                                      if (notification.id && isValidObjectId(notification.id)) {
                                         try {
                                           await deleteNotificationMutation.mutateAsync({
                                             notificationId: notification.id,
@@ -812,10 +858,14 @@ const FarmerDashboard = () => {
                                           console.error('Error deleting notification:', error);
                                         }
                                       }
+                                      
                                       // Always remove from local store (works for both DB and local notifications)
-                                      useNotificationStore.getState().removeNotification(notification.id, user?.id);
+                                      useNotificationStore.getState().removeNotification(notification.id, user.id);
+                                      
+                                      // Refetch to sync with API
+                                      await refetchNotifications();
                                     }}
-                                    className="text-gray-400 hover:text-red-500 transition-colors"
+                                    className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
                                     aria-label="Remove notification"
                                   >
                                     <X size={14} />
