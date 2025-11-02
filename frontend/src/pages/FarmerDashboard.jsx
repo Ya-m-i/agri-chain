@@ -95,6 +95,30 @@ const FarmerDashboard = () => {
     [user?.id]
   )
 
+  // State for claim details modal
+  const [showClaimDetails, setShowClaimDetails] = useState(false)
+  const [selectedClaim, setSelectedClaim] = useState(null)
+
+  // ALL React Query hooks MUST be declared BEFORE any useEffect/useCallback that uses them
+  // Use React Query for claims data
+  const { data: claims = [], refetch: refetchClaims } = useClaims(user?.id)
+  
+  // Use React Query for crop insurance data
+  const { data: cropInsuranceRecords = [] } = useCropInsurance(user?.id)
+  
+  // Use React Query for farmer applications data
+  const { data: farmerApplications = [], isLoading: applicationsLoading, error: applicationsError } = useFarmerApplications(user?.id)
+  
+  // Use React Query for assistance data (must be declared early)
+  const { data: assistanceItems = [], isLoading: assistanceLoading, error: assistanceError } = useAssistances()
+  const applyForAssistanceMutation = useApplyForAssistance()
+  
+  // Notification hooks (API-based, polling every 7 seconds) - only enabled when user?.id exists
+  const { data: apiNotifications = [], refetch: refetchNotifications } = useNotifications('farmer', user?.id)
+  const markAsReadMutation = useMarkNotificationsAsRead()
+  const clearNotificationsMutation = useClearNotifications()
+  const deleteNotificationMutation = useDeleteNotification()
+
   // Track last checked timestamps for notifications (initialize after data loads)
   const lastClaimStatusCheckRef = useRef(null);
   const lastApplicationStatusCheckRef = useRef(null);
@@ -246,25 +270,6 @@ const FarmerDashboard = () => {
     refetchClaims();
     // Note: farmerApplications will auto-refresh via React Query
   }, [refetchNotifications, refetchClaims]);
-
-  // State for claim details modal
-  const [showClaimDetails, setShowClaimDetails] = useState(false)
-  const [selectedClaim, setSelectedClaim] = useState(null)
-
-  // Use React Query for claims data
-  const { data: claims = [], refetch: refetchClaims } = useClaims(user?.id)
-  
-  // Use React Query for crop insurance data
-  const { data: cropInsuranceRecords = [] } = useCropInsurance(user?.id)
-  
-  // Use React Query for farmer applications data (must be declared before useEffect that uses it)
-  const { data: farmerApplications = [], isLoading: applicationsLoading, error: applicationsError } = useFarmerApplications(user?.id)
-  
-  // Notification hooks (API-based, polling every 7 seconds) - only enabled when user?.id exists
-  const { data: apiNotifications = [], refetch: refetchNotifications } = useNotifications('farmer', user?.id)
-  const markAsReadMutation = useMarkNotificationsAsRead()
-  const clearNotificationsMutation = useClearNotifications()
-  const deleteNotificationMutation = useDeleteNotification()
   
   // Helper function to check if a string is a valid MongoDB ObjectId
   const isValidObjectId = (id) => {
@@ -360,10 +365,6 @@ const FarmerDashboard = () => {
     };
   }, [loadClaims]);
 
-  // Use React Query for assistance data
-  const { data: assistanceItems = [], isLoading: assistanceLoading, error: assistanceError } = useAssistances()
-  const applyForAssistanceMutation = useApplyForAssistance()
-  
   // Combine loading and error states for UI
   const loading = assistanceLoading || applicationsLoading
   const error = assistanceError || applicationsError
