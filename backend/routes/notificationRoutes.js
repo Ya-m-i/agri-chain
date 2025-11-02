@@ -9,33 +9,57 @@ const {
   clearNotifications
 } = require('../controller/notificationController');
 
-// Get notifications for admin or farmer
-// GET /api/notifications/admin
-// GET /api/notifications/farmer/:farmerId
-router.get('/:recipientType/:recipientId?', getNotifications);
-
-// Get unread count
-// GET /api/notifications/admin/count
-// GET /api/notifications/farmer/:farmerId/count
-router.get('/:recipientType/:recipientId?/count', getUnreadCount);
-
 // Create a notification
 // POST /api/notifications
 router.post('/', createNotification);
 
-// Mark notifications as read
-// PATCH /api/notifications/admin/read
-// PATCH /api/notifications/farmer/:farmerId/read
-router.patch('/:recipientType/:recipientId?/read', markAsRead);
-
-// Delete a specific notification
+// Delete a specific notification (must come before other routes with :id)
 // DELETE /api/notifications/:id
 router.delete('/:id', deleteNotification);
 
-// Clear all notifications
+// Admin routes (no recipientId)
+// GET /api/notifications/admin
+router.get('/admin', (req, res) => {
+  req.params = { recipientType: 'admin', recipientId: undefined };
+  return getNotifications(req, res);
+});
+// GET /api/notifications/admin/count
+router.get('/admin/count', (req, res) => {
+  req.params = { recipientType: 'admin', recipientId: undefined };
+  return getUnreadCount(req, res);
+});
+// PATCH /api/notifications/admin/read
+router.patch('/admin/read', (req, res) => {
+  req.params = { recipientType: 'admin', recipientId: undefined };
+  return markAsRead(req, res);
+});
 // DELETE /api/notifications/admin/clear
+router.delete('/admin/clear', (req, res) => {
+  req.params = { recipientType: 'admin', recipientId: undefined };
+  return clearNotifications(req, res);
+});
+
+// Farmer routes (with recipientId)
+// GET /api/notifications/farmer/:farmerId
+router.get('/farmer/:farmerId', (req, res) => {
+  req.params = { recipientType: 'farmer', recipientId: req.params.farmerId };
+  return getNotifications(req, res);
+});
+// GET /api/notifications/farmer/:farmerId/count
+router.get('/farmer/:farmerId/count', (req, res) => {
+  req.params = { recipientType: 'farmer', recipientId: req.params.farmerId };
+  return getUnreadCount(req, res);
+});
+// PATCH /api/notifications/farmer/:farmerId/read
+router.patch('/farmer/:farmerId/read', (req, res) => {
+  req.params = { recipientType: 'farmer', recipientId: req.params.farmerId };
+  return markAsRead(req, res);
+});
 // DELETE /api/notifications/farmer/:farmerId/clear
-router.delete('/:recipientType/:recipientId?/clear', clearNotifications);
+router.delete('/farmer/:farmerId/clear', (req, res) => {
+  req.params = { recipientType: 'farmer', recipientId: req.params.farmerId };
+  return clearNotifications(req, res);
+});
 
 module.exports = router;
 
