@@ -252,6 +252,9 @@ const FarmerDashboard = () => {
   // Use React Query for crop insurance data
   const { data: cropInsuranceRecords = [] } = useCropInsurance(user?.id)
   
+  // Use React Query for farmer applications data (must be declared before useEffect that uses it)
+  const { data: farmerApplications = [], isLoading: applicationsLoading, error: applicationsError } = useFarmerApplications(user?.id)
+  
   // Notification hooks (API-based, polling every 7 seconds) - only enabled when user?.id exists
   const { data: apiNotifications = [], refetch: refetchNotifications } = useNotifications('farmer', user?.id)
   const markAsReadMutation = useMarkNotificationsAsRead()
@@ -354,7 +357,6 @@ const FarmerDashboard = () => {
 
   // Use React Query for assistance data
   const { data: assistanceItems = [], isLoading: assistanceLoading, error: assistanceError } = useAssistances()
-  const { data: farmerApplications = [], isLoading: applicationsLoading, error: applicationsError } = useFarmerApplications(user?.id)
   const applyForAssistanceMutation = useApplyForAssistance()
   
   // Combine loading and error states for UI
