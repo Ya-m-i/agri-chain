@@ -306,30 +306,113 @@ const AdminDashboard = () => {
   const { data: allApplications = [], isLoading: applicationsLoading } = useAllApplications()
   const { data: cropPrices = [], isLoading: cropPricesLoading } = useCropPrices()
   
-  // Initialize Socket.IO for real-time updates across devices
+  // Initialize Socket.IO for real-time updates (disabled for notifications - using polling instead)
   // eslint-disable-next-line no-unused-vars
   const { isConnected, socket } = useSocketQuery({
-    enableClaimsListener: true, // Enable claim event listeners
-    enableApplicationsListener: true, // Enable application event listeners
-    onClaimCreated: (newClaim) => {
-      console.log('AdminDashboard: New claim received via socket:', newClaim);
-      // Refetch claims to update the UI immediately
-      refetchClaims();
-      // Add notification for admin
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'info',
-        title: 'New Claim Submitted',
-        message: `New claim ${newClaim.claimNumber || 'pending'} submitted for ${newClaim.crop}`,
-        timestamp: new Date()
-      });
-    },
-    onClaimUpdated: (updatedClaim) => {
-      console.log('AdminDashboard: Claim updated via socket:', updatedClaim);
-      // Refetch claims to update the UI immediately
-      refetchClaims();
-    }
+    enableClaimsListener: false, // Disabled - using polling instead
+    enableApplicationsListener: false, // Disabled - using polling instead
   });
+
+  // Track last checked timestamps for notifications (initialize after data loads)
+  const lastClaimCheckRef = useRef(null);
+  const lastApplicationCheckRef = useRef(null);
+  
+  // Initialize timestamps after data loads to avoid showing all existing items as new
+  useEffect(() => {
+    if (claims.length > 0 && lastClaimCheckRef.current === null) {
+      const latestClaim = claims.reduce((latest, claim) => {
+        const claimDate = new Date(claim.date || claim.createdAt || claim.timestamp);
+        return claimDate > latest ? claimDate : latest;
+      }, new Date(0));
+      lastClaimCheckRef.current = latestClaim.getTime();
+    }
+    if (allApplications.length > 0 && lastApplicationCheckRef.current === null) {
+      const latestApp = allApplications.reduce((latest, app) => {
+        const appDate = new Date(app.applicationDate || app.createdAt || app.timestamp);
+        return appDate > latest ? appDate : latest;
+      }, new Date(0));
+      lastApplicationCheckRef.current = latestApp.getTime();
+    }
+  }, [claims, allApplications]);
+
+  // Polling function to check for new notifications (non-real-time)
+  const checkForNewNotifications = useCallback(() => {
+    if (lastClaimCheckRef.current === null || lastApplicationCheckRef.current === null) {
+      return; // Skip if timestamps not initialized yet
+    }
+    
+    // Check for new claims
+    const newPendingClaims = claims.filter(claim => {
+      const claimDate = new Date(claim.date || claim.createdAt || claim.timestamp);
+      return claimDate.getTime() > lastClaimCheckRef.current && claim.status === 'pending';
+    });
+
+    if (newPendingClaims.length > 0) {
+      const existingNotifications = getAdminNotifications();
+      newPendingClaims.forEach(claim => {
+        const notificationExists = existingNotifications.some(
+          n => n.message?.includes(claim.claimNumber || claim._id?.slice(-6))
+        );
+        
+        if (!notificationExists) {
+          useNotificationStore.getState().addAdminNotification({
+            id: generateUniqueId(),
+            type: 'info',
+            title: 'New Claim Submitted',
+            message: `New claim ${claim.claimNumber || claim._id?.slice(-6) || 'pending'} submitted for ${claim.crop || 'unknown crop'}`,
+            timestamp: new Date()
+          });
+        }
+      });
+      
+      lastClaimCheckRef.current = Date.now();
+    }
+
+    // Check for new assistance applications
+    const newPendingApplications = allApplications.filter(app => {
+      const appDate = new Date(app.applicationDate || app.createdAt || app.timestamp);
+      return appDate.getTime() > lastApplicationCheckRef.current && app.status === 'pending';
+    });
+
+    if (newPendingApplications.length > 0) {
+      const existingNotifications = getAdminNotifications();
+      newPendingApplications.forEach(app => {
+        const farmerName = app.farmerId ? `${app.farmerId.firstName} ${app.farmerId.lastName}` : 'A farmer';
+        const assistanceType = app.assistanceId?.assistanceType || 'assistance';
+        const notificationExists = existingNotifications.some(
+          n => n.message?.includes(assistanceType) && n.message?.includes(farmerName)
+        );
+        
+        if (!notificationExists) {
+          useNotificationStore.getState().addAdminNotification({
+            id: generateUniqueId(),
+            type: 'info',
+            title: 'New Assistance Application',
+            message: `${farmerName} has applied for ${assistanceType} assistance.`,
+            timestamp: new Date()
+          });
+        }
+      });
+      
+      lastApplicationCheckRef.current = Date.now();
+    }
+  }, [claims, allApplications]);
+
+  // Setup polling for notifications (every 7 seconds)
+  useEffect(() => {
+    const notificationPollingInterval = setInterval(() => {
+      checkForNewNotifications();
+    }, 7000); // 7 seconds - between 5-10 as requested
+
+    return () => clearInterval(notificationPollingInterval);
+  }, [checkForNewNotifications]);
+
+  // Manual refresh function for notifications
+  const refreshNotifications = useCallback(() => {
+    checkForNewNotifications();
+    refetchClaims();
+    // Note: allApplications will auto-refresh via React Query
+  }, [checkForNewNotifications, refetchClaims]);
   
   // React Query mutations
   const updateClaimMutation = useUpdateClaim()
@@ -458,6 +541,9 @@ const AdminDashboard = () => {
     unreadAdminCount, 
     markAdminNotificationsAsRead
   } = useNotificationStore()
+
+  // Get adminNotifications in callback (for use in polling)
+  const getAdminNotifications = () => useNotificationStore.getState().adminNotifications
 
   // Form states
   const [showModal, setShowModal] = useState(false)
@@ -2165,8 +2251,7 @@ const AdminDashboard = () => {
             <div className="relative">
               <button
                 onClick={toggleNotificationPanel}
-                className={`text-white p-2 rounded-full hover:bg-lime-500 transition-colors relative ${unreadAdminCount > 0 ? 'animate-pulse' : ''}`}
-                style={{ backgroundColor: 'rgb(56, 118, 29)' }}
+                className={`bg-lime-400 text-black p-2 rounded-full hover:bg-lime-500 transition-colors relative ${unreadAdminCount > 0 ? 'animate-pulse' : ''}`}
                 aria-label="Notifications"
               >
                 <Bell size={22} />
@@ -2183,17 +2268,26 @@ const AdminDashboard = () => {
                   className="notification-panel absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl z-50 overflow-hidden"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="p-4 text-black flex justify-between items-center" style={{ backgroundColor: 'rgb(56, 118, 29)' }}>
+                  <div className="p-4 text-black flex justify-between items-center bg-lime-400">
                     <h3 className="font-semibold">Notifications</h3>
-                    {adminNotifications.length > 0 && (
+                    <div className="flex items-center gap-2">
                       <button
-                        onClick={() => useNotificationStore.getState().clearNotifications()}
-                        className="text-black hover:text-gray-200 text-sm"
-                        title="Clear all notifications"
+                        onClick={refreshNotifications}
+                        className="text-black hover:text-gray-700 text-sm font-semibold px-2 py-1 rounded hover:bg-lime-500 transition-colors"
+                        title="Refresh notifications"
                       >
-                        Clear All
+                        ↻ Refresh
                       </button>
-                    )}
+                      {adminNotifications.length > 0 && (
+                        <button
+                          onClick={() => useNotificationStore.getState().clearNotifications()}
+                          className="text-black hover:text-gray-700 text-sm"
+                          title="Clear all notifications"
+                        >
+                          Clear All
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="max-h-96 overflow-y-auto hide-scrollbar">
@@ -2206,10 +2300,12 @@ const AdminDashboard = () => {
                       adminNotifications.map((notification) => (
                         <div key={notification.id} className="p-4 border-b border-gray-100 hover:bg-gray-50">
                           <div className="flex">
-                            <div className="flex-shrink-0 mr-3">{getNotificationIcon(notification.type)}</div>
+                            <div className="flex-shrink-0 mr-3 bg-lime-400 rounded-full p-1">
+                              {getNotificationIcon(notification.type)}
+                            </div>
                             <div className="flex-1">
                               <div className="flex justify-between items-start">
-                                <h4 className="font-medium text-gray-900">{notification.title}</h4>
+                                <h4 className="font-medium bg-lime-400 text-black px-2 py-1 rounded text-sm">{notification.title}</h4>
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs text-gray-500">
                                     {formatTimestamp(new Date(notification.timestamp))}

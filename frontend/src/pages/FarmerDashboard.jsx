@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useMemo, useCallback } from "react"
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   Menu,
@@ -94,6 +94,158 @@ const FarmerDashboard = () => {
     useNotificationStore.getState().getFarmerUnreadCount(user?.id) || 0, 
     [user?.id]
   )
+
+  // Track last checked timestamps for notifications (initialize after data loads)
+  const lastClaimStatusCheckRef = useRef(null);
+  const lastApplicationStatusCheckRef = useRef(null);
+  
+  // Initialize timestamps after data loads to avoid showing all existing items as new
+  useEffect(() => {
+    if (claims.length > 0 && lastClaimStatusCheckRef.current === null) {
+      const latestClaim = claims.reduce((latest, claim) => {
+        const updateDate = new Date(claim.updatedAt || claim.date || claim.createdAt);
+        return updateDate > latest ? updateDate : latest;
+      }, new Date(0));
+      lastClaimStatusCheckRef.current = latestClaim.getTime();
+    }
+    if (farmerApplications.length > 0 && lastApplicationStatusCheckRef.current === null) {
+      const latestApp = farmerApplications.reduce((latest, app) => {
+        const updateDate = new Date(app.reviewDate || app.distributionDate || app.applicationDate || app.createdAt);
+        return updateDate > latest ? updateDate : latest;
+      }, new Date(0));
+      lastApplicationStatusCheckRef.current = latestApp.getTime();
+    }
+  }, [claims, farmerApplications]);
+
+  // Generate unique ID function
+  const generateUniqueId = () => {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  // Polling function to check for notification updates (non-real-time)
+  const checkForFarmerNotifications = useCallback(() => {
+    if (!user?.id || lastClaimStatusCheckRef.current === null || lastApplicationStatusCheckRef.current === null) {
+      return; // Skip if not initialized or no user
+    }
+
+    // Check for claim status updates
+    claims.forEach(claim => {
+      const claimUpdateDate = new Date(claim.updatedAt || claim.date || claim.createdAt);
+      if (claimUpdateDate.getTime() > lastClaimStatusCheckRef.current) {
+        // Check if notification already exists
+        const existingNotifications = useNotificationStore.getState().getFarmerNotifications(user.id);
+        const notificationExists = existingNotifications.some(
+          n => n.message?.includes(claim.claimNumber || claim._id?.slice(-6))
+        );
+
+        if (!notificationExists && claim.status !== 'pending') {
+          let notificationType = 'info';
+          let title = 'Claim Updated';
+          let message = '';
+
+          if (claim.status === 'approved') {
+            notificationType = 'success';
+            title = 'Claim Approved!';
+            const compensation = claim.compensation ? ` Compensation: ₱${claim.compensation.toLocaleString()}` : '';
+            message = `Your claim for ${claim.crop || 'unknown crop'} has been approved!${compensation}`;
+          } else if (claim.status === 'rejected') {
+            notificationType = 'error';
+            title = 'Claim Rejected';
+            const reason = claim.adminFeedback ? ` Reason: ${claim.adminFeedback}` : '';
+            message = `Your claim for ${claim.crop || 'unknown crop'} has been rejected.${reason}`;
+          }
+
+          if (message) {
+            useNotificationStore.getState().addFarmerNotification({
+              id: generateUniqueId(),
+              type: notificationType,
+              title: title,
+              message: message,
+              timestamp: new Date()
+            }, user.id);
+          }
+        }
+      }
+    });
+
+    // Update last check time for claims
+    const latestClaimUpdate = claims.reduce((latest, claim) => {
+      const updateDate = new Date(claim.updatedAt || claim.date || claim.createdAt);
+      return updateDate > latest ? updateDate : latest;
+    }, new Date(lastClaimStatusCheckRef.current));
+    lastClaimStatusCheckRef.current = latestClaimUpdate.getTime();
+
+    // Check for application status updates
+    farmerApplications.forEach(app => {
+      const appUpdateDate = new Date(app.reviewDate || app.distributionDate || app.applicationDate || app.createdAt);
+      if (appUpdateDate.getTime() > lastApplicationStatusCheckRef.current) {
+        // Check if notification already exists
+        const existingNotifications = useNotificationStore.getState().getFarmerNotifications(user.id);
+        const notificationExists = existingNotifications.some(
+          n => n.message?.includes(app.assistanceId?.assistanceType || 'assistance') && 
+               n.message?.includes(app.status)
+        );
+
+        if (!notificationExists && app.status !== 'pending') {
+          let notificationType = 'info';
+          let title = 'Application Updated';
+          let message = '';
+
+          if (app.status === 'approved') {
+            notificationType = 'success';
+            title = 'Application Approved!';
+            const feedback = app.officerNotes ? ` Feedback: ${app.officerNotes}` : '';
+            message = `Your application for ${app.assistanceId?.assistanceType || 'assistance'} has been approved!${feedback}`;
+          } else if (app.status === 'rejected') {
+            notificationType = 'error';
+            title = 'Application Rejected';
+            const reason = app.officerNotes ? ` Reason: ${app.officerNotes}` : '';
+            message = `Your application for ${app.assistanceId?.assistanceType || 'assistance'} has been rejected.${reason}`;
+          } else if (app.status === 'distributed') {
+            notificationType = 'success';
+            title = 'Assistance Distributed!';
+            const notes = app.officerNotes ? ` Notes: ${app.officerNotes}` : '';
+            message = `Your ${app.assistanceId?.assistanceType || 'assistance'} has been distributed successfully!${notes}`;
+          }
+
+          if (message) {
+            useNotificationStore.getState().addFarmerNotification({
+              id: generateUniqueId(),
+              type: notificationType,
+              title: title,
+              message: message,
+              timestamp: new Date()
+            }, user.id);
+          }
+        }
+      }
+    });
+
+    // Update last check time for applications
+    const latestAppUpdate = farmerApplications.reduce((latest, app) => {
+      const updateDate = new Date(app.reviewDate || app.distributionDate || app.applicationDate || app.createdAt);
+      return updateDate > latest ? updateDate : latest;
+    }, new Date(lastApplicationStatusCheckRef.current));
+    lastApplicationStatusCheckRef.current = latestAppUpdate.getTime();
+  }, [claims, farmerApplications, user?.id]);
+
+  // Setup polling for farmer notifications (every 7 seconds)
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const notificationPollingInterval = setInterval(() => {
+      checkForFarmerNotifications();
+    }, 7000); // 7 seconds - between 5-10 as requested
+
+    return () => clearInterval(notificationPollingInterval);
+  }, [checkForFarmerNotifications, user?.id]);
+
+  // Manual refresh function for notifications
+  const refreshFarmerNotifications = useCallback(() => {
+    checkForFarmerNotifications();
+    refetchClaims();
+    // Note: farmerApplications will auto-refresh via React Query
+  }, [checkForFarmerNotifications, refetchClaims]);
 
   // State for claim details modal
   const [showClaimDetails, setShowClaimDetails] = useState(false)
@@ -353,7 +505,7 @@ const FarmerDashboard = () => {
 
 
 
-  // Monitor for new assistance items and notify farmers with matching crop types
+  // Monitor for new assistance items and notify farmers with matching crop types (polling-based, not real-time)
   useEffect(() => {
     if (user && user.cropType && assistanceItems.length > 0) {
       // Check for new assistance items that match the farmer's crop type
@@ -363,10 +515,10 @@ const FarmerDashboard = () => {
         item.status === 'active'
       );
 
-      // Notify farmer about new assistance items
+      // Notify farmer about new assistance items (only if not already notified)
       newAssistanceItems.forEach(item => {
-        // Check if we already notified about this item
-        const alreadyNotified = farmerNotifications.some(notification => 
+        const existingNotifications = useNotificationStore.getState().getFarmerNotifications(user.id);
+        const alreadyNotified = existingNotifications.some(notification => 
           notification.title === 'New Assistance Available' && 
           notification.message.includes(item.assistanceType)
         );
@@ -383,55 +535,7 @@ const FarmerDashboard = () => {
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assistanceItems, user?.cropType]); // Removed farmerNotifications from dependencies
-
-  // Monitor application status changes and notify farmers
-  useEffect(() => {
-    if (user && user.id && farmerApplications.length > 0) {
-      farmerApplications.forEach(application => {
-        // Check if this is a recent status change that we haven't notified about yet
-        const statusChangeNotification = farmerNotifications.find(notification => 
-          notification.title.includes('Application') && 
-          notification.message.includes(application.assistanceId?.assistanceType || 'assistance')
-        );
-
-        if (!statusChangeNotification && application.status !== 'pending') {
-          let notificationTitle = '';
-          let notificationMessage = '';
-          let notificationType = 'info';
-
-          switch (application.status) {
-            case 'approved':
-              notificationTitle = 'Application Approved';
-              notificationMessage = `Your application for ${application.assistanceId?.assistanceType || 'assistance'} has been approved!`;
-              notificationType = 'success';
-              break;
-            case 'rejected':
-              notificationTitle = 'Application Rejected';
-              notificationMessage = `Your application for ${application.assistanceId?.assistanceType || 'assistance'} has been rejected. ${application.officerNotes ? `Reason: ${application.officerNotes}` : ''}`;
-              notificationType = 'error';
-              break;
-            case 'distributed':
-              notificationTitle = 'Assistance Distributed';
-              notificationMessage = `Your ${application.assistanceId?.assistanceType || 'assistance'} has been distributed successfully!`;
-              notificationType = 'success';
-              break;
-            default:
-              return;
-          }
-
-          useNotificationStore.getState().addFarmerNotification({
-            id: `application-status-${application._id}-${generateUniqueId()}`,
-            type: notificationType,
-            title: notificationTitle,
-            message: notificationMessage,
-            timestamp: new Date()
-          }, user.id);
-        }
-      });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [farmerApplications, user?.id]); // Removed farmerNotifications from dependencies
+  }, [assistanceItems, user?.cropType]); // Note: Status updates handled by polling in checkForFarmerNotifications
 
   // Format timestamp function
   const formatTimestamp = (date) => {
@@ -553,12 +657,12 @@ const FarmerDashboard = () => {
             <div className="relative">
               <button
                 onClick={toggleNotificationPanel}
-                className={`relative p-2 rounded-full bg-lime-700 text-white hover:bg-lime-800 focus:outline-none focus:ring-2 focus:ring-lime-500 notification-button ${unreadFarmerCount > 0 ? 'animate-pulse' : ''}`}
+                className={`relative p-2 rounded-full bg-lime-400 text-black hover:bg-lime-500 focus:outline-none focus:ring-2 focus:ring-lime-500 notification-button ${unreadFarmerCount > 0 ? 'animate-pulse' : ''}`}
                 aria-label="Notifications"
               >
                 <Bell className="h-6 w-6" />
                 {unreadFarmerCount > 0 && (
-                  <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full animate-pulse">
+                  <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-black transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full animate-pulse">
                     {unreadFarmerCount}
                   </span>
                 )}
@@ -567,19 +671,28 @@ const FarmerDashboard = () => {
               {/* Notification Panel */}
               {notificationOpen && (
                 <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl z-50 overflow-hidden notification-panel">
-                  <div className="p-4 bg-lime-700 text-white flex justify-between items-center">
+                  <div className="p-4 bg-lime-400 text-black flex justify-between items-center">
                     <h3 className="font-semibold">Notifications</h3>
-                    {farmerNotifications.length > 0 && (
+                    <div className="flex items-center gap-2">
                       <button
-                        onClick={() => {
-                          useNotificationStore.getState().clearFarmerNotifications(user?.id)
-                        }}
-                        className="text-white hover:text-gray-200 text-sm"
-                        title="Clear all notifications"
+                        onClick={refreshFarmerNotifications}
+                        className="text-black hover:text-gray-700 text-sm font-semibold px-2 py-1 rounded hover:bg-lime-500 transition-colors"
+                        title="Refresh notifications"
                       >
-                        Clear All
+                        ↻ Refresh
                       </button>
-                    )}
+                      {farmerNotifications.length > 0 && (
+                        <button
+                          onClick={() => {
+                            useNotificationStore.getState().clearFarmerNotifications(user?.id)
+                          }}
+                          className="text-black hover:text-gray-700 text-sm"
+                          title="Clear all notifications"
+                        >
+                          Clear All
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="max-h-96 overflow-y-auto hide-scrollbar">
@@ -587,26 +700,25 @@ const FarmerDashboard = () => {
                       <div className="p-4 text-center text-gray-500">
                         <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
                         <p>No notifications</p>
-                        <p className="text-xs text-gray-400 mt-1">Debug: {farmerNotifications.length} notifications found</p>
                       </div>
                     ) : (
                       farmerNotifications.map((notification) => (
                         <div key={notification.id} className="p-4 border-b border-gray-100 hover:bg-gray-50">
                           <div className="flex">
-                            <div className="flex-shrink-0 mr-3">
+                            <div className="flex-shrink-0 mr-3 bg-lime-400 rounded-full p-1">
                               {notification.type === 'success' ? (
-                                <CheckCircle className="h-5 w-5 text-green-500" />
+                                <CheckCircle className="h-5 w-5 text-green-700" />
                               ) : notification.type === 'error' ? (
-                                <X className="h-5 w-5 text-red-500" />
+                                <X className="h-5 w-5 text-red-700" />
                               ) : notification.type === 'warning' ? (
-                                <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                                <AlertTriangle className="h-5 w-5 text-yellow-700" />
                               ) : (
-                                <Info className="h-5 w-5 text-blue-500" />
+                                <Info className="h-5 w-5 text-blue-700" />
                               )}
                             </div>
                             <div className="flex-1">
                               <div className="flex justify-between items-start">
-                                <h4 className="font-medium text-gray-900">{notification.title}</h4>
+                                <h4 className="font-medium bg-lime-400 text-black px-2 py-1 rounded text-sm">{notification.title}</h4>
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs text-gray-500">
                                     {formatTimestamp(new Date(notification.timestamp))}
