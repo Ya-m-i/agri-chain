@@ -134,21 +134,27 @@ const FarmerCropInsurance = () => {
     return Math.max(0, remaining)
   }
 
+  // Check if record is actually expired (0 days left or deadline passed)
+  const isActuallyExpired = (record) => {
+    const remainingDays = getRemainingDays(record)
+    return remainingDays === 0 || !record.canInsure
+  }
+
   const getStatusColor = (record) => {
     if (record.isInsured) return 'text-green-600'
-    if (!record.canInsure) return 'text-red-600'
+    if (isActuallyExpired(record)) return 'text-red-600'
     return 'text-yellow-600'
   }
 
   const getStatusText = (record) => {
     if (record.isInsured) return 'Insured'
-    if (!record.canInsure) return 'Expired'
+    if (isActuallyExpired(record)) return 'Expired'
     return 'Can Insure'
   }
 
   const getStatusIcon = (record) => {
     if (record.isInsured) return <CheckCircle className="w-4 h-4 mr-1" />
-    if (!record.canInsure) return <X className="w-4 h-4 mr-1" />
+    if (isActuallyExpired(record)) return <X className="w-4 h-4 mr-1" />
     return <Clock className="w-4 h-4 mr-1" />
   }
 
@@ -308,9 +314,14 @@ const FarmerCropInsurance = () => {
                         <div className="text-sm text-gray-900">
                           {record.insuranceDayLimit} days
                         </div>
-                        {!record.isInsured && record.canInsure && (
+                        {!record.isInsured && !isActuallyExpired(record) && (
                           <div className="text-xs text-yellow-600">
                             {getRemainingDays(record)} days left
+                          </div>
+                        )}
+                        {!record.isInsured && isActuallyExpired(record) && (
+                          <div className="text-xs text-red-600">
+                            Expired
                           </div>
                         )}
                       </td>
@@ -369,8 +380,11 @@ const FarmerCropInsurance = () => {
                   <div>
                     <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Day Limit</p>
                     <p className="text-sm text-gray-700">{record.insuranceDayLimit} days</p>
-                    {!record.isInsured && record.canInsure && (
+                    {!record.isInsured && !isActuallyExpired(record) && (
                       <p className="text-xs text-yellow-600 mt-1">{getRemainingDays(record)} days left</p>
+                    )}
+                    {!record.isInsured && isActuallyExpired(record) && (
+                      <p className="text-xs text-red-600 mt-1">Expired</p>
                     )}
                   </div>
                   <div className="pt-2">
@@ -394,7 +408,7 @@ const FarmerCropInsurance = () => {
 
       {/* Add New Crop Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
           <div className="bg-lime-50 rounded-xl shadow-md text-black p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-black">Add New Crop Insurance Record</h3>
@@ -437,6 +451,7 @@ const FarmerCropInsurance = () => {
                     onChange={handleFormChange}
                     required
                     step="0.01"
+                    placeholder="e.g., 5.0"
                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                   />
                 </div>
@@ -450,6 +465,7 @@ const FarmerCropInsurance = () => {
                     value={formData.lotNumber}
                     onChange={handleFormChange}
                     required
+                    placeholder="e.g., Lot 1 or A-1"
                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                   />
                 </div>
@@ -464,6 +480,7 @@ const FarmerCropInsurance = () => {
                     onChange={handleFormChange}
                     required
                     step="0.01"
+                    placeholder="e.g., 2.5"
                     className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                   />
                 </div>
@@ -516,6 +533,7 @@ const FarmerCropInsurance = () => {
                   value={formData.notes}
                   onChange={handleFormChange}
                   rows="3"
+                  placeholder="Add any additional notes or remarks about this crop insurance record..."
                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 />
               </div>
@@ -581,7 +599,7 @@ const FarmerCropInsurance = () => {
                     <p className="text-sm text-gray-600">Agency: {selectedRecord.agency}</p>
                   </>
                 )}
-                {!selectedRecord.isInsured && selectedRecord.canInsure && (
+                {!selectedRecord.isInsured && !isActuallyExpired(selectedRecord) && (
                   <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
                     <p className="text-sm text-yellow-800">
                       <Info className="inline w-4 h-4 mr-1" />
@@ -589,11 +607,11 @@ const FarmerCropInsurance = () => {
                     </p>
                   </div>
                 )}
-                {!selectedRecord.canInsure && !selectedRecord.isInsured && (
+                {!selectedRecord.isInsured && isActuallyExpired(selectedRecord) && (
                   <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
                     <p className="text-sm text-red-800">
                       <AlertTriangle className="inline w-4 h-4 mr-1" />
-                      Insurance deadline has passed
+                      Insurance deadline has passed. This crop cannot be insured anymore.
                     </p>
                   </div>
                 )}

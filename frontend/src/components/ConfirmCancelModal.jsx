@@ -6,7 +6,7 @@ const ConfirmCancelModal = ({ isOpen, onConfirm, onCancel, title = "Cancel Form"
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
       <div className="bg-lime-50 rounded-xl shadow-md text-black max-w-md w-full p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">

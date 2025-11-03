@@ -116,15 +116,15 @@ const FarmerCropPrices = () => {
             className="bg-lime-50 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow text-black"
           >
             {crop.image ? (
-              <div className="h-32 w-full bg-gray-100 overflow-hidden">
+              <div className="h-48 w-full bg-gray-100 overflow-hidden p-4 flex items-center justify-center">
                 <img
                   src={crop.image}
                   alt={crop.cropName}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
               </div>
             ) : (
-              <div className="h-32 w-full bg-gradient-to-br from-lime-100 to-lime-50 flex items-center justify-center">
+              <div className="h-48 w-full bg-gradient-to-br from-lime-100 to-lime-50 flex items-center justify-center p-4">
                 <ImageIcon className="h-12 w-12 text-lime-300" />
               </div>
             )}
