@@ -22,7 +22,6 @@ import {
   TrendingUp,
 } from "lucide-react"
 import { useAuthStore } from "../store/authStore"
-import { useNotificationStore } from "../store/notificationStore"
 
 import WeatherWidget from "../components/dashboard/weather-widget"
 import ClaimStatusTracker from "../components/dashboard/claim-status-tracker"
@@ -85,34 +84,41 @@ const FarmerDashboard = () => {
     }, 800);
   };
   
-  // Get notifications for current farmer - use Zustand store with reactive subscription
-  const farmerNotifications = useNotificationStore((state) => 
-    user?.id ? state.getFarmerNotifications(user.id) : []
-  )
-  const unreadFarmerCount = useNotificationStore((state) => 
-    user?.id ? state.getFarmerUnreadCount(user.id) : 0
-  )
+  // Local-only notifications (for test/help buttons) - component state
+  const [localNotifications, setLocalNotifications] = useState([]);
+  
+  // Get notifications from React Query (API) - single source of truth
+  const apiNotificationsArray = Array.isArray(apiNotifications) ? apiNotifications : [];
+  const farmerNotifications = [...localNotifications, ...apiNotificationsArray];
+  
+  // Calculate unread count from API notifications only
+  const unreadFarmerCount = useMemo(() => {
+    return apiNotificationsArray.filter(n => !n.read).length;
+  }, [apiNotificationsArray]);
 
   // State for claim details modal
   const [showClaimDetails, setShowClaimDetails] = useState(false)
   const [selectedClaim, setSelectedClaim] = useState(null)
 
   // ALL React Query hooks MUST be declared BEFORE any useEffect/useCallback that uses them
-  // Use React Query for claims data
-  const { data: claims = [], refetch: refetchClaims } = useClaims(user?.id)
+  // Guard: Only run queries when user is loaded
+  const hasUserId = !!user?.id;
   
-  // Use React Query for crop insurance data
-  const { data: cropInsuranceRecords = [] } = useCropInsurance(user?.id)
+  // Use React Query for claims data - only enabled when user?.id exists
+  const { data: claims = [], refetch: refetchClaims } = useClaims(user?.id || null)
   
-  // Use React Query for farmer applications data
-  const { data: farmerApplications = [], isLoading: applicationsLoading, error: applicationsError } = useFarmerApplications(user?.id)
+  // Use React Query for crop insurance data - only enabled when user?.id exists
+  const { data: cropInsuranceRecords = [] } = useCropInsurance(user?.id || null)
+  
+  // Use React Query for farmer applications data - only enabled when user?.id exists
+  const { data: farmerApplications = [], isLoading: applicationsLoading, error: applicationsError } = useFarmerApplications(user?.id || null)
   
   // Use React Query for assistance data (must be declared early)
   const { data: assistanceItems = [], isLoading: assistanceLoading, error: assistanceError } = useAssistances()
   const applyForAssistanceMutation = useApplyForAssistance()
   
   // Notification hooks (API-based, polling every 7 seconds) - only enabled when user?.id exists
-  const { data: apiNotifications = [], refetch: refetchNotifications } = useNotifications('farmer', user?.id)
+  const { data: apiNotifications = [], refetch: refetchNotifications } = useNotifications('farmer', user?.id || null)
   const markAsReadMutation = useMarkNotificationsAsRead()
   const clearNotificationsMutation = useClearNotifications()
   const deleteNotificationMutation = useDeleteNotification()
@@ -120,11 +126,6 @@ const FarmerDashboard = () => {
   // Track last checked timestamps for notifications (initialize after data loads)
   const lastClaimStatusCheckRef = useRef(null);
   const lastApplicationStatusCheckRef = useRef(null);
-  
-  // Generate unique notification ID (must be declared before useCallback that uses it)
-  const generateUniqueId = () => {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  };
   
   // Initialize timestamps after data loads to avoid showing all existing items as new
   useEffect(() => {
@@ -144,136 +145,8 @@ const FarmerDashboard = () => {
     }
   }, [claims, farmerApplications]);
 
-  // Polling function to check for notification updates (non-real-time)
-  const checkForFarmerNotifications = useCallback(() => {
-    if (!user?.id || lastClaimStatusCheckRef.current === null || lastApplicationStatusCheckRef.current === null) {
-      return; // Skip if not initialized or no user
-    }
-
-    // Use requestAnimationFrame to batch updates and avoid React render errors
-    requestAnimationFrame(() => {
-      const store = useNotificationStore.getState();
-      const existingNotifications = store.getFarmerNotifications(user.id);
-      const notificationsToAdd = [];
-
-      // Check for claim status updates
-      claims.forEach(claim => {
-        const claimUpdateDate = new Date(claim.updatedAt || claim.date || claim.createdAt);
-        if (claimUpdateDate.getTime() > lastClaimStatusCheckRef.current) {
-          // Check if notification already exists
-          const notificationExists = existingNotifications.some(
-            n => n.message?.includes(claim.claimNumber || claim._id?.slice(-6))
-          );
-
-          if (!notificationExists && claim.status !== 'pending') {
-            let notificationType = 'info';
-            let title = 'Claim Updated';
-            let message = '';
-
-            if (claim.status === 'approved') {
-              notificationType = 'success';
-              title = 'Claim Approved!';
-              const compensation = claim.compensation ? ` Compensation: ₱${claim.compensation.toLocaleString()}` : '';
-              message = `Your claim for ${claim.crop || 'unknown crop'} has been approved!${compensation}`;
-            } else if (claim.status === 'rejected') {
-              notificationType = 'error';
-              title = 'Claim Rejected';
-              const reason = claim.adminFeedback ? ` Reason: ${claim.adminFeedback}` : '';
-              message = `Your claim for ${claim.crop || 'unknown crop'} has been rejected.${reason}`;
-            }
-
-            if (message) {
-              notificationsToAdd.push({
-                id: generateUniqueId(),
-                type: notificationType,
-                title: title,
-                message: message,
-                timestamp: new Date(),
-                read: false
-              });
-            }
-          }
-        }
-      });
-
-      // Update last check time for claims
-      const latestClaimUpdate = claims.reduce((latest, claim) => {
-        const updateDate = new Date(claim.updatedAt || claim.date || claim.createdAt);
-        return updateDate > latest ? updateDate : latest;
-      }, new Date(lastClaimStatusCheckRef.current));
-      lastClaimStatusCheckRef.current = latestClaimUpdate.getTime();
-
-      // Check for application status updates
-      farmerApplications.forEach(app => {
-        const appUpdateDate = new Date(app.reviewDate || app.distributionDate || app.applicationDate || app.createdAt);
-        if (appUpdateDate.getTime() > lastApplicationStatusCheckRef.current) {
-          // Check if notification already exists
-          const notificationExists = existingNotifications.some(
-            n => n.message?.includes(app.assistanceId?.assistanceType || 'assistance') && 
-                 n.message?.includes(app.status)
-          );
-
-          if (!notificationExists && app.status !== 'pending') {
-            let notificationType = 'info';
-            let title = 'Application Updated';
-            let message = '';
-
-            if (app.status === 'approved') {
-              notificationType = 'success';
-              title = 'Application Approved!';
-              const feedback = app.officerNotes ? ` Feedback: ${app.officerNotes}` : '';
-              message = `Your application for ${app.assistanceId?.assistanceType || 'assistance'} has been approved!${feedback}`;
-            } else if (app.status === 'rejected') {
-              notificationType = 'error';
-              title = 'Application Rejected';
-              const reason = app.officerNotes ? ` Reason: ${app.officerNotes}` : '';
-              message = `Your application for ${app.assistanceId?.assistanceType || 'assistance'} has been rejected.${reason}`;
-            } else if (app.status === 'distributed') {
-              notificationType = 'success';
-              title = 'Assistance Distributed!';
-              const notes = app.officerNotes ? ` Notes: ${app.officerNotes}` : '';
-              message = `Your ${app.assistanceId?.assistanceType || 'assistance'} has been distributed successfully!${notes}`;
-            }
-
-            if (message) {
-              notificationsToAdd.push({
-                id: generateUniqueId(),
-                type: notificationType,
-                title: title,
-                message: message,
-                timestamp: new Date(),
-                read: false
-              });
-            }
-          }
-        }
-      });
-
-      // Update last check time for applications
-      const latestAppUpdate = farmerApplications.reduce((latest, app) => {
-        const updateDate = new Date(app.reviewDate || app.distributionDate || app.applicationDate || app.createdAt);
-        return updateDate > latest ? updateDate : latest;
-      }, new Date(lastApplicationStatusCheckRef.current));
-      lastApplicationStatusCheckRef.current = latestAppUpdate.getTime();
-
-      // Batch add all notifications at once
-      if (notificationsToAdd.length > 0) {
-        const emptySet = new Set();
-        store.batchSyncFarmerNotifications(user.id, notificationsToAdd, emptySet);
-      }
-    });
-  }, [claims, farmerApplications, user?.id]);
-
-  // Setup polling for farmer notifications (every 7 seconds)
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const notificationPollingInterval = setInterval(() => {
-      checkForFarmerNotifications();
-    }, 7000); // 7 seconds - between 5-10 as requested
-
-    return () => clearInterval(notificationPollingInterval);
-  }, [checkForFarmerNotifications, user?.id]);
+  // Note: Status change notifications now come from backend API automatically
+  // React Query polls every 7 seconds to fetch new notifications
 
   // Manual refresh function for notifications (fetches from API)
   const refreshFarmerNotifications = useCallback(async () => {
@@ -286,85 +159,58 @@ const FarmerDashboard = () => {
     }
   }, [refetchNotifications, refetchClaims]);
   
+  // Toggle notification panel and mark as read
+  const toggleNotificationPanel = useCallback(() => {
+    setNotificationOpen(!notificationOpen);
+    if (!notificationOpen) {
+      // Mark all unread API notifications as read
+      const unreadNotificationIds = apiNotificationsArray
+        .filter(n => !n.read)
+        .map(n => n._id || n.id)
+        .filter(Boolean);
+      
+      if (unreadNotificationIds.length > 0) {
+        markAsReadMutation.mutate({
+          recipientType: 'farmer',
+          recipientId: user?.id,
+          notificationIds: unreadNotificationIds
+        });
+      }
+    }
+  }, [notificationOpen, apiNotificationsArray, user?.id, markAsReadMutation]);
+  
+  // Generate unique notification ID (must be declared before useCallback that uses it)
+  const generateUniqueId = () => {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  // Helper function to add local-only notification (for test/help buttons)
+  const addLocalNotification = useCallback((notification) => {
+    const notificationId = notification.id || generateUniqueId();
+    setLocalNotifications(prev => [{
+      ...notification,
+      id: notificationId,
+      timestamp: notification.timestamp || new Date(),
+      read: false
+    }, ...prev]);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      setLocalNotifications(prev => prev.filter(n => n.id !== notificationId));
+    }, 5000);
+  }, []);
+  
+  // Helper function to remove local notification
+  const removeLocalNotification = useCallback((id) => {
+    setLocalNotifications(prev => prev.filter(n => n.id !== id));
+  }, []);
+  
   // Helper function to check if a string is a valid MongoDB ObjectId
   const isValidObjectId = (id) => {
     if (!id || typeof id !== 'string') return false;
     // MongoDB ObjectId is 24 hex characters
     return /^[0-9a-fA-F]{24}$/.test(id);
   };
-  
-  // Sync API notifications to Zustand store (batched to avoid React render errors)
-  useEffect(() => {
-    if (!user?.id || !apiNotifications) return;
-    
-    // Use requestAnimationFrame to defer updates and avoid React render error
-    const frameId = requestAnimationFrame(() => {
-      const store = useNotificationStore.getState();
-      const currentNotifications = store.getFarmerNotifications(user.id);
-      
-      if (apiNotifications.length > 0) {
-        // Create a set of API notification IDs for comparison
-        const apiNotificationIds = new Set(apiNotifications.map(n => n._id || n.id).filter(Boolean));
-        
-        // Collect all updates to apply in batch
-        const notificationsToAdd = [];
-        const notificationIdsToRemove = new Set();
-        
-        // Process each API notification
-        apiNotifications.forEach(notification => {
-          const notificationId = notification._id || notification.id;
-          const existing = currentNotifications.find(n => n.id === notificationId);
-          
-          if (!existing) {
-            // New notification to add
-            notificationsToAdd.push({
-              id: notificationId,
-              type: notification.type || 'info',
-              title: notification.title,
-              message: notification.message,
-              timestamp: new Date(notification.timestamp || notification.createdAt),
-              read: notification.read || false,
-              relatedEntityType: notification.relatedEntityType,
-              relatedEntityId: notification.relatedEntityId,
-            });
-          } else if (existing.read !== notification.read) {
-            // Update read status - remove old and add updated version
-            notificationIdsToRemove.add(existing.id);
-            notificationsToAdd.push({
-              ...existing,
-              read: notification.read
-            });
-          }
-        });
-        
-        // Find notifications to remove (exist in Zustand but not in API, and are MongoDB ObjectIds)
-        currentNotifications.forEach(n => {
-          if (isValidObjectId(n.id) && !apiNotificationIds.has(n.id)) {
-            notificationIdsToRemove.add(n.id);
-          }
-        });
-        
-        // Apply all updates in a single batch operation
-        if (notificationsToAdd.length > 0 || notificationIdsToRemove.size > 0) {
-          store.batchSyncFarmerNotifications(user.id, notificationsToAdd, notificationIdsToRemove);
-        }
-      } else {
-        // If API returns empty, clear all DB notifications (keep local Zustand-generated ones)
-        const dbNotificationIds = new Set(
-          currentNotifications
-            .filter(n => isValidObjectId(n.id))
-            .map(n => n.id)
-        );
-        
-        if (dbNotificationIds.size > 0) {
-          // Use batch sync to remove DB notifications only (local ones will remain via filter)
-          store.batchSyncFarmerNotifications(user.id, [], dbNotificationIds);
-        }
-      }
-    });
-    
-    return () => cancelAnimationFrame(frameId);
-  }, [apiNotifications, user?.id]);
   
   // Insured crop types derived from crop insurance records using React Query
   const insuredCropTypes = useMemo(() => {
@@ -488,51 +334,66 @@ const FarmerDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 3 // Number of assistance items per page
 
-  // Generate claims data for donut chart
+  // Generate claims data for donut chart with proper guards
   const generateClaimsChartData = () => {
+    // Ensure claims is an array
+    const safeClaims = Array.isArray(claims) ? claims : [];
+    
     const statusCounts = {
       pending: 0,
       approved: 0,
       rejected: 0
     };
 
-    claims.forEach(claim => {
-      const status = claim.status?.toLowerCase() || 'pending';
+    safeClaims.forEach(claim => {
+      const status = claim?.status?.toLowerCase() || 'pending';
       if (Object.prototype.hasOwnProperty.call(statusCounts, status)) {
         statusCounts[status]++;
       }
     });
 
-    const totalClaims = claims.length;
+    const totalClaims = safeClaims.length;
+
+    // Return default empty chart data if no claims
+    if (totalClaims === 0) {
+      return {
+        labels: ['No Claims'],
+        datasets: [
+          {
+            data: [1],
+            backgroundColor: ['#e5e7eb'], // gray for no data
+            borderColor: ['#9ca3af'],
+            borderWidth: 2,
+            hoverBackgroundColor: ['#d1d5db']
+          }
+        ]
+      };
+    }
 
     return {
-      labels: ['Pending', 'Approved', 'Rejected', 'Total Claims'],
+      labels: ['Pending', 'Approved', 'Rejected'],
       datasets: [
         {
           data: [
             statusCounts.pending,
             statusCounts.approved,
-            statusCounts.rejected,
-            totalClaims
+            statusCounts.rejected
           ],
           backgroundColor: [
-            '#fbbf24', // lime-400 for pending
+            '#fbbf24', // yellow-400 for pending
             '#84cc16', // lime-500 for approved
-            '#ef4444', // red-500 for rejected
-            '#22c55e'  // green-500 for total claims
+            '#ef4444'  // red-500 for rejected
           ],
           borderColor: [
-            '#f59e0b', // lime-500 border
+            '#f59e0b', // yellow-500 border
             '#65a30d', // lime-600 border
-            '#dc2626', // red-600 border
-            '#16a34a'  // green-600 border
+            '#dc2626'  // red-600 border
           ],
           borderWidth: 2,
           hoverBackgroundColor: [
-            '#f59e0b', // lime-500 hover
-            '#65a30d', // lime-600 hover
-            '#dc2626', // red-600 hover
-            '#16a34a'  // green-600 hover
+            '#f59e0b',
+            '#65a30d',
+            '#dc2626'
           ]
         }
       ]
@@ -574,52 +435,23 @@ const FarmerDashboard = () => {
     setShowClaimDetails(true)
   }
 
-  // Toggle notification panel and mark as read
-  const toggleNotificationPanel = async () => {
-    setNotificationOpen(!notificationOpen)
-    if (!notificationOpen && user?.id) {
-      // Mark all unread notifications as read via API
-      const unreadNotifications = farmerNotifications.filter(n => !n.read);
-      if (unreadNotifications.length > 0) {
-        // Only send MongoDB ObjectIds to the API (filter out local Zustand-generated IDs)
-        const notificationIds = unreadNotifications
-          .map(n => n.id)
-          .filter(id => id && isValidObjectId(id));
-        
-        try {
-          // Only call API if we have valid ObjectIds
-          if (notificationIds.length > 0) {
-            await markAsReadMutation.mutateAsync({
-              recipientType: 'farmer',
-              recipientId: user.id,
-              notificationIds: notificationIds
-            });
-          }
-          // Always update local store regardless (includes both DB and local notifications)
-          useNotificationStore.getState().markFarmerNotificationsAsRead(user.id);
-        } catch (error) {
-          console.error('Error marking notifications as read:', error);
-        }
-      }
-    }
-  }
-
-  // Clear all notifications (API + local store)
+  // Clear all notifications (API + local)
   const handleClearAllNotifications = async () => {
     if (!user?.id) return;
     try {
+      // Clear API notifications
       await clearNotificationsMutation.mutateAsync({
         recipientType: 'farmer',
         recipientId: user.id
       });
-      // Also clear local store
-      useNotificationStore.getState().clearFarmerNotifications(user.id);
+      // Clear local notifications
+      setLocalNotifications([]);
       // Refetch to sync with API
       await refetchNotifications();
     } catch (error) {
       console.error('Error clearing notifications:', error);
-      // Still clear local store even if API fails
-      useNotificationStore.getState().clearFarmerNotifications(user.id);
+      // Still clear local notifications even if API fails
+      setLocalNotifications([]);
     }
   }
 
@@ -645,55 +477,8 @@ const FarmerDashboard = () => {
 
 
 
-  // Monitor for new assistance items and notify farmers with matching crop types (polling-based, not real-time)
-  useEffect(() => {
-    if (!user?.id || !user.cropType || assistanceItems.length === 0) return;
-    
-    // Use requestAnimationFrame to defer updates and avoid React render error
-    const frameId = requestAnimationFrame(() => {
-      // Check for new assistance items that match the farmer's crop type
-      const newAssistanceItems = assistanceItems.filter(item => 
-        item.cropType && 
-        item.cropType.toLowerCase() === user.cropType.toLowerCase() &&
-        item.status === 'active'
-      );
-
-      if (newAssistanceItems.length === 0) return;
-
-      // Collect all notifications to add in batch
-      const store = useNotificationStore.getState();
-      const existingNotifications = store.getFarmerNotifications(user.id);
-      const notificationsToAdd = [];
-
-      // Notify farmer about new assistance items (only if not already notified)
-      newAssistanceItems.forEach(item => {
-        const alreadyNotified = existingNotifications.some(notification => 
-          notification.title === 'New Assistance Available' && 
-          notification.message.includes(item.assistanceType)
-        );
-
-        if (!alreadyNotified) {
-          notificationsToAdd.push({
-            id: `new-assistance-${item._id}-${generateUniqueId()}`,
-            type: 'info',
-            title: 'New Assistance Available',
-            message: `New ${item.assistanceType} assistance is now available for ${item.cropType} farmers!`,
-            timestamp: new Date(),
-            read: false
-          });
-        }
-      });
-
-      // Batch add all notifications at once
-      if (notificationsToAdd.length > 0) {
-        const emptySet = new Set();
-        store.batchSyncFarmerNotifications(user.id, notificationsToAdd, emptySet);
-      }
-    });
-    
-    return () => cancelAnimationFrame(frameId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assistanceItems, user?.cropType, user?.id]); // Note: Status updates handled by polling in checkForFarmerNotifications
+  // Note: New assistance notifications now come from backend API automatically
+  // React Query polls every 7 seconds to fetch new notifications
 
   // Format timestamp function
   const formatTimestamp = (date) => {
@@ -746,32 +531,19 @@ const FarmerDashboard = () => {
       setShowAssistanceForm(false);
       setSelectedAssistance(null);
       
-      // Show success message using notification store for farmer
-      useNotificationStore.getState().addFarmerNotification({
-        id: generateUniqueId(),
+      // Show success message using local notification
+      addLocalNotification({
         type: 'success',
         title: 'Application Submitted',
         message: `Your application for ${selectedAssistance.assistanceType} has been submitted successfully.`,
-        timestamp: new Date()
-      }, user.id);
-      
-      // Also notify admin about the new application
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'info',
-        title: 'New Assistance Application',
-        message: `${user.name || 'A farmer'} has applied for ${selectedAssistance.assistanceType} assistance.`,
-        timestamp: new Date()
       });
       
     } catch (error) {
-      useNotificationStore.getState().addFarmerNotification({
-        id: generateUniqueId(),
+      addLocalNotification({
         type: 'error',
         title: 'Application Failed',
         message: `Error: ${error.message}`,
-        timestamp: new Date()
-      }, user.id);
+      });
     }
   }
 
@@ -877,30 +649,32 @@ const FarmerDashboard = () => {
                                 <h4 className="font-medium bg-lime-400 text-black px-2 py-1 rounded text-sm">{notification.title}</h4>
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs text-gray-500">
-                                    {formatTimestamp(new Date(notification.timestamp))}
+                                    {formatTimestamp(notification.timestamp ? new Date(notification.timestamp) : new Date())}
                                   </span>
                                   <button
                                     onClick={async () => {
                                       if (!user?.id) return;
                                       
-                                      // Delete from API only if notification has valid MongoDB ObjectId
-                                      if (notification.id && isValidObjectId(notification.id)) {
+                                      // Check if it's a local notification or API notification
+                                      const isLocalNotification = !isValidObjectId(notification.id);
+                                      
+                                      if (isLocalNotification) {
+                                        // Remove from local notifications
+                                        removeLocalNotification(notification.id);
+                                      } else {
+                                        // Delete from API
                                         try {
                                           await deleteNotificationMutation.mutateAsync({
                                             notificationId: notification.id,
                                             recipientType: 'farmer',
                                             recipientId: user.id
                                           });
+                                          // Refetch to sync with API
+                                          await refetchNotifications();
                                         } catch (error) {
                                           console.error('Error deleting notification:', error);
                                         }
                                       }
-                                      
-                                      // Always remove from local store (works for both DB and local notifications)
-                                      useNotificationStore.getState().removeNotification(notification.id, user.id);
-                                      
-                                      // Refetch to sync with API
-                                      await refetchNotifications();
                                     }}
                                     className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
                                     aria-label="Remove notification"
@@ -948,13 +722,11 @@ const FarmerDashboard = () => {
                   </button>
                   <button
                     onClick={() => {
-                      useNotificationStore.getState().addFarmerNotification({
-                        id: generateUniqueId(),
+                      addLocalNotification({
                         type: 'info',
                         title: 'Help Center',
                         message: 'Help Center coming soon!',
-                        timestamp: new Date()
-                      }, user.id);
+                      });
                     }}
                     className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
                   >
@@ -963,13 +735,11 @@ const FarmerDashboard = () => {
                   </button>
                   <button
                     onClick={() => {
-                      useNotificationStore.getState().addFarmerNotification({
-                        id: generateUniqueId(),
+                      addLocalNotification({
                         type: 'success',
                         title: 'Test Notification',
                         message: 'This is a test notification to verify the system is working!',
-                        timestamp: new Date()
-                      }, user.id);
+                      });
                     }}
                     className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
                   >
@@ -1027,13 +797,11 @@ const FarmerDashboard = () => {
                   onClick={() => {
                     handleTabSwitch("claims")
                     // Show notification about claims
-                    useNotificationStore.getState().addFarmerNotification({
-                      id: generateUniqueId(),
+                    addLocalNotification({
                       type: 'info',
                       title: 'Claims Overview',
                       message: 'Viewing your insurance claims and their current status.',
-                      timestamp: new Date()
-                    }, user?.id);
+                    });
                   }}
                   className={`flex items-center w-full p-2 rounded-lg ${
                     activeTab === "claims" ? "bg-lime-100 text-lime-700" : "text-gray-700 hover:bg-gray-100"
@@ -1048,13 +816,11 @@ const FarmerDashboard = () => {
                   onClick={() => {
                     handleTabSwitch("assistance")
                     // Show notification about assistance
-                    useNotificationStore.getState().addFarmerNotification({
-                      id: generateUniqueId(),
+                    addLocalNotification({
                       type: 'info',
                       title: 'Government Assistance',
                       message: 'Browse available government assistance programs for your crop type.',
-                      timestamp: new Date()
-                    }, user?.id);
+                    });
                   }}
                   className={`flex items-center w-full p-2 rounded-lg ${
                     activeTab === "assistance" ? "bg-lime-100 text-lime-700" : "text-gray-700 hover:bg-gray-100"
@@ -1288,58 +1054,64 @@ const FarmerDashboard = () => {
                 {/* Claims Status Donut Chart */}
                 <div className="bg-white p-4 sm:p-6">
                   <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-lime-800">Claims Status Overview</h2>
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                    <div className="w-48 h-48 sm:w-64 sm:h-64">
-                      <Doughnut
-                        data={generateClaimsChartData()}
-                        options={{
-                          responsive: true,
-                          maintainAspectRatio: false,
-                          plugins: {
-                            legend: {
-                              position: 'bottom',
-                              labels: {
-                                padding: 20,
-                                usePointStyle: true,
-                                font: {
-                                  size: 12
+                  {Array.isArray(claims) && claims.length > 0 ? (
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                      <div className="w-48 h-48 sm:w-64 sm:h-64">
+                        <Doughnut
+                          data={generateClaimsChartData()}
+                          options={{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                              legend: {
+                                position: 'bottom',
+                                labels: {
+                                  padding: 20,
+                                  usePointStyle: true,
+                                  font: {
+                                    size: 12
+                                  }
                                 }
-                              }
-                            },
-                            tooltip: {
-                              callbacks: {
-                                label: function(context) {
-                                  const label = context.label || '';
-                                  const value = context.parsed;
-                                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                  const percentage = ((value / total) * 100).toFixed(1);
-                                  return `${label}: ${value} (${percentage}%)`;
+                              },
+                              tooltip: {
+                                callbacks: {
+                                  label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset?.data?.reduce((a, b) => a + b, 0) || 1;
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+                                    return `${label}: ${value} (${percentage}%)`;
+                                  }
                                 }
                               }
                             }
-                          }
-                        }}
-                      />
+                          }}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                          <span>Pending: {Array.isArray(claims) ? claims.filter(c => c?.status?.toLowerCase() === 'pending').length : 0}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-lime-500"></div>
+                          <span>Approved: {Array.isArray(claims) ? claims.filter(c => c?.status?.toLowerCase() === 'approved').length : 0}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                          <span>Rejected: {Array.isArray(claims) ? claims.filter(c => c?.status?.toLowerCase() === 'rejected').length : 0}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                          <span>Total Claims: {Array.isArray(claims) ? claims.length : 0}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                        <span>Pending: {claims.filter(c => c.status?.toLowerCase() === 'pending').length}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-lime-500"></div>
-                        <span>Approved: {claims.filter(c => c.status?.toLowerCase() === 'approved').length}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                        <span>Rejected: {claims.filter(c => c.status?.toLowerCase() === 'rejected').length}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span>Total Claims: {claims.length}</span>
-                      </div>
+                  ) : (
+                    <div className="flex items-center justify-center py-8">
+                      <p className="text-gray-500 text-center">No claims data available</p>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Weather Widget */}
@@ -1769,13 +1541,11 @@ const FarmerDashboard = () => {
                                   reason = 'You are not eligible for this assistance.';
                                 }
 
-                                useNotificationStore.getState().addFarmerNotification({
-                                  id: generateUniqueId(),
+                                addLocalNotification({
                                   type: 'warning',
                                   title: 'Application Not Available',
                                   message: reason,
-                                  timestamp: new Date()
-                                }, user.id);
+                                });
                               }
                             }}
                             disabled={!canAvail}

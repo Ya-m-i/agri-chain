@@ -44,7 +44,6 @@ import {
   Sun,
 } from "lucide-react"
 import { useAuthStore } from "../store/authStore"
-import { useNotificationStore } from "../store/notificationStore"
 import { useSocketQuery } from "../hooks/useSocketQuery"
 import { getWeatherForKapalong, getWeatherForMultipleLocations, getWeatherMarkerColor, getWeatherMarkerIcon, getFarmingRecommendation } from "../utils/weatherUtils"
 import L from "leaflet"
@@ -323,78 +322,31 @@ const AdminDashboard = () => {
     return /^[0-9a-fA-F]{24}$/.test(id);
   };
 
-  // Sync API notifications to Zustand store (batched to avoid React render errors)
-  useEffect(() => {
-    if (!apiNotifications) return;
+  // Generate unique notification ID
+  const generateUniqueId = () => {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  // Helper function to add local-only notification (for test/help buttons)
+  const addLocalNotification = useCallback((notification) => {
+    const notificationId = notification.id || generateUniqueId();
+    setLocalNotifications(prev => [{
+      ...notification,
+      id: notificationId,
+      timestamp: notification.timestamp || new Date(),
+      read: false
+    }, ...prev]);
     
-    // Use requestAnimationFrame to defer updates and avoid React render error
-    const frameId = requestAnimationFrame(() => {
-      const store = useNotificationStore.getState();
-      const currentNotifications = store.adminNotifications;
-      
-      if (apiNotifications.length > 0) {
-        // Create a set of API notification IDs for comparison
-        const apiNotificationIds = new Set(apiNotifications.map(n => n._id || n.id).filter(Boolean));
-        
-        // Collect all updates to apply in batch
-        const notificationsToAdd = [];
-        const notificationIdsToRemove = new Set();
-        
-        // Process each API notification
-        apiNotifications.forEach(notification => {
-          const notificationId = notification._id || notification.id;
-          const existing = currentNotifications.find(n => n.id === notificationId);
-          
-          if (!existing) {
-            // New notification to add
-            notificationsToAdd.push({
-              id: notificationId,
-              type: notification.type || 'info',
-              title: notification.title,
-              message: notification.message,
-              timestamp: new Date(notification.timestamp || notification.createdAt),
-              read: notification.read || false,
-              relatedEntityType: notification.relatedEntityType,
-              relatedEntityId: notification.relatedEntityId,
-            });
-          } else if (existing.read !== notification.read) {
-            // Update read status - remove old and add updated version
-            notificationIdsToRemove.add(existing.id);
-            notificationsToAdd.push({
-              ...existing,
-              read: notification.read
-            });
-          }
-        });
-        
-        // Find notifications to remove (exist in Zustand but not in API, and are MongoDB ObjectIds)
-        currentNotifications.forEach(n => {
-          if (isValidObjectId(n.id) && !apiNotificationIds.has(n.id)) {
-            notificationIdsToRemove.add(n.id);
-          }
-        });
-        
-        // Apply all updates in a single batch operation
-        if (notificationsToAdd.length > 0 || notificationIdsToRemove.size > 0) {
-          store.batchSyncAdminNotifications(notificationsToAdd, notificationIdsToRemove);
-        }
-      } else {
-        // If API returns empty, clear all DB notifications (keep local Zustand-generated ones)
-        const dbNotificationIds = new Set(
-          currentNotifications
-            .filter(n => isValidObjectId(n.id))
-            .map(n => n.id)
-        );
-        
-        if (dbNotificationIds.size > 0) {
-          // Use batch sync to remove DB notifications only (local ones will remain via filter)
-          store.batchSyncAdminNotifications([], dbNotificationIds);
-        }
-      }
-    });
-    
-    return () => cancelAnimationFrame(frameId);
-  }, [apiNotifications]);
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      setLocalNotifications(prev => prev.filter(n => n.id !== notificationId));
+    }, 5000);
+  }, []);
+  
+  // Helper function to remove local notification
+  const removeLocalNotification = useCallback((id) => {
+    setLocalNotifications(prev => prev.filter(n => n.id !== id));
+  }, []);
   
   // Initialize Socket.IO for real-time updates (disabled for notifications - using polling instead)
   // eslint-disable-next-line no-unused-vars
@@ -531,15 +483,17 @@ const AdminDashboard = () => {
   const [showClaimDetails, setShowClaimDetails] = useState(false)
   const [selectedClaim, setSelectedClaim] = useState(null)
 
-  // Notification store
-  const { 
-    adminNotifications, 
-    unreadAdminCount, 
-    markAdminNotificationsAsRead
-  } = useNotificationStore()
-
-  // Get adminNotifications in callback (for use in polling)
-  const getAdminNotifications = () => useNotificationStore.getState().adminNotifications
+  // Local-only notifications (for test/help buttons) - component state
+  const [localNotifications, setLocalNotifications] = useState([]);
+  
+  // Get notifications from React Query (API) - single source of truth
+  const apiNotificationsArray = Array.isArray(apiNotifications) ? apiNotifications : [];
+  const adminNotifications = [...localNotifications, ...apiNotificationsArray];
+  
+  // Calculate unread count from API notifications only
+  const unreadAdminCount = useMemo(() => {
+    return apiNotificationsArray.filter(n => !n.read).length;
+  }, [apiNotificationsArray]);
 
   // Form states
   const [showModal, setShowModal] = useState(false)
@@ -705,21 +659,17 @@ const AdminDashboard = () => {
       setShowRegisterForm(false)
 
       // Show success message
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
+      addLocalNotification({
         type: 'success',
         title: 'Farmer Registered Successfully',
         message: `${formData.firstName} ${formData.lastName} has been registered successfully.`,
-        timestamp: new Date()
       });
     } catch (error) {
       console.error('Error registering farmer:', error);
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
+      addLocalNotification({
         type: 'error',
         title: 'Registration Failed',
         message: `Error: ${error.message}`,
-        timestamp: new Date()
       });
     }
   }
@@ -1144,12 +1094,10 @@ const AdminDashboard = () => {
     console.log("handleEventSubmit called", eventForm);
     // Check for required fields
     if (!eventForm.assistanceType || !eventForm.description || !eventForm.cropType || !eventForm.founderName || !eventForm.quantity || !eventForm.dateAdded || (eventForm.cropType === "Other" && !eventForm.otherCropType)) {
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
+      addLocalNotification({
         type: 'error',
         title: 'Validation Error',
         message: 'Please fill in all required fields.',
-        timestamp: new Date()
       });
       return;
     }
@@ -1184,48 +1132,32 @@ const AdminDashboard = () => {
     setShowEventModal(false)
       
       // Show success notification instead of alert
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
+      addLocalNotification({
         type: 'success',
         title: 'Assistance Added Successfully',
         message: `${assistanceData.assistanceType} has been added to the assistance inventory.`,
-        timestamp: new Date()
       });
 
-      // Send notification to farmers with matching crop type
+      // Also notify admin about how many farmers were notified
       const matchingFarmers = farmers.filter(farmer => 
         farmer.cropType && 
         farmer.cropType.toLowerCase() === assistanceData.cropType.toLowerCase()
       );
 
-      matchingFarmers.forEach(farmer => {
-        useNotificationStore.getState().addFarmerNotification({
-          id: `new-assistance-${generateUniqueId()}-${farmer._id}`,
-          type: 'info',
-          title: 'New Assistance Available',
-          message: `New ${assistanceData.assistanceType} assistance is now available for ${assistanceData.cropType} farmers!`,
-          timestamp: new Date()
-        }, farmer._id);
-      });
-
-      // Also notify admin about how many farmers were notified
       if (matchingFarmers.length > 0) {
-        useNotificationStore.getState().addAdminNotification({
-          id: generateUniqueId(),
+        addLocalNotification({
           type: 'info',
           title: 'Farmers Notified',
           message: `${matchingFarmers.length} farmer(s) with ${assistanceData.cropType} crop type have been notified about the new assistance.`,
-          timestamp: new Date()
         });
       }
+      // Note: Farmer notifications are now created by backend API automatically
     } catch (err) {
       console.error('Error adding assistance:', err)
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
+      addLocalNotification({
         type: 'error',
         title: 'Add Assistance Failed',
         message: `Error: ${err.message}`,
-        timestamp: new Date()
       });
     }
   }
@@ -1271,22 +1203,18 @@ const AdminDashboard = () => {
     try {
       await updateApplicationStatus(applicationId, { status: 'distributed' });
       // Show success notification instead of alert
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
+      addLocalNotification({
         type: 'success',
         title: 'Application Distributed',
         message: 'Application has been marked as distributed successfully.',
-        timestamp: new Date()
       });
       // Note: React Query will automatically refresh data
     } catch (err) {
       console.error('Error handling distribution:', err);
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
+      addLocalNotification({
         type: 'error',
         title: 'Distribution Failed',
         message: `Error: ${err.message}`,
-        timestamp: new Date()
       });
     }
   };
@@ -1300,12 +1228,10 @@ const AdminDashboard = () => {
         await deleteAssistanceMutation.mutateAsync(applicationId);
         
         // Show success notification
-        useNotificationStore.getState().addAdminNotification({
-          id: generateUniqueId(),
+        addLocalNotification({
           type: 'success',
           title: 'Assistance Deleted',
           message: `${itemName} has been deleted successfully.`,
-          timestamp: new Date()
         });
         
         // Close modal
@@ -1320,31 +1246,13 @@ const AdminDashboard = () => {
         });
         
               // Show success notification
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
+      addLocalNotification({
         type: 'success',
         title: `Application ${actionType.charAt(0).toUpperCase() + actionType.slice(1)}`,
         message: `Application has been ${actionType} successfully.`,
-        timestamp: new Date()
       });
 
-      // Send notification to the farmer about their application status
-      const application = allApplications.find(app => app._id === applicationId);
-      if (application && application.farmerId) {
-        const message = actionType === 'approved' 
-          ? `Your assistance application has been approved! ${assistanceFeedback ? `Feedback: ${assistanceFeedback}` : ''}`
-          : actionType === 'rejected'
-          ? `Your assistance application has been rejected. ${assistanceFeedback ? `Reason: ${assistanceFeedback}` : ''}`
-          : `Your assistance has been distributed successfully! ${assistanceFeedback ? `Notes: ${assistanceFeedback}` : ''}`;
-
-        useNotificationStore.getState().addFarmerNotification({
-          id: `application-${actionType}-${applicationId}`,
-          type: actionType === 'approved' ? 'success' : actionType === 'rejected' ? 'error' : 'info',
-          title: `Application ${actionType.charAt(0).toUpperCase() + actionType.slice(1)}`,
-          message: message,
-          timestamp: new Date()
-        }, application.farmerId);
-      }
+      // Note: Farmer notifications are now created by backend API automatically
         
         // Close modal and refresh
         setShowAssistanceFeedbackModal(false);
@@ -1352,12 +1260,10 @@ const AdminDashboard = () => {
         // Note: React Query will automatically refresh data
       }
     } catch (error) {
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
+      addLocalNotification({
         type: 'error',
         title: 'Action Failed',
         message: `Error: ${error.message}`,
-        timestamp: new Date()
       });
     }
   };
@@ -1395,12 +1301,10 @@ const AdminDashboard = () => {
         adminMessage = `Claim approved! Compensation: ₱${claim.compensation.toLocaleString()}. Total Insurance Paid updated.`;
       }
       
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
+      addLocalNotification({
         type: 'success',
         title: `Claim ${actionType.charAt(0).toUpperCase() + actionType.slice(1)}`,
         message: adminMessage,
-        timestamp: new Date()
       });
 
       // Send notification to the farmer
@@ -1417,21 +1321,13 @@ const AdminDashboard = () => {
           notificationMessage = `Your claim for ${claim.crop} damage has been rejected. ${feedbackText ? `Reason: ${feedbackText}` : ''}`;
         }
 
-        useNotificationStore.getState().addFarmerNotification({
-          id: `claim-${actionType}-${actionClaimId}-${generateUniqueId()}`,
-          type: notificationType,
-          title: notificationTitle,
-          message: notificationMessage,
-          timestamp: new Date()
-        }, farmerIdToNotify);
+      // Note: Farmer notifications are now created by backend API automatically
       }
     } catch (error) {
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
+      addLocalNotification({
         type: 'error',
         title: 'Claim Update Failed',
         message: `Failed to update claim status: ${error.message}`,
-        timestamp: new Date()
       });
     }
   };
@@ -1441,14 +1337,7 @@ const AdminDashboard = () => {
     setSelectedClaim(claim)
     setShowClaimDetails(true)
     
-    // Notify admin about viewing the claim
-    useNotificationStore.getState().addAdminNotification({
-      id: `view-claim-${claim._id || claim.id}`,
-      type: 'info',
-      title: 'Viewing Claim Details',
-      message: `Reviewing claim from ${claim.name} for ${claim.crop} damage.`,
-      timestamp: new Date()
-    });
+    // Note: View notifications are not necessary - removed for simplicity
   }
 
   // Format timestamp
@@ -1482,47 +1371,41 @@ const AdminDashboard = () => {
   }
 
   // Toggle notification panel and mark as read
-  const toggleNotificationPanel = async () => {
-    setNotificationOpen(!notificationOpen)
+  const toggleNotificationPanel = useCallback(() => {
+    setNotificationOpen(!notificationOpen);
     if (!notificationOpen) {
-      // Mark all unread notifications as read via API
-      const unreadNotifications = adminNotifications.filter(n => !n.read);
-      if (unreadNotifications.length > 0) {
-        // Only send MongoDB ObjectIds to the API (filter out local Zustand-generated IDs)
-        const notificationIds = unreadNotifications
-          .map(n => n.id)
-          .filter(id => id && isValidObjectId(id));
-        
-        try {
-          // Only call API if we have valid ObjectIds
-          if (notificationIds.length > 0) {
-            await markAsReadMutation.mutateAsync({
-              recipientType: 'admin',
-              recipientId: null,
-              notificationIds: notificationIds
-            });
-          }
-          // Always update local store regardless (includes both DB and local notifications)
-          markAdminNotificationsAsRead();
-        } catch (error) {
-          console.error('Error marking notifications as read:', error);
-        }
+      // Mark all unread API notifications as read
+      const unreadNotificationIds = apiNotificationsArray
+        .filter(n => !n.read)
+        .map(n => n._id || n.id)
+        .filter(Boolean);
+      
+      if (unreadNotificationIds.length > 0) {
+        markAsReadMutation.mutate({
+          recipientType: 'admin',
+          recipientId: null,
+          notificationIds: unreadNotificationIds
+        });
       }
     }
-  }
+  }, [notificationOpen, apiNotificationsArray, markAsReadMutation]);
 
-  // Clear all notifications (API + local store)
+  // Clear all notifications (API + local)
   const handleClearAllNotifications = async () => {
     try {
+      // Clear API notifications
       await clearNotificationsMutation.mutateAsync({
         recipientType: 'admin',
         recipientId: null
       });
-      // Also clear local store
-      useNotificationStore.getState().clearAdminNotifications();
-      refetchNotifications();
+      // Clear local notifications
+      setLocalNotifications([]);
+      // Refetch to sync with API
+      await refetchNotifications();
     } catch (error) {
       console.error('Error clearing notifications:', error);
+      // Still clear local notifications even if API fails
+      setLocalNotifications([]);
     }
   }
 
@@ -2063,18 +1946,14 @@ const AdminDashboard = () => {
 
   // Chart data preparation removed as charts now use static data or direct calculations
 
-  // Check for low stock items and send notifications
+  // Note: Low stock notifications - could be added as local notifications if needed
+  // For now, removed to simplify - can be re-added as local notifications later
   useEffect(() => {
     if (lowStockItems.length > 0) {
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'warning',
-        title: 'Low Stock Alert',
-        message: `The following assistance items are low in stock: ${lowStockItems.map(item => item.assistanceType).join(', ')}. Please restock soon.`,
-        timestamp: new Date()
-      });
+      // Could add local notification here if needed
+      // addLocalNotification({ type: 'warning', title: 'Low Stock Alert', message: ... });
     }
-  }, [assistanceItems, lowStockItems]); // Changed dependency to assistanceItems instead of lowStockItems
+  }, [lowStockItems]);
 
 
 
@@ -2341,24 +2220,30 @@ const AdminDashboard = () => {
                                 <h4 className="font-medium bg-lime-400 text-black px-2 py-1 rounded text-sm">{notification.title}</h4>
                                 <div className="flex items-center gap-2">
                                   <span className="text-xs text-gray-500">
-                                    {formatTimestamp(new Date(notification.timestamp))}
+                                    {formatTimestamp(notification.timestamp ? new Date(notification.timestamp) : new Date())}
                                   </span>
                                   <button
                                     onClick={async () => {
-                                      // Delete from API only if notification has valid MongoDB ObjectId
-                                      if (notification.id && isValidObjectId(notification.id)) {
+                                      // Check if it's a local notification or API notification
+                                      const isLocalNotification = !isValidObjectId(notification.id);
+                                      
+                                      if (isLocalNotification) {
+                                        // Remove from local notifications
+                                        removeLocalNotification(notification.id);
+                                      } else {
+                                        // Delete from API
                                         try {
                                           await deleteNotificationMutation.mutateAsync({
                                             notificationId: notification.id,
                                             recipientType: 'admin',
                                             recipientId: null
                                           });
+                                          // Refetch to sync with API
+                                          await refetchNotifications();
                                         } catch (error) {
                                           console.error('Error deleting notification:', error);
                                         }
                                       }
-                                      // Always remove from local store (works for both DB and local notifications)
-                                      useNotificationStore.getState().removeAdminNotification(notification.id);
                                     }}
                                     className="text-gray-400 hover:text-red-500 transition-colors"
                                     aria-label="Remove notification"
@@ -2406,12 +2291,10 @@ const AdminDashboard = () => {
                   </button>
                   <button
                     onClick={() => {
-                      useNotificationStore.getState().addAdminNotification({
-                        id: generateUniqueId(),
+                      addLocalNotification({
                         type: 'info',
                         title: 'Help Center',
                         message: 'Help Center coming soon!',
-                        timestamp: new Date()
                       });
                     }}
                     className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
@@ -2421,12 +2304,10 @@ const AdminDashboard = () => {
                   </button>
                   <button
                     onClick={() => {
-                      useNotificationStore.getState().addAdminNotification({
-                        id: generateUniqueId(),
+                      addLocalNotification({
                         type: 'success',
                         title: 'Test Notification',
                         message: 'This is a test notification to verify the delete functionality.',
-                        timestamp: new Date()
                       });
                     }}
                     className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
@@ -4440,12 +4321,10 @@ const AdminDashboard = () => {
           // Refresh claims data
           refetchClaims()
           // Show success notification
-          useNotificationStore.getState().addAdminNotification({
-            id: generateUniqueId(),
+          addLocalNotification({
             type: 'success',
             title: 'Claim Filed Successfully',
             message: `Claim ${result.claimNumber} has been filed for the farmer`,
-            timestamp: new Date()
           })
         }}
       />
@@ -4456,12 +4335,10 @@ const AdminDashboard = () => {
         onSuccess={(result) => {
           console.log('Assistance application filed successfully:', result)
           // Show success notification
-          useNotificationStore.getState().addAdminNotification({
-            id: generateUniqueId(),
+          addLocalNotification({
             type: 'success',
             title: 'Assistance Application Filed',
             message: 'Assistance application has been submitted for the farmer',
-            timestamp: new Date()
           })
         }}
       />
@@ -5155,21 +5032,17 @@ const AdminDashboard = () => {
                     setFarmerToDelete(null)
 
                     // Show success message
-                    useNotificationStore.getState().addAdminNotification({
-                      id: generateUniqueId(),
+                    addLocalNotification({
                       type: 'success',
                       title: 'Farmer Deleted Successfully',
                       message: `${farmerName} has been removed from the system.`,
-                      timestamp: new Date()
                     });
                   } catch (error) {
                     // Show error message
-                    useNotificationStore.getState().addAdminNotification({
-                      id: generateUniqueId(),
+                    addLocalNotification({
                       type: 'error',
                       title: 'Delete Failed',
                       message: `Error: ${error.message}`,
-                      timestamp: new Date()
                     });
                   }
                 }}
@@ -5308,15 +5181,12 @@ const AdminDashboard = () => {
                   if (pendingAction.type === 'approve') {
                     // TODO: Implement with React Query mutation
                     console.log('Approving assistance request:', pendingAction.request.id);
-                    
-                    useNotificationStore.getState().addFarmerNotification({
-                      id: `assist-approve-${pendingAction.request.id}`,
-                      title: 'Assistance Request Approved',
-                      message: `Your request for ${pendingAction.request.assistanceName} was approved. Feedback: ${feedbackText}`,
+                    // Note: Farmer notifications are now created by backend API automatically
+                    addLocalNotification({
                       type: 'success',
-                      timestamp: new Date(),
-                      read: false,
-                    }, pendingAction.request.farmerId);
+                      title: 'Request Approved',
+                      message: 'Assistance request has been approved.',
+                    });
                     
                     setShowFeedbackModal(false);
                     setPendingAction(null);
@@ -5328,30 +5198,19 @@ const AdminDashboard = () => {
                         statusData: { status: 'rejected', adminFeedback: feedbackText }
                       })
                       
-                      useNotificationStore.getState().addAdminNotification({
-                        id: generateUniqueId(),
+                      addLocalNotification({
                         type: 'success',
                         title: 'Request Rejected',
                         message: 'Assistance request has been rejected.',
-                        timestamp: new Date()
                       })
+                      // Note: Farmer notifications are now created by backend API automatically
                     } catch (error) {
-                      useNotificationStore.getState().addAdminNotification({
-                        id: generateUniqueId(),
+                      addLocalNotification({
                         type: 'error',
                         title: 'Error Rejecting Request',
                         message: error.message,
-                        timestamp: new Date()
                       })
                     }
-                    useNotificationStore.getState().addFarmerNotification({
-                      id: `assist-reject-${pendingAction.request.id}`,
-                      title: 'Assistance Request Rejected',
-                      message: `Your request for ${pendingAction.request.assistanceName} was rejected. Feedback: ${feedbackText}`,
-                      type: 'warning',
-                      timestamp: new Date(),
-                      read: false,
-                    }, pendingAction.request.farmerId);
                     setShowFeedbackModal(false);
                     setPendingAction(null);
                     setFeedbackText("");
@@ -5505,6 +5364,7 @@ const AdminDashboard = () => {
       <CropPriceManagement
         isOpen={showCropPriceManagement}
         onClose={() => setShowCropPriceManagement(false)}
+        onNotify={addLocalNotification}
       />
     </div>
   )

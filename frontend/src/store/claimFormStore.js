@@ -1,7 +1,7 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { useAuthStore } from "./authStore"
-import { useNotificationStore } from "./notificationStore"
+// Note: Notifications are now handled by backend API
 import { createClaim, fetchClaims } from '../api';
 
 export const useClaimFormStore = create(
@@ -316,13 +316,8 @@ export const useClaimFormStore = create(
           
           // Add notification for successful claim submission
           if (user && user.id) {
-            useNotificationStore.getState().addFarmerNotification({
-              id: `claim-submitted-${claimId || Date.now()}`,
-              type: 'success',
-              title: 'Claim Submitted Successfully',
-              message: `Your claim for ${newClaim.crop} has been submitted with claim number ${claimNumber}.`,
-              timestamp: new Date()
-            }, user.id);
+            // Note: Notifications are now created by backend API automatically
+            console.log('Claim submitted successfully');
           }
           
           // Trigger immediate refresh of claims in farmer dashboard

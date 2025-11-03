@@ -32,7 +32,7 @@ import {
   saveFarmerProfileImage, 
   getAllFarmerProfileImages 
 } from '../api'
-import { useNotificationStore } from '../store/notificationStore'
+// Note: Notifications are now handled by backend API
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts'
 import { Doughnut } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
@@ -266,23 +266,7 @@ const FarmerRegistration = ({
     try {
       const savedFarmer = await registerFarmerMutation.mutateAsync(newFarmer)
       
-      // Notify admin about successful registration
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'success',
-        title: 'Farmer Registered Successfully',
-        message: `New farmer ${newFarmer.farmerName} has been registered successfully.`,
-        timestamp: new Date()
-      })
-      
-      // Notify the new farmer about their registration
-      useNotificationStore.getState().addFarmerNotification({
-        id: generateUniqueId(),
-        type: 'success',
-        title: 'Registration Successful',
-        message: `Welcome ${newFarmer.farmerName}! Your account has been created successfully. You can now log in with your credentials.`,
-        timestamp: new Date()
-      }, savedFarmer._id)
+      // Note: Notifications are now created by backend API automatically
       
       setFormData({
         firstName: "",
@@ -306,13 +290,8 @@ const FarmerRegistration = ({
       setSelectedLocation(null)
       setShowRegisterForm(false)
     } catch (err) {
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'error',
-        title: 'Registration Failed',
-        message: 'Failed to register farmer. Please try again.',
-        timestamp: new Date()
-      })
+      console.error('Registration error:', err);
+      // Note: Error feedback handled by parent component or backend API
       console.error(err)
     }
   }
@@ -331,14 +310,8 @@ const FarmerRegistration = ({
     // Store in localStorage for dashboard to access
     localStorage.setItem('selectedFarmerLocation', JSON.stringify(farmerLocationData))
     
-    // Show notification
-    useNotificationStore.getState().addAdminNotification({
-      id: generateUniqueId(),
-      type: 'info',
-      title: 'Location View',
-      message: `Viewing location for ${farmerLocationData.farmerName} on dashboard map`,
-      timestamp: new Date()
-    })
+    // Note: Notifications handled by backend API
+    console.log('Location view:', `Viewing location for ${farmerLocationData.farmerName} on dashboard map`)
     
     // Navigate to dashboard (this will be handled by the parent component)
     // The dashboard will check for selectedFarmerLocation in localStorage

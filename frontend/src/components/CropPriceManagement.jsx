@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { X, Plus, Edit, Trash2, Save, TrendingUp, DollarSign, Upload, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCropPrices, useCreateCropPrice, useUpdateCropPrice, useDeleteCropPrice } from '../hooks/useAPI'
-import { useNotificationStore } from '../store/notificationStore'
+// Note: Notifications are now handled by backend API or parent component
 
-const CropPriceManagement = ({ isOpen, onClose }) => {
+const CropPriceManagement = ({ isOpen, onClose, onNotify }) => {
   const { data: cropPrices = [], isLoading } = useCropPrices()
   const createCropPriceMutation = useCreateCropPrice()
   const updateCropPriceMutation = useUpdateCropPrice()
@@ -57,25 +57,29 @@ const CropPriceManagement = ({ isOpen, onClose }) => {
     if (file) {
       // Validate file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
-        useNotificationStore.getState().addAdminNotification({
-          id: generateUniqueId(),
-          type: 'error',
-          title: 'Image Too Large',
-          message: 'Please select an image smaller than 2MB',
-          timestamp: new Date()
-        })
+        if (onNotify) {
+          onNotify({
+            type: 'error',
+            title: 'Image Too Large',
+            message: 'Please select an image smaller than 2MB',
+          });
+        } else {
+          console.warn('Image too large');
+        }
         return
       }
 
       // Validate file type
       if (!file.type.startsWith('image/')) {
-        useNotificationStore.getState().addAdminNotification({
-          id: generateUniqueId(),
-          type: 'error',
-          title: 'Invalid File Type',
-          message: 'Please select an image file',
-          timestamp: new Date()
-        })
+        if (onNotify) {
+          onNotify({
+            type: 'error',
+            title: 'Invalid File Type',
+            message: 'Please select an image file',
+          });
+        } else {
+          console.warn('Invalid file type');
+        }
         return
       }
 
@@ -92,13 +96,15 @@ const CropPriceManagement = ({ isOpen, onClose }) => {
 
     // Validation
     if (!formData.cropName || !formData.pricePerKg) {
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'error',
-        title: 'Validation Error',
-        message: 'Crop name and price are required',
-        timestamp: new Date()
-      })
+      if (onNotify) {
+        onNotify({
+          type: 'error',
+          title: 'Validation Error',
+          message: 'Crop name and price are required',
+        });
+      } else {
+        console.warn('Validation error: Crop name and price are required');
+      }
       return
     }
 
@@ -121,24 +127,28 @@ const CropPriceManagement = ({ isOpen, onClose }) => {
           cropPriceData
         })
         
-        useNotificationStore.getState().addAdminNotification({
-          id: generateUniqueId(),
-          type: 'success',
-          title: 'Crop Price Updated',
-          message: `${formData.cropName} price has been updated successfully`,
-          timestamp: new Date()
-        })
+        if (onNotify) {
+          onNotify({
+            type: 'success',
+            title: 'Crop Price Updated',
+            message: `${formData.cropName} price has been updated successfully`,
+          });
+        } else {
+          console.log('Crop price updated successfully');
+        }
       } else {
         // Create new crop price
         await createCropPriceMutation.mutateAsync(cropPriceData)
         
-        useNotificationStore.getState().addAdminNotification({
-          id: generateUniqueId(),
-          type: 'success',
-          title: 'Crop Price Added',
-          message: `${formData.cropName} has been added to the price list`,
-          timestamp: new Date()
-        })
+        if (onNotify) {
+          onNotify({
+            type: 'success',
+            title: 'Crop Price Added',
+            message: `${formData.cropName} has been added to the price list`,
+          });
+        } else {
+          console.log('Crop price added successfully');
+        }
       }
 
       // Reset form
@@ -154,13 +164,15 @@ const CropPriceManagement = ({ isOpen, onClose }) => {
       setShowForm(false)
       setEditingCrop(null)
     } catch (error) {
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'error',
-        title: 'Operation Failed',
-        message: error.message || 'Failed to save crop price',
-        timestamp: new Date()
-      })
+      if (onNotify) {
+        onNotify({
+          type: 'error',
+          title: 'Operation Failed',
+          message: error.message || 'Failed to save crop price',
+        });
+      } else {
+        console.error('Operation failed:', error);
+      }
     }
   }
 
@@ -186,21 +198,25 @@ const CropPriceManagement = ({ isOpen, onClose }) => {
     try {
       await deleteCropPriceMutation.mutateAsync(cropId)
       
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'success',
-        title: 'Crop Price Deleted',
-        message: `${cropName} has been removed from the price list`,
-        timestamp: new Date()
-      })
+      if (onNotify) {
+        onNotify({
+          type: 'success',
+          title: 'Crop Price Deleted',
+          message: `${cropName} has been removed from the price list`,
+        });
+      } else {
+        console.log('Crop price deleted successfully');
+      }
     } catch (error) {
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'error',
-        title: 'Delete Failed',
-        message: error.message || 'Failed to delete crop price',
-        timestamp: new Date()
-      })
+      if (onNotify) {
+        onNotify({
+          type: 'error',
+          title: 'Delete Failed',
+          message: error.message || 'Failed to delete crop price',
+        });
+      } else {
+        console.error('Delete failed:', error);
+      }
     }
   }
 

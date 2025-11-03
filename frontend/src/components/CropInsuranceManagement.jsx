@@ -37,7 +37,7 @@ import {
   useUpdateCropInsurance,
   useDeleteCropInsurance
 } from '../hooks/useAPI'
-import { useNotificationStore } from '../store/notificationStore'
+// Note: Notifications are now handled by backend API or parent component
 
 const CropInsuranceManagement = () => {
   // React Query hooks
@@ -143,22 +143,9 @@ const CropInsuranceManagement = () => {
         location: { lat: null, lng: null }
       })
 
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'success',
-        title: 'Crop Insurance Created',
-        message: 'New crop insurance record has been created successfully.',
-        timestamp: new Date()
-      })
+      console.log('Crop insurance created successfully');
     } catch (error) {
       console.error('Error creating crop insurance record:', error)
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'error',
-        title: 'Error Creating Record',
-        message: error.message,
-        timestamp: new Date()
-      })
     }
   }
 
@@ -175,21 +162,9 @@ const CropInsuranceManagement = () => {
         }
       })
 
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'success',
-        title: 'Insurance Applied',
-        message: 'Crop insurance has been applied successfully.',
-        timestamp: new Date()
-      })
+      console.log('Insurance applied successfully');
     } catch (error) {
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'error',
-        title: 'Error Applying Insurance',
-        message: error.message,
-        timestamp: new Date()
-      })
+      console.error('Error applying insurance:', error)
     }
   }
 
@@ -200,22 +175,9 @@ const CropInsuranceManagement = () => {
 
     try {
       await deleteInsuranceMutation.mutateAsync(recordId)
-      
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'success',
-        title: 'Record Deleted',
-        message: 'Crop insurance record has been deleted successfully.',
-        timestamp: new Date()
-      })
+      console.log('Insurance record deleted successfully');
     } catch (error) {
-      useNotificationStore.getState().addAdminNotification({
-        id: generateUniqueId(),
-        type: 'error',
-        title: 'Error Deleting Record',
-        message: error.message,
-        timestamp: new Date()
-      })
+      console.error('Error deleting insurance record:', error)
     }
   }
 

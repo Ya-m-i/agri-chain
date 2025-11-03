@@ -21,7 +21,7 @@ import {
   HandHeart,
 } from "lucide-react"
 import { calculateCompensation, getDamageSeverity, getCoverageDetails } from "../utils/insuranceUtils"
-import { useNotificationStore } from "../store/notificationStore"
+// Note: Notifications are now handled by backend API
 import MapPicker from "./MapPicker"
 
 const AdminModals = ({
@@ -1260,10 +1260,8 @@ const AdminModals = ({
                 <button
                   onClick={() => {
                     setShowClaimDetails(false);
-                    // Notify admin about closing the claim details
-                    useNotificationStore.getState().addAdminNotification({
-                      id: `close-claim-${selectedClaim._id || selectedClaim.id}`,
-                      type: 'info',
+                    // Note: View/close notifications not necessary
+                    console.log('Claim details closed',
                       title: 'Claim Details Closed',
                       message: `Finished reviewing claim from ${selectedClaim.name}.`,
                       timestamp: new Date()

@@ -23,7 +23,7 @@ import {
   useCropInsurance,
   useCreateCropInsurance
 } from '../hooks/useAPI'
-import { useNotificationStore } from '../store/notificationStore'
+// Note: Notifications are now handled by backend API
 import { useAuthStore } from '../store/authStore'
 
 const FarmerCropInsurance = () => {
@@ -115,15 +115,19 @@ const FarmerCropInsurance = () => {
         location: { lat: null, lng: null }
       })
 
-      useNotificationStore.getState().addFarmerNotification({
+      console.log('Crop insurance application submitted');
+      // Note: Notifications are now created by backend API automatically
+      const _ = {
         id: generateUniqueId(),
         type: 'success',
         title: 'Crop Insurance Created',
         message: 'New crop insurance record has been created successfully.',
         timestamp: new Date()
-      }, user._id)
+      };
     } catch (error) {
-      useNotificationStore.getState().addFarmerNotification({
+      console.error('Error submitting crop insurance:', error);
+      // Note: Notifications are now created by backend API automatically
+      const _ = {
         id: generateUniqueId(),
         type: 'error',
         title: 'Error Creating Record',
