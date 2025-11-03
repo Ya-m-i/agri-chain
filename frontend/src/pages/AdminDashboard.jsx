@@ -316,32 +316,84 @@ const AdminDashboard = () => {
   const clearNotificationsMutation = useClearNotifications()
   const deleteNotificationMutation = useDeleteNotification()
   
-  // Sync API notifications to Zustand store
+  // Helper function to check if a string is a valid MongoDB ObjectId
+  const isValidObjectId = (id) => {
+    if (!id || typeof id !== 'string') return false;
+    // MongoDB ObjectId is 24 hex characters
+    return /^[0-9a-fA-F]{24}$/.test(id);
+  };
+
+  // Sync API notifications to Zustand store (batched to avoid React render errors)
   useEffect(() => {
-    if (apiNotifications && apiNotifications.length > 0) {
+    if (!apiNotifications) return;
+    
+    // Use requestAnimationFrame to defer updates and avoid React render error
+    const frameId = requestAnimationFrame(() => {
       const store = useNotificationStore.getState();
-      apiNotifications.forEach(notification => {
-        // Check if notification already exists (by _id or message content)
-        const exists = store.adminNotifications.some(
-          n => n.id === notification._id || 
-          (n.message === notification.message && 
-           new Date(n.timestamp).getTime() === new Date(notification.timestamp).getTime())
+      const currentNotifications = store.adminNotifications;
+      
+      if (apiNotifications.length > 0) {
+        // Create a set of API notification IDs for comparison
+        const apiNotificationIds = new Set(apiNotifications.map(n => n._id || n.id).filter(Boolean));
+        
+        // Collect all updates to apply in batch
+        const notificationsToAdd = [];
+        const notificationIdsToRemove = new Set();
+        
+        // Process each API notification
+        apiNotifications.forEach(notification => {
+          const notificationId = notification._id || notification.id;
+          const existing = currentNotifications.find(n => n.id === notificationId);
+          
+          if (!existing) {
+            // New notification to add
+            notificationsToAdd.push({
+              id: notificationId,
+              type: notification.type || 'info',
+              title: notification.title,
+              message: notification.message,
+              timestamp: new Date(notification.timestamp || notification.createdAt),
+              read: notification.read || false,
+              relatedEntityType: notification.relatedEntityType,
+              relatedEntityId: notification.relatedEntityId,
+            });
+          } else if (existing.read !== notification.read) {
+            // Update read status - remove old and add updated version
+            notificationIdsToRemove.add(existing.id);
+            notificationsToAdd.push({
+              ...existing,
+              read: notification.read
+            });
+          }
+        });
+        
+        // Find notifications to remove (exist in Zustand but not in API, and are MongoDB ObjectIds)
+        currentNotifications.forEach(n => {
+          if (isValidObjectId(n.id) && !apiNotificationIds.has(n.id)) {
+            notificationIdsToRemove.add(n.id);
+          }
+        });
+        
+        // Apply all updates in a single batch operation
+        if (notificationsToAdd.length > 0 || notificationIdsToRemove.size > 0) {
+          store.batchSyncAdminNotifications(notificationsToAdd, notificationIdsToRemove);
+        }
+      } else {
+        // If API returns empty, clear all DB notifications (keep local Zustand-generated ones)
+        const dbNotificationIds = new Set(
+          currentNotifications
+            .filter(n => isValidObjectId(n.id))
+            .map(n => n.id)
         );
         
-        if (!exists) {
-          store.addAdminNotification({
-            id: notification._id || notification.id,
-            type: notification.type || 'info',
-            title: notification.title,
-            message: notification.message,
-            timestamp: new Date(notification.timestamp || notification.createdAt),
-            read: notification.read || false,
-            relatedEntityType: notification.relatedEntityType,
-            relatedEntityId: notification.relatedEntityId,
-          });
+        if (dbNotificationIds.size > 0) {
+          // Use batch sync to remove DB notifications only (local ones will remain via filter)
+          store.batchSyncAdminNotifications([], dbNotificationIds);
         }
-      });
-    }
+      }
+    });
+    
+    return () => cancelAnimationFrame(frameId);
   }, [apiNotifications]);
   
   // Initialize Socket.IO for real-time updates (disabled for notifications - using polling instead)

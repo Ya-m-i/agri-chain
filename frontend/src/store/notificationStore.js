@@ -208,6 +208,63 @@ export const useNotificationStore = create(
           }
         })
       },
+
+      // Batch sync farmer notifications (to avoid React render errors)
+      batchSyncFarmerNotifications: (farmerId, notificationsToAdd, notificationIdsToRemove) => {
+        set((state) => {
+          const currentNotifications = state.farmerNotifications[farmerId] || []
+          
+          // Remove notifications
+          const afterRemove = currentNotifications.filter(n => !notificationIdsToRemove.has(n.id))
+          
+          // Count unread notifications being removed
+          const removedUnreadCount = currentNotifications
+            .filter(n => notificationIdsToRemove.has(n.id) && !n.read).length
+          
+          // Add new notifications
+          const finalNotifications = [...notificationsToAdd, ...afterRemove]
+          
+          // Count new unread notifications
+          const newUnreadCount = notificationsToAdd.filter(n => !n.read).length
+          
+          // Calculate unread count change
+          const unreadCountChange = newUnreadCount - removedUnreadCount
+          
+          return {
+            farmerNotifications: {
+              ...state.farmerNotifications,
+              [farmerId]: finalNotifications,
+            },
+            unreadFarmerCount: Math.max(0, state.unreadFarmerCount + unreadCountChange),
+          }
+        })
+      },
+
+      // Batch sync admin notifications (to avoid React render errors)
+      batchSyncAdminNotifications: (notificationsToAdd, notificationIdsToRemove) => {
+        set((state) => {
+          // Remove notifications
+          const afterRemove = state.adminNotifications.filter(n => !notificationIdsToRemove.has(n.id))
+          
+          // Count unread notifications being removed
+          const removedUnreadCount = state.adminNotifications
+            .filter(n => notificationIdsToRemove.has(n.id) && !n.read).length
+          
+          // Add new notifications
+          const finalNotifications = [...notificationsToAdd, ...afterRemove]
+          
+          // Count new unread notifications
+          const newUnreadCount = notificationsToAdd.filter(n => !n.read).length
+          
+          // Calculate unread count change
+          const unreadCountChange = newUnreadCount - removedUnreadCount
+          
+          return {
+            adminNotifications: finalNotifications,
+            unreadAdminCount: Math.max(0, state.unreadAdminCount + unreadCountChange),
+          }
+        })
+      },
     }),
     {
       name: "notification-storage",

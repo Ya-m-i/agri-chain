@@ -280,71 +280,77 @@ const FarmerDashboard = () => {
     return /^[0-9a-fA-F]{24}$/.test(id);
   };
   
-  // Sync API notifications to Zustand store
+  // Sync API notifications to Zustand store (batched to avoid React render errors)
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || !apiNotifications) return;
     
-    const store = useNotificationStore.getState();
-    
-    if (apiNotifications && apiNotifications.length > 0) {
-      // Create a set of API notification IDs for comparison
-      const apiNotificationIds = new Set(apiNotifications.map(n => n._id || n.id).filter(Boolean));
+    // Use requestAnimationFrame to defer updates and avoid React render error
+    const frameId = requestAnimationFrame(() => {
+      const store = useNotificationStore.getState();
+      const currentNotifications = store.getFarmerNotifications(user.id);
       
-      apiNotifications.forEach(notification => {
-        // Check if notification already exists (by _id)
-        const exists = store.getFarmerNotifications(user.id).some(
-          n => n.id === (notification._id || notification.id)
-        );
+      if (apiNotifications.length > 0) {
+        // Create a set of API notification IDs for comparison
+        const apiNotificationIds = new Set(apiNotifications.map(n => n._id || n.id).filter(Boolean));
         
-        if (!exists) {
-          store.addFarmerNotification({
-            id: notification._id || notification.id,
-            type: notification.type || 'info',
-            title: notification.title,
-            message: notification.message,
-            timestamp: new Date(notification.timestamp || notification.createdAt),
-            read: notification.read || false,
-            relatedEntityType: notification.relatedEntityType,
-            relatedEntityId: notification.relatedEntityId,
-          }, user.id);
-        } else {
-          // Update read status if changed in API
-          const existing = store.getFarmerNotifications(user.id).find(
-            n => n.id === (notification._id || notification.id)
-          );
-          if (existing && existing.read !== notification.read) {
-            // Update read status by removing and re-adding
-            store.removeNotification(notification._id || notification.id, user.id);
-            store.addFarmerNotification({
+        // Collect all updates to apply in batch
+        const notificationsToAdd = [];
+        const notificationIdsToRemove = new Set();
+        
+        // Process each API notification
+        apiNotifications.forEach(notification => {
+          const notificationId = notification._id || notification.id;
+          const existing = currentNotifications.find(n => n.id === notificationId);
+          
+          if (!existing) {
+            // New notification to add
+            notificationsToAdd.push({
+              id: notificationId,
+              type: notification.type || 'info',
+              title: notification.title,
+              message: notification.message,
+              timestamp: new Date(notification.timestamp || notification.createdAt),
+              read: notification.read || false,
+              relatedEntityType: notification.relatedEntityType,
+              relatedEntityId: notification.relatedEntityId,
+            });
+          } else if (existing.read !== notification.read) {
+            // Update read status - remove old and add updated version
+            notificationIdsToRemove.add(existing.id);
+            notificationsToAdd.push({
               ...existing,
               read: notification.read
-            }, user.id);
+            });
           }
+        });
+        
+        // Find notifications to remove (exist in Zustand but not in API, and are MongoDB ObjectIds)
+        currentNotifications.forEach(n => {
+          if (isValidObjectId(n.id) && !apiNotificationIds.has(n.id)) {
+            notificationIdsToRemove.add(n.id);
+          }
+        });
+        
+        // Apply all updates in a single batch operation
+        if (notificationsToAdd.length > 0 || notificationIdsToRemove.size > 0) {
+          store.batchSyncFarmerNotifications(user.id, notificationsToAdd, notificationIdsToRemove);
         }
-      });
-      
-      // Remove notifications from Zustand that no longer exist in API (only MongoDB ObjectIds)
-      const currentNotifications = store.getFarmerNotifications(user.id);
-      const notificationsToRemove = currentNotifications.filter(n => 
-        isValidObjectId(n.id) && !apiNotificationIds.has(n.id)
-      );
-      
-      notificationsToRemove.forEach(n => {
-        store.removeNotification(n.id, user.id);
-      });
-    } else if (apiNotifications && apiNotifications.length === 0) {
-      // If API returns empty, clear all DB notifications (keep local Zustand-generated ones)
-      const currentNotifications = store.getFarmerNotifications(user.id);
-      const localNotifications = currentNotifications.filter(n => !isValidObjectId(n.id));
-      
-      // Clear all first
-      store.clearFarmerNotifications(user.id);
-      
-      // Re-add local notifications
-      localNotifications.forEach(n => {
-        store.addFarmerNotification(n, user.id);
-      });
-    }
+      } else {
+        // If API returns empty, clear all DB notifications (keep local Zustand-generated ones)
+        const dbNotificationIds = new Set(
+          currentNotifications
+            .filter(n => isValidObjectId(n.id))
+            .map(n => n.id)
+        );
+        
+        if (dbNotificationIds.size > 0) {
+          // Use batch sync to remove DB notifications only (local ones will remain via filter)
+          store.batchSyncFarmerNotifications(user.id, [], dbNotificationIds);
+        }
+      }
+    });
+    
+    return () => cancelAnimationFrame(frameId);
   }, [apiNotifications, user?.id]);
   
   // Insured crop types derived from crop insurance records using React Query
