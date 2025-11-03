@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { toast } from "react-hot-toast"
 import { useClaimFormStore } from "../../store/claimFormStore"
@@ -8,16 +8,35 @@ import FormNavigation from "./FormNavigation"
 import FormStep1 from "./FormStep1"
 import FormStep2 from "./FormStep2"
 import FormStep3 from "./FormStep3"
+import ConfirmCancelModal from "../../components/ConfirmCancelModal"
 
 const FarmerForm = () => {
   const navigate = useNavigate()
   const formRef = useRef(null)
   const { step, setStep, validateStep, submitForm, isSubmitting } = useClaimFormStore()
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [pendingAction, setPendingAction] = useState(null)
 
   const handleClose = () => {
-    if (window.confirm("Are you sure you want to exit? Your progress will be saved.")) {
-      navigate("/farmer-dashboard")
+    setPendingAction(() => () => navigate("/farmer-dashboard"))
+    setShowCancelModal(true)
+  }
+
+  const handleBackClick = () => {
+    setStep(step - 1)
+  }
+
+  const handleConfirmCancel = () => {
+    setShowCancelModal(false)
+    if (pendingAction) {
+      pendingAction()
+      setPendingAction(null)
     }
+  }
+
+  const handleCancelModal = () => {
+    setShowCancelModal(false)
+    setPendingAction(null)
   }
 
   const handleNext = () => {
@@ -130,6 +149,15 @@ const FarmerForm = () => {
           </div>
         </div>
       </div>
+
+      {/* Cancel Confirmation Modal */}
+      <ConfirmCancelModal
+        isOpen={showCancelModal}
+        onConfirm={handleConfirmCancel}
+        onCancel={handleCancelModal}
+        title="Cancel Claim Form?"
+        message="Are you sure you want to cancel? Any unsaved changes will be lost and you will be redirected to the home tab."
+      />
     </div>
   )
 }

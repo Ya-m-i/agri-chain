@@ -171,22 +171,6 @@ const FormStep1 = () => {
             <p className="text-red-500 text-sm mt-1">{formData.errors.phone}</p>
           )}
         </div>
-        <div className="relative">
-          <label className="block text-gray-700 font-semibold mb-2" htmlFor="farmer-location">
-            Location of Farmer <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <FaMapMarkerAlt className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              id="farmer-location"
-              placeholder="Barangay San Isidro, Quezon City"
-              className="pl-12 border p-4 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400"
-              value={formData.farmerLocation}
-              onChange={(e) => handleChange("farmerLocation", e.target.value)}
-              required
-            />
-          </div>
-        </div>
         <div className="mb-6">
           <label className="block text-gray-700 font-semibold mb-2" htmlFor="crop-type">
             Insured Crops <span className="text-red-500">*</span>
