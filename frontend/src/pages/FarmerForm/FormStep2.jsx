@@ -12,6 +12,7 @@ const FormStep2 = () => {
     updateForm("areaDamaged", formData.areaInsured || "0")
     updateForm("degreeOfDamage", "50") // Default to 50%
     updateForm("expectedHarvest", "0")
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleChange = (field, value) => {

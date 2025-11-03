@@ -5,7 +5,7 @@ import { Map, Plus, Trash2 } from "lucide-react"
 import { useClaimFormStore } from "../../store/claimFormStore"
 
 const FormStep3 = () => {
-  const { formData, updateLotBoundary } = useClaimFormStore()
+  const { formData, updateLotBoundary, setStep } = useClaimFormStore()
   const [lots, setLots] = useState([1]) // Start with one lot
 
   const handleBoundaryChange = (lot, direction, value) => {

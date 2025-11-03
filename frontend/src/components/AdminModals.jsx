@@ -1261,11 +1261,7 @@ const AdminModals = ({
                   onClick={() => {
                     setShowClaimDetails(false);
                     // Note: View/close notifications not necessary
-                    console.log('Claim details closed',
-                      title: 'Claim Details Closed',
-                      message: `Finished reviewing claim from ${selectedClaim.name}.`,
-                      timestamp: new Date()
-                    });
+                    console.log('Claim details closed');
                   }}
                   className="bg-lime-700 text-white px-6 py-2 rounded-lg hover:bg-lime-800 transition"
                 >
