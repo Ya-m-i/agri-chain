@@ -150,105 +150,118 @@ const FarmerDashboard = () => {
       return; // Skip if not initialized or no user
     }
 
-    // Check for claim status updates
-    claims.forEach(claim => {
-      const claimUpdateDate = new Date(claim.updatedAt || claim.date || claim.createdAt);
-      if (claimUpdateDate.getTime() > lastClaimStatusCheckRef.current) {
-        // Check if notification already exists
-        const existingNotifications = useNotificationStore.getState().getFarmerNotifications(user.id);
-        const notificationExists = existingNotifications.some(
-          n => n.message?.includes(claim.claimNumber || claim._id?.slice(-6))
-        );
+    // Use requestAnimationFrame to batch updates and avoid React render errors
+    requestAnimationFrame(() => {
+      const store = useNotificationStore.getState();
+      const existingNotifications = store.getFarmerNotifications(user.id);
+      const notificationsToAdd = [];
 
-        if (!notificationExists && claim.status !== 'pending') {
-          let notificationType = 'info';
-          let title = 'Claim Updated';
-          let message = '';
+      // Check for claim status updates
+      claims.forEach(claim => {
+        const claimUpdateDate = new Date(claim.updatedAt || claim.date || claim.createdAt);
+        if (claimUpdateDate.getTime() > lastClaimStatusCheckRef.current) {
+          // Check if notification already exists
+          const notificationExists = existingNotifications.some(
+            n => n.message?.includes(claim.claimNumber || claim._id?.slice(-6))
+          );
 
-          if (claim.status === 'approved') {
-            notificationType = 'success';
-            title = 'Claim Approved!';
-            const compensation = claim.compensation ? ` Compensation: ₱${claim.compensation.toLocaleString()}` : '';
-            message = `Your claim for ${claim.crop || 'unknown crop'} has been approved!${compensation}`;
-          } else if (claim.status === 'rejected') {
-            notificationType = 'error';
-            title = 'Claim Rejected';
-            const reason = claim.adminFeedback ? ` Reason: ${claim.adminFeedback}` : '';
-            message = `Your claim for ${claim.crop || 'unknown crop'} has been rejected.${reason}`;
-          }
+          if (!notificationExists && claim.status !== 'pending') {
+            let notificationType = 'info';
+            let title = 'Claim Updated';
+            let message = '';
 
-          if (message) {
-            useNotificationStore.getState().addFarmerNotification({
-              id: generateUniqueId(),
-              type: notificationType,
-              title: title,
-              message: message,
-              timestamp: new Date()
-            }, user.id);
-          }
-        }
-      }
-    });
+            if (claim.status === 'approved') {
+              notificationType = 'success';
+              title = 'Claim Approved!';
+              const compensation = claim.compensation ? ` Compensation: ₱${claim.compensation.toLocaleString()}` : '';
+              message = `Your claim for ${claim.crop || 'unknown crop'} has been approved!${compensation}`;
+            } else if (claim.status === 'rejected') {
+              notificationType = 'error';
+              title = 'Claim Rejected';
+              const reason = claim.adminFeedback ? ` Reason: ${claim.adminFeedback}` : '';
+              message = `Your claim for ${claim.crop || 'unknown crop'} has been rejected.${reason}`;
+            }
 
-    // Update last check time for claims
-    const latestClaimUpdate = claims.reduce((latest, claim) => {
-      const updateDate = new Date(claim.updatedAt || claim.date || claim.createdAt);
-      return updateDate > latest ? updateDate : latest;
-    }, new Date(lastClaimStatusCheckRef.current));
-    lastClaimStatusCheckRef.current = latestClaimUpdate.getTime();
-
-    // Check for application status updates
-    farmerApplications.forEach(app => {
-      const appUpdateDate = new Date(app.reviewDate || app.distributionDate || app.applicationDate || app.createdAt);
-      if (appUpdateDate.getTime() > lastApplicationStatusCheckRef.current) {
-        // Check if notification already exists
-        const existingNotifications = useNotificationStore.getState().getFarmerNotifications(user.id);
-        const notificationExists = existingNotifications.some(
-          n => n.message?.includes(app.assistanceId?.assistanceType || 'assistance') && 
-               n.message?.includes(app.status)
-        );
-
-        if (!notificationExists && app.status !== 'pending') {
-          let notificationType = 'info';
-          let title = 'Application Updated';
-          let message = '';
-
-          if (app.status === 'approved') {
-            notificationType = 'success';
-            title = 'Application Approved!';
-            const feedback = app.officerNotes ? ` Feedback: ${app.officerNotes}` : '';
-            message = `Your application for ${app.assistanceId?.assistanceType || 'assistance'} has been approved!${feedback}`;
-          } else if (app.status === 'rejected') {
-            notificationType = 'error';
-            title = 'Application Rejected';
-            const reason = app.officerNotes ? ` Reason: ${app.officerNotes}` : '';
-            message = `Your application for ${app.assistanceId?.assistanceType || 'assistance'} has been rejected.${reason}`;
-          } else if (app.status === 'distributed') {
-            notificationType = 'success';
-            title = 'Assistance Distributed!';
-            const notes = app.officerNotes ? ` Notes: ${app.officerNotes}` : '';
-            message = `Your ${app.assistanceId?.assistanceType || 'assistance'} has been distributed successfully!${notes}`;
-          }
-
-          if (message) {
-            useNotificationStore.getState().addFarmerNotification({
-              id: generateUniqueId(),
-              type: notificationType,
-              title: title,
-              message: message,
-              timestamp: new Date()
-            }, user.id);
+            if (message) {
+              notificationsToAdd.push({
+                id: generateUniqueId(),
+                type: notificationType,
+                title: title,
+                message: message,
+                timestamp: new Date(),
+                read: false
+              });
+            }
           }
         }
+      });
+
+      // Update last check time for claims
+      const latestClaimUpdate = claims.reduce((latest, claim) => {
+        const updateDate = new Date(claim.updatedAt || claim.date || claim.createdAt);
+        return updateDate > latest ? updateDate : latest;
+      }, new Date(lastClaimStatusCheckRef.current));
+      lastClaimStatusCheckRef.current = latestClaimUpdate.getTime();
+
+      // Check for application status updates
+      farmerApplications.forEach(app => {
+        const appUpdateDate = new Date(app.reviewDate || app.distributionDate || app.applicationDate || app.createdAt);
+        if (appUpdateDate.getTime() > lastApplicationStatusCheckRef.current) {
+          // Check if notification already exists
+          const notificationExists = existingNotifications.some(
+            n => n.message?.includes(app.assistanceId?.assistanceType || 'assistance') && 
+                 n.message?.includes(app.status)
+          );
+
+          if (!notificationExists && app.status !== 'pending') {
+            let notificationType = 'info';
+            let title = 'Application Updated';
+            let message = '';
+
+            if (app.status === 'approved') {
+              notificationType = 'success';
+              title = 'Application Approved!';
+              const feedback = app.officerNotes ? ` Feedback: ${app.officerNotes}` : '';
+              message = `Your application for ${app.assistanceId?.assistanceType || 'assistance'} has been approved!${feedback}`;
+            } else if (app.status === 'rejected') {
+              notificationType = 'error';
+              title = 'Application Rejected';
+              const reason = app.officerNotes ? ` Reason: ${app.officerNotes}` : '';
+              message = `Your application for ${app.assistanceId?.assistanceType || 'assistance'} has been rejected.${reason}`;
+            } else if (app.status === 'distributed') {
+              notificationType = 'success';
+              title = 'Assistance Distributed!';
+              const notes = app.officerNotes ? ` Notes: ${app.officerNotes}` : '';
+              message = `Your ${app.assistanceId?.assistanceType || 'assistance'} has been distributed successfully!${notes}`;
+            }
+
+            if (message) {
+              notificationsToAdd.push({
+                id: generateUniqueId(),
+                type: notificationType,
+                title: title,
+                message: message,
+                timestamp: new Date(),
+                read: false
+              });
+            }
+          }
+        }
+      });
+
+      // Update last check time for applications
+      const latestAppUpdate = farmerApplications.reduce((latest, app) => {
+        const updateDate = new Date(app.reviewDate || app.distributionDate || app.applicationDate || app.createdAt);
+        return updateDate > latest ? updateDate : latest;
+      }, new Date(lastApplicationStatusCheckRef.current));
+      lastApplicationStatusCheckRef.current = latestAppUpdate.getTime();
+
+      // Batch add all notifications at once
+      if (notificationsToAdd.length > 0) {
+        const emptySet = new Set();
+        store.batchSyncFarmerNotifications(user.id, notificationsToAdd, emptySet);
       }
     });
-
-    // Update last check time for applications
-    const latestAppUpdate = farmerApplications.reduce((latest, app) => {
-      const updateDate = new Date(app.reviewDate || app.distributionDate || app.applicationDate || app.createdAt);
-      return updateDate > latest ? updateDate : latest;
-    }, new Date(lastApplicationStatusCheckRef.current));
-    lastApplicationStatusCheckRef.current = latestAppUpdate.getTime();
   }, [claims, farmerApplications, user?.id]);
 
   // Setup polling for farmer notifications (every 7 seconds)
@@ -634,7 +647,10 @@ const FarmerDashboard = () => {
 
   // Monitor for new assistance items and notify farmers with matching crop types (polling-based, not real-time)
   useEffect(() => {
-    if (user && user.cropType && assistanceItems.length > 0) {
+    if (!user?.id || !user.cropType || assistanceItems.length === 0) return;
+    
+    // Use requestAnimationFrame to defer updates and avoid React render error
+    const frameId = requestAnimationFrame(() => {
       // Check for new assistance items that match the farmer's crop type
       const newAssistanceItems = assistanceItems.filter(item => 
         item.cropType && 
@@ -642,27 +658,42 @@ const FarmerDashboard = () => {
         item.status === 'active'
       );
 
+      if (newAssistanceItems.length === 0) return;
+
+      // Collect all notifications to add in batch
+      const store = useNotificationStore.getState();
+      const existingNotifications = store.getFarmerNotifications(user.id);
+      const notificationsToAdd = [];
+
       // Notify farmer about new assistance items (only if not already notified)
       newAssistanceItems.forEach(item => {
-        const existingNotifications = useNotificationStore.getState().getFarmerNotifications(user.id);
         const alreadyNotified = existingNotifications.some(notification => 
           notification.title === 'New Assistance Available' && 
           notification.message.includes(item.assistanceType)
         );
 
         if (!alreadyNotified) {
-          useNotificationStore.getState().addFarmerNotification({
+          notificationsToAdd.push({
             id: `new-assistance-${item._id}-${generateUniqueId()}`,
             type: 'info',
             title: 'New Assistance Available',
             message: `New ${item.assistanceType} assistance is now available for ${item.cropType} farmers!`,
-            timestamp: new Date()
-          }, user.id);
+            timestamp: new Date(),
+            read: false
+          });
         }
       });
-    }
+
+      // Batch add all notifications at once
+      if (notificationsToAdd.length > 0) {
+        const emptySet = new Set();
+        store.batchSyncFarmerNotifications(user.id, notificationsToAdd, emptySet);
+      }
+    });
+    
+    return () => cancelAnimationFrame(frameId);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assistanceItems, user?.cropType]); // Note: Status updates handled by polling in checkForFarmerNotifications
+  }, [assistanceItems, user?.cropType, user?.id]); // Note: Status updates handled by polling in checkForFarmerNotifications
 
   // Format timestamp function
   const formatTimestamp = (date) => {
