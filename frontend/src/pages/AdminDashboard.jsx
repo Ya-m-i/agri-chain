@@ -322,7 +322,7 @@ const AdminDashboard = () => {
     return /^[0-9a-fA-F]{24}$/.test(id);
   };
 
-  // Generate unique notification ID
+  // Generate unique notification ID (must be declared before useCallback that uses it)
   const generateUniqueId = () => {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   };
@@ -388,11 +388,6 @@ const AdminDashboard = () => {
   const updateApplicationStatus = async (applicationId, statusData) => {
     return await updateApplicationMutation.mutateAsync({ applicationId, statusData })
   }
-  
-  // Generate unique notification ID
-  const generateUniqueId = () => {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  };
   
   // Handle logout
   const handleLogout = () => {
