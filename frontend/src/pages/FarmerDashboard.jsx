@@ -38,72 +38,23 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const FarmerDashboard = () => {
+  // ============================================
+  // SECTION 1: STORE HOOKS AND NAVIGATION
+  // ============================================
   const { user, logout, userType } = useAuthStore()
   const navigate = useNavigate()
   
-  // Redirect if not authenticated or not a farmer
-  useEffect(() => {
-    if (!user) {
-      navigate("/")
-      return
-    }
-    
-    if (userType !== "farmer") {
-      navigate("/admin")
-      return
-    }
-  }, [user, userType, navigate])
+  // ============================================
+  // SECTION 2: ALL REACT QUERY HOOKS (MUST BE FIRST)
+  // ============================================
+  // All data fetching hooks must be declared before any computed values or effects that use them
   
-  const [activeTab, setActiveTab] = useState("home")
-  const [notificationOpen, setNotificationOpen] = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [isTabLoading, setIsTabLoading] = useState(false)
-  const [isInitialLoading, setIsInitialLoading] = useState(true)
+  // Notification hooks (API-based, polling every 7 seconds) - only enabled when user?.id exists
+  const { data: apiNotifications = [], refetch: refetchNotifications } = useNotifications('farmer', user?.id || null)
+  const markAsReadMutation = useMarkNotificationsAsRead()
+  const clearNotificationsMutation = useClearNotifications()
+  const deleteNotificationMutation = useDeleteNotification()
   
-  // Handle initial loading when component mounts
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsInitialLoading(false);
-    }, 1200); // 1.2 seconds for initial dashboard loading
-
-    return () => clearTimeout(timer);
-  }, []);
-  
-  // Function to handle tab switching with loading
-  const handleTabSwitch = (newTab) => {
-    if (newTab === activeTab) return;
-    
-    setIsTabLoading(true);
-    setActiveTab(newTab);
-    setSidebarOpen(false);
-    
-    // Simulate loading time (you can adjust this duration)
-    setTimeout(() => {
-      setIsTabLoading(false);
-    }, 800);
-  };
-  
-  // Local-only notifications (for test/help buttons) - component state
-  const [localNotifications, setLocalNotifications] = useState([]);
-  
-  // Get notifications from React Query (API) - single source of truth
-  // Wrap in useMemo to prevent unnecessary re-renders in hooks that depend on it
-  const apiNotificationsArray = useMemo(() => {
-    return Array.isArray(apiNotifications) ? apiNotifications : [];
-  }, [apiNotifications]);
-  const farmerNotifications = [...localNotifications, ...apiNotificationsArray];
-  
-  // Calculate unread count from API notifications only
-  const unreadFarmerCount = useMemo(() => {
-    return apiNotificationsArray.filter(n => !n.read).length;
-  }, [apiNotificationsArray]);
-
-  // State for claim details modal
-  const [showClaimDetails, setShowClaimDetails] = useState(false)
-  const [selectedClaim, setSelectedClaim] = useState(null)
-
-  // ALL React Query hooks MUST be declared BEFORE any useEffect/useCallback that uses them
   // Use React Query for claims data - only enabled when user?.id exists
   const { data: claims = [], refetch: refetchClaims } = useClaims(user?.id || null)
   
@@ -113,41 +64,105 @@ const FarmerDashboard = () => {
   // Use React Query for farmer applications data - only enabled when user?.id exists
   const { data: farmerApplications = [], isLoading: applicationsLoading, error: applicationsError } = useFarmerApplications(user?.id || null)
   
-  // Use React Query for assistance data (must be declared early)
+  // Use React Query for assistance data
   const { data: assistanceItems = [], isLoading: assistanceLoading, error: assistanceError } = useAssistances()
   const applyForAssistanceMutation = useApplyForAssistance()
-  
-  // Notification hooks (API-based, polling every 7 seconds) - only enabled when user?.id exists
-  const { data: apiNotifications = [], refetch: refetchNotifications } = useNotifications('farmer', user?.id || null)
-  const markAsReadMutation = useMarkNotificationsAsRead()
-  const clearNotificationsMutation = useClearNotifications()
-  const deleteNotificationMutation = useDeleteNotification()
 
+  // ============================================
+  // SECTION 3: STATE VARIABLES
+  // ============================================
+  const [activeTab, setActiveTab] = useState("home")
+  const [notificationOpen, setNotificationOpen] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isTabLoading, setIsTabLoading] = useState(false)
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
+  
+  // Local-only notifications (for test/help buttons) - component state
+  const [localNotifications, setLocalNotifications] = useState([]);
+  
+  // State for claim details modal
+  const [showClaimDetails, setShowClaimDetails] = useState(false)
+  const [selectedClaim, setSelectedClaim] = useState(null)
+  
+  // Real-time status indicator for farmer
+  const [lastRefreshTime, setLastRefreshTime] = useState(new Date())
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  
+  const [showAssistanceForm, setShowAssistanceForm] = useState(false)
+  const [selectedAssistance, setSelectedAssistance] = useState(null)
+  const [showAllApplications, setShowAllApplications] = useState(false)
+  const [assistanceForm, setAssistanceForm] = useState({
+    requestedQuantity: "",
+    notes: "",
+  })
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 3 // Number of assistance items per page
+
+  // ============================================
+  // SECTION 4: REFS
+  // ============================================
   // Track last checked timestamps for notifications (initialize after data loads)
   const lastClaimStatusCheckRef = useRef(null);
   const lastApplicationStatusCheckRef = useRef(null);
+
+  // ============================================
+  // SECTION 5: COMPUTED VALUES (useMemo)
+  // ============================================
+  // Get notifications from React Query (API) - single source of truth
+  // Wrap in useMemo to prevent unnecessary re-renders in hooks that depend on it
+  const apiNotificationsArray = useMemo(() => {
+    return Array.isArray(apiNotifications) ? apiNotifications : [];
+  }, [apiNotifications]);
   
-  // Initialize timestamps after data loads to avoid showing all existing items as new
-  useEffect(() => {
-    if (claims.length > 0 && lastClaimStatusCheckRef.current === null) {
-      const latestClaim = claims.reduce((latest, claim) => {
-        const updateDate = new Date(claim.updatedAt || claim.date || claim.createdAt);
-        return updateDate > latest ? updateDate : latest;
-      }, new Date(0));
-      lastClaimStatusCheckRef.current = latestClaim.getTime();
-    }
-    if (farmerApplications.length > 0 && lastApplicationStatusCheckRef.current === null) {
-      const latestApp = farmerApplications.reduce((latest, app) => {
-        const updateDate = new Date(app.reviewDate || app.distributionDate || app.applicationDate || app.createdAt);
-        return updateDate > latest ? updateDate : latest;
-      }, new Date(0));
-      lastApplicationStatusCheckRef.current = latestApp.getTime();
-    }
-  }, [claims, farmerApplications]);
+  const farmerNotifications = [...localNotifications, ...apiNotificationsArray];
+  
+  // Calculate unread count from API notifications only
+  const unreadFarmerCount = useMemo(() => {
+    return apiNotificationsArray.filter(n => !n.read).length;
+  }, [apiNotificationsArray]);
+  
+  // Insured crop types derived from crop insurance records using React Query
+  const insuredCropTypes = useMemo(() => {
+    if (!cropInsuranceRecords || cropInsuranceRecords.length === 0) return []
+    return Array.from(new Set(cropInsuranceRecords.map(r => r.cropType).filter(Boolean)))
+  }, [cropInsuranceRecords])
 
-  // Note: Status change notifications now come from backend API automatically
-  // React Query polls every 7 seconds to fetch new notifications
+  const displayedCropType = useMemo(() => {
+    return (insuredCropTypes && insuredCropTypes.length > 0)
+      ? insuredCropTypes.join(", ")
+      : (user?.cropType || "Not provided")
+  }, [insuredCropTypes, user?.cropType])
 
+  // Provide insuredCropTypes to eligibility checks by merging into farmer object where needed
+  const farmerForEligibility = useMemo(() => ({
+    ...user,
+    insuredCropTypes,
+  }), [user, insuredCropTypes])
+  
+  // Combine loading and error states for UI
+  const loading = assistanceLoading || applicationsLoading
+  const error = assistanceError || applicationsError
+  
+  // ============================================
+  // SECTION 6: HELPER FUNCTIONS (regular functions)
+  // ============================================
+  // Generate unique notification ID
+  const generateUniqueId = () => {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  };
+  
+  // Helper function to check if a string is a valid MongoDB ObjectId
+  const isValidObjectId = (id) => {
+    if (!id || typeof id !== 'string') return false;
+    // MongoDB ObjectId is 24 hex characters
+    return /^[0-9a-fA-F]{24}$/.test(id);
+  };
+
+  // ============================================
+  // SECTION 7: CALLBACKS (useCallback)
+  // ============================================
   // Manual refresh function for notifications (fetches from API)
   const refreshFarmerNotifications = useCallback(async () => {
     try {
@@ -179,11 +194,6 @@ const FarmerDashboard = () => {
     }
   }, [notificationOpen, apiNotificationsArray, user?.id, markAsReadMutation]);
   
-  // Generate unique notification ID (must be declared before useCallback that uses it)
-  const generateUniqueId = () => {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  };
-
   // Helper function to add local-only notification (for test/help buttons)
   const addLocalNotification = useCallback((notification) => {
     const notificationId = notification.id || generateUniqueId();
@@ -205,35 +215,6 @@ const FarmerDashboard = () => {
     setLocalNotifications(prev => prev.filter(n => n.id !== id));
   }, []);
   
-  // Helper function to check if a string is a valid MongoDB ObjectId
-  const isValidObjectId = (id) => {
-    if (!id || typeof id !== 'string') return false;
-    // MongoDB ObjectId is 24 hex characters
-    return /^[0-9a-fA-F]{24}$/.test(id);
-  };
-  
-  // Insured crop types derived from crop insurance records using React Query
-  const insuredCropTypes = useMemo(() => {
-    if (!cropInsuranceRecords || cropInsuranceRecords.length === 0) return []
-    return Array.from(new Set(cropInsuranceRecords.map(r => r.cropType).filter(Boolean)))
-  }, [cropInsuranceRecords])
-  
-  // Real-time status indicator for farmer
-  const [lastRefreshTime, setLastRefreshTime] = useState(new Date())
-  const [isRefreshing, setIsRefreshing] = useState(false)
-
-  const displayedCropType = useMemo(() => {
-    return (insuredCropTypes && insuredCropTypes.length > 0)
-      ? insuredCropTypes.join(", ")
-      : (user?.cropType || "Not provided")
-  }, [insuredCropTypes, user?.cropType])
-
-  // Provide insuredCropTypes to eligibility checks by merging into farmer object where needed
-  const farmerForEligibility = useMemo(() => ({
-    ...user,
-    insuredCropTypes,
-  }), [user, insuredCropTypes])
-  
   // Load claims function with real-time updates using React Query
   const loadClaims = useCallback(async () => {
     if (user && user.id) {
@@ -250,30 +231,6 @@ const FarmerDashboard = () => {
       }
     }
   }, [user, refetchClaims]);
-  
-  // Set up auto-refresh for claims with React Query
-  useEffect(() => {
-    // Set up auto-refresh every 10 seconds for real-time updates
-    const intervalId = setInterval(loadClaims, 10000); // Refresh every 10 seconds
-    
-    // Listen for new claim submissions
-    const handleClaimSubmitted = () => {
-      console.log('FarmerDashboard: New claim submitted, refreshing claims...');
-      loadClaims();
-    };
-    
-    window.addEventListener('claimSubmitted', handleClaimSubmitted);
-    
-    // Cleanup interval and event listener on component unmount
-    return () => {
-      clearInterval(intervalId);
-      window.removeEventListener('claimSubmitted', handleClaimSubmitted);
-    };
-  }, [loadClaims]);
-
-  // Combine loading and error states for UI
-  const loading = assistanceLoading || applicationsLoading
-  const error = assistanceError || applicationsError
   
   // Check eligibility for assistance (moved from store)
   const checkEligibility = useCallback((farmer, assistance) => {
@@ -323,16 +280,85 @@ const FarmerDashboard = () => {
     };
   }, [farmerApplications]);
 
-  const [showAssistanceForm, setShowAssistanceForm] = useState(false)
-  const [selectedAssistance, setSelectedAssistance] = useState(null)
-  const [showAllApplications, setShowAllApplications] = useState(false)
-  const [assistanceForm, setAssistanceForm] = useState({
-    requestedQuantity: "",
-    notes: "",
-  })
+  // Function to handle tab switching with loading
+  const handleTabSwitch = (newTab) => {
+    if (newTab === activeTab) return;
+    
+    setIsTabLoading(true);
+    setActiveTab(newTab);
+    setSidebarOpen(false);
+    
+    // Simulate loading time (you can adjust this duration)
+    setTimeout(() => {
+      setIsTabLoading(false);
+    }, 800);
+  };
 
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 3 // Number of assistance items per page
+  // ============================================
+  // SECTION 8: EFFECTS (useEffect)
+  // ============================================
+  // Redirect if not authenticated or not a farmer
+  useEffect(() => {
+    if (!user) {
+      navigate("/")
+      return
+    }
+    
+    if (userType !== "farmer") {
+      navigate("/admin")
+      return
+    }
+  }, [user, userType, navigate])
+  
+  // Handle initial loading when component mounts
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialLoading(false);
+    }, 1200); // 1.2 seconds for initial dashboard loading
+
+    return () => clearTimeout(timer);
+  }, []);
+  
+  // Initialize timestamps after data loads to avoid showing all existing items as new
+  useEffect(() => {
+    if (claims.length > 0 && lastClaimStatusCheckRef.current === null) {
+      const latestClaim = claims.reduce((latest, claim) => {
+        const updateDate = new Date(claim.updatedAt || claim.date || claim.createdAt);
+        return updateDate > latest ? updateDate : latest;
+      }, new Date(0));
+      lastClaimStatusCheckRef.current = latestClaim.getTime();
+    }
+    if (farmerApplications.length > 0 && lastApplicationStatusCheckRef.current === null) {
+      const latestApp = farmerApplications.reduce((latest, app) => {
+        const updateDate = new Date(app.reviewDate || app.distributionDate || app.applicationDate || app.createdAt);
+        return updateDate > latest ? updateDate : latest;
+      }, new Date(0));
+      lastApplicationStatusCheckRef.current = latestApp.getTime();
+    }
+  }, [claims, farmerApplications]);
+
+  // Note: Status change notifications now come from backend API automatically
+  // React Query polls every 7 seconds to fetch new notifications
+
+  // Set up auto-refresh for claims with React Query
+  useEffect(() => {
+    // Set up auto-refresh every 10 seconds for real-time updates
+    const intervalId = setInterval(loadClaims, 10000); // Refresh every 10 seconds
+    
+    // Listen for new claim submissions
+    const handleClaimSubmitted = () => {
+      console.log('FarmerDashboard: New claim submitted, refreshing claims...');
+      loadClaims();
+    };
+    
+    window.addEventListener('claimSubmitted', handleClaimSubmitted);
+    
+    // Cleanup interval and event listener on component unmount
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('claimSubmitted', handleClaimSubmitted);
+    };
+  }, [loadClaims]);
 
   // Generate claims data for donut chart with proper guards
   const generateClaimsChartData = () => {
