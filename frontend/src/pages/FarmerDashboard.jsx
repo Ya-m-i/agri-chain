@@ -1243,39 +1243,40 @@ const FarmerDashboard = () => {
               </div>
 
               <div className="bg-white rounded-xl shadow overflow-hidden">
-                <div className="overflow-x-auto">
+                {/* Desktop Table View */}
+                <div className="hidden md:block">
                   <div className="relative">
                     {/* Fixed Header */}
-                    <table className="min-w-full divide-y divide-gray-200">
+                    <table className="w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
                           <th
                             scope="col"
-                            className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
                             Claim ID
                           </th>
                           <th
                             scope="col"
-                            className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
                             Type
                           </th>
                           <th
                             scope="col"
-                            className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
                             Date
                           </th>
                           <th
                             scope="col"
-                            className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
                             Status
                           </th>
                           <th
                             scope="col"
-                            className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5"
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                           >
                             Actions
                           </th>
@@ -1289,26 +1290,19 @@ const FarmerDashboard = () => {
                         maxHeight: '350px', // Approximately 5 rows (5 * ~70px per row)
                       }}
                     >
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <colgroup>
-                          <col className="w-1/5" />
-                          <col className="w-1/5" />
-                          <col className="w-1/5" />
-                          <col className="w-1/5" />
-                          <col className="w-1/5" />
-                        </colgroup>
+                      <table className="w-full divide-y divide-gray-200">
                         <tbody className="bg-white divide-y divide-gray-200">
                         {sortedClaims.length > 0 ? (
                           sortedClaims.map((claim) => (
                             <tr key={claim._id || claim.id} className="hover:bg-gray-50">
-                              <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{claim.claimNumber || claim._id || claim.id}</td>
-                              <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{claim.claimNumber || claim._id || claim.id}</td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {claim.type || claim.damageType || "N/A"}
                               </td>
-                              <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {claim.date ? new Date(claim.date).toLocaleDateString() : claim.createdAt ? new Date(claim.createdAt).toLocaleDateString() : "N/A"}
                               </td>
-                              <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                              <td className="px-6 py-4 whitespace-nowrap">
                                 <span
                                   className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                   ${
@@ -1324,7 +1318,7 @@ const FarmerDashboard = () => {
                                   {claim.status ? claim.status.charAt(0).toUpperCase() + claim.status.slice(1) : "Unknown"}
                                 </span>
                               </td>
-                              <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 <button onClick={() => openClaimDetails(claim)} className="text-lime-700 hover:text-lime-900 font-medium">
                                   View Details
                                 </button>
@@ -1351,6 +1345,79 @@ const FarmerDashboard = () => {
                       </tbody>
                     </table>
                   </div>
+                  </div>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden">
+                  <div 
+                    className="overflow-y-auto claims-table-scroll"
+                    style={{
+                      maxHeight: '350px', // Approximately 5 rows
+                    }}
+                  >
+                    {sortedClaims.length > 0 ? (
+                      <div className="divide-y divide-gray-200">
+                        {sortedClaims.map((claim) => (
+                          <div key={claim._id || claim.id} className="p-4 hover:bg-gray-50">
+                            <div className="flex flex-col space-y-3">
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Claim ID</p>
+                                  <p className="text-sm font-medium text-gray-900 truncate">{claim.claimNumber || claim._id || claim.id}</p>
+                                </div>
+                                <span
+                                  className={`ml-2 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full flex-shrink-0
+                                  ${
+                                    claim.status === "approved"
+                                      ? "bg-green-100 text-green-800"
+                                      : claim.status === "pending"
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : claim.status === "rejected"
+                                          ? "bg-red-100 text-red-800"
+                                          : "bg-gray-100 text-gray-800"
+                                  }`}
+                                >
+                                  {claim.status ? claim.status.charAt(0).toUpperCase() + claim.status.slice(1) : "Unknown"}
+                                </span>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Type</p>
+                                <p className="text-sm text-gray-700">{claim.type || claim.damageType || "N/A"}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Date</p>
+                                <p className="text-sm text-gray-700">
+                                  {claim.date ? new Date(claim.date).toLocaleDateString() : claim.createdAt ? new Date(claim.createdAt).toLocaleDateString() : "N/A"}
+                                </p>
+                              </div>
+                              <div className="pt-2">
+                                <button 
+                                  onClick={() => openClaimDetails(claim)} 
+                                  className="w-full text-center text-lime-700 hover:text-lime-900 font-medium py-2 border border-lime-300 rounded-lg hover:bg-lime-50 transition"
+                                >
+                                  View Details
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-8 text-center text-gray-500">
+                        <div className="flex flex-col items-center">
+                          <FileText className="h-12 w-12 text-gray-300 mb-2" />
+                          <p className="text-lg font-medium">No claims found</p>
+                          <p className="text-sm">You haven't submitted any insurance claims yet.</p>
+                          <button 
+                            onClick={() => navigate("/farmer-form")}
+                            className="mt-4 bg-lime-700 text-white px-4 py-2 rounded-lg hover:bg-lime-800 transition"
+                          >
+                            Submit Your First Claim
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
