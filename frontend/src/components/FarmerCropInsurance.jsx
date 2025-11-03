@@ -184,37 +184,37 @@ const FarmerCropInsurance = () => {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-lime-50 p-4 rounded-xl shadow-md text-black">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Crops</p>
-              <p className="text-2xl font-bold text-gray-800">{stats.totalCrops}</p>
+              <p className="text-sm text-black">Total Crops</p>
+              <p className="text-2xl font-bold text-black">{stats.totalCrops}</p>
             </div>
             <Crop className="text-green-600" size={24} />
           </div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-lime-50 p-4 rounded-xl shadow-md text-black">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Insured Crops</p>
+              <p className="text-sm text-black">Insured Crops</p>
               <p className="text-2xl font-bold text-green-600">{stats.insuredCrops}</p>
             </div>
             <Shield className="text-green-600" size={24} />
           </div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-lime-50 p-4 rounded-xl shadow-md text-black">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Uninsured Crops</p>
+              <p className="text-sm text-black">Uninsured Crops</p>
               <p className="text-2xl font-bold text-yellow-600">{stats.uninsuredCrops}</p>
             </div>
             <AlertTriangle className="text-yellow-600" size={24} />
           </div>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-lime-50 p-4 rounded-xl shadow-md text-black">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Expired Insurance</p>
+              <p className="text-sm text-black">Expired Insurance</p>
               <p className="text-2xl font-bold text-red-600">{stats.expiredCrops}</p>
             </div>
             <X className="text-red-600" size={24} />
@@ -223,7 +223,7 @@ const FarmerCropInsurance = () => {
       </div>
 
       {/* Search */}
-      <div className="bg-white p-4 rounded-lg shadow">
+      <div className="bg-lime-50 p-4 rounded-xl shadow-md text-black">
         <div className="flex items-center gap-4">
           <div className="flex-1">
             <div className="relative">
@@ -241,83 +241,136 @@ const FarmerCropInsurance = () => {
       </div>
 
       {/* Records Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Crop Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Planting Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Expected Harvest
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Day Limit
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredRecords.map((record) => (
-                <tr key={record._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{record.cropType}</div>
-                    <div className="text-sm text-gray-500">
-                      {record.cropArea} ha • Lot {record.lotNumber}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {formatDate(record.plantingDate)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {formatDate(record.expectedHarvestDate)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {record.insuranceDayLimit} days
-                    </div>
-                    {!record.isInsured && record.canInsure && (
-                      <div className="text-xs text-yellow-600">
-                        {getRemainingDays(record)} days left
+      <div className="bg-lime-50 rounded-xl shadow-md overflow-hidden text-black">
+        {/* Desktop Table View */}
+        <div className="hidden md:block">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Crop Type
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Planting Date
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Expected Harvest
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Day Limit
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredRecords.map((record) => (
+                  <tr key={record._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{record.cropType}</div>
+                      <div className="text-sm text-gray-500">
+                        {record.cropArea} ha • Lot {record.lotNumber}
                       </div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(record)}`}>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {formatDate(record.plantingDate)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {formatDate(record.expectedHarvestDate)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {record.insuranceDayLimit} days
+                      </div>
+                      {!record.isInsured && record.canInsure && (
+                        <div className="text-xs text-yellow-600">
+                          {getRemainingDays(record)} days left
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(record)}`}>
+                        {getStatusIcon(record)}
+                        {getStatusText(record)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedRecord(record)
+                            setShowDetailsModal(true)
+                          }}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          <Eye size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden">
+          <div className="space-y-4">
+            {filteredRecords.map((record) => (
+              <div key={record._id} className="bg-white rounded-xl p-4 shadow-md">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Crop Type</p>
+                      <p className="text-sm font-medium text-gray-900">{record.cropType}</p>
+                      <p className="text-xs text-gray-600 mt-1">{record.cropArea} ha • Lot {record.lotNumber}</p>
+                    </div>
+                    <span className={`ml-2 px-2 py-1 inline-flex items-center text-xs leading-5 font-semibold rounded-full flex-shrink-0 ${getStatusColor(record)}`}>
                       {getStatusIcon(record)}
                       {getStatusText(record)}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => {
-                          setSelectedRecord(record)
-                          setShowDetailsModal(true)
-                        }}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        <Eye size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Planting Date</p>
+                    <p className="text-sm text-gray-700">{formatDate(record.plantingDate)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Expected Harvest</p>
+                    <p className="text-sm text-gray-700">{formatDate(record.expectedHarvestDate)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Day Limit</p>
+                    <p className="text-sm text-gray-700">{record.insuranceDayLimit} days</p>
+                    {!record.isInsured && record.canInsure && (
+                      <p className="text-xs text-yellow-600 mt-1">{getRemainingDays(record)} days left</p>
+                    )}
+                  </div>
+                  <div className="pt-2">
+                    <button
+                      onClick={() => {
+                        setSelectedRecord(record)
+                        setShowDetailsModal(true)
+                      }}
+                      className="w-full flex items-center justify-center gap-2 text-blue-600 hover:text-blue-900 font-medium py-2 border border-blue-300 rounded-lg hover:bg-blue-50 transition"
+                    >
+                      <Eye size={16} />
+                      View Details
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

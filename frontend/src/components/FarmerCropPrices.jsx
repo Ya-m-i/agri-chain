@@ -24,7 +24,7 @@ const FarmerCropPrices = () => {
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-xl shadow-lg p-6 animate-pulse">
+      <div className="bg-lime-50 rounded-xl shadow-md p-6 animate-pulse text-black">
         <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
         <div className="h-64 bg-gray-100 rounded"></div>
       </div>
@@ -33,12 +33,12 @@ const FarmerCropPrices = () => {
 
   if (cropPrices.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-lg p-6">
+      <div className="bg-lime-50 rounded-xl shadow-md p-6 text-black">
         <div className="flex items-center gap-3 mb-4">
           <TrendingUp className="h-6 w-6 text-lime-600" />
-          <h2 className="text-xl font-bold text-gray-800">Current Market Prices</h2>
+          <h2 className="text-xl font-bold text-black">Current Market Prices</h2>
         </div>
-        <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+        <div className="flex flex-col items-center justify-center py-12 text-black">
           <Package className="h-16 w-16 text-gray-300 mb-4" />
           <p className="text-center">No market prices available at the moment</p>
           <p className="text-sm text-gray-400 mt-2">Check back later for updated prices</p>
@@ -48,11 +48,11 @@ const FarmerCropPrices = () => {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
+    <div className="bg-lime-50 rounded-xl shadow-md p-6 text-black">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <TrendingUp className="h-6 w-6 text-lime-600" />
-          <h2 className="text-xl font-bold text-gray-800">Kapalong Crop Market Prices</h2>
+          <h2 className="text-xl font-bold text-black">Kapalong Crop Market Prices</h2>
         </div>
         <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
           Updated: {new Date(cropPrices[0]?.lastUpdated).toLocaleDateString()}
@@ -113,7 +113,7 @@ const FarmerCropPrices = () => {
         {cropPrices.map((crop) => (
           <div
             key={crop._id}
-            className="bg-gradient-to-br from-lime-50 to-white border border-lime-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+            className="bg-lime-50 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow text-black"
           >
             {crop.image ? (
               <div className="h-32 w-full bg-gray-100 overflow-hidden">
@@ -131,9 +131,9 @@ const FarmerCropPrices = () => {
             <div className="p-4">
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <h3 className="font-bold text-gray-800 text-sm">{crop.cropName}</h3>
+                  <h3 className="font-bold text-black text-sm">{crop.cropName}</h3>
                   {crop.cropType && (
-                    <p className="text-xs text-gray-600">{crop.cropType}</p>
+                    <p className="text-xs text-black">{crop.cropType}</p>
                   )}
                 </div>
                 <DollarSign className="h-5 w-5 text-lime-600" />
@@ -143,11 +143,11 @@ const FarmerCropPrices = () => {
                 <span className="text-2xl font-bold text-lime-600">
                   ₱{crop.pricePerKg}
                 </span>
-                <span className="text-sm text-gray-500">/ {crop.unit}</span>
+                <span className="text-sm text-black">/ {crop.unit}</span>
               </div>
               
               {crop.region && (
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-black mt-2">
                   {crop.region}
                 </p>
               )}

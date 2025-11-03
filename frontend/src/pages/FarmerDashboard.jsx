@@ -1655,12 +1655,12 @@ const FarmerDashboard = () => {
                     const canAvail = eligibility.eligible;
                     
                     return (
-                      <div key={index} className="bg-white rounded-xl shadow p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                      <div key={index} className="bg-lime-50 rounded-xl shadow-md text-black p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex justify-between items-start mb-4">
                             <div>
-                              <h3 className="text-lg font-semibold text-gray-800">{item.assistanceType}</h3>
-                              <p className="text-sm text-gray-500">Crop Type: {item.cropType}</p>
+                              <h3 className="text-lg font-semibold text-black">{item.assistanceType}</h3>
+                              <p className="text-sm text-black">Crop Type: {item.cropType}</p>
                             </div>
                             <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${
                               item.status === 'active' ? 'bg-lime-100 text-lime-800' : 'bg-red-100 text-red-800'
@@ -1669,16 +1669,16 @@ const FarmerDashboard = () => {
                             </span>
                           </div>
                           <div className="space-y-2 mb-4">
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-black">
                               <span className="font-medium">Available Quantity:</span> {item.availableQuantity || 0}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-black">
                               <span className="font-medium">Max per Farmer:</span> {item.maxQuantityPerFarmer || 100}kg
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-black">
                               <span className="font-medium">Date Added:</span> {new Date(item.dateAdded).toLocaleDateString()}
                             </p>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-black">
                               <span className="font-medium">Founder:</span> {item.founderName}
                             </p>
                                                           {item.requiresRSBSA && (
@@ -1823,9 +1823,9 @@ const FarmerDashboard = () => {
 
               {/* My Applications Section */}
               {farmerApplications.length > 0 && (
-                <div className="bg-white rounded-lg shadow p-4 sm:p-6">
+                <div className="bg-lime-50 rounded-xl shadow-md text-black p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4">
-                    <h2 className="text-lg sm:text-xl font-semibold text-gray-800">My Assistance Applications</h2>
+                    <h2 className="text-lg sm:text-xl font-semibold text-black">My Assistance Applications</h2>
                     <div className="flex gap-2">
                       <button
                         onClick={() => setShowAllApplications(!showAllApplications)}
@@ -1835,47 +1835,96 @@ const FarmerDashboard = () => {
                       </button>
                     </div>
                   </div>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Assistance Type
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Quantity Requested
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Date Applied
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                          {showAllApplications && (
+                  
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block">
+                    <div className="overflow-x-auto">
+                      <table className="w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Review Date
+                              Assistance Type
                             </th>
-                          )}
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Admin Feedback
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {(showAllApplications ? farmerApplications : farmerApplications.slice(0, 5)).map((application) => (
-                          <tr key={application._id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {application.assistanceId?.assistanceType || 'N/A'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {application.requestedQuantity}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {new Date(application.applicationDate).toLocaleDateString()}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Quantity Requested
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Date Applied
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Status
+                            </th>
+                            {showAllApplications && (
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Review Date
+                              </th>
+                            )}
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Admin Feedback
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {(showAllApplications ? farmerApplications : farmerApplications.slice(0, 5)).map((application) => (
+                            <tr key={application._id}>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {application.assistanceId?.assistanceType || 'N/A'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {application.requestedQuantity}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {new Date(application.applicationDate).toLocaleDateString()}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                    application.status === "approved"
+                                      ? "bg-green-100 text-green-800"
+                                      : application.status === "rejected"
+                                      ? "bg-red-100 text-red-800"
+                                      : application.status === "distributed"
+                                      ? "bg-blue-100 text-blue-800"
+                                      : "bg-yellow-100 text-yellow-800"
+                                  }`}
+                                >
+                                  {application.status}
+                                </span>
+                              </td>
+                              {showAllApplications && (
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {application.reviewDate ? new Date(application.reviewDate).toLocaleDateString() : "-"}
+                                </td>
+                              )}
+                              <td className="px-6 py-4 text-sm text-gray-900">
+                                {application.officerNotes ? (
+                                  <div className="max-w-xs">
+                                    <p className="text-gray-700">{application.officerNotes}</p>
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-400">No feedback yet</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Mobile Card View */}
+                  <div className="md:hidden">
+                    <div className="space-y-4">
+                      {(showAllApplications ? farmerApplications : farmerApplications.slice(0, 5)).map((application) => (
+                        <div key={application._id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Assistance Type</p>
+                                <p className="text-sm font-medium text-gray-900 truncate">{application.assistanceId?.assistanceType || 'N/A'}</p>
+                              </div>
                               <span
-                                className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                className={`ml-2 px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full flex-shrink-0 ${
                                   application.status === "approved"
                                     ? "bg-green-100 text-green-800"
                                     : application.status === "rejected"
@@ -1887,25 +1936,29 @@ const FarmerDashboard = () => {
                               >
                                 {application.status}
                               </span>
-                            </td>
-                            {showAllApplications && (
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {application.reviewDate ? new Date(application.reviewDate).toLocaleDateString() : "-"}
-                              </td>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Quantity Requested</p>
+                              <p className="text-sm text-gray-700">{application.requestedQuantity}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Date Applied</p>
+                              <p className="text-sm text-gray-700">{new Date(application.applicationDate).toLocaleDateString()}</p>
+                            </div>
+                            {showAllApplications && application.reviewDate && (
+                              <div>
+                                <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Review Date</p>
+                                <p className="text-sm text-gray-700">{new Date(application.reviewDate).toLocaleDateString()}</p>
+                              </div>
                             )}
-                            <td className="px-6 py-4 text-sm text-gray-900">
-                              {application.officerNotes ? (
-                                <div className="max-w-xs">
-                                  <p className="text-gray-700">{application.officerNotes}</p>
-                                </div>
-                              ) : (
-                                <span className="text-gray-400">No feedback yet</span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                            <div>
+                              <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">Admin Feedback</p>
+                              <p className="text-sm text-gray-700">{application.officerNotes || "No feedback yet"}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
