@@ -119,6 +119,24 @@ const FarmerDashboard = () => {
   // State for copy feedback
   const [copiedId, setCopiedId] = useState(false)
 
+  // Calendar state
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [calendarView, setCalendarView] = useState("month") // month, week, day
+  const [showEventModal, setShowEventModal] = useState(false)
+  const [calendarEvents, setCalendarEvents] = useState([
+    { id: 1, title: "Planting", date: new Date(2024, 11, 5), type: "planting", color: "blue" },
+    { id: 2, title: "Fertilizer", date: new Date(2024, 11, 12), type: "fertilizer", color: "yellow" },
+    { id: 3, title: "Harvest", date: new Date(2024, 11, 18), type: "harvest", color: "green" },
+    { id: 4, title: "Insurance Due", date: new Date(2024, 11, 25), type: "insurance", color: "red" },
+  ])
+  const [selectedDate, setSelectedDate] = useState(null)
+  const [eventFormData, setEventFormData] = useState({
+    title: "",
+    date: "",
+    type: "planting",
+    notes: ""
+  })
+
   // ============================================
   // SECTION 4: REFS
   // ============================================
@@ -310,6 +328,67 @@ const FarmerDashboard = () => {
       }
     };
   }, [farmerApplications]);
+
+  // Calendar helper functions
+  const getDaysInMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+  }
+
+  const getFirstDayOfMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay()
+  }
+
+  const getLastDayOfPrevMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 0).getDate()
+  }
+
+  const formatCalendarDate = (date) => {
+    return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  }
+
+  const navigateMonth = (direction) => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev)
+      if (direction === 'prev') {
+        newDate.setMonth(newDate.getMonth() - 1)
+      } else {
+        newDate.setMonth(newDate.getMonth() + 1)
+      }
+      return newDate
+    })
+  }
+
+  const getEventsForDate = (date) => {
+    return calendarEvents.filter(event => {
+      const eventDate = new Date(event.date)
+      return eventDate.getDate() === date.getDate() &&
+             eventDate.getMonth() === date.getMonth() &&
+             eventDate.getFullYear() === date.getFullYear()
+    })
+  }
+
+  const isToday = (date) => {
+    const today = new Date()
+    return date.getDate() === today.getDate() &&
+           date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear()
+  }
+
+  const handleQuickAction = (action) => {
+    const actionTypeMap = {
+      "Schedule Planting": { type: "planting", title: "Schedule Planting" },
+      "Set Reminder": { type: "other", title: "Set Reminder" },
+      "Add Farm Note": { type: "other", title: "Farm Note" }
+    }
+    const actionData = actionTypeMap[action] || { type: "other", title: action }
+    setEventFormData({
+      title: actionData.title,
+      date: selectedDate ? selectedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      type: actionData.type,
+      notes: ""
+    })
+    setShowEventModal(true)
+  }
 
   // Function to handle tab switching with loading
   const handleTabSwitch = (newTab) => {
@@ -1428,27 +1507,83 @@ const FarmerDashboard = () => {
             <div className="space-y-4 sm:space-y-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Farming Calendar</h2>
-                <button className="bg-lime-700 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-lime-800 transition text-sm sm:text-base">
-                  Add Event
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Quick Actions */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleQuickAction("Schedule Planting")}
+                      className="bg-lime-50 rounded-xl shadow-md text-black px-3 sm:px-4 py-2 hover:shadow-lg transition flex items-center gap-2 text-sm sm:text-base"
+                    >
+                      <Calendar className="h-4 w-4 text-lime-600" />
+                      <span className="hidden sm:inline">Planting</span>
+                    </button>
+                    <button
+                      onClick={() => handleQuickAction("Set Reminder")}
+                      className="bg-lime-50 rounded-xl shadow-md text-black px-3 sm:px-4 py-2 hover:shadow-lg transition flex items-center gap-2 text-sm sm:text-base"
+                    >
+                      <AlertTriangle className="h-4 w-4 text-lime-600" />
+                      <span className="hidden sm:inline">Reminder</span>
+                    </button>
+                    <button
+                      onClick={() => handleQuickAction("Add Farm Note")}
+                      className="bg-lime-50 rounded-xl shadow-md text-black px-3 sm:px-4 py-2 hover:shadow-lg transition flex items-center gap-2 text-sm sm:text-base"
+                    >
+                      <FileText className="h-4 w-4 text-lime-600" />
+                      <span className="hidden sm:inline">Note</span>
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setShowEventModal(true)}
+                    className="bg-lime-700 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-lime-800 transition text-sm sm:text-base"
+                  >
+                    Add Event
+                  </button>
+                </div>
               </div>
 
               {/* Calendar Navigation */}
-              <div className="bg-white rounded-xl shadow p-4 sm:p-6">
+              <div className="bg-lime-50 rounded-xl shadow-md p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
                   <div className="flex items-center space-x-2 sm:space-x-4">
-                    <button className="p-2 hover:bg-gray-100 rounded-lg">
+                    <button
+                      onClick={() => navigateMonth('prev')}
+                      className="p-2 hover:bg-lime-100 rounded-lg transition"
+                    >
                       <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 rotate-90" />
                     </button>
-                    <h3 className="text-lg sm:text-xl font-semibold">December 2024</h3>
-                    <button className="p-2 hover:bg-gray-100 rounded-lg">
+                    <h3 className="text-lg sm:text-xl font-semibold text-black">{formatCalendarDate(currentDate)}</h3>
+                    <button
+                      onClick={() => navigateMonth('next')}
+                      className="p-2 hover:bg-lime-100 rounded-lg transition"
+                    >
                       <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 -rotate-90" />
                     </button>
                   </div>
                   <div className="flex space-x-1 sm:space-x-2">
-                    <button className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-lime-100 text-lime-700 rounded-md">Month</button>
-                    <button className="px-2 sm:px-3 py-1 text-xs sm:text-sm text-gray-600 hover:bg-gray-100 rounded-md">Week</button>
-                    <button className="px-2 sm:px-3 py-1 text-xs sm:text-sm text-gray-600 hover:bg-gray-100 rounded-md">Day</button>
+                    <button
+                      onClick={() => setCalendarView("month")}
+                      className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-md transition ${
+                        calendarView === "month" ? "bg-lime-700 text-white" : "bg-lime-100 text-lime-700 hover:bg-lime-200"
+                      }`}
+                    >
+                      Month
+                    </button>
+                    <button
+                      onClick={() => setCalendarView("week")}
+                      className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-md transition ${
+                        calendarView === "week" ? "bg-lime-700 text-white" : "bg-lime-100 text-lime-700 hover:bg-lime-200"
+                      }`}
+                    >
+                      Week
+                    </button>
+                    <button
+                      onClick={() => setCalendarView("day")}
+                      className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-md transition ${
+                        calendarView === "day" ? "bg-lime-700 text-white" : "bg-lime-100 text-lime-700 hover:bg-lime-200"
+                      }`}
+                    >
+                      Day
+                    </button>
                   </div>
                 </div>
 
@@ -1461,128 +1596,162 @@ const FarmerDashboard = () => {
                   ))}
                 </div>
 
-                <div className="grid grid-cols-7 gap-1">
-                  {/* Previous month days */}
-                  {[26, 27, 28, 29, 30].map((day) => (
-                    <div
-                      key={`prev-${day}`}
-                      className="p-2 sm:p-3 text-center text-xs sm:text-sm text-gray-400 hover:bg-gray-50 rounded-lg cursor-pointer min-h-[60px] sm:min-h-[80px]"
-                    >
-                      {day}
-                    </div>
-                  ))}
-
-                  {/* Current month days */}
-                  {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => {
-                    const isToday = day === 15 // Assuming today is 15th
-                    return (
-                      <div
-                        key={day}
-                        className={`p-2 sm:p-3 text-center text-xs sm:text-sm hover:bg-gray-50 rounded-lg cursor-pointer min-h-[60px] sm:min-h-[80px] relative ${isToday ? "bg-lime-100 text-lime-700 font-semibold" : ""}`}
-                      >
-                        <span className={`${isToday ? "bg-lime-700 text-white px-2 py-1 rounded-full text-xs" : ""}`}>
+                {calendarView === "month" && (
+                  <div className="grid grid-cols-7 gap-1">
+                    {/* Previous month days */}
+                    {Array.from({ length: getFirstDayOfMonth(currentDate) }).map((_, index) => {
+                      const day = getLastDayOfPrevMonth(currentDate) - getFirstDayOfMonth(currentDate) + index + 1
+                      const prevDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, day)
+                      return (
+                        <div
+                          key={`prev-${day}`}
+                          onClick={() => {
+                            setCurrentDate(prevDate)
+                            setSelectedDate(prevDate)
+                          }}
+                          className="p-2 sm:p-3 text-center text-xs sm:text-sm text-gray-400 hover:bg-gray-50 rounded-lg cursor-pointer min-h-[60px] sm:min-h-[80px]"
+                        >
                           {day}
-                        </span>
+                        </div>
+                      )
+                    })}
 
-                        {/* Events */}
-                        {day === 5 && (
-                          <div className="mt-1">
-                            <div className="bg-blue-100 text-blue-800 text-xs px-1 py-0.5 rounded mb-1 truncate">
-                              Planting
-                            </div>
-                          </div>
-                        )}
-                        {day === 12 && (
-                          <div className="mt-1">
-                            <div className="bg-yellow-100 text-yellow-800 text-xs px-1 py-0.5 rounded mb-1 truncate">
-                              Fertilizer
-                            </div>
-                          </div>
-                        )}
-                        {day === 18 && (
-                          <div className="mt-1">
-                            <div className="bg-green-100 text-green-800 text-xs px-1 py-0.5 rounded mb-1 truncate">
-                              Harvest
-                            </div>
-                          </div>
-                        )}
-                        {day === 25 && (
-                          <div className="mt-1">
-                            <div className="bg-red-100 text-red-800 text-xs px-1 py-0.5 rounded mb-1 truncate">
-                              Insurance Due
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
+                    {/* Current month days */}
+                    {Array.from({ length: getDaysInMonth(currentDate) }, (_, i) => i + 1).map((day) => {
+                      const date = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
+                      const dayIsToday = isToday(date)
+                      const dayEvents = getEventsForDate(date)
+                      const eventColors = {
+                        blue: "bg-blue-100 text-blue-800",
+                        yellow: "bg-yellow-100 text-yellow-800",
+                        green: "bg-green-100 text-green-800",
+                        red: "bg-red-100 text-red-800"
+                      }
 
-                  {/* Next month days */}
-                  {[1, 2, 3, 4].map((day) => (
-                    <div
-                      key={`next-${day}`}
-                      className="p-3 text-center text-sm text-gray-400 hover:bg-gray-50 rounded-lg cursor-pointer min-h-[80px]"
-                    >
-                      {day}
-                    </div>
-                  ))}
-                </div>
+                      return (
+                        <div
+                          key={day}
+                          onClick={() => {
+                            setSelectedDate(date)
+                            if (dayEvents.length === 0) {
+                              setShowEventModal(true)
+                            }
+                          }}
+                          className={`p-2 sm:p-3 text-center text-xs sm:text-sm hover:bg-gray-50 rounded-lg cursor-pointer min-h-[60px] sm:min-h-[80px] relative ${dayIsToday ? "bg-lime-100 text-lime-700 font-semibold" : ""}`}
+                        >
+                          <span className={`${dayIsToday ? "bg-lime-700 text-white px-2 py-1 rounded-full text-xs" : ""}`}>
+                            {day}
+                          </span>
+
+                          {/* Events */}
+                          <div className="mt-1 space-y-1">
+                            {dayEvents.slice(0, 2).map((event) => (
+                              <div
+                                key={event.id}
+                                className={`${eventColors[event.color] || "bg-gray-100 text-gray-800"} text-xs px-1 py-0.5 rounded truncate`}
+                              >
+                                {event.title}
+                              </div>
+                            ))}
+                            {dayEvents.length > 2 && (
+                              <div className="text-xs text-gray-500">
+                                +{dayEvents.length - 2} more
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+
+                    {/* Next month days */}
+                    {Array.from({ length: (42 - getFirstDayOfMonth(currentDate) - getDaysInMonth(currentDate)) }).map((_, index) => {
+                      const day = index + 1
+                      const nextDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, day)
+                      return (
+                        <div
+                          key={`next-${day}`}
+                          onClick={() => {
+                            setCurrentDate(nextDate)
+                            setSelectedDate(nextDate)
+                          }}
+                          className="p-2 sm:p-3 text-center text-xs sm:text-sm text-gray-400 hover:bg-gray-50 rounded-lg cursor-pointer min-h-[60px] sm:min-h-[80px]"
+                        >
+                          {day}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Upcoming Events */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-xl shadow p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-gray-800">Upcoming Events</h3>
+                <div className="bg-lime-50 rounded-xl shadow-md p-6 text-black">
+                  <h3 className="text-lg font-semibold mb-4 text-black">Upcoming Events</h3>
                   <div className="space-y-3">
-                    <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="font-medium text-blue-800">Rice Planting Season</p>
-                        <p className="text-sm text-blue-600">Dec 5, 2024 - Jan 15, 2025</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg">
-                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="font-medium text-yellow-800">Fertilizer Application</p>
-                        <p className="text-sm text-yellow-600">Dec 12, 2024</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg">
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="font-medium text-green-800">Harvest Time</p>
-                        <p className="text-sm text-green-600">Dec 18, 2024</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3 p-3 bg-red-50 rounded-lg">
-                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="font-medium text-red-800">Insurance Premium Due</p>
-                        <p className="text-sm text-red-600">Dec 25, 2024</p>
-                      </div>
-                    </div>
+                    {calendarEvents
+                      .filter(event => {
+                        const eventDate = new Date(event.date)
+                        return eventDate >= new Date()
+                      })
+                      .sort((a, b) => new Date(a.date) - new Date(b.date))
+                      .slice(0, 4)
+                      .map((event) => {
+                        const eventDate = new Date(event.date)
+                        const colorClasses = {
+                          blue: "bg-blue-50 border-blue-200",
+                          yellow: "bg-yellow-50 border-yellow-200",
+                          green: "bg-green-50 border-green-200",
+                          red: "bg-red-50 border-red-200"
+                        }
+                        const dotColors = {
+                          blue: "bg-blue-500",
+                          yellow: "bg-yellow-500",
+                          green: "bg-green-500",
+                          red: "bg-red-500"
+                        }
+                        const textColors = {
+                          blue: "text-blue-800",
+                          yellow: "text-yellow-800",
+                          green: "text-green-800",
+                          red: "text-red-800"
+                        }
+                        return (
+                          <div key={event.id} className={`flex items-center space-x-3 p-3 rounded-lg border ${colorClasses[event.color] || "bg-gray-50"}`}>
+                            <div className={`w-3 h-3 rounded-full ${dotColors[event.color] || "bg-gray-500"}`}></div>
+                            <div className="flex-1">
+                              <p className={`font-medium ${textColors[event.color] || "text-gray-800"}`}>{event.title}</p>
+                              <p className={`text-sm ${textColors[event.color] || "text-gray-600"} opacity-75`}>
+                                {eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </p>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    {calendarEvents.filter(event => new Date(event.date) >= new Date()).length === 0 && (
+                      <p className="text-gray-500 text-sm">No upcoming events</p>
+                    )}
                   </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow p-6">
-                  <h3 className="text-lg font-semibold mb-4 text-gray-800">Farming Tips</h3>
+                <div className="bg-lime-50 rounded-xl shadow-md p-6 text-black">
+                  <h3 className="text-lg font-semibold mb-4 text-black">Farming Tips</h3>
                   <div className="space-y-4">
-                    <div className="p-4 bg-lime-50 rounded-lg border-l-4 border-lime-500">
-                      <h4 className="font-medium text-lime-800">December Planting</h4>
-                      <p className="text-sm text-lime-700 mt-1">
+                    <div className="p-4 bg-white rounded-lg border-l-4 border-lime-500">
+                      <h4 className="font-medium text-black">December Planting</h4>
+                      <p className="text-sm text-black mt-1">
                         Best time to plant rice in your region. Ensure proper soil preparation and water management.
                       </p>
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
-                      <h4 className="font-medium text-blue-800">Weather Watch</h4>
-                      <p className="text-sm text-blue-700 mt-1">
+                    <div className="p-4 bg-white rounded-lg border-l-4 border-lime-500">
+                      <h4 className="font-medium text-black">Weather Watch</h4>
+                      <p className="text-sm text-black mt-1">
                         Monitor weather patterns closely. Heavy rains expected this week - ensure proper drainage.
                       </p>
                     </div>
-                    <div className="p-4 bg-orange-50 rounded-lg border-l-4 border-orange-500">
-                      <h4 className="font-medium text-orange-800">Pest Control</h4>
-                      <p className="text-sm text-orange-700 mt-1">
+                    <div className="p-4 bg-white rounded-lg border-l-4 border-lime-500">
+                      <h4 className="font-medium text-black">Pest Control</h4>
+                      <p className="text-sm text-black mt-1">
                         December is peak season for certain pests. Regular monitoring and early intervention
                         recommended.
                       </p>
@@ -1591,24 +1760,124 @@ const FarmerDashboard = () => {
                 </div>
               </div>
 
-              {/* Quick Actions */}
-              <div className="bg-white rounded-xl shadow p-6">
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">Quick Actions</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <button className="p-4 border-2 border-dashed border-lime-300 rounded-lg hover:border-lime-500 hover:bg-lime-50 transition">
-                    <Calendar className="h-8 w-8 text-lime-600 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-lime-700">Schedule Planting</p>
-                  </button>
-                  <button className="p-4 border-2 border-dashed border-blue-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition">
-                    <AlertTriangle className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-blue-700">Set Reminder</p>
-                  </button>
-                  <button className="p-4 border-2 border-dashed border-purple-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition">
-                    <FileText className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-purple-700">Add Farm Note</p>
-                  </button>
+              {/* Event Modal */}
+              {showEventModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
+                  <div className="bg-lime-50 rounded-xl shadow-md text-black p-6 w-full max-w-md">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold text-black">Add New Event</h3>
+                      <button
+                        onClick={() => {
+                          setShowEventModal(false)
+                          setSelectedDate(null)
+                          setEventFormData({ title: "", date: "", type: "planting", notes: "" })
+                        }}
+                        className="text-black hover:text-gray-700"
+                      >
+                        <X className="h-5 w-5" />
+                      </button>
+                    </div>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault()
+                        if (eventFormData.title && eventFormData.date) {
+                          const eventDate = new Date(eventFormData.date)
+                          const colorMap = {
+                            planting: "blue",
+                            fertilizer: "yellow",
+                            harvest: "green",
+                            insurance: "red",
+                            other: "gray"
+                          }
+                          const newEvent = {
+                            id: Date.now(),
+                            title: eventFormData.title,
+                            date: eventDate,
+                            type: eventFormData.type,
+                            color: colorMap[eventFormData.type] || "gray",
+                            notes: eventFormData.notes
+                          }
+                          setCalendarEvents(prev => [...prev, newEvent])
+                          addLocalNotification({
+                            type: 'success',
+                            title: 'Event Added',
+                            message: 'Your event has been added to the calendar.',
+                          })
+                          setShowEventModal(false)
+                          setSelectedDate(null)
+                          setEventFormData({ title: "", date: "", type: "planting", notes: "" })
+                        }
+                      }}
+                      className="space-y-4"
+                    >
+                      <div>
+                        <label className="block text-sm font-medium text-black mb-1">Event Title</label>
+                        <input
+                          type="text"
+                          placeholder="e.g., Rice Planting"
+                          value={eventFormData.title}
+                          onChange={(e) => setEventFormData(prev => ({ ...prev, title: e.target.value }))}
+                          required
+                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-black mb-1">Date</label>
+                        <input
+                          type="date"
+                          value={eventFormData.date || (selectedDate ? selectedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0])}
+                          onChange={(e) => setEventFormData(prev => ({ ...prev, date: e.target.value }))}
+                          required
+                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-black mb-1">Event Type</label>
+                        <select
+                          value={eventFormData.type}
+                          onChange={(e) => setEventFormData(prev => ({ ...prev, type: e.target.value }))}
+                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent"
+                        >
+                          <option value="planting">Planting</option>
+                          <option value="fertilizer">Fertilizer</option>
+                          <option value="harvest">Harvest</option>
+                          <option value="insurance">Insurance</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-black mb-1">Notes</label>
+                        <textarea
+                          rows="3"
+                          placeholder="Add any additional notes..."
+                          value={eventFormData.notes}
+                          onChange={(e) => setEventFormData(prev => ({ ...prev, notes: e.target.value }))}
+                          className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowEventModal(false)
+                            setSelectedDate(null)
+                            setEventFormData({ title: "", date: "", type: "planting", notes: "" })
+                          }}
+                          className="px-4 py-2 border border-gray-300 rounded-lg text-black hover:bg-white transition"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-4 py-2 bg-lime-700 text-white rounded-lg hover:bg-lime-800 transition"
+                        >
+                          Add Event
+                        </button>
+                      </div>
+                    </form>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
 

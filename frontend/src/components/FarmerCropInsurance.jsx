@@ -408,7 +408,7 @@ const FarmerCropInsurance = () => {
 
       {/* Add New Crop Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-10 backdrop-blur-[2px] flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-5 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-lime-50 rounded-xl shadow-md text-black p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-black">Add New Crop Insurance Record</h3>
