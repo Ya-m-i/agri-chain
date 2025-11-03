@@ -1481,13 +1481,6 @@ const AdminDashboard = () => {
     }
   }
 
-  // Helper function to check if a string is a valid MongoDB ObjectId
-  const isValidObjectId = (id) => {
-    if (!id || typeof id !== 'string') return false;
-    // MongoDB ObjectId is 24 hex characters
-    return /^[0-9a-fA-F]{24}$/.test(id);
-  };
-
   // Toggle notification panel and mark as read
   const toggleNotificationPanel = async () => {
     setNotificationOpen(!notificationOpen)
