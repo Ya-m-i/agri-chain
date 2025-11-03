@@ -42,7 +42,6 @@ const ClaimStatusTracker = ({ status, claimId, submittedDate, reviewDate, comple
               index < currentStepIndex ||
               (isRejected && step.id === "rejected") ||
               (!isRejected && step.id === "approved" && status === "approved")
-            const isUpcoming = !isActive && !isCompleted
 
             return (
               <div key={step.id} className="flex items-start">

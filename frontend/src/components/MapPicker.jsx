@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const MapPicker = ({ onLocationSelect, initialCenter = [7.6042, 125.8450], initialZoom = 13 }) => {
+const MapPicker = ({ onLocationSelect }) => {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
@@ -99,7 +99,8 @@ const MapPicker = ({ onLocationSelect, initialCenter = [7.6042, 125.8450], initi
         markerRef.current = null;
       }
     };
-  }, []); // Empty dependency array - only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array - only run once on mount (onLocationSelect callback doesn't need to trigger re-init)
 
   return (
     <div

@@ -3,7 +3,7 @@
 import React from 'react'
 
 // Reusable Loading Overlay Component with Blockchain Style
-const LoadingOverlay = ({ isVisible, message = "Loading..." }) => {
+const LoadingOverlay = ({ isVisible }) => {
   if (!isVisible) return null;
   
   return (

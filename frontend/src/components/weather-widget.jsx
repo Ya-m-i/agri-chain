@@ -33,7 +33,8 @@ const WeatherWidget = () => {
 
         setWeather(mockWeatherData)
         setLoading(false)
-      } catch (err) {
+      } catch (error) {
+        console.error('Error loading weather data:', error)
         setError("Failed to load weather data")
         setLoading(false)
       }

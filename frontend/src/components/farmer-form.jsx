@@ -107,16 +107,6 @@ function FarmerForm() {
     if (file) handleChange("sketchFile", file)
   }
 
-  const handleDocumentUpload = (e) => {
-    const files = e.target.files ? Array.from(e.target.files) : []
-    handleChange("documents", [...formData.documents, ...files])
-  }
-
-  const removeDocument = (index) => {
-    const updatedDocs = [...formData.documents]
-    updatedDocs.splice(index, 1)
-    handleChange("documents", updatedDocs)
-  }
 
   const handleClose = () => {
     if (window.confirm("Are you sure you want to exit? Your progress will be saved.")) {

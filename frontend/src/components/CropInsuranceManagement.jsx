@@ -87,10 +87,6 @@ const CropInsuranceManagement = () => {
     "Other": { dayLimit: 30, description: "Other crops with 30-day insurance window" }
   }
 
-  const generateUniqueId = () => {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-  }
-
   // Remove unused loadData function - React Query handles data loading automatically
 
   const handleFormChange = (e) => {

@@ -143,7 +143,8 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
         markerRef.current = null;
       }
     };
-  }, []); // Empty dependency array - only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array - only run once on mount (onLocationSelect callback doesn't need to trigger re-init)
 
   return (
     <div className="fixed inset-0 bg-white bg-opacity-50 backdrop-blur-md z-50">

@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { Menu, X, Bell, User, ChevronDown, Settings, HelpCircle, Plus, Calendar, Moon, Sun, LogOut, MessageSquare, Check, AlertTriangle, Info } from "lucide-react"
 
 const AdminNavbar = ({

@@ -38,9 +38,6 @@ const CropPriceManagement = ({ isOpen, onClose, onNotify }) => {
 
   const availableCropTypes = cropTypes[formData.cropName] || []
 
-  const generateUniqueId = () => {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-  }
 
   const handleInputChange = (e) => {
     const { name, value } = e.target

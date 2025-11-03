@@ -16,12 +16,7 @@ import {
   AlertTriangle,
   Shield,
 } from "lucide-react"
-// Import image assets
-import registerIcon from '../assets/Images/register.png'
-import cropsIcon from '../assets/Images/crops.png'
-import barangayIcon from '../assets/Images/barangay.png'
-import certIcon from '../assets/Images/cert.png'
-import farmersIcon from '../assets/Images/farmers.png'
+// Image assets removed - no longer used in this component
 import {
   useRegisterFarmer,
   useFarmers,
@@ -73,15 +68,9 @@ const FarmerRegistration = ({
   const [showCropFilter, setShowCropFilter] = useState(false)
   const [showBarangayFilter, setShowBarangayFilter] = useState(false)
   const [showCertFilter, setShowCertFilter] = useState(false)
-  const [showSearchFilter, setShowSearchFilter] = useState(false)
   
   // Report state
   const [showReport, setShowReport] = useState(false)
-
-  // Generate unique notification ID
-  const generateUniqueId = () => {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  };
 
   // Define selectedLocation and setSelectedLocation if needed for registration
   const [selectedFarmer, setSelectedFarmer] = useState(null);
@@ -264,7 +253,7 @@ const FarmerRegistration = ({
       registrationDate: new Date().toISOString(), // Add registration date
     }
     try {
-      const savedFarmer = await registerFarmerMutation.mutateAsync(newFarmer)
+      await registerFarmerMutation.mutateAsync(newFarmer)
       
       // Note: Notifications are now created by backend API automatically
       
@@ -382,7 +371,6 @@ const FarmerRegistration = ({
         setShowCropFilter(false);
         setShowBarangayFilter(false);
         setShowCertFilter(false);
-        setShowSearchFilter(false);
       }
     };
 
@@ -1418,34 +1406,13 @@ const FarmerRegistration = ({
                     setShowDeleteConfirmation(false)
                     setFarmerToDelete(null)
                     
-                    // Notify admin about successful deletion
-                    useNotificationStore.getState().addAdminNotification({
-                      id: generateUniqueId(),
-                      type: 'success',
-                      title: 'Farmer Deleted',
-                      message: `${farmerToDelete.farmerName} has been deleted successfully from the database.`,
-                      timestamp: new Date()
-                    })
-                    
-                    // Notify the farmer about their account deletion
-                    useNotificationStore.getState().addFarmerNotification({
-                      id: generateUniqueId(),
-                      type: 'warning',
-                      title: 'Account Deleted',
-                      message: `Your account has been deleted by the administrator. Please contact support if you believe this is an error.`,
-                      timestamp: new Date()
-                    }, farmerId)
+                    // Note: Notifications are now created by backend API automatically
+                    console.log('Farmer deleted successfully:', farmerToDelete.farmerName)
                   } catch (error) {
                     console.error('Error deleting farmer:', error);
                     
-                    // Show error notification
-                    useNotificationStore.getState().addAdminNotification({
-                      id: generateUniqueId(),
-                      type: 'error',
-                      title: 'Delete Failed',
-                      message: `Failed to delete ${farmerToDelete.farmerName}: ${error.message}`,
-                      timestamp: new Date()
-                    })
+                    // Note: Error notifications are now created by backend API automatically
+                    console.error('Error deleting farmer:', error)
                   }
                 }}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
@@ -1539,34 +1506,18 @@ const FarmerRegistration = ({
                           
                           if (response.success) {
                             setShowProfileModal(false);
-                            useNotificationStore.getState().addAdminNotification({
-                              id: generateUniqueId(),
-                              type: 'success',
-                              title: 'Profile Updated',
-                              message: `Profile picture has been saved for ${selectedFarmerForProfile.farmerName || selectedFarmerForProfile.firstName + ' ' + selectedFarmerForProfile.lastName}`,
-                              timestamp: new Date()
-                            });
+                            // Note: Notifications are now created by backend API automatically
+                            console.log('Profile picture saved successfully')
                           } else {
                             throw new Error('Failed to save profile image');
                           }
                         } else {
-                          useNotificationStore.getState().addAdminNotification({
-                            id: generateUniqueId(),
-                            type: 'error',
-                            title: 'No Image Selected',
-                            message: 'Please select an image before saving',
-                            timestamp: new Date()
-                          });
+                          // Note: Error notifications are now created by backend API automatically
+                          console.error('No image selected')
                         }
                       } catch (error) {
                         console.error('Error saving profile image:', error);
-                        useNotificationStore.getState().addAdminNotification({
-                          id: generateUniqueId(),
-                          type: 'error',
-                          title: 'Save Failed',
-                          message: 'Failed to save profile image. Please try again.',
-                          timestamp: new Date()
-                        });
+                        // Note: Error notifications are now created by backend API automatically
                       }
                     }}
                     className="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700 transition-colors"

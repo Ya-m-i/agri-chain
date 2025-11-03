@@ -117,23 +117,9 @@ const FarmerCropInsurance = () => {
 
       console.log('Crop insurance application submitted');
       // Note: Notifications are now created by backend API automatically
-      const _ = {
-        id: generateUniqueId(),
-        type: 'success',
-        title: 'Crop Insurance Created',
-        message: 'New crop insurance record has been created successfully.',
-        timestamp: new Date()
-      };
     } catch (error) {
       console.error('Error submitting crop insurance:', error);
       // Note: Notifications are now created by backend API automatically
-      const _ = {
-        id: generateUniqueId(),
-        type: 'error',
-        title: 'Error Creating Record',
-        message: error.message,
-        timestamp: new Date()
-      }, user._id)
     }
   }
 

@@ -21,10 +21,7 @@ import {
   ChevronRight,
 } from "lucide-react"
 
-// Import custom KPI icons
-import claimsIcon from '../assets/Images/claims.png'
-import approveIcon from '../assets/Images/approve.png'
-import rejectedIcon from '../assets/Images/rejected.png'
+// Image icons removed - no longer used in this component
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js'
 import { Doughnut, Bar } from 'react-chartjs-2'
 import { calculateCompensation, getPaymentStatus, getExpectedPaymentDate, getDamageSeverity, getCoverageDetails } from "../utils/insuranceUtils"
@@ -55,6 +52,12 @@ const InsuranceClaims = ({
   
   // Report state
   const [showReport, setShowReport] = useState(false)
+  
+  // Reset to first page when search query or tab view changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, claimsTabView])
+  
   // Handler for downloading claim PDF
   const handleDownloadPDF = (claim) => {
     try {
@@ -100,11 +103,6 @@ const InsuranceClaims = ({
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const paginatedClaims = filteredClaims.slice(startIndex, endIndex)
-
-  // Reset to first page when search query or tab view changes
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchQuery, claimsTabView])
 
   return (
     <div className="mt-6">
