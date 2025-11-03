@@ -15,10 +15,10 @@ const ClaimStatusTracker = ({ status, claimId, submittedDate, reviewDate, comple
   const isRejected = status === "rejected"
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-3xl mx-auto">
+    <div className="w-full">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold text-gray-800">Claim Status</h2>
-        <span className="text-sm text-gray-500">Claim ID: {claimId}</span>
+        <h2 className="text-xl font-bold text-black">Claim Status</h2>
+        <span className="text-sm text-gray-600">Claim ID: {claimId}</span>
       </div>
 
       {/* Status Steps */}
@@ -63,18 +63,18 @@ const ClaimStatusTracker = ({ status, claimId, submittedDate, reviewDate, comple
                   <h3
                     className={`font-semibold ${
                       isActive
-                        ? "text-yellow-600"
+                        ? "text-yellow-700"
                         : isCompleted
                           ? step.id === "rejected"
-                            ? "text-red-600"
-                            : "text-green-600"
-                          : "text-gray-400"
+                            ? "text-red-700"
+                            : "text-green-700"
+                          : "text-gray-500"
                     }`}
                   >
                     {step.label}
                   </h3>
 
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-600">
                     {step.id === "submitted" && submittedDate}
                     {step.id === "under-review" && (isCompleted || isActive) && (reviewDate || "In progress")}
                     {(step.id === "approved" || step.id === "rejected") &&
@@ -93,28 +93,28 @@ const ClaimStatusTracker = ({ status, claimId, submittedDate, reviewDate, comple
       </div>
 
       {/* Additional Information */}
-      <div className="mt-8 pt-4 border-t border-gray-200">
-        <h4 className="font-medium text-gray-700 mb-2">What happens next?</h4>
+      <div className="mt-8 pt-4 border-t border-gray-300">
+        <h4 className="font-medium text-black mb-2">What happens next?</h4>
         {status === "submitted" && (
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-700">
             Your claim has been submitted and is waiting to be reviewed by our team. This typically takes 1-2 business
             days.
           </p>
         )}
         {status === "under-review" && (
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-700">
             Our team is currently reviewing your claim. We may contact you if additional information is needed. This
             process typically takes 3-5 business days.
           </p>
         )}
         {status === "approved" && (
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-700">
             Your claim has been approved! The compensation will be processed within 7 business days and sent to your
             registered account.
           </p>
         )}
         {status === "rejected" && (
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-700">
             Unfortunately, your claim has been rejected. Please review the notes above for the reason. You may submit a
             new claim or contact our support team for assistance.
           </p>

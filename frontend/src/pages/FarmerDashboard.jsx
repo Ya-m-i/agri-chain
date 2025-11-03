@@ -20,12 +20,17 @@ import {
   MessageSquare,
   Shield,
   TrendingUp,
+  Copy,
 } from "lucide-react"
 import { useAuthStore } from "../store/authStore"
 
 import WeatherWidget from "../components/dashboard/weather-widget"
 import ClaimStatusTracker from "../components/dashboard/claim-status-tracker"
 import farmerLogoImage from "../assets/Images/FarmLogo.png" // Update this path to your farmer logo
+import farmProfileIcon from "../assets/Images/farmProfile.png"
+import farmLocationIcon from "../assets/Images/farmLocation.png"
+import farmDetailsIcon from "../assets/Images/farmDetails.png"
+import farmInsuranceIcon from "../assets/Images/farmInsurance.png"
 import FarmerCropInsurance from "../components/FarmerCropInsurance"
 import LoadingOverlay from '../components/LoadingOverlay';
 import FarmerCropPrices from "../components/FarmerCropPrices"
@@ -36,6 +41,17 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
 // Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
+
+// Global style for hiding scrollbar in claims table
+const hiddenScrollbarStyle = `
+  .claims-table-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .claims-table-scroll {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+`;
 
 const FarmerDashboard = () => {
   // ============================================
@@ -99,6 +115,9 @@ const FarmerDashboard = () => {
 
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 3 // Number of assistance items per page
+  
+  // State for copy feedback
+  const [copiedId, setCopiedId] = useState(false)
 
   // ============================================
   // SECTION 4: REFS
@@ -144,6 +163,18 @@ const FarmerDashboard = () => {
   // Combine loading and error states for UI
   const loading = assistanceLoading || applicationsLoading
   const error = assistanceError || applicationsError
+  
+  // Sort claims to show latest first (by updatedAt, createdAt, or date)
+  const sortedClaims = useMemo(() => {
+    if (!Array.isArray(claims) || claims.length === 0) return [];
+    
+    return [...claims].sort((a, b) => {
+      // Get dates - prioritize updatedAt, then createdAt, then date
+      const dateA = new Date(a.updatedAt || a.createdAt || a.date || 0);
+      const dateB = new Date(b.updatedAt || b.createdAt || b.date || 0);
+      return dateB - dateA; // Descending order (newest first)
+    });
+  }, [claims]);
   
   // ============================================
   // SECTION 6: HELPER FUNCTIONS (regular functions)
@@ -293,6 +324,22 @@ const FarmerDashboard = () => {
       setIsTabLoading(false);
     }, 800);
   };
+  
+  // Function to copy Insurance ID to clipboard
+  const copyInsuranceId = useCallback(async () => {
+    const insuranceId = user?.id || user?._id;
+    if (insuranceId) {
+      try {
+        await navigator.clipboard.writeText(insuranceId);
+        setCopiedId(true);
+        setTimeout(() => {
+          setCopiedId(false);
+        }, 2000);
+      } catch (error) {
+        console.error('Failed to copy ID:', error);
+      }
+    }
+  }, [user?.id, user?._id]);
 
   // ============================================
   // SECTION 8: EFFECTS (useEffect)
@@ -958,86 +1005,94 @@ const FarmerDashboard = () => {
 
         {/* Main Content */}
         <main className="flex-1 p-2 sm:p-4 bg-white">
+          <style>{hiddenScrollbarStyle}</style>
           {activeTab === "home" && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
               <div className="lg:col-span-2 space-y-4 sm:space-y-6">
                 {/* Farm Information */}
                 <div className="bg-white rounded-xl shadow p-4 sm:p-6">
                   <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-lime-800">Farm Information</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                  
+                  {/* First Row: Personal Info, Location, Farm Details */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4">
                     {/* Personal Information KPI */}
-                    <div className="bg-gradient-to-br from-blue-50 to-white rounded-xl shadow-lg p-3 sm:p-4 border border-blue-200">
+                    <div className="bg-lime-50 rounded-xl shadow-md p-3 sm:p-4">
                       <div className="flex items-center mb-2 sm:mb-3">
-                        <User size={18} className="text-blue-600 mr-2 sm:w-5 sm:h-5" />
-                        <h3 className="text-sm sm:text-lg font-semibold text-blue-800">Personal Info</h3>
+                        <img src={farmProfileIcon} alt="Personal Info" className="w-5 h-5 sm:w-6 sm:h-6 mr-2 object-contain" />
+                        <h3 className="text-sm sm:text-lg font-semibold text-black">Personal Info</h3>
                       </div>
                       <div className="space-y-1 sm:space-y-2">
                         <div>
-                          <span className="text-xs text-gray-500 uppercase tracking-wider">Name</span>
-                          <p className="font-semibold text-gray-800 text-sm sm:text-base break-words">{user?.name || "Not provided"}</p>
+                          <span className="text-xs text-gray-600 uppercase tracking-wider">Name</span>
+                          <p className="font-semibold text-black text-sm sm:text-base break-words">{user?.name || "Not provided"}</p>
                         </div>
                         <div>
-                          <span className="text-xs text-gray-500 uppercase tracking-wider">Contact</span>
-                          <p className="font-semibold text-gray-800 text-sm sm:text-base break-words">{user?.phone || "Not provided"}</p>
+                          <span className="text-xs text-gray-600 uppercase tracking-wider">Contact</span>
+                          <p className="font-semibold text-black text-sm sm:text-base break-words">{user?.phone || "Not provided"}</p>
                         </div>
                       </div>
                     </div>
 
                     {/* Location Information KPI */}
-                    <div className="bg-gradient-to-br from-green-50 to-white rounded-xl shadow-lg p-3 sm:p-4 border border-green-200">
+                    <div className="bg-lime-50 rounded-xl shadow-md p-3 sm:p-4">
                       <div className="flex items-center mb-2 sm:mb-3">
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <h3 className="text-sm sm:text-lg font-semibold text-green-800">Location</h3>
+                        <img src={farmLocationIcon} alt="Location" className="w-5 h-5 sm:w-6 sm:h-6 mr-2 object-contain" />
+                        <h3 className="text-sm sm:text-lg font-semibold text-black">Location</h3>
                       </div>
                       <div className="space-y-1 sm:space-y-2">
                         <div>
-                          <span className="text-xs text-gray-500 uppercase tracking-wider">Address</span>
-                          <p className="font-semibold text-gray-800 text-sm sm:text-base break-words">{user?.address || "Not provided"}</p>
+                          <span className="text-xs text-gray-600 uppercase tracking-wider">Address</span>
+                          <p className="font-semibold text-black text-sm sm:text-base break-words">{user?.address || "Not provided"}</p>
                         </div>
                       </div>
                     </div>
 
                     {/* Farm Details KPI */}
-                    <div className="bg-gradient-to-br from-yellow-50 to-white rounded-xl shadow-lg p-3 sm:p-4 border border-yellow-200">
+                    <div className="bg-lime-50 rounded-xl shadow-md p-3 sm:p-4">
                       <div className="flex items-center mb-2 sm:mb-3">
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                        <h3 className="text-sm sm:text-lg font-semibold text-yellow-800">Farm Details</h3>
+                        <img src={farmDetailsIcon} alt="Farm Details" className="w-5 h-5 sm:w-6 sm:h-6 mr-2 object-contain" />
+                        <h3 className="text-sm sm:text-lg font-semibold text-black">Farm Details</h3>
                       </div>
                       <div className="space-y-1 sm:space-y-2">
                         <div>
-                          <span className="text-xs text-gray-500 uppercase tracking-wider">Crop Type</span>
-                          <p className="font-semibold text-gray-800 text-sm sm:text-base break-words">{displayedCropType}</p>
+                          <span className="text-xs text-gray-600 uppercase tracking-wider">Crop Type</span>
+                          <p className="font-semibold text-black text-sm sm:text-base break-words">{displayedCropType}</p>
                         </div>
                         <div>
-                          <span className="text-xs text-gray-500 uppercase tracking-wider">Area</span>
-                          <p className="font-semibold text-gray-800 text-sm sm:text-base break-words">{user?.cropArea ? `${user.cropArea} hectares` : "Not provided"}</p>
+                          <span className="text-xs text-gray-600 uppercase tracking-wider">Area</span>
+                          <p className="font-semibold text-black text-sm sm:text-base break-words">{user?.cropArea ? `${user.cropArea} hectares` : "Not provided"}</p>
                         </div>
                       </div>
                     </div>
+                  </div>
 
-                    {/* Insurance Information KPI */}
-                    <div className="bg-gradient-to-br from-purple-50 to-white rounded-xl shadow-lg p-3 sm:p-4 border border-purple-200">
-                      <div className="flex items-center mb-2 sm:mb-3">
-                        <FileText size={18} className="text-purple-600 mr-2 sm:w-5 sm:h-5" />
-                        <h3 className="text-sm sm:text-lg font-semibold text-purple-800">Insurance</h3>
+                  {/* Insurance Information KPI - Full Width Below */}
+                  <div className="bg-lime-50 rounded-xl shadow-md p-3 sm:p-4">
+                    <div className="flex items-center mb-2 sm:mb-3">
+                      <img src={farmInsuranceIcon} alt="Insurance" className="w-5 h-5 sm:w-6 sm:h-6 mr-2 object-contain" />
+                      <h3 className="text-sm sm:text-lg font-semibold text-black">Insurance</h3>
+                    </div>
+                    <div className="space-y-1 sm:space-y-2">
+                      <div>
+                        <span className="text-xs text-gray-600 uppercase tracking-wider">Insurance ID</span>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold text-black text-sm sm:text-base break-words flex-1">{user?.id || user?._id || "Not provided"}</p>
+                          <button
+                            onClick={copyInsuranceId}
+                            className="flex items-center gap-1 px-2 py-1 bg-lime-100 hover:bg-lime-200 rounded-lg transition-colors text-black text-xs sm:text-sm font-medium"
+                            title="Copy Insurance ID"
+                          >
+                            <Copy size={14} className={copiedId ? "text-green-600" : ""} />
+                            <span>{copiedId ? "Copied!" : "Copy"}</span>
+                          </button>
+                        </div>
                       </div>
-                      <div className="space-y-1 sm:space-y-2">
-                        <div>
-                          <span className="text-xs text-gray-500 uppercase tracking-wider">Insurance ID</span>
-                          <p className="font-semibold text-gray-800 text-sm sm:text-base break-words">{user?.id || "Not provided"}</p>
-                        </div>
-                        <div>
-                          <span className="text-xs text-gray-500 uppercase tracking-wider">Status</span>
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            <CheckCircle size={12} className="mr-1" />
-                            Active
-                          </span>
-                        </div>
+                      <div>
+                        <span className="text-xs text-gray-600 uppercase tracking-wider">Status</span>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 ml-2">
+                          <CheckCircle size={12} className="mr-1" />
+                          Active
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1061,17 +1116,38 @@ const FarmerDashboard = () => {
                 </div>
 
                 {/* Latest Claim Status */}
-                {claims.length > 0 && (
-                  <div className="bg-white rounded-xl shadow p-4 sm:p-6">
-                    <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-lime-800">Latest Claim Status</h2>
-                    <ClaimStatusTracker
-                      status={claims[0].status}
-                      claimId={claims[0].claimNumber || claims[0]._id}
-                      submittedDate={claims[0].date}
-                      reviewDate={claims[0].reviewDate}
-                      completionDate={claims[0].completionDate}
-                      notes={claims[0].adminFeedback || "Your claim is being processed."}
-                    />
+                {sortedClaims.length > 0 && (
+                  <div 
+                    className="bg-lime-50 rounded-xl shadow-md p-4 sm:p-6 cursor-pointer hover:shadow-lg transition-shadow"
+                    onClick={() => handleTabSwitch("claims")}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleTabSwitch("claims");
+                      }
+                    }}
+                  >
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <div className="flex items-center">
+                        <FileText className="w-5 h-5 sm:w-6 sm:h-6 mr-2 text-black" />
+                        <h2 className="text-lg sm:text-xl font-bold text-black">Latest Claim Status</h2>
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-600 hover:text-lime-700">
+                        View All →
+                      </span>
+                    </div>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <ClaimStatusTracker
+                        status={sortedClaims[0].status}
+                        claimId={sortedClaims[0].claimNumber || sortedClaims[0]._id || sortedClaims[0].id}
+                        submittedDate={sortedClaims[0].date ? new Date(sortedClaims[0].date).toLocaleDateString() : sortedClaims[0].createdAt ? new Date(sortedClaims[0].createdAt).toLocaleDateString() : null}
+                        reviewDate={sortedClaims[0].reviewDate ? new Date(sortedClaims[0].reviewDate).toLocaleDateString() : null}
+                        completionDate={sortedClaims[0].completionDate ? new Date(sortedClaims[0].completionDate).toLocaleDateString() : null}
+                        notes={sortedClaims[0].adminFeedback || "Your claim is being processed."}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -1168,92 +1244,114 @@ const FarmerDashboard = () => {
 
               <div className="bg-white rounded-xl shadow overflow-hidden">
                 <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th
-                          scope="col"
-                          className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Claim ID
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Type
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Date
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Status
-                        </th>
-                        <th
-                          scope="col"
-                          className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {claims.length > 0 ? (
-                      claims.map((claim) => (
-                        <tr key={claim._id}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{claim.claimNumber || claim._id}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {claim.type || claim.damageType}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(claim.date).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span
-                              className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                              ${
-                                claim.status === "approved"
-                                  ? "bg-green-100 text-green-800"
-                                  : claim.status === "pending"
-                                    ? "bg-yellow-100 text-yellow-800"
-                                    : "bg-red-100 text-red-800"
-                              }`}
-                            >
-                              {claim.status.charAt(0).toUpperCase() + claim.status.slice(1)}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <button onClick={() => openClaimDetails(claim)} className="text-lime-700 hover:text-lime-900">
-                              View Details
-                            </button>
-                          </td>
+                  <div className="relative">
+                    {/* Fixed Header */}
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th
+                            scope="col"
+                            className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5"
+                          >
+                            Claim ID
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5"
+                          >
+                            Type
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5"
+                          >
+                            Date
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5"
+                          >
+                            Status
+                          </th>
+                          <th
+                            scope="col"
+                            className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5"
+                          >
+                            Actions
+                          </th>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
-                          <div className="flex flex-col items-center">
-                            <FileText className="h-12 w-12 text-gray-300 mb-2" />
-                            <p className="text-lg font-medium">No claims found</p>
-                            <p className="text-sm">You haven't submitted any insurance claims yet.</p>
-                            <button 
-                              onClick={() => navigate("/farmer-form")}
-                              className="mt-4 bg-lime-700 text-white px-4 py-2 rounded-lg hover:bg-lime-800 transition"
-                            >
-                              Submit Your First Claim
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                      </thead>
+                    </table>
+                    {/* Scrollable tbody container - shows 5 rows by default with hidden scrollbar */}
+                    <div 
+                      className="overflow-y-auto claims-table-scroll"
+                      style={{
+                        maxHeight: '350px', // Approximately 5 rows (5 * ~70px per row)
+                      }}
+                    >
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <colgroup>
+                          <col className="w-1/5" />
+                          <col className="w-1/5" />
+                          <col className="w-1/5" />
+                          <col className="w-1/5" />
+                          <col className="w-1/5" />
+                        </colgroup>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                        {sortedClaims.length > 0 ? (
+                          sortedClaims.map((claim) => (
+                            <tr key={claim._id || claim.id} className="hover:bg-gray-50">
+                              <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{claim.claimNumber || claim._id || claim.id}</td>
+                              <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {claim.type || claim.damageType || "N/A"}
+                              </td>
+                              <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {claim.date ? new Date(claim.date).toLocaleDateString() : claim.createdAt ? new Date(claim.createdAt).toLocaleDateString() : "N/A"}
+                              </td>
+                              <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                                <span
+                                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                  ${
+                                    claim.status === "approved"
+                                      ? "bg-green-100 text-green-800"
+                                      : claim.status === "pending"
+                                        ? "bg-yellow-100 text-yellow-800"
+                                        : claim.status === "rejected"
+                                          ? "bg-red-100 text-red-800"
+                                          : "bg-gray-100 text-gray-800"
+                                  }`}
+                                >
+                                  {claim.status ? claim.status.charAt(0).toUpperCase() + claim.status.slice(1) : "Unknown"}
+                                </span>
+                              </td>
+                              <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <button onClick={() => openClaimDetails(claim)} className="text-lime-700 hover:text-lime-900 font-medium">
+                                  View Details
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                              <div className="flex flex-col items-center">
+                                <FileText className="h-12 w-12 text-gray-300 mb-2" />
+                                <p className="text-lg font-medium">No claims found</p>
+                                <p className="text-sm">You haven't submitted any insurance claims yet.</p>
+                                <button 
+                                  onClick={() => navigate("/farmer-form")}
+                                  className="mt-4 bg-lime-700 text-white px-4 py-2 rounded-lg hover:bg-lime-800 transition"
+                                >
+                                  Submit Your First Claim
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                  </div>
                 </div>
               </div>
             </div>
