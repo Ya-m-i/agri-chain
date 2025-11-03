@@ -88,7 +88,10 @@ const FarmerDashboard = () => {
   const [localNotifications, setLocalNotifications] = useState([]);
   
   // Get notifications from React Query (API) - single source of truth
-  const apiNotificationsArray = Array.isArray(apiNotifications) ? apiNotifications : [];
+  // Wrap in useMemo to prevent unnecessary re-renders in hooks that depend on it
+  const apiNotificationsArray = useMemo(() => {
+    return Array.isArray(apiNotifications) ? apiNotifications : [];
+  }, [apiNotifications]);
   const farmerNotifications = [...localNotifications, ...apiNotificationsArray];
   
   // Calculate unread count from API notifications only
@@ -101,9 +104,6 @@ const FarmerDashboard = () => {
   const [selectedClaim, setSelectedClaim] = useState(null)
 
   // ALL React Query hooks MUST be declared BEFORE any useEffect/useCallback that uses them
-  // Guard: Only run queries when user is loaded
-  const hasUserId = !!user?.id;
-  
   // Use React Query for claims data - only enabled when user?.id exists
   const { data: claims = [], refetch: refetchClaims } = useClaims(user?.id || null)
   

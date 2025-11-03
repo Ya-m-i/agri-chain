@@ -45,33 +45,18 @@ import {
 } from "lucide-react"
 import { useAuthStore } from "../store/authStore"
 import { useSocketQuery } from "../hooks/useSocketQuery"
-import { getWeatherForKapalong, getWeatherForMultipleLocations, getWeatherMarkerColor, getWeatherMarkerIcon, getFarmingRecommendation } from "../utils/weatherUtils"
+import { getWeatherForMultipleLocations, getWeatherMarkerColor, getWeatherMarkerIcon, getFarmingRecommendation } from "../utils/weatherUtils"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 // Use a relative path that matches your project structure
 // If you're unsure about the exact path, you can use a placeholder or comment it out temporarily
 // import adminLogoImage from "../assets/images/AgriLogo.png"
-import adminLogoImage from "../assets/Images/DALOGO.png" // Admin logo
+// Admin logo now imported in AdminSidebar component
 
-// Import custom KPI block images
-import totalFarmerImage from "../assets/Images/TotalFarmer.png"
-import activeImage from "../assets/Images/Active.png"
-import pendingImage from "../assets/Images/pending.png"
-import assistedImage from "../assets/Images/Assisted.png"
-import climateImage from "../assets/Images/climate.png"
+// Import custom KPI block images (now used in DashboardKPIs component)
+// Image imports (location, insurance, recent) now used in DashboardMapOverview and DashboardClaims components
 
-// Import additional icons for dashboard sections
-import locationImage from "../assets/Images/location.png"
-import insuranceImage from "../assets/Images/insurance.png"
-import recentImage from "../assets/Images/recent.png"
-
-// Import sidebar navigation icons
-import registrationIcon from "../assets/Images/Registration.png"
-import cashIcon from "../assets/Images/cash.png"
-import distributionIcon from "../assets/Images/Distribution.png"
-import inventoryIcon from "../assets/Images/Inventory.png"
-import fileIcon from "../assets/Images/File.png"
-import dashboardIcon from "../assets/Images/dashboard.png"
+// Import sidebar navigation icons (now used in AdminSidebar component)
 import DistributionRecords from "../components/DistributionRecords"
 import FarmerRegistration from "../components/FarmerRegistration"
 import AdminSettings from "../components/AdminSettings"
@@ -81,6 +66,20 @@ import CropInsuranceManagement from "../components/CropInsuranceManagement"
 import AdminClaimFilingEnhanced from "../components/AdminClaimFilingEnhanced"
 import AdminAssistanceFiling from "../components/AdminAssistanceFiling"
 import CropPriceManagement from "../components/CropPriceManagement"
+import AdminNavbar from "../components/AdminNavbar"
+import AdminSidebar from "../components/AdminSidebar"
+import DashboardKPIs from "../components/DashboardKPIs"
+import DashboardCharts from "../components/DashboardCharts"
+import DashboardMapOverview from "../components/DashboardMapOverview"
+import DashboardClaims from "../components/DashboardClaims"
+import AnalyticsModal from "../components/AnalyticsModal"
+import CalendarModal from "../components/CalendarModal"
+import MapModal from "../components/MapModal"
+import ViewAssistanceModal from "../components/ViewAssistanceModal"
+import FarmerDetailsModal from "../components/FarmerDetailsModal"
+import DeleteConfirmationModal from "../components/DeleteConfirmationModal"
+import ClaimStatusConfirmationModal from "../components/ClaimStatusConfirmationModal"
+import AssistanceFeedbackModal from "../components/AssistanceFeedbackModal"
 
 import {
   Chart as ChartJS,
@@ -197,62 +196,6 @@ const LoadingOverlay = ({ isVisible }) => {
   );
 };
 
-// Weather KPI Block Component
-const WeatherKPIBlock = () => {
-  const [weather, setWeather] = useState(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchWeather = async () => {
-      try {
-        const weatherData = await getWeatherForKapalong()
-        setWeather(weatherData)
-      } catch (error) {
-        console.error('Error fetching weather:', error)
-        setWeather({
-          temperature: 28,
-          condition: "Partly Cloudy",
-          description: "Weather data unavailable",
-          icon: "🌤️"
-        })
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchWeather()
-  }, [])
-
-  if (loading) {
-    return (
-      <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm border border-gray-200">
-        <div className="flex-1">
-          <div className="text-sm font-bold text-black mb-1">Todays Weather</div>
-        <div className="text-2xl font-bold text-gray-800 mb-1">--°C</div>
-        <div className="text-xs text-gray-600 mb-2">Loading...</div>
-        <div className="text-xs text-gray-500 mt-1">Please wait</div>
-        </div>
-        <div className="flex-shrink-0 ml-3">
-          <img src={climateImage} alt="Today's Weather" className="h-12 w-12" />
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm border border-gray-200">
-      <div className="flex-1">
-        <div className="text-sm font-bold text-black mb-1">Todays Weather</div>
-      <div className="text-2xl font-bold text-gray-800 mb-1">{weather?.temperature || 28}°C</div>
-      <div className="text-xs text-gray-600 mb-2">Kapalong, Davao</div>
-      <div className="text-xs text-gray-500 mt-1">{weather?.condition || "Partly Cloudy"}</div>
-      </div>
-      <div className="flex-shrink-0 ml-3">
-        <img src={climateImage} alt="Today's Weather" className="h-12 w-12" />
-      </div>
-    </div>
-  )
-}
 
 const AdminDashboard = () => {
   const navigate = useNavigate()
@@ -482,7 +425,10 @@ const AdminDashboard = () => {
   const [localNotifications, setLocalNotifications] = useState([]);
   
   // Get notifications from React Query (API) - single source of truth
-  const apiNotificationsArray = Array.isArray(apiNotifications) ? apiNotifications : [];
+  // Wrap in useMemo to prevent unnecessary re-renders in hooks that depend on it
+  const apiNotificationsArray = useMemo(() => {
+    return Array.isArray(apiNotifications) ? apiNotifications : [];
+  }, [apiNotifications]);
   const adminNotifications = [...localNotifications, ...apiNotificationsArray];
   
   // Calculate unread count from API notifications only
@@ -1274,7 +1220,7 @@ const AdminDashboard = () => {
   }
 
   const confirmStatusUpdate = async () => {
-    const { type: actionType, claimId: actionClaimId, farmerId } = confirmationAction;
+    const { type: actionType, claimId: actionClaimId } = confirmationAction;
     try {
       await updateClaimMutation.mutateAsync({
         id: actionClaimId,
@@ -1302,22 +1248,7 @@ const AdminDashboard = () => {
         message: adminMessage,
       });
 
-      // Send notification to the farmer
-      if (claim && (claim.farmerId || farmerId)) {
-        const farmerIdToNotify = claim.farmerId || farmerId;
-        const notificationType = actionType === 'approved' ? 'success' : 'error';
-        const notificationTitle = actionType === 'approved' ? 'Claim Approved!' : 'Claim Rejected';
-        
-        let notificationMessage;
-        if (actionType === 'approved') {
-          const compensationAmount = claim.compensation ? `₱${claim.compensation.toLocaleString()}` : 'calculated amount';
-          notificationMessage = `Your claim for ${claim.crop} damage has been approved! Compensation: ${compensationAmount}. ${feedbackText ? `Feedback: ${feedbackText}` : ''}`;
-        } else {
-          notificationMessage = `Your claim for ${claim.crop} damage has been rejected. ${feedbackText ? `Reason: ${feedbackText}` : ''}`;
-        }
-
       // Note: Farmer notifications are now created by backend API automatically
-      }
     } catch (error) {
       addLocalNotification({
         type: 'error',
@@ -2113,517 +2044,51 @@ const AdminDashboard = () => {
         isVisible={isInitialLoading || isTabLoading} 
       />
       {/* Top Navbar */}
-      <header style={{ backgroundColor: 'white' }} className={`text-black transition-all duration-300 ease-in-out ${sidebarExpanded ? 'md:ml-64' : 'md:ml-16'}`}>
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="flex items-center">
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="mr-4 md:hidden" aria-label="Toggle menu">
-              {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-            <h1 className="text-xl font-sans font-semibold tracking-wide text-black">ADMIN DASHBOARD</h1>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            {/* Real-time Status Indicator */}
-            <div className="flex items-center space-x-2 text-black text-sm">
-              <div className={`w-2 h-2 rounded-full ${isRefreshing ? 'bg-yellow-400 animate-pulse' : 'bg-green-400'}`}></div>
-              <span className="hidden sm:inline">
-                {isRefreshing ? 'Refreshing...' : 'Live'}
-              </span>
-              <span className="text-xs opacity-75">
-                Last: {lastRefreshTime.toLocaleTimeString()}
-              </span>
-              <button
-                onClick={() => {
-                  setIsRefreshing(true);
-                  loadClaims();
-                }}
-                className="ml-2 px-2 py-1 bg-white bg-opacity-20 rounded text-xs hover:bg-opacity-30 transition-colors"
-                title="Manual refresh"
-              >
-                ↻
-              </button>
-            </div>
-
-            {/* Socket Connection Status */}
-            <div className={`flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-              isConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-            }`} title={`Real-time updates: ${isConnected ? 'Connected' : 'Disconnected'}`}>
-              <div className={`w-2 h-2 rounded-full mr-2 ${
-                isConnected ? 'bg-green-500' : 'bg-red-500'
-              }`} />
-              {isConnected ? 'Live' : 'Offline'}
-            </div>
-
-            {/* Notification Bell */}
-            <div className="relative">
-              <button
-                onClick={toggleNotificationPanel}
-                className={`bg-lime-400 text-black p-2 rounded-full hover:bg-lime-500 transition-colors relative ${unreadAdminCount > 0 ? 'animate-pulse' : ''}`}
-                aria-label="Notifications"
-              >
-                <Bell size={22} />
-                {unreadAdminCount > 0 && (
-                  <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-black transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full animate-pulse">
-                    {unreadAdminCount}
-                  </span>
-                )}
-              </button>
-
-              {/* Notification Panel */}
-              {notificationOpen && (
-                <div 
-                  className="notification-panel absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-lg shadow-xl z-50 overflow-hidden"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="p-4 text-black flex justify-between items-center bg-lime-400">
-                    <h3 className="font-semibold">Notifications</h3>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={refreshNotifications}
-                        className="text-black hover:text-gray-700 text-sm font-semibold px-2 py-1 rounded hover:bg-lime-500 transition-colors"
-                        title="Refresh notifications"
-                      >
-                        ↻ Refresh
-                      </button>
-                      {adminNotifications.length > 0 && (
-                        <button
-                          onClick={handleClearAllNotifications}
-                          className="text-black hover:text-gray-700 text-sm"
-                          title="Clear all notifications"
-                        >
-                          Clear All
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="max-h-96 overflow-y-auto hide-scrollbar">
-                    {adminNotifications.length === 0 ? (
-                      <div className="p-4 text-center text-gray-500">
-                        <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <p>No notifications</p>
-                      </div>
-                    ) : (
-                      adminNotifications.map((notification) => (
-                        <div key={notification.id} className="p-4 border-b border-gray-100 hover:bg-gray-50">
-                          <div className="flex">
-                            <div className="flex-shrink-0 mr-3 bg-lime-400 rounded-full p-1">
-                              {getNotificationIcon(notification.type)}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex justify-between items-start">
-                                <h4 className="font-medium bg-lime-400 text-black px-2 py-1 rounded text-sm">{notification.title}</h4>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-gray-500">
-                                    {formatTimestamp(notification.timestamp ? new Date(notification.timestamp) : new Date())}
-                                  </span>
-                                  <button
-                                    onClick={async () => {
-                                      // Check if it's a local notification or API notification
-                                      const isLocalNotification = !isValidObjectId(notification.id);
-                                      
-                                      if (isLocalNotification) {
-                                        // Remove from local notifications
-                                        removeLocalNotification(notification.id);
-                                      } else {
-                                        // Delete from API
-                                        try {
-                                          await deleteNotificationMutation.mutateAsync({
-                                            notificationId: notification.id,
-                                            recipientType: 'admin',
-                                            recipientId: null
-                                          });
-                                          // Refetch to sync with API
-                                          await refetchNotifications();
-                                        } catch (error) {
-                                          console.error('Error deleting notification:', error);
-                                        }
-                                      }
-                                    }}
-                                    className="text-gray-400 hover:text-red-500 transition-colors"
-                                    aria-label="Remove notification"
-                                  >
-                                    <X size={14} />
-                                  </button>
-                                </div>
-                              </div>
-                              <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Profile Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center space-x-2 focus:outline-none transition-colors"
-                aria-label="User menu"
-              >
-                <div className="w-8 h-8 bg-white text-lime-800 rounded-full flex items-center justify-center shadow-sm">
-                  <User size={18} />
-                </div>
-                <ChevronDown size={16} className={`transition-transform ${dropdownOpen ? "rotate-180" : ""}`} />
-              </button>
-
-              {/* Dropdown */}
-              {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-20">
-                  <button
-                    onClick={() => {
-                      setActiveTab("settings")
-                      setDropdownOpen(false)
-                    }}
-                    className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    <Settings size={16} className="mr-2" />
-                    Settings
-                  </button>
-                  <button
-                    onClick={() => {
-                      addLocalNotification({
-                        type: 'info',
-                        title: 'Help Center',
-                        message: 'Help Center coming soon!',
-                      });
-                    }}
-                    className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    <HelpCircle size={16} className="mr-2" />
-                    Help Center
-                  </button>
-                  <button
-                    onClick={() => {
-                      addLocalNotification({
-                        type: 'success',
-                        title: 'Test Notification',
-                        message: 'This is a test notification to verify the delete functionality.',
-                      });
-                    }}
-                    className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    <Plus size={16} className="mr-2" />
-                    Test Notification
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowCalendar(true)
-                      setDropdownOpen(false)
-                    }}
-                    className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    <Calendar size={16} className="mr-2" />
-                    Calendar
-                  </button>
-                  <button
-                    onClick={() => {
-                      setDarkMode(!darkMode)
-                      setDropdownOpen(false)
-                    }}
-                    className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    {darkMode ? <Sun size={16} className="mr-2" /> : <Moon size={16} className="mr-2" />}
-                    {darkMode ? 'Light Mode' : 'Dark Mode'}
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    <LogOut size={16} className="mr-2" />
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <AdminNavbar
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        sidebarExpanded={sidebarExpanded}
+        isRefreshing={isRefreshing}
+        setIsRefreshing={setIsRefreshing}
+        loadClaims={loadClaims}
+        lastRefreshTime={lastRefreshTime}
+        isConnected={isConnected}
+        notificationOpen={notificationOpen}
+        toggleNotificationPanel={toggleNotificationPanel}
+        unreadAdminCount={unreadAdminCount}
+        adminNotifications={adminNotifications}
+        refreshNotifications={refreshNotifications}
+        handleClearAllNotifications={handleClearAllNotifications}
+        isValidObjectId={isValidObjectId}
+        removeLocalNotification={removeLocalNotification}
+        deleteNotificationMutation={deleteNotificationMutation}
+        refetchNotifications={refetchNotifications}
+        getNotificationIcon={getNotificationIcon}
+        formatTimestamp={formatTimestamp}
+        dropdownOpen={dropdownOpen}
+        setDropdownOpen={setDropdownOpen}
+        setActiveTab={setActiveTab}
+        addLocalNotification={addLocalNotification}
+        setShowCalendar={setShowCalendar}
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        handleLogout={handleLogout}
+      />
 
       <div className="flex flex-1">
-        {/* Mobile Sidebar */}
-        <div
-          id="mobile-sidebar"
-          className={`fixed inset-y-0 left-0 transform ${
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } md:hidden transition duration-150 ease-out z-30 w-64 border-r-4 border-black`}
-          style={{ 
-            backgroundColor: 'rgba(132, 204, 22, 0.15)',
-            boxShadow: '2px 0 8px rgba(0, 0, 0, 0.15)'
-          }}
-        >
-          <div className="p-6" style={{ backgroundColor: 'transparent' }}>
-            <div className="flex flex-col items-center">
-              <button 
-                onClick={() => {
-                  handleTabSwitch("home")
-                  setSidebarOpen(false)
-                }}
-                className="transition-all duration-300 hover:scale-105 focus:outline-none mb-3"
-              >
-                <img 
-                  src={adminLogoImage || "/placeholder.svg"} 
-                  alt="Admin Logo" 
-                  className="h-32 w-32 object-contain"
-                />
-              </button>
-              <h2 className="text-sm font-bold text-black text-center leading-tight">
-                Kapalong Department Agriculture
-              </h2>
-            </div>
-          </div>
-          <nav className="p-4">
-            <ul className="space-y-2">
-              <li>
-                <button
-                  onClick={() => handleTabSwitch("home")}
-                  className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "home" ? "text-black font-bold" : "text-black hover:bg-lime-600"
-                  }`}
-                  style={activeTab === "home" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
-                >
-                  <img src={dashboardIcon} alt="Dashboard" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] mr-3 object-contain" />
-                  Dashboard
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => handleTabSwitch("farmer-registration")}
-                  className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "farmer-registration"
-                      ? "text-black font-bold"
-                      : "text-black hover:bg-lime-600"
-                  }`}
-                  style={activeTab === "farmer-registration" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
-                >
-                  <img src={registrationIcon} alt="Registration" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] mr-3 object-contain" />
-                  Farmer Registration
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => {
-                    setShowMapModal(true)
-                    setMapMode("view")
-                    setSidebarOpen(false)
-                  }}
-                  className={`flex items-center w-full p-2 rounded-lg hover:bg-lime-600 ${showMapModal ? "text-black font-bold" : "text-black"}`}
-                  style={showMapModal ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
-                >
-                  <Map size={24} className="mr-3" />
-                  View Farm Locations
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => {
-                    handleTabSwitch("claims")
-                    setSidebarOpen(false)
-                  }}
-                  className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "claims" ? "text-black font-bold" : "text-black hover:bg-lime-600"
-                  }`}
-                  style={activeTab === "claims" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
-                >
-                  <img src={cashIcon} alt="Cash" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] mr-3 object-contain" />
-                  Cash Assistance Claims
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => {
-                    handleTabSwitch("distribution")
-                    setSidebarOpen(false)
-                  }}
-                  className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "distribution" ? "text-black font-bold" : "text-black hover:bg-lime-600"
-                  }`}
-                  style={activeTab === "distribution" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
-                >
-                  <img src={distributionIcon} alt="Distribution" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] mr-3 object-contain" />
-                  Distribution Records
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => {
-                    setActiveTab("assistance")
-                    setSidebarOpen(false)
-                  }}
-                  className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "assistance" ? "text-black font-bold" : "text-black hover:bg-lime-600"
-                  }`}
-                  style={activeTab === "assistance" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
-                >
-                  <img src={inventoryIcon} alt="Inventory" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] mr-3 object-contain" />
-                  Assistance Inventory
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => {
-                    setActiveTab("admin-filing")
-                    setSidebarOpen(false)
-                  }}
-                  className={`flex items-center w-full p-2 rounded-lg ${
-                    activeTab === "admin-filing" ? "text-black font-bold" : "text-black hover:bg-lime-600"
-                  }`}
-                  style={activeTab === "admin-filing" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
-                >
-                  <img src={fileIcon} alt="File" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] mr-3 object-contain" />
-                  File for Farmers
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
-
-        {/* Desktop Sidebar */}
-        <aside 
-          className={`hidden md:block ${sidebarExpanded ? 'w-64' : 'w-16'} text-black space-y-6 fixed top-0 left-0 h-screen overflow-y-auto transition-all duration-150 ease-out group z-20 scrollbar-hide border-r-4 border-black`}
-          style={{ 
-            backgroundColor: 'rgba(132, 204, 22, 0.15)',
-            boxShadow: '2px 0 8px rgba(0, 0, 0, 0.15)'
-          }}
-          onMouseEnter={() => setSidebarExpanded(true)}
-          onMouseLeave={() => setSidebarExpanded(false)}
-        >
-          {/* Admin Logo Section */}
-          <div className={`p-6 transition-opacity duration-300 ${sidebarExpanded ? 'opacity-100' : 'opacity-0'}`} style={{ backgroundColor: 'transparent' }}>
-            <div className="flex flex-col items-center">
-              <button 
-                onClick={() => handleTabSwitch("home")}
-                className={`transition-all duration-300 hover:scale-105 focus:outline-none mb-3 ${sidebarExpanded ? 'opacity-100' : 'opacity-0'}`}
-              >
-                <img 
-                  src={adminLogoImage || "/placeholder.svg"} 
-                  alt="Admin Logo" 
-                  className="h-32 w-32 object-contain"
-                />
-              </button>
-              <div className={`transition-all duration-300 overflow-hidden ${sidebarExpanded ? 'opacity-100 max-h-20' : 'opacity-0 max-h-0'}`}>
-                <h2 className="text-sm font-bold text-black text-center leading-tight">
-                  Kapalong Department Agriculture
-                </h2>
-              </div>
-            </div>
-          </div>
-
-          {/* Main Navigation Section */}
-          <div className="space-y-1 px-3">
-            <button
-              onClick={() => handleTabSwitch("home")}
-              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
-                activeTab === "home" 
-                  ? "text-black font-bold" 
-                  : "text-black hover:bg-lime-600"
-              }`}
-              style={activeTab === "home" && sidebarExpanded ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
-              title={!sidebarExpanded ? "Dashboard" : ""}
-            >
-              <img src={dashboardIcon} alt="Dashboard" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
-              {sidebarExpanded && <span className="text-black">Dashboard</span>}
-            </button>
-
-            <button
-              onClick={() => {
-                handleTabSwitch("farmer-registration")
-              }}
-              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
-                activeTab === "farmer-registration"
-                  ? "text-black font-bold"
-                  : "text-black hover:bg-lime-600"
-              }`}
-              style={activeTab === "farmer-registration" && sidebarExpanded ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
-              title={!sidebarExpanded ? "Farmer Registration" : ""}
-            >
-              <img src={registrationIcon} alt="Registration" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
-              {sidebarExpanded && <span className="text-black">Farmer Registration</span>}
-            </button>
-
-            <button
-              onClick={() => handleTabSwitch("claims")}
-              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
-                activeTab === "claims" 
-                  ? "text-black font-bold" 
-                  : "text-black hover:bg-lime-600"
-              }`}
-              style={activeTab === "claims" && sidebarExpanded ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
-              title={!sidebarExpanded ? "Cash Assistance Claims" : ""}
-            >
-              <img src={cashIcon} alt="Cash" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
-              {sidebarExpanded && <span className="text-black">Cash Assistance Claims</span>}
-            </button>
-
-            <button
-              onClick={() => handleTabSwitch("distribution")}
-              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
-                activeTab === "distribution"
-                  ? "text-black font-bold"
-                  : "text-black hover:bg-lime-600"
-              }`}
-              style={activeTab === "distribution" && sidebarExpanded ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
-              title={!sidebarExpanded ? "Distribution Records" : ""}
-            >
-              <img src={distributionIcon} alt="Distribution" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
-              {sidebarExpanded && <span className="text-black">Distribution Records</span>}
-            </button>
-          </div>
-
-          {/* Secondary Navigation Section */}
-          <div className="space-y-1 px-3">
-            <button
-              onClick={() => handleTabSwitch("assistance")}
-              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
-                activeTab === "assistance"
-                  ? "text-black font-bold"
-                  : "text-black hover:bg-lime-600"
-              }`}
-              style={activeTab === "assistance" && sidebarExpanded ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
-              title={!sidebarExpanded ? "Assistance Inventory" : ""}
-            >
-              <img src={inventoryIcon} alt="Inventory" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
-              {sidebarExpanded && <span className="text-black">Assistance Inventory</span>}
-            </button>
-
-            <button
-              onClick={() => handleTabSwitch("admin-filing")}
-              className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
-                activeTab === "admin-filing"
-                  ? "text-black font-bold"
-                  : "text-black hover:bg-lime-600"
-              }`}
-              style={activeTab === "admin-filing" && sidebarExpanded ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
-              title={!sidebarExpanded ? "File for Farmers" : ""}
-            >
-              <img src={fileIcon} alt="File" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
-              {sidebarExpanded && <span className="text-black">File for Farmers</span>}
-            </button>
-
-          </div>
-
-          {sidebarExpanded && (
-            <div className="px-3 space-y-2 text-sm mt-4 max-h-[300px] overflow-y-auto hide-scrollbar">
-              {/* {events.map((event, index) => (
-                <div
-                  key={index}
-                  className="border border-gray-100 p-3 rounded-lg bg-white text-black shadow-sm hover:shadow transition-shadow"
-                >
-                  <h3 className="font-semibold">{event.eventName}</h3>
-                  <p className="text-gray-600 text-xs">Crop: {event.cropType}</p>
-                  <p className="text-gray-600 text-xs">Founder: {event.founderName}</p>
-                  <p className="text-xs mt-1 text-gray-500">
-                    {event.startDate} to {event.endDate}
-                  </p>
-                </div>
-              ))} */}
-            </div>
-          )}
-        </aside>
+        {/* Sidebar */}
+        <AdminSidebar
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          sidebarExpanded={sidebarExpanded}
+          setSidebarExpanded={setSidebarExpanded}
+          activeTab={activeTab}
+          handleTabSwitch={handleTabSwitch}
+          setActiveTab={setActiveTab}
+          showMapModal={showMapModal}
+          setShowMapModal={setShowMapModal}
+          setMapMode={setMapMode}
+        />
 
         {/* Main Content */}
         <main className={`flex-1 p-4 ${darkMode ? 'bg-gray-900' : 'bg-white'} transition-all duration-300 ease-in-out ${sidebarExpanded ? 'md:ml-64' : 'md:ml-16'}`}>
@@ -2633,566 +2098,26 @@ const AdminDashboard = () => {
               {/* Remove the old analyticsFilters and setAnalyticsFilters dropdowns and reset button in the analytics section. */}
               {/* Only use the new floating filter drawer and its state for filtering and displaying analytics. */}
 
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-4 mb-8">
-                {/* Farmers Block */}
-                <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl p-4 flex items-center justify-between ${darkMode ? 'text-white' : 'text-gray-800'} hover:scale-105 transition-all duration-300 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                  <div className="flex-1">
-                    <div className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-black'} mb-1`}>Farmers</div>
-                  <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-1`}>{totalFarmers}</div>
-                  <div className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-2`}>Total Registered</div>
-                  {/* Analytics Mini Chart */}
-                    <div className={`w-full h-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-lg overflow-hidden`}>
-                    <div className="h-full bg-gradient-to-r from-lime-400 to-lime-600 rounded-lg" 
-                         style={{ width: `${Math.min((totalFarmers / 1000) * 100, 100)}%` }}>
-                    </div>
-                  </div>
-                  <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>Growth: +{Math.floor(totalFarmers * 0.05)} this month</div>
-                  </div>
-                  <div className="flex-shrink-0 ml-3">
-                    <img src={totalFarmerImage} alt="Total Farmers" className="h-12 w-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] object-contain" />
-                  </div>
-                </div>
-
-                {/* Active Block */}
-                <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl p-4 flex items-center justify-between ${darkMode ? 'text-white' : 'text-gray-800'} hover:scale-105 transition-all duration-300 shadow-sm border ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-                  <div className="flex-1">
-                    <div className={`text-sm font-bold ${darkMode ? 'text-white' : 'text-black'} mb-1`}>Active</div>
-                  <div className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-1`}>{activeFarmersData.activeCount || 0}</div>
-                  <div className={`text-xs ${darkMode ? 'text-gray-300' : 'text-gray-600'} mb-2`}>Online Today</div>
-                  {/* Analytics Mini Chart */}
-                    <div className={`w-full h-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-lg overflow-hidden`}>
-                    <div className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-lg" 
-                         style={{ width: `${Math.min(((activeFarmersData.activeCount || 0) / Math.max(totalFarmers, 1)) * 100, 100)}%` }}>
-                    </div>
-                  </div>
-                  <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>Active Rate: {Math.round(((activeFarmersData.activeCount || 0) / Math.max(totalFarmers, 1)) * 100)}%</div>
-                  </div>
-                  <div className="flex-shrink-0 ml-3">
-                    <img src={activeImage} alt="Active Farmers" className="h-12 w-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] object-contain" />
-                  </div>
-                </div>
-
-                {/* Pending Block */}
-                <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm border border-gray-200">
-                  <div className="flex-1">
-                    <div className="text-sm font-bold text-black mb-1">Pending</div>
-                  <div className="text-2xl font-bold text-gray-800 mb-1">{pendingClaims}</div>
-                  <div className="text-xs text-gray-600 mb-2">Insurance Claims</div>
-                  {/* Analytics Mini Chart */}
-                    <div className="w-full h-6 bg-gray-100 rounded-lg overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-lg" 
-                         style={{ width: `${Math.min((pendingClaims / Math.max(totalFarmers, 1)) * 100, 100)}%` }}>
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">Processing: {Math.round((pendingClaims / Math.max(claims.length, 1)) * 100)}%</div>
-                  </div>
-                  <div className="flex-shrink-0 ml-3">
-                    <img src={pendingImage} alt="Pending Claims" className="h-12 w-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] object-contain" />
-                  </div>
-                </div>
-
-                {/* Farmer Assisted Block */}
-                <div className="bg-white rounded-xl p-4 flex items-center justify-between text-gray-800 hover:scale-105 transition-all duration-300 shadow-sm border border-gray-200">
-                  <div className="flex-1">
-                    <div className="text-sm font-bold text-black mb-1">Farmer Assisted</div>
-                  <div className="text-2xl font-bold text-gray-800 mb-1">{(() => {
-                    const currentMonth = new Date().getMonth();
-                    const currentYear = new Date().getFullYear();
-                    return allApplications.filter(app => {
-                      const appDate = new Date(app.createdAt || app.date);
-                      return (app.status === 'distributed' || app.status === 'approved') && 
-                             appDate.getMonth() === currentMonth && 
-                             appDate.getFullYear() === currentYear;
-                    }).length;
-                  })()}</div>
-                  <div className="text-xs text-gray-600 mb-2">This Month</div>
-                  {/* Analytics Mini Chart */}
-                    <div className="w-full h-6 bg-gray-100 rounded-lg overflow-hidden">
-                    <div className="h-full rounded-lg" 
-                         style={{ 
-                           backgroundColor: '#ededdc',
-                           width: `${Math.min(((() => {
-                             const currentMonth = new Date().getMonth();
-                             const currentYear = new Date().getFullYear();
-                             return allApplications.filter(app => {
-                               const appDate = new Date(app.createdAt || app.date);
-                               return (app.status === 'distributed' || app.status === 'approved') && 
-                                      appDate.getMonth() === currentMonth && 
-                                      appDate.getFullYear() === currentYear;
-                             }).length;
-                           })() / Math.max(totalFarmers, 1)) * 100, 100)}%` 
-                         }}>
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">Monthly Target: {Math.floor(totalFarmers * 0.1)}</div>
-                  </div>
-                  <div className="flex-shrink-0 ml-3">
-                    <img src={assistedImage} alt="Farmer Assisted" className="h-12 w-12 min-w-[3rem] min-h-[3rem] max-w-[3rem] max-h-[3rem] object-contain" />
-                  </div>
-                </div>
-
-                {/* Todays Weather Block */}
-                <WeatherKPIBlock />
-              </div>
+              {/* Dashboard KPIs */}
+              <DashboardKPIs
+                darkMode={darkMode}
+                totalFarmers={totalFarmers}
+                activeFarmersData={activeFarmersData}
+                pendingClaims={pendingClaims}
+                claims={claims}
+                allApplications={allApplications}
+              />
 
               {/* Chart Visualizations Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4">
-                {/* Claims Trend Over Time - Left side, larger */}
-                <div className="lg:col-span-2 p-8 relative overflow-hidden backdrop-blur-xl" style={{
-                  borderRadius: '5px',
-                  background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(15, 20, 10, 0.98) 50%, rgba(0, 0, 0, 0.95) 100%)',
-                  boxShadow: '0 0 40px rgba(132, 204, 22, 0.3), inset 0 0 60px rgba(132, 204, 22, 0.05)',
-                  border: '1px solid rgba(132, 204, 22, 0.2)',
-                }}>
-                  {/* Animated grid background */}
-                  <div className="absolute inset-0 opacity-10" style={{
-                    backgroundImage: 'linear-gradient(rgba(132, 204, 22, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(132, 204, 22, 0.3) 1px, transparent 1px)',
-                    backgroundSize: '50px 50px',
-                  }}></div>
-                  {/* Glowing orb effect */}
-                  <div className="absolute top-0 right-0 w-96 h-96 bg-lime-500 rounded-full blur-3xl opacity-10 animate-pulse"></div>
-                  <div className="absolute bottom-0 left-0 w-96 h-96 bg-lime-600 rounded-full blur-3xl opacity-10 animate-pulse" style={{ animationDelay: '1s' }}></div>
-                  
-                  <div className="flex items-center justify-between mb-4 relative z-10">
-                    <h3 className="text-xl font-semibold text-lime-400" style={{ textShadow: '0 0 20px rgba(132, 204, 22, 0.5)' }}>Claims Trend Over Time</h3>
-                    <div className="flex items-center gap-4">
-                      {/* Time Period Filter */}
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setTimePeriodFilter('today')}
-                          className={`px-3 py-1 text-sm rounded-lg transition-all duration-300 ${
-                            timePeriodFilter === 'today' 
-                              ? 'font-bold text-black bg-lime-400 shadow-lg shadow-lime-500/50' 
-                              : 'text-gray-400 hover:text-lime-400 hover:bg-lime-500/10'
-                          }`}
-                        >
-                          Today
-                        </button>
-                        <button
-                          onClick={() => setTimePeriodFilter('lastWeek')}
-                          className={`px-3 py-1 text-sm rounded-lg transition-all duration-300 ${
-                            timePeriodFilter === 'lastWeek' 
-                              ? 'font-bold text-black bg-lime-400 shadow-lg shadow-lime-500/50' 
-                              : 'text-gray-400 hover:text-lime-400 hover:bg-lime-500/10'
-                          }`}
-                        >
-                          Last Week
-                        </button>
-                        <button
-                          onClick={() => setTimePeriodFilter('lastMonth')}
-                          className={`px-3 py-1 text-sm rounded-lg transition-all duration-300 ${
-                            timePeriodFilter === 'lastMonth' 
-                              ? 'font-bold text-black bg-lime-400 shadow-lg shadow-lime-500/50' 
-                              : 'text-gray-400 hover:text-lime-400 hover:bg-lime-500/10'
-                          }`}
-                        >
-                          Last Month
-                        </button>
-                        <button
-                          onClick={() => setTimePeriodFilter('thisMonth')}
-                          className={`px-3 py-1 text-sm rounded-lg transition-all duration-300 ${
-                            timePeriodFilter === 'thisMonth' 
-                              ? 'font-bold text-black bg-lime-400 shadow-lg shadow-lime-500/50' 
-                              : 'text-gray-400 hover:text-lime-400 hover:bg-lime-500/10'
-                          }`}
-                        >
-                          This Month
-                        </button>
-                        <button
-                          onClick={() => setTimePeriodFilter('thisYear')}
-                          className={`px-3 py-1 text-sm rounded-lg transition-all duration-300 ${
-                            timePeriodFilter === 'thisYear' 
-                              ? 'font-bold text-black bg-lime-400 shadow-lg shadow-lime-500/50' 
-                              : 'text-gray-400 hover:text-lime-400 hover:bg-lime-500/10'
-                          }`}
-                        >
-                          This Year
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="h-[500px] relative z-10">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart
-                        data={claimsTrendData} 
-                        margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-                      >
-                        <defs>
-                          {/* Neon Lime to Black Gradient for Approved Line */}
-                          <linearGradient id="approvedGradient" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor="#bef264" stopOpacity={1}/>
-                            <stop offset="50%" stopColor="#84cc16" stopOpacity={0.9}/>
-                            <stop offset="100%" stopColor="#000000" stopOpacity={0.8}/>
-                          </linearGradient>
-                          {/* Neon Lime Glow Shadow for Approved */}
-                          <filter id="approvedGlow">
-                            <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-                            <feMerge>
-                              <feMergeNode in="coloredBlur"/>
-                              <feMergeNode in="SourceGraphic"/>
-                            </feMerge>
-                          </filter>
-                          {/* Area gradient for approved with neon lime */}
-                          <linearGradient id="approvedAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#bef264" stopOpacity={0.3}/>
-                            <stop offset="50%" stopColor="#84cc16" stopOpacity={0.15}/>
-                            <stop offset="100%" stopColor="#000000" stopOpacity={0.05}/>
-                          </linearGradient>
-                          {/* Black to Gray Gradient for Rejected Line */}
-                          <linearGradient id="rejectedGradient" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stopColor="#1a1a1a" stopOpacity={1}/>
-                            <stop offset="50%" stopColor="#4a4a4a" stopOpacity={0.9}/>
-                            <stop offset="100%" stopColor="#808080" stopOpacity={0.8}/>
-                          </linearGradient>
-                          {/* Gray Shadow for Rejected */}
-                          <filter id="rejectedGlow">
-                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                            <feMerge>
-                              <feMergeNode in="coloredBlur"/>
-                              <feMergeNode in="SourceGraphic"/>
-                            </feMerge>
-                          </filter>
-                          {/* Area gradient for rejected */}
-                          <linearGradient id="rejectedAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#4a4a4a" stopOpacity={0.2}/>
-                            <stop offset="50%" stopColor="#2a2a2a" stopOpacity={0.1}/>
-                            <stop offset="100%" stopColor="#000000" stopOpacity={0.03}/>
-                          </linearGradient>
-                        </defs>
-                        <XAxis 
-                          dataKey="period" 
-                          stroke="rgba(132, 204, 22, 0.3)"
-                          fontSize={12}
-                          axisLine={{ stroke: 'rgba(132, 204, 22, 0.2)' }}
-                          tickLine={false}
-                          tick={{ fill: '#84cc16', fontWeight: 500 }}
-                        />
-                        <YAxis 
-                          stroke="rgba(132, 204, 22, 0.3)"
-                          fontSize={12}
-                          axisLine={{ stroke: 'rgba(132, 204, 22, 0.2)' }}
-                          tickLine={false}
-                          tick={{ fill: '#84cc16', fontWeight: 500 }}
-                          grid={{ stroke: 'rgba(132, 204, 22, 0.1)' }}
-                        />
-                        <RechartsTooltip 
-                          contentStyle={{
-                            backgroundColor: 'rgba(0, 0, 0, 0.95)',
-                            border: '1px solid rgba(132, 204, 22, 0.5)',
-                            borderRadius: '12px',
-                            color: '#84cc16',
-                            boxShadow: '0 0 30px rgba(132, 204, 22, 0.3), inset 0 0 20px rgba(132, 204, 22, 0.1)',
-                            backdropFilter: 'blur(10px)'
-                          }}
-                          labelStyle={{ color: '#bef264', fontSize: '14px', fontWeight: '700', textShadow: '0 0 10px rgba(190, 242, 100, 0.5)' }}
-                          formatter={(value, name, props) => {
-                            const labels = {
-                              approved: 'Approved Claims', 
-                              rejected: 'Rejected Claims'
-                            };
-                            const total = props.payload.total;
-                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-                            return [`${value} (${percentage}%)`, labels[name] || name];
-                          }}
-                          labelFormatter={(label) => {
-                            return `${label}`;
-                          }}
-                          shared={true}
-                          allowEscapeViewBox={{ x: false, y: false }}
-                          filterNull={true}
-                        />
-                        <RechartsLegend 
-                          verticalAlign="top" 
-                          height={36}
-                          wrapperStyle={{ color: '#84cc16', fontSize: '14px', fontWeight: '600' }}
-                          formatter={(value, entry) => {
-                            const labels = {
-                              approved: 'Approved Claims',
-                              rejected: 'Rejected Claims'
-                            };
-                            return labels[entry.dataKey] || value;
-                          }}
-                        />
-                        {/* CartesianGrid with neon lime styling */}
-                        <CartesianGrid 
-                          strokeDasharray="3 3" 
-                          stroke="rgba(132, 204, 22, 0.1)" 
-                          vertical={false}
-                        />
-                        {/* Line for approved claims with neon lime to black gradient and glow */}
-                        <RechartsLine 
-                          type="monotone" 
-                          dataKey="approved" 
-                          name="approved"
-                          stroke="url(#approvedGradient)" 
-                          strokeWidth={4}
-                          dot={{ r: 4, fill: '#bef264', stroke: '#bef264', strokeWidth: 2, filter: 'url(#approvedGlow)' }}
-                          activeDot={{ 
-                            r: 8, 
-                            fill: '#bef264', 
-                            stroke: '#bef264', 
-                            strokeWidth: 3, 
-                            filter: 'url(#approvedGlow)',
-                            style: { boxShadow: '0 0 20px rgba(190, 242, 100, 0.8)' }
-                          }}
-                          connectNulls={false}
-                          fill="url(#approvedAreaGradient)"
-                          filter="url(#approvedGlow)"
-                        />
-                        {/* Line for rejected claims with black to gray gradient and shadow */}
-                        <RechartsLine 
-                          type="monotone" 
-                          dataKey="rejected" 
-                          name="rejected"
-                          stroke="url(#rejectedGradient)" 
-                          strokeWidth={4}
-                          dot={{ r: 4, fill: '#808080', stroke: '#4a4a4a', strokeWidth: 2, filter: 'url(#rejectedGlow)' }}
-                          activeDot={{ 
-                            r: 8, 
-                            fill: '#808080', 
-                            stroke: '#4a4a4a', 
-                            strokeWidth: 3, 
-                            filter: 'url(#rejectedGlow)'
-                          }}
-                          connectNulls={false}
-                          fill="url(#rejectedAreaGradient)"
-                          filter="url(#rejectedGlow)"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Right side - Two charts stacked */}
-                <div className="lg:col-span-1 space-y-8">
-                  {/* Assistance Application Breakdown - Top */}
-                  <div className="p-6 border border-gray-200 rounded-lg bg-white">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Assistance Application Breakdown</h3>
-                    <div className="flex flex-col lg:flex-row">
-                      {/* Left side - Chart Visualization */}
-                      <div className="flex-1 mb-4 lg:mb-0">
-                        <div 
-                          className="relative overflow-hidden transition-all duration-300 flex items-center justify-center" 
-                          style={{ 
-                            minHeight: '200px',
-                            height: '200px',
-                            width: '200px',
-                            maxWidth: '100%',
-                            maxHeight: '100%'
-                          }}
-                        >
-                          <ResponsiveContainer 
-                            width="100%" 
-                            height="100%"
-                            minHeight={200}
-                            minWidth={200}
-                          >
-                            <RechartsPieChart
-                              margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
-                            >
-                              <RechartsPie
-                                data={(() => {
-                                  const pending = allApplications.filter(app => app.status === 'pending').length;
-                                  const approved = allApplications.filter(app => app.status === 'approved').length;
-                                  const rejected = allApplications.filter(app => app.status === 'rejected').length;
-                                  const distributed = allApplications.filter(app => app.status === 'distributed').length;
-                                  const total = pending + approved + rejected + distributed;
-                                  
-                                  return [
-                                    { name: 'Pending', value: pending, color: '#f59e0b', percentage: total > 0 ? ((pending / total) * 100).toFixed(1) : '0' },
-                                    { name: 'Approved', value: approved, color: '#00ff00', percentage: total > 0 ? ((approved / total) * 100).toFixed(1) : '0' },
-                                    { name: 'Rejected', value: rejected, color: '#000000', percentage: total > 0 ? ((rejected / total) * 100).toFixed(1) : '0' },
-                                    { name: 'Distributed', value: distributed, color: '#ededdc', percentage: total > 0 ? ((distributed / total) * 100).toFixed(1) : '0' }
-                                  ];
-                                })()}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={60}
-                                outerRadius={90}
-                                paddingAngle={0}
-                                dataKey="value"
-                                animationBegin={0}
-                                animationDuration={800}
-                                animationEasing="ease-out"
-                              >
-                                {(() => {
-                                  const pending = allApplications.filter(app => app.status === 'pending').length;
-                                  const approved = allApplications.filter(app => app.status === 'approved').length;
-                                  const rejected = allApplications.filter(app => app.status === 'rejected').length;
-                                  const distributed = allApplications.filter(app => app.status === 'distributed').length;
-                                  
-                                  return [
-                                    { name: 'Pending', value: pending, color: '#f59e0b' },
-                                    { name: 'Approved', value: approved, color: '#00ff00' },
-                                    { name: 'Rejected', value: rejected, color: '#000000' },
-                                    { name: 'Distributed', value: distributed, color: '#ededdc' }
-                                  ].map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                  ));
-                                })()}
-                              </RechartsPie>
-                              <RechartsTooltip 
-                                contentStyle={{
-                                  backgroundColor: '#1f2937',
-                                  border: '1px solid #374151',
-                                  borderRadius: '8px',
-                                  color: '#f9fafb',
-                                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                                }}
-                                formatter={(value, name) => {
-                                  const pending = allApplications.filter(app => app.status === 'pending').length;
-                                  const approved = allApplications.filter(app => app.status === 'approved').length;
-                                  const rejected = allApplications.filter(app => app.status === 'rejected').length;
-                                  const distributed = allApplications.filter(app => app.status === 'distributed').length;
-                                  const total = pending + approved + rejected + distributed;
-                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0';
-                                  return [`${value} (${percentage}%)`, name];
-                                }}
-                              />
-                            </RechartsPieChart>
-                          </ResponsiveContainer>
-                          
-                          {/* Center text */}
-                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                            <div className="text-center">
-                              <div className="text-sm xs:text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-gray-800 transition-all duration-300">
-                                {(() => {
-                                  const pending = allApplications.filter(app => app.status === 'pending').length;
-                                  const approved = allApplications.filter(app => app.status === 'approved').length;
-                                  const rejected = allApplications.filter(app => app.status === 'rejected').length;
-                                  const distributed = allApplications.filter(app => app.status === 'distributed').length;
-                                  return pending + approved + rejected + distributed;
-                                })()}
-                              </div>
-                              <div className="text-xs xs:text-sm sm:text-base md:text-sm lg:text-sm xl:text-base text-gray-600 transition-all duration-300">Total Applications</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Right side - Legend */}
-                      <div className="w-full lg:w-48 lg:pl-4 transition-all duration-300">
-                        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-1 gap-2 xs:gap-3 sm:gap-3 lg:space-y-3 lg:space-y-0">
-                          {(() => {
-                            const pending = allApplications.filter(app => app.status === 'pending').length;
-                            const approved = allApplications.filter(app => app.status === 'approved').length;
-                            const rejected = allApplications.filter(app => app.status === 'rejected').length;
-                            const distributed = allApplications.filter(app => app.status === 'distributed').length;
-                            const total = pending + approved + rejected + distributed;
-                            
-                            return [
-                              { name: 'Pending', value: pending, color: '#f59e0b' },
-                              { name: 'Approved', value: approved, color: '#00ff00' },
-                              { name: 'Rejected', value: rejected, color: '#000000' },
-                              { name: 'Distributed', value: distributed, color: '#ededdc' }
-                            ].map((item, index) => {
-                              const percentage = total > 0 ? ((item.value / total) * 100).toFixed(1) : '0';
-                              return (
-                                <div key={index} className="flex items-center space-x-1 xs:space-x-2 sm:space-x-2 md:space-x-3 lg:space-x-3 transition-all duration-300">
-                                  <div 
-                                    className="w-2 h-2 xs:w-3 xs:h-3 sm:w-3 sm:h-3 md:w-4 md:h-4 lg:w-4 lg:h-4 rounded-full flex-shrink-0 transition-all duration-300" 
-                                    style={{ backgroundColor: item.color }}
-                                  ></div>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="text-xs xs:text-xs sm:text-sm md:text-sm lg:text-sm font-medium text-gray-800 truncate transition-all duration-300">{item.name}</div>
-                                    <div className="text-xs xs:text-xs sm:text-xs md:text-xs lg:text-xs text-gray-600 transition-all duration-300">{item.value} ({percentage}%)</div>
-                                  </div>
-                                </div>
-                              );
-                            });
-                          })()}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Crop Market Prices - Bottom */}
-                  <div className="p-6 border border-gray-200 rounded-lg">
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-lg font-semibold text-gray-800">Kapalong Crop Market Prices</h3>
-                      <button
-                        onClick={() => setShowCropPriceManagement(true)}
-                        className="flex items-center gap-2 px-3 py-1 text-gray-700 rounded-lg text-xs font-medium hover:text-lime-600 hover:font-bold hover:bg-lime-100 transition-all"
-                      >
-                        <Settings size={14} />
-                        Manage Prices
-                      </button>
-                    </div>
-                    <div className="h-[220px]">
-                      {cropPricesLoading ? (
-                        <div className="flex items-center justify-center h-full text-gray-500">
-                          Loading prices...
-                        </div>
-                      ) : cropPrices.length === 0 ? (
-                        <div className="flex items-center justify-center h-full text-gray-500 text-sm">
-                          <div className="text-center">
-                            <p>No crop prices set yet</p>
-                            <button
-                              onClick={() => setShowCropPriceManagement(true)}
-                              className="mt-2 text-lime-600 hover:underline"
-                            >
-                              Click to add prices
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={cropPrices.slice(0, 8).map(crop => ({
-                              crop: crop.cropName,
-                              price: crop.pricePerKg,
-                              unit: crop.unit,
-                              cropName: crop.cropName
-                            }))}
-                          >
-                            <XAxis 
-                              dataKey="crop" 
-                              fontSize={12} 
-                              angle={0} 
-                              textAnchor="middle" 
-                              height={80}
-                              axisLine={true}
-                              tickLine={false}
-                              interval={0}
-                              tick={{ fontSize: 10 }}
-                            />
-                            <YAxis 
-                              fontSize={10}
-                              axisLine={true}
-                              tickLine={false}
-                            />
-                            <RechartsTooltip 
-                              formatter={(value, name, props) => [`₱${value}/${props.payload.unit}`, 'Price']} 
-                            />
-                            <RechartsBar 
-                              dataKey="price" 
-                              radius={[4, 4, 0, 0]}
-                            >
-                              {cropPrices.slice(0, 8).map((crop, index) => {
-                                const cropName = crop.cropName.toLowerCase();
-                                let fillColor = '#84cc16'; // default lime
-                                if (cropName.includes('rice') || cropName.includes('palay')) fillColor = '#22c55e'; // green
-                                else if (cropName.includes('corn')) fillColor = '#f59e0b'; // amber
-                                else if (cropName.includes('banana')) fillColor = '#facc15'; // yellow
-                                else if (cropName.includes('coconut')) fillColor = '#8b4513'; // brown
-                                else if (cropName.includes('coffee')) fillColor = '#6b4423'; // coffee brown
-                                else if (cropName.includes('cacao') || cropName.includes('cocoa')) fillColor = '#7b3f00'; // dark brown
-                                else if (cropName.includes('sugar')) fillColor = '#16a34a'; // green
-                                else if (cropName.includes('pineapple')) fillColor = '#fbbf24'; // pineapple yellow
-                                else if (cropName.includes('mango')) fillColor = '#fb923c'; // mango orange
-                                else if (cropName.includes('rubber')) fillColor = '#065f46'; // dark green
-                                else if (cropName.includes('vegetable')) fillColor = '#10b981'; // emerald
-                                else if (cropName.includes('tobacco')) fillColor = '#92400e'; // brown
-                                return <Cell key={`cell-${index}`} fill={fillColor} />;
-                              })}
-                            </RechartsBar>
-                          </BarChart>
-                        </ResponsiveContainer>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <DashboardCharts
+                timePeriodFilter={timePeriodFilter}
+                setTimePeriodFilter={setTimePeriodFilter}
+                claimsTrendData={claimsTrendData}
+                allApplications={allApplications}
+                cropPrices={cropPrices}
+                cropPricesLoading={cropPricesLoading}
+                setShowCropPriceManagement={setShowCropPriceManagement}
+              />
 
               {/* Divider between Chart Visualizations and Map Visualization */}
               <div className="mt-8 mb-6">
@@ -3200,290 +2125,28 @@ const AdminDashboard = () => {
               </div>
 
               {/* Overview: Farmers Map (embedded) - Minimalist Blockchain Style */}
-              <div className="bg-white rounded-xl p-6 mt-6 border border-gray-300 relative overflow-hidden shadow-sm" style={{ boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
-                {/* Corner Accents */}
-                <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-                <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-                <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-                <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-                
-                {/* Decorative Lines */}
-                <div className="absolute top-8 left-8 w-24 h-0.5 bg-gradient-to-r from-lime-500 to-transparent opacity-60 z-10"></div>
-                <div className="absolute top-8 right-8 w-24 h-0.5 bg-gradient-to-l from-lime-500 to-transparent opacity-60 z-10"></div>
-                
-                <div className="sticky top-0 bg-white flex items-center justify-between mb-6 relative z-10 pb-4 border-b-4 border-lime-500" style={{ boxShadow: '0 6px 20px rgba(132, 204, 22, 0.4)' }}>
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-black rounded-lg animate-pulse" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.8)' }}>
-                      <img src={locationImage} alt="Geo-Tagging Map" className="h-7 w-7" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-black text-black tracking-wide uppercase">🗺️ Map Overview</h3>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
-                        <span className="text-[10px] text-gray-600 uppercase tracking-wider">Blockchain Protocol</span>
-                      </div>
-                    </div>
-                    {weatherLoading && (
-                      <div className="ml-4 flex items-center text-xs text-lime-600 font-semibold">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-lime-500 mr-2"></div>
-                        Loading...
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {/* Weather Overlay Toggle - Minimalist */}
-                    <button
-                      onClick={async () => {
-                        setShowWeatherOverlay(!showWeatherOverlay)
-                        if (!showWeatherOverlay) {
-                          setWeatherLoading(true)
-                          try {
-                            const farmersWithLocation = farmers.filter(farmer => 
-                              farmer.location && 
-                              typeof farmer.location.lat === 'number' && 
-                              typeof farmer.location.lng === 'number'
-                            )
-                            
-                            if (farmersWithLocation.length > 0) {
-                              const weatherResults = await getWeatherForMultipleLocations(farmersWithLocation)
-                              setWeatherData(weatherResults)
-                            }
-                          } catch (error) {
-                            console.error('Error fetching weather for farmers:', error)
-                          } finally {
-                            setWeatherLoading(false)
-                          }
-                        }
-                      }}
-                      className="px-3 py-2 text-xs font-bold text-black hover:text-lime-500 bg-white hover:bg-black border-2 border-black hover:border-lime-500 rounded-lg transition-all uppercase tracking-wide"
-                      style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
-                    >
-                      Weather
-                    </button>
-                    
-                    {/* Fit Map to Farmers Button - Minimalist */}
-                    <button
-                      onClick={fitMapToFarmers}
-                      className="px-3 py-2 text-xs font-bold text-black hover:text-lime-500 bg-white hover:bg-black border-2 border-black hover:border-lime-500 rounded-lg transition-all uppercase tracking-wide"
-                      title="Fit map to show all farmer locations"
-                      style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
-                    >
-                      Fit Map
-                    </button>
-                    
-                    {/* Refresh Weather Button - Minimalist */}
-                    {showWeatherOverlay && (
-                      <button
-                        onClick={async () => {
-                          setWeatherData([])
-                          weatherFetchedRef.current = false
-                          setWeatherLoading(true)
-                          try {
-                            const farmersWithLocation = farmers.filter(farmer => 
-                              farmer.location && 
-                              typeof farmer.location.lat === 'number' && 
-                              typeof farmer.location.lng === 'number'
-                            )
-                            
-                            if (farmersWithLocation.length > 0) {
-                              const weatherResults = await getWeatherForMultipleLocations(farmersWithLocation)
-                              setWeatherData(weatherResults)
-                            }
-                          } catch (error) {
-                            console.error('Error fetching weather for farmers:', error)
-                          } finally {
-                            setWeatherLoading(false)
-                          }
-                        }}
-                        className="px-3 py-2 text-xs font-bold text-black hover:text-lime-500 bg-white hover:bg-black border-2 border-black hover:border-lime-500 rounded-lg transition-all uppercase tracking-wide disabled:opacity-50"
-                        title="Refresh weather data"
-                        disabled={weatherLoading}
-                        style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
-                      >
-                        {weatherLoading ? 'Refreshing...' : 'Refresh'}
-                      </button>
-                    )}
-                    <select
-                      value={cropFilter}
-                      onChange={(e) => setCropFilter(e.target.value)}
-                      className="px-3 py-2 text-xs font-bold bg-white text-black border-2 border-lime-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 uppercase"
-                      title="Filter by crop"
-                      style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
-                    >
-                      <option value="all">All Crops</option>
-                      {availableCrops.map(crop => (
-                        <option key={crop} value={crop}>{crop}</option>
-                      ))}
-                    </select>
-                    <select
-                      value={monthFilter}
-                      onChange={(e) => setMonthFilter(e.target.value)}
-                      className="px-3 py-2 text-xs font-bold bg-white text-black border-2 border-lime-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 uppercase"
-                      title="Filter by month"
-                      style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
-                    >
-                      <option value="all">All Months</option>
-                      <option value="1">Jan</option>
-                      <option value="2">Feb</option>
-                      <option value="3">Mar</option>
-                      <option value="4">Apr</option>
-                      <option value="5">May</option>
-                      <option value="6">Jun</option>
-                      <option value="7">Jul</option>
-                      <option value="8">Aug</option>
-                      <option value="9">Sep</option>
-                      <option value="10">Oct</option>
-                      <option value="11">Nov</option>
-                      <option value="12">Dec</option>
-                    </select>
-                    <select
-                      value={yearFilter}
-                      onChange={(e) => setYearFilter(e.target.value)}
-                      className="px-3 py-2 text-xs font-bold bg-white text-black border-2 border-lime-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 uppercase"
-                      title="Filter by year"
-                      style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
-                    >
-                      <option value="all">All Years</option>
-                      {Array.from({ length: 2025 - 1990 + 1 }, (_, i) => 1990 + i).map(y => (
-                        <option key={y} value={y}>{y}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                
-                <div className="w-full h-[420px] rounded-lg border-2 border-lime-500 overflow-hidden relative z-10" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.4)' }}>
-                  <div ref={overviewMapRef} className="w-full h-full" />
-                </div>
-              </div>
+              <DashboardMapOverview
+                weatherLoading={weatherLoading}
+                showWeatherOverlay={showWeatherOverlay}
+                setShowWeatherOverlay={setShowWeatherOverlay}
+                setWeatherLoading={setWeatherLoading}
+                farmers={farmers}
+                getWeatherForMultipleLocations={getWeatherForMultipleLocations}
+                setWeatherData={setWeatherData}
+                weatherFetchedRef={weatherFetchedRef}
+                fitMapToFarmers={fitMapToFarmers}
+                cropFilter={cropFilter}
+                setCropFilter={setCropFilter}
+                availableCrops={availableCrops}
+                monthFilter={monthFilter}
+                setMonthFilter={setMonthFilter}
+                yearFilter={yearFilter}
+                setYearFilter={setYearFilter}
+                overviewMapRef={overviewMapRef}
+              />
 
-              {/* Pending Insurance Claims Section */}
-              <div className="mt-6">
-                <div className="flex items-center mb-3">
-                  <img src={insuranceImage} alt="Pending Insurance Claims" className="h-12 w-12 mr-3" />
-                  <h2 className="text-lg font-semibold text-gray-800">Pending Insurance Claims</h2>
-                  <span className="ml-2 px-2 py-1 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
-                    {claims.filter((c) => c.status === "pending").length}
-                  </span>
-                </div>
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-                  {claims.filter((c) => c.status === "pending").length === 0 ? (
-                    <div className="text-center py-8">
-                      <div className="w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
-                        <ClipboardCheck size={24} className="text-gray-400" />
-                      </div>
-                      <p className="text-gray-500 text-sm">No pending claims at the moment</p>
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-gray-100">
-                      {claims.filter((c) => c.status === "pending")
-                        .sort((a, b) => {
-                          const damageA = Number.parseFloat(a.degreeOfDamage) || Number.parseFloat(a.areaDamaged) || 0;
-                          const damageB = Number.parseFloat(b.degreeOfDamage) || Number.parseFloat(b.areaDamaged) || 0;
-                          return damageB - damageA;
-                        })
-                        .map((claim) => (
-                          <div key={claim._id} className="p-3 hover:bg-gray-50 transition-colors duration-200">
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center space-x-3">
-                                  <div className="w-2 h-8 bg-amber-400 rounded-full flex-shrink-0"></div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-gray-900 truncate">{claim.name}</p>
-                                    <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
-                                      <span className="flex items-center">
-                                        <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
-                                        {claim.crop || claim.cropType || "Unknown Crop"}
-                                      </span>
-                                      <span className="flex items-center">
-                                        <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
-                                        {claim.damageType || claim.type || "Damage Type"}
-                                      </span>
-                                      <span className="flex items-center font-mono">
-                                        <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
-                                        ID: {(claim.claimNumber || claim._id)?.slice(-6)}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex items-center space-x-2 ml-4">
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                                  Pending Review
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <div className="flex items-center mb-3">
-                  <img src={recentImage} alt="Recent Claims" className="h-12 w-12 mr-3" />
-                  <h2 className="text-lg font-semibold text-gray-800">Recent Claims</h2>
-                  <span className="ml-2 px-2 py-1 bg-lime-100 text-lime-700 text-xs font-medium rounded-full">
-                    {claims.slice(0, 5).length}
-                  </span>
-                </div>
-                <div className="bg-white/70 backdrop-blur-sm rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-                  {claims.length === 0 ? (
-                    <div className="text-center py-8">
-                      <div className="w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
-                        <FileText size={24} className="text-gray-400" />
-                      </div>
-                      <p className="text-gray-500 text-sm">No recent claims found</p>
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-gray-100">
-                      {claims.slice(0, 5).map((claim) => (
-                        <div key={claim._id} className="p-3 hover:bg-gray-50 transition-colors duration-200">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center space-x-3">
-                                <div className={`w-2 h-8 rounded-full flex-shrink-0 ${
-                                  claim.status === 'approved' ? 'bg-green-400' :
-                                  claim.status === 'rejected' ? 'bg-[rgb(26,61,59)]' :
-                                  claim.status === 'pending' ? 'bg-amber-400' :
-                                  'bg-gray-400'
-                                }`}></div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-gray-900 truncate">{claim.name}</p>
-                                  <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
-                                    <span className="flex items-center">
-                                      <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
-                                      {claim.crop || claim.cropType || "Unknown Crop"}
-                                    </span>
-                                    <span className="flex items-center">
-                                      <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
-                                      {new Date(claim.date).toLocaleDateString()}
-                                    </span>
-                                    <span className="flex items-center font-mono">
-                                      <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
-                                      ID: {(claim.claimNumber || claim._id)?.slice(-6)}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2 ml-4">
-                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                claim.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                claim.status === 'rejected' ? 'bg-[rgb(26,61,59)] text-white' :
-                                claim.status === 'pending' ? 'bg-amber-100 text-amber-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
-                                {claim.status ? claim.status.charAt(0).toUpperCase() + claim.status.slice(1) : 'Unknown'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+              {/* Pending and Recent Insurance Claims Sections */}
+              <DashboardClaims claims={claims} />
             </>
           )}
 
@@ -4065,63 +2728,11 @@ const AdminDashboard = () => {
           )}
 
           {/* View Assistance Modal */}
-          {showViewModal && selectedAssistance && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-semibold">Assistance Details</h2>
-                  <button
-                    onClick={() => setShowViewModal(false)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    <X size={24} />
-                  </button>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-medium text-gray-700">Assistance Type</h3>
-                    <p className="text-gray-900">{selectedAssistance.assistanceType}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-700">Founder</h3>
-                    <p className="text-gray-900">{selectedAssistance.founderName}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-700">Quantity</h3>
-                    <p className="text-gray-900">{selectedAssistance.quantity}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-700">Date Added</h3>
-                    <p className="text-gray-900">{selectedAssistance.dateAdded}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-gray-700">Farmers Availed</h3>
-                    <div className="mt-2">
-                      {selectedAssistance.farmersAvailed?.length > 0 ? (
-                        <ul className="space-y-2">
-                          {selectedAssistance.farmersAvailed.map((farmer, index) => (
-                            <li key={index} className="text-gray-900">
-                              {farmer}
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-gray-500">No farmers have availed this assistance yet.</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-6 flex justify-end">
-                  <button
-                    onClick={() => setShowViewModal(false)}
-                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <ViewAssistanceModal
+            isOpen={showViewModal}
+            onClose={() => setShowViewModal(false)}
+            assistance={selectedAssistance}
+          />
 
           {activeTab === "crop-insurance" && (
             <div className="p-6">
@@ -4339,816 +2950,103 @@ const AdminDashboard = () => {
       />
 
       {/* Analytics Modal */}
-      {showAnalyticsModal && analyticsData && (
-        <div className="fixed inset-0 z-50 bg-transparent bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar">
-            <div className="sticky top-0 bg-lime-700 text-white p-4 rounded-t-xl flex justify-between items-center">
-              <h2 className="text-xl font-bold">Predictive Analytics</h2>
-              <button
-                onClick={() => setShowAnalyticsModal(false)}
-                className="text-white hover:text-gray-200 focus:outline-none"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                      <Calendar className="mr-2 h-5 w-5 text-lime-600" />
-                      Current Year Overview
-                    </h3>
-                    <span className="text-sm text-gray-500">Total: {analyticsData.currentYear.totalClaims}</span>
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-600 mb-2">Monthly Completion Rates</h4>
-                      <div className="h-60">
-                        <Line
-                          options={{
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                              legend: { position: "top" },
-                              tooltip: { mode: "index", intersect: false },
-                            },
-                            scales: {
-                              y: {
-                                beginAtZero: true,
-                                title: { display: true, text: "Claims" },
-                              },
-                            },
-                            elements: {
-                              line: {
-                                tension: 0.4,
-                              },
-                              point: {
-                                radius: 3,
-                              },
-                            },
-                          }}
-                          data={{
-                            labels: Object.keys(analyticsData.currentYear.monthlyStatus),
-                            datasets: [
-                              {
-                                label: "Approved",
-                                data: Object.values(analyticsData.currentYear.monthlyStatus).map(
-                                  (month) => month.approved || 0,
-                                ),
-                                borderColor: "rgba(16, 185, 129, 1)",
-                                backgroundColor: "rgba(16, 185, 129, 0.1)",
-                                fill: true,
-                                borderWidth: 2,
-                              },
-                              {
-                                label: "Rejected",
-                                data: Object.values(analyticsData.currentYear.monthlyStatus).map(
-                                  (month) => month.rejected || 0,
-                                ),
-                                borderColor: "rgba(239, 68, 68, 1)",
-                                backgroundColor: "rgba(239, 68, 68, 0.1)",
-                                fill: true,
-                                borderWidth: 2,
-                              },
-                              {
-                                label: "Completed",
-                                data: Object.values(analyticsData.currentYear.monthlyStatus).map(
-                                  (month) => month.completed || 0,
-                                ),
-                                borderColor: "rgba(59, 130, 246, 1)",
-                                backgroundColor: "rgba(59, 130, 246, 0.1)",
-                                fill: true,
-                                borderWidth: 2,
-                              },
-                            ],
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-600 mb-2">Status Distribution</h4>
-                      <div className="h-60">
-                        <Pie
-                          options={{
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                              legend: { position: "right", labels: { boxWidth: 12 } },
-                            },
-                          }}
-                          data={{
-                            labels: ["Approved", "Rejected", "Pending", "Completed"],
-                            datasets: [
-                              {
-                                data: [
-                                  analyticsData.currentYear.byStatus.approved || 0,
-                                  analyticsData.currentYear.byStatus.rejected || 0,
-                                  analyticsData.currentYear.byStatus.pending || 0,
-                                  analyticsData.currentYear.byStatus.completed || 0,
-                                ],
-                                backgroundColor: [
-                                  "rgba(16, 185, 129, 0.8)",
-                                  "rgba(239, 68, 68, 0.8)",
-                                  "rgba(245, 158, 11, 0.8)",
-                                  "rgba(59, 130, 246, 0.8)",
-                                ],
-                                borderWidth: 1,
-                              },
-                            ],
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                      <TrendingUp className="mr-2 h-5 w-5 text-blue-600" />
-                      Next Year Forecast
-                    </h3>
-                    <span className="text-sm text-gray-500">Predicted Total: {analyticsData.nextYear.totalClaims}</span>
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-600 mb-2">Predicted Monthly Trends</h4>
-                      <div className="h-60">
-                        <Line
-                          options={{
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                              legend: { position: "top" },
-                              tooltip: { mode: "index", intersect: false },
-                            },
-                            scales: {
-                              y: {
-                                beginAtZero: true,
-                                title: { display: true, text: "Predicted Claims" },
-                                grid: {
-                                  color: "rgba(0, 0, 0, 0.05)",
-                                },
-                              },
-                              x: {
-                                grid: {
-                                  color: "rgba(0, 0, 0, 0.05)",
-                                },
-                              },
-                            },
-                            elements: {
-                              line: {
-                                tension: 0.4,
-                              },
-                              point: {
-                                radius: 3,
-                              },
-                            },
-                          }}
-                          data={{
-                            labels: Object.keys(analyticsData.nextYear.monthlyStatus || {}),
-                            datasets: [
-                              {
-                                label: "Approved",
-                                data: Object.values(analyticsData.nextYear.monthlyStatus || {}).map(
-                                  (month) => month.approved || 0,
-                                ),
-                                borderColor: "rgba(16, 185, 129, 1)",
-                                backgroundColor: "rgba(16, 185, 129, 0.1)",
-                                fill: true,
-                                borderWidth: 2,
-                              },
-                              {
-                                label: "Rejected",
-                                data: Object.values(analyticsData.nextYear.monthlyStatus || {}).map(
-                                  (month) => month.rejected || 0,
-                                ),
-                                borderColor: "rgba(239, 68, 68, 1)",
-                                backgroundColor: "rgba(239, 68, 68, 0.1)",
-                                fill: true,
-                                borderWidth: 2,
-                              },
-                              {
-                                label: "Completed",
-                                data: Object.values(analyticsData.nextYear.monthlyStatus || {}).map(
-                                  (month) => month.completed || 0,
-                                ),
-                                borderColor: "rgba(59, 130, 246, 1)",
-                                backgroundColor: "rgba(59, 130, 246, 0.1)",
-                                fill: true,
-                                borderWidth: 2,
-                              },
-                            ],
-                          }}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-600 mb-2">Predicted Status Distribution</h4>
-                      <div className="h-60">
-                        <Doughnut
-                          options={{
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                              legend: { position: "right", labels: { boxWidth: 12 } },
-                            },
-                            cutout: "60%",
-                          }}
-                          data={{
-                            labels: ["Approved", "Rejected", "Pending", "Completed"],
-                            datasets: [
-                              {
-                                data: [
-                                  analyticsData.nextYear.byStatus.approved || 0,
-                                  analyticsData.nextYear.byStatus.rejected || 0,
-                                  analyticsData.nextYear.byStatus.pending || 0,
-                                  analyticsData.nextYear.byStatus.completed || 0,
-                                ],
-                                backgroundColor: [
-                                  "rgba(16, 185, 129, 0.8)",
-                                  "rgba(239, 68, 68, 0.8)",
-                                  "rgba(245, 158, 11, 0.8)",
-                                  "rgba(59, 130, 246, 0.8)",
-                                ],
-                                borderWidth: 1,
-                              },
-                            ],
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200 md:col-span-2">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                      <Map className="mr-2 h-5 w-5 text-lime-600" />
-                      Resource Allocation Recommendations
-                    </h3>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <h4 className="text-sm font-medium text-blue-800 mb-2">Key Insights</h4>
-                      <ul className="list-disc pl-5 space-y-2 text-sm">
-                        <li>
-                          Predicted {analyticsData.nextYear.totalClaims - analyticsData.currentYear.totalClaims} more
-                          claims next year (
-                          {Math.round(
-                            ((analyticsData.nextYear.totalClaims - analyticsData.currentYear.totalClaims) /
-                              analyticsData.currentYear.totalClaims) *
-                              100,
-                          )}
-                          % increase)
-                        </li>
-                        <li>
-                          {Object.entries(analyticsData.nextYear.byMonth || {})
-                            .sort((a, b) => b[1] - a[1])
-                            .slice(0, 2)
-                            .map(([month]) => month)
-                            .join(" and ")}{" "}
-                          will likely see the highest claim volumes
-                        </li>
-                        <li>
-                          Approval rate is expected to be{" "}
-                          {Math.round(
-                            (analyticsData.nextYear.byStatus.approved / analyticsData.nextYear.totalClaims) * 100,
-                          )}
-                          % next year
-                        </li>
-                      </ul>
-                    </div>
-
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-600 mb-2">Monthly Processing Forecast</h4>
-                      <div className="h-60">
-                        <Line
-                          options={{
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                              legend: { display: true },
-                              tooltip: {
-                                mode: "index",
-                                intersect: false,
-                              },
-                            },
-                            scales: {
-                              y: {
-                                beginAtZero: true,
-                                title: { display: true, text: "Claims" },
-                                grid: {
-                                  color: "rgba(0, 0, 0, 0.05)",
-                                },
-                              },
-                              x: {
-                                grid: {
-                                  color: "rgba(0, 0, 0, 0.05)",
-                                },
-                              },
-                            },
-                            elements: {
-                              line: {
-                                tension: 0.1,
-                              },
-                              point: {
-                                radius: 2,
-                              },
-                            },
-                          }}
-                          data={{
-                            labels: Object.keys(analyticsData.nextYear.byMonth || {}),
-                            datasets: [
-                              {
-                                label: "Current Year",
-                                data: Object.values(analyticsData.currentYear.byMonth || {}),
-                                borderColor: "rgba(107, 114, 128, 1)",
-                                backgroundColor: "rgba(107, 114, 128, 0.1)",
-                                borderWidth: 2,
-                                borderDash: [5, 5],
-                                fill: false,
-                              },
-                              {
-                                label: "Next Year (Predicted)",
-                                data: Object.values(analyticsData.nextYear.byMonth || {}),
-                                borderColor: "rgba(79, 70, 229, 1)",
-                                backgroundColor: "rgba(79, 70, 229, 0.1)",
-                                borderWidth: 2,
-                                fill: true,
-                              },
-                            ],
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-800 flex items-center">
-                      <AlertTriangle className="mr-2 h-5 w-5 text-yellow-600" />
-                      Status Assessment
-                    </h3>
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-600 mb-2">Status Efficiency</h4>
-                      <div className="h-60">
-                        <Bar
-                          options={{
-                            indexAxis: "y",
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                              legend: { display: false },
-                              tooltip: {
-                                callbacks: {
-                                  label: (context) => `${context.raw.toFixed(1)}% of total claims`,
-                                },
-                              },
-                            },
-                            scales: {
-                              x: {
-                                beginAtZero: true,
-                                max: 100,
-                                title: { display: true, text: "Percentage (%)" },
-                              },
-                            },
-                          }}
-                          data={{
-                            labels: analyticsData.statusEfficiency.map((item) => item.status),
-                            datasets: [
-                              {
-                                label: "Status Percentage",
-                                data: analyticsData.statusEfficiency.map((item) => item.value),
-                                backgroundColor: analyticsData.statusEfficiency.map((item) => {
-                                  if (item.status === "Approved") return "rgba(16, 185, 129, 0.8)"
-                                  if (item.status === "Rejected") return "rgba(239, 68, 68, 0.8)"
-                                  if (item.status === "Pending") return "rgba(245, 158, 11, 0.8)"
-                                  if (item.status === "Completed") return "rgba(59, 130, 246, 0.8)"
-                                  return "rgba(107, 114, 128, 0.8)"
-                                }),
-                                borderRadius: 4,
-                              },
-                            ],
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-between mt-8">
-                <button
-                  onClick={() => setShowAnalyticsModal(false)}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={generatePdfReport}
-                  className="bg-lime-700 text-white px-4 py-2 rounded-lg hover:bg-lime-800 transition flex items-center"
-                >
-                  <Download className="mr-2 h-5 w-5" />
-                  Download Full Report
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AnalyticsModal
+        isOpen={showAnalyticsModal}
+        onClose={() => setShowAnalyticsModal(false)}
+        analyticsData={analyticsData}
+        onGeneratePdfReport={generatePdfReport}
+      />
 
       {/* Map Modal */}
-      {showMapModal && (
-        <div className="fixed inset-0 z-50 bg-transparent bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="sticky top-0 text-white p-4 rounded-t-xl flex justify-between items-center" style={{ backgroundColor: 'rgb(43, 158, 102)' }}>
-              <h2 className="text-xl font-bold">
-                {mapMode === "view" ? "Farm Locations Map" : "Select Farm Location"}
-              </h2>
-              <button
-                onClick={() => setShowMapModal(false)}
-                className="text-white hover:text-gray-200 focus:outline-none"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className="p-4 border-b border-gray-200 flex flex-wrap gap-4 items-center">
-              <div className="flex-1 min-w-[200px]">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search for a location..."
-                    value={mapSearchQuery}
-                    onChange={(e) => setMapSearchQuery(e.target.value)}
-                    className="w-full p-2 pr-10 border rounded-md"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        searchLocation()
-                      }
-                    }}
-                  />
-                  <button
-                    onClick={searchLocation}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                  >
-                    <Search className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-
-              {mapMode === "view" && (
-                <button
-                  onClick={() => setMapMode("add")}
-                  className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 flex items-center"
-                >
-                  <Plus className="mr-2 h-5 w-5" />
-                  Add Location
-                </button>
-              )}
-
-              {mapMode === "add" && (
-                <button
-                  onClick={() => setMapMode("view")}
-                  className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 flex items-center"
-                >
-                  <Layers className="mr-2 h-5 w-5" />
-                  View All Locations
-                </button>
-              )}
-            </div>
-
-            <div className="flex-1 min-h-[400px] relative">
-              <div ref={mapRef} className="w-full h-[500px]"></div>
-            </div>
-
-            {mapMode === "add" && (
-              <div className="p-4 border-t border-gray-200 bg-gray-50">
-                <div className="flex justify-between items-center">
-                  <div>
-                    {selectedLocation ? (
-                      <p className="text-sm text-gray-600">
-                        Selected coordinates: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
-                      </p>
-                    ) : (
-                      <p className="text-sm text-gray-600">Click on the map to select a location</p>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setShowMapModal(false)}
-                      className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (selectedLocation) {
-                          setShowMapModal(false)
-                        } else {
-                          alert("Please select a location on the map first.")
-                        }
-                      }}
-                      disabled={!selectedLocation}
-                      className={`px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-800 ${
-                        !selectedLocation ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                    >
-                      Confirm Location
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      <MapModal
+        isOpen={showMapModal}
+        onClose={() => setShowMapModal(false)}
+        mapMode={mapMode}
+        onMapModeChange={setMapMode}
+        mapSearchQuery={mapSearchQuery}
+        onMapSearchQueryChange={setMapSearchQuery}
+        onSearchLocation={searchLocation}
+        mapRef={mapRef}
+        selectedLocation={selectedLocation}
+        onConfirmLocation={() => {
+          if (selectedLocation) {
+            setShowMapModal(false)
+          } else {
+            alert("Please select a location on the map first.")
+          }
+        }}
+      />
 
       {/* Farmer Details Modal */}
-      {showFarmerDetails && (
-        <div className="fixed inset-0 z-50 bg-transparent bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar">
-            <div className="sticky top-0 bg-lime-700 text-white p-4 rounded-t-xl flex justify-between items-center">
-              <h2 className="text-xl font-bold">Farmer Details</h2>
-              <button
-                onClick={() => setShowFarmerDetails(false)}
-                className="text-white hover:text-gray-200 focus:outline-none transition-colors"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <h3 className="text-lg font-semibold text-lime-800 mb-3 flex items-center gap-2">
-                    <User size={20} />
-                    Personal Information
-                  </h3>
-                  <div className="space-y-3">
-                    <div>
-                      <span className="text-gray-500 text-sm">Full Name</span>
-                      <p className="font-medium">{farmers[showFarmerDetails].farmerName}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-sm">Birthday</span>
-                      <p className="font-medium">{farmers[showFarmerDetails].birthday || "Not provided"}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-sm">Gender</span>
-                      <p className="font-medium">{farmers[showFarmerDetails].gender || "Not provided"}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-sm">Contact Number</span>
-                      <p className="font-medium">{farmers[showFarmerDetails].contactNum || "Not provided"}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-sm">Address</span>
-                      <p className="font-medium">{farmers[showFarmerDetails].address}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <h3 className="text-lg font-semibold text-blue-800 mb-3">Farm Information</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <span className="text-gray-500 text-sm">Crop Type</span>
-                      <p className="font-medium">{farmers[showFarmerDetails].cropType}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-sm">Crop Area</span>
-                      <p className="font-medium">{farmers[showFarmerDetails].cropArea} hectares</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-sm">Lot Number</span>
-                      <p className="font-medium">{farmers[showFarmerDetails].lotNumber || "Not provided"}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-sm">Lot Area</span>
-                      <p className="font-medium">{farmers[showFarmerDetails].lotArea || "Not provided"}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-sm">Certified</span>
-                      <p className="font-medium">
-                        {farmers[showFarmerDetails].isCertified ? (
-                          <span className="text-green-600 flex items-center">
-                            <CheckCircle size={16} className="mr-1" /> Yes
-                          </span>
-                        ) : (
-                          <span className="text-gray-600">No</span>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-6">
-                <h3 className="text-lg font-semibold text-yellow-800 mb-3">Insurance Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-gray-500 text-sm">Insurance Type</span>
-                    <p className="font-medium">{farmers[showFarmerDetails].insuranceType || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 text-sm">Premium Amount</span>
-                    <p className="font-medium">{farmers[showFarmerDetails].premiumAmount || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 text-sm">Period From</span>
-                    <p className="font-medium">{farmers[showFarmerDetails].periodFrom || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 text-sm">Period To</span>
-                    <p className="font-medium">{farmers[showFarmerDetails].periodTo || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 text-sm">Agency</span>
-                    <p className="font-medium">{farmers[showFarmerDetails].agency || "Not provided"}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={() => setShowFarmerDetails(false)}
-                  className="bg-lime-700 text-white px-6 py-2 rounded-lg hover:bg-lime-800 transition"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <FarmerDetailsModal
+        isOpen={showFarmerDetails !== false}
+        onClose={() => setShowFarmerDetails(false)}
+        farmer={typeof showFarmerDetails === 'number' ? farmers[showFarmerDetails] : null}
+      />
 
       {/* Delete Confirmation Modal */}
-      {showDeleteConfirmation && (
-        <div className="fixed inset-0 z-50 bg-transparent bg-opacity-30 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4 text-gray-800 flex items-center">
-              <AlertTriangle className="mr-2 text-red-500" size={24} />
-              Delete Farmer
-            </h3>
-            <p className="mb-6 text-gray-600">
-              Are you sure you want to delete <strong>{farmers[showDeleteConfirmation].farmerName}</strong>? This action cannot be
-              undone.
-            </p>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => {
-                  setShowDeleteConfirmation(false)
-                  setFarmerToDelete(null)
-                }}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  try {
-                    const farmerId = farmers[showDeleteConfirmation].id || farmers[showDeleteConfirmation]._id;
-                    const farmerName = farmers[showDeleteConfirmation].farmerName || 
-                                     `${farmers[showDeleteConfirmation].firstName} ${farmers[showDeleteConfirmation].lastName}`;
-                    
-                    await deleteFarmerMutation.mutateAsync(farmerId);
+      <DeleteConfirmationModal
+        isOpen={showDeleteConfirmation !== false}
+        onClose={() => {
+          setShowDeleteConfirmation(false)
+          setFarmerToDelete(null)
+        }}
+        farmer={typeof showDeleteConfirmation === 'number' ? farmers[showDeleteConfirmation] : farmerToDelete}
+        onConfirm={async () => {
+          try {
+            const farmerToDeleteItem = typeof showDeleteConfirmation === 'number' ? farmers[showDeleteConfirmation] : farmerToDelete
+            const farmerId = farmerToDeleteItem?.id || farmerToDeleteItem?._id
+            const farmerName = farmerToDeleteItem?.farmerName || 
+                             `${farmerToDeleteItem?.firstName || ''} ${farmerToDeleteItem?.lastName || ''}`.trim()
+            
+            if (!farmerId) return
+            
+            await deleteFarmerMutation.mutateAsync(farmerId)
 
-                    // Close modal
-                    setShowDeleteConfirmation(false)
-                    setFarmerToDelete(null)
+            // Close modal
+            setShowDeleteConfirmation(false)
+            setFarmerToDelete(null)
 
-                    // Show success message
-                    addLocalNotification({
-                      type: 'success',
-                      title: 'Farmer Deleted Successfully',
-                      message: `${farmerName} has been removed from the system.`,
-                    });
-                  } catch (error) {
-                    // Show error message
-                    addLocalNotification({
-                      type: 'error',
-                      title: 'Delete Failed',
-                      message: `Error: ${error.message}`,
-                    });
-                  }
-                }}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
-              >
-                <X size={16} className="mr-1" />
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            // Show success message
+            addLocalNotification({
+              type: 'success',
+              title: 'Farmer Deleted Successfully',
+              message: `${farmerName} has been removed from the system.`,
+            })
+          } catch (error) {
+            // Show error message
+            addLocalNotification({
+              type: 'error',
+              title: 'Delete Failed',
+              message: `Error: ${error.message}`,
+            })
+          }
+        }}
+      />
 
       {/* Confirmation Modal for Claim Status Update */}
-      {showConfirmationModal && (
-        <div className="fixed inset-0 z-50 bg-transparent bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-semibold mb-4 text-gray-800">
-              {confirmationAction.type === "approved" ? "Approve Claim" : "Reject Claim"}
-            </h3>
-            <p className="mb-4 text-gray-600">
-              Are you sure you want to {confirmationAction.type === "approved" ? "approve" : "reject"} this claim? This action cannot be undone.
-            </p>
-            <div className="mb-4">
-              <label htmlFor="feedback" className="block text-sm font-medium text-gray-700 mb-2">
-                Feedback (optional)
-              </label>
-              <textarea
-                id="feedback"
-                value={feedbackText}
-                onChange={(e) => setFeedbackText(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-lime-500"
-                rows={3}
-                placeholder="Add feedback for the farmer..."
-              />
-            </div>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setShowConfirmationModal(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmStatusUpdate}
-                className={`px-4 py-2 rounded-lg text-white ${
-                  confirmationAction.type === "approved"
-                    ? "bg-green-600 hover:bg-green-700"
-                    : "bg-red-600 hover:bg-red-700"
-                }`}
-              >
-                {confirmationAction.type === "approved" ? "Yes, Approve" : "Yes, Reject"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ClaimStatusConfirmationModal
+        isOpen={showConfirmationModal}
+        onClose={() => setShowConfirmationModal(false)}
+        actionType={confirmationAction.type}
+        feedbackText={feedbackText}
+        onFeedbackChange={setFeedbackText}
+        onConfirm={confirmStatusUpdate}
+      />
 
       {/* Assistance Application Feedback Modal */}
-      {showAssistanceFeedbackModal && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-30 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-xl font-semibold mb-4">
-              {assistanceAction.type === 'approved' ? 'Approve' : 
-               assistanceAction.type === 'rejected' ? 'Reject' : 
-               assistanceAction.type === 'delete' ? 'Delete' : 'Action'} Application
-            </h2>
-            <p className="mb-4 text-gray-600">
-              {assistanceAction.type === 'delete' ? 
-                `Are you sure you want to delete "${assistanceAction.itemName}"? This action cannot be undone.` :
-                `Are you sure you want to ${assistanceAction.type} this assistance application? 
-                Please provide feedback for the farmer.`
-              }
-            </p>
-            {assistanceAction.type !== 'delete' && (
-              <textarea
-                className="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-lime-500 focus:border-lime-500"
-                rows={4}
-                placeholder={`Enter feedback for the farmer (reason for ${assistanceAction.type})`}
-                value={assistanceFeedback}
-                onChange={(e) => setAssistanceFeedback(e.target.value)}
-              />
-            )}
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setShowAssistanceFeedbackModal(false);
-                  setAssistanceFeedback("");
-                }}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmAssistanceAction}
-                className={`px-4 py-2 rounded-lg text-white transition-colors ${
-                  assistanceAction.type === 'approved'
-                    ? 'bg-green-600 hover:bg-green-700'
-                    : assistanceAction.type === 'rejected'
-                    ? 'bg-red-600 hover:bg-red-700'
-                    : 'bg-red-600 hover:bg-red-700'
-                }`}
-              >
-                {assistanceAction.type === 'approved' ? 'Yes, Approve' : 
-                 assistanceAction.type === 'rejected' ? 'Yes, Reject' : 
-                 'Yes, Delete'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AssistanceFeedbackModal
+        isOpen={showAssistanceFeedbackModal}
+        onClose={() => {
+          setShowAssistanceFeedbackModal(false);
+          setAssistanceFeedback("");
+        }}
+        actionType={assistanceAction.type}
+        itemName={assistanceAction.itemName}
+        feedback={assistanceFeedback}
+        onFeedbackChange={setAssistanceFeedback}
+        onConfirm={confirmAssistanceAction}
+      />
 
       {/* Feedback Modal */}
       {showFeedbackModal && pendingAction && (
@@ -5233,127 +3131,13 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Calendar Tab */}
-      {showCalendar && (
-        <div className="fixed inset-0 bg-transparent bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden`} style={{ borderRadius: '5px' }}>
-            <div className={`flex items-center justify-between p-6 border-b ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
-              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Calendar</h2>
-              <button
-                onClick={() => setShowCalendar(false)}
-                className={`${darkMode ? 'text-gray-300 hover:text-white' : 'text-gray-500 hover:text-gray-700'} transition-colors`}
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Calendar Widget */}
-                <div className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4`} style={{ borderRadius: '5px' }}>
-                  <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>Monthly View</h3>
-                  <div className="grid grid-cols-7 gap-2 text-center">
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                      <div key={day} className={`text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-600'} py-2`}>{day}</div>
-                    ))}
-                    {Array.from({ length: 35 }, (_, i) => {
-                      const date = i - 6; // Start from previous month
-                      const isCurrentMonth = date > 0 && date <= 31;
-                      const isToday = date === new Date().getDate();
-                      return (
-                        <div
-                          key={i}
-                          className={`p-2 text-sm rounded cursor-pointer transition-colors ${
-                            isCurrentMonth 
-                              ? isToday 
-                                ? 'bg-lime-600 text-white font-bold' 
-                                : darkMode
-                                  ? 'text-white hover:bg-lime-100 hover:text-gray-800'
-                                  : 'text-gray-800 hover:bg-lime-100'
-                              : darkMode
-                                ? 'text-gray-500'
-                                : 'text-gray-400'
-                          }`}
-                          style={{ borderRadius: '5px' }}
-                        >
-                          {date > 0 ? date : ''}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-                
-                {/* Events/Activities */}
-                <div className={`${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4`} style={{ borderRadius: '5px' }}>
-                  <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>Today's Activities</h3>
-                  <div className="space-y-3">
-                    <div className={`flex items-center p-3 ${darkMode ? 'bg-gray-600' : 'bg-white'} rounded-lg shadow-sm`} style={{ borderRadius: '5px' }}>
-                      <div className="w-3 h-3 bg-lime-500 rounded-full mr-3"></div>
-                      <div>
-                        <div className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>Farmer Registration</div>
-                        <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>10:00 AM - 12:00 PM</div>
-                      </div>
-                    </div>
-                    <div className={`flex items-center p-3 ${darkMode ? 'bg-gray-600' : 'bg-white'} rounded-lg shadow-sm`} style={{ borderRadius: '5px' }}>
-                      <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                      <div>
-                        <div className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>Assistance Distribution</div>
-                        <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>2:00 PM - 4:00 PM</div>
-                      </div>
-                    </div>
-                    <div className={`flex items-center p-3 ${darkMode ? 'bg-gray-600' : 'bg-white'} rounded-lg shadow-sm`} style={{ borderRadius: '5px' }}>
-                      <div className="w-3 h-3 bg-orange-500 rounded-full mr-3"></div>
-                      <div>
-                        <div className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>Crop Insurance Review</div>
-                        <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>4:30 PM - 6:00 PM</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Quick Actions */}
-              <div className={`mt-6 pt-6 border-t ${darkMode ? 'border-gray-600' : 'border-gray-200'}`}>
-                <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-gray-800'} mb-4`}>Quick Actions</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <button 
-                    className={`flex items-center justify-center p-4 ${darkMode ? 'bg-lime-800 hover:bg-lime-700' : 'bg-lime-100 hover:bg-lime-200'} rounded-lg transition-colors`}
-                    style={{ borderRadius: '5px' }}
-                    onClick={() => {
-                      setShowCalendar(false)
-                      handleTabSwitch('farmer-registration')
-                    }}
-                  >
-                    <UserPlus size={20} className={`mr-2 ${darkMode ? 'text-lime-200' : 'text-lime-700'}`} />
-                    <span className={`${darkMode ? 'text-lime-200' : 'text-lime-700'} font-medium`}>Register Farmer</span>
-                  </button>
-                  <button 
-                    className={`flex items-center justify-center p-4 ${darkMode ? 'bg-blue-800 hover:bg-blue-700' : 'bg-blue-100 hover:bg-blue-200'} rounded-lg transition-colors`}
-                    style={{ borderRadius: '5px' }}
-                    onClick={() => {
-                      setShowCalendar(false)
-                      handleTabSwitch('assistance')
-                    }}
-                  >
-                    <ClipboardCheck size={20} className={`mr-2 ${darkMode ? 'text-blue-200' : 'text-blue-700'}`} />
-                    <span className={`${darkMode ? 'text-blue-200' : 'text-blue-700'} font-medium`}>Manage Assistance</span>
-                  </button>
-                  <button 
-                    className={`flex items-center justify-center p-4 ${darkMode ? 'bg-purple-800 hover:bg-purple-700' : 'bg-purple-100 hover:bg-purple-200'} rounded-lg transition-colors`}
-                    style={{ borderRadius: '5px' }}
-                    onClick={() => {
-                      setShowCalendar(false)
-                      handleTabSwitch('crop-insurance')
-                    }}
-                  >
-                    <Shield size={20} className={`mr-2 ${darkMode ? 'text-purple-200' : 'text-purple-700'}`} />
-                    <span className={`${darkMode ? 'text-purple-200' : 'text-purple-700'} font-medium`}>Crop Insurance</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Calendar Modal */}
+      <CalendarModal
+        isOpen={showCalendar}
+        onClose={() => setShowCalendar(false)}
+        darkMode={darkMode}
+        onTabSwitch={handleTabSwitch}
+      />
 
       {/* Crop Price Management Modal */}
       <CropPriceManagement
