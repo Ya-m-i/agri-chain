@@ -1589,129 +1589,155 @@ const AdminDashboard = () => {
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
       });
 
-      // If map doesn't exist yet, create it
-      if (!leafletMapRef.current) {
-        // Initialize the map with Kapalong Maniki coordinates
+      // Wait for modal to fully render before initializing map
+      const initMap = () => {
+        if (!mapRef.current) return;
+
+        // Kapalong Maniki coordinates
         const kapalongManikiCenter = [7.591509, 125.696724];
-        leafletMapRef.current = L.map(mapRef.current, {
-          center: kapalongManikiCenter,
-          zoom: 14,
-          zoomControl: true,
-          scrollWheelZoom: true,
-        }).setView(kapalongManikiCenter, 14);
 
-        // Add tile layer (OpenStreetMap)
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-          maxZoom: 19,
-        }).addTo(leafletMapRef.current);
+        // If map doesn't exist yet, create it
+        if (!leafletMapRef.current) {
+          console.log('🗺️ Initializing map with Kapalong Maniki coordinates:', kapalongManikiCenter);
+          
+          leafletMapRef.current = L.map(mapRef.current, {
+            center: kapalongManikiCenter,
+            zoom: 14,
+            zoomControl: true,
+            scrollWheelZoom: true,
+            minZoom: 11,
+            maxZoom: 18,
+          });
 
-        // Create a layer for markers
-        markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current);
+          // Add tile layer (OpenStreetMap)
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19,
+          }).addTo(leafletMapRef.current);
 
-        // Add click handler for adding new locations
-        leafletMapRef.current.on("click", (e) => {
-          if (mapMode === "add") {
-            setSelectedLocation({
-              lat: e.latlng.lat,
-              lng: e.latlng.lng,
-            })
+          // Create a layer for markers
+          markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current);
 
-            // Clear existing markers in add mode
-            if (markersLayerRef.current) {
-              markersLayerRef.current.clearLayers()
-            }
+          // Add click handler for adding new locations
+          leafletMapRef.current.on("click", (e) => {
+            if (mapMode === "add") {
+              setSelectedLocation({
+                lat: e.latlng.lat,
+                lng: e.latlng.lng,
+              })
 
-            // Add a new marker at the clicked location with custom farm marker
-            const farmIcon = L.divIcon({
-              className: 'farm-marker-icon',
-              html: `
-                <div style="
-                  position: relative;
-                  width: 50px;
-                  height: 50px;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  pointer-events: none;
-                ">
+              // Clear existing markers in add mode
+              if (markersLayerRef.current) {
+                markersLayerRef.current.clearLayers()
+              }
+
+              // Add a new marker at the clicked location with custom farm marker
+              const farmIcon = L.divIcon({
+                className: 'farm-marker-icon',
+                html: `
                   <div style="
-                    background-color: #84cc16;
+                    position: relative;
                     width: 50px;
                     height: 50px;
-                    border-radius: 50% 50% 50% 0;
-                    transform: rotate(-45deg);
-                    border: 5px solid #000000;
-                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(132, 204, 22, 0.8);
-                    position: relative;
-                    z-index: 1;
-                  "></div>
-                  <div style="
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%) rotate(45deg);
-                    font-size: 24px;
-                    line-height: 1;
-                    z-index: 10;
-                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                     pointer-events: none;
-                  ">🌾</div>
-                  <div style="
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%) rotate(45deg);
-                    width: 8px;
-                    height: 8px;
-                    background-color: #000000;
-                    border-radius: 50%;
-                    z-index: 11;
-                    pointer-events: none;
-                  "></div>
-                </div>
-              `,
-              iconSize: [50, 50],
-              iconAnchor: [25, 50],
-              popupAnchor: [0, -50],
-            });
-            const marker = L.marker([e.latlng.lat, e.latlng.lng], { 
-              icon: farmIcon,
-              zIndexOffset: 1000,
-            }).addTo(markersLayerRef.current);
-            
-            // Ensure marker is visible
-            marker.bringToFront();
+                  ">
+                    <div style="
+                      background-color: #84cc16;
+                      width: 50px;
+                      height: 50px;
+                      border-radius: 50% 50% 50% 0;
+                      transform: rotate(-45deg);
+                      border: 5px solid #000000;
+                      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(132, 204, 22, 0.8);
+                      position: relative;
+                      z-index: 1;
+                    "></div>
+                    <div style="
+                      position: absolute;
+                      top: 50%;
+                      left: 50%;
+                      transform: translate(-50%, -50%) rotate(45deg);
+                      font-size: 24px;
+                      line-height: 1;
+                      z-index: 10;
+                      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                      pointer-events: none;
+                    ">🌾</div>
+                    <div style="
+                      position: absolute;
+                      top: 50%;
+                      left: 50%;
+                      transform: translate(-50%, -50%) rotate(45deg);
+                      width: 8px;
+                      height: 8px;
+                      background-color: #000000;
+                      border-radius: 50%;
+                      z-index: 11;
+                      pointer-events: none;
+                    "></div>
+                  </div>
+                `,
+                iconSize: [50, 50],
+                iconAnchor: [25, 50],
+                popupAnchor: [0, -50],
+              });
+              const marker = L.marker([e.latlng.lat, e.latlng.lng], { 
+                icon: farmIcon,
+                zIndexOffset: 1000,
+              }).addTo(markersLayerRef.current);
+              
+              // Ensure marker is visible
+              marker.bringToFront();
 
-            // Reverse geocode to get address and update form
-            reverseGeocode(e.latlng.lat, e.latlng.lng)
-          }
-        })
-      } else {
-        // If map exists, just update the view to Kapalong Maniki
-        const kapalongManikiCenter = [7.591509, 125.696724];
-        leafletMapRef.current.setView(kapalongManikiCenter, 14)
+              // Reverse geocode to get address and update form
+              reverseGeocode(e.latlng.lat, e.latlng.lng)
+            }
+          });
 
-        // Force a resize to ensure the map renders correctly in the modal
-        setTimeout(() => {
-          if (leafletMapRef.current) {
-            leafletMapRef.current.invalidateSize()
-          }
-        }, 100)
-      }
+          // Set view to Kapalong Maniki after map is ready
+          setTimeout(() => {
+            if (leafletMapRef.current) {
+              leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
+              leafletMapRef.current.invalidateSize();
+              console.log('✅ Map initialized and centered on Kapalong Maniki');
+            }
+          }, 200);
+        } else {
+          // If map exists, update the view to Kapalong Maniki
+          console.log('🔄 Updating existing map to Kapalong Maniki');
+          leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
 
-      // Add existing farm locations to the map
-      addFarmersToMap()
+          // Force a resize to ensure the map renders correctly in the modal
+          setTimeout(() => {
+            if (leafletMapRef.current) {
+              leafletMapRef.current.invalidateSize();
+              console.log('✅ Map size invalidated');
+            }
+          }, 300);
+        }
+
+        // Add existing farm locations to the map (only in view mode)
+        if (mapMode === "view") {
+          addFarmersToMap();
+        }
+      };
+
+      // Delay initialization to ensure modal is fully rendered
+      const timer = setTimeout(initMap, 100);
+      
+      return () => {
+        clearTimeout(timer);
+        if (leafletMapRef.current && !showMapModal) {
+          leafletMapRef.current.remove();
+          leafletMapRef.current = null;
+          markersLayerRef.current = null;
+        }
+      };
     }
-
-    // Cleanup function
-    return () => {
-      if (leafletMapRef.current && !showMapModal) {
-        leafletMapRef.current.remove()
-        leafletMapRef.current = null
-      }
-    }
-  }, [showMapModal, mapCenter, mapZoom, mapMode, farmers, reverseGeocode, addFarmersToMap])
+  }, [showMapModal, mapMode, farmers, reverseGeocode, addFarmersToMap])
 
   // Load crop insurance records and group by farmer for dashboard overview
   // Note: This useEffect removed as we now use React Query data directly

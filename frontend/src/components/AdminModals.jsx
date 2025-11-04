@@ -1380,7 +1380,7 @@ const AdminModals = ({
             </div>
 
             {/* Map Container - Using background map for wider view with Farm Vibe */}
-            <div className="flex-1 relative bg-white overflow-hidden border-4 border-black">
+            <div className="flex-1 relative bg-white overflow-hidden border-4 border-black" style={{ minHeight: '500px' }}>
               <div 
                 ref={mapRef} 
                 id="location-picker-map"
@@ -1388,7 +1388,10 @@ const AdminModals = ({
                 style={{
                   position: 'relative',
                   zIndex: 1,
-                  backgroundColor: '#f0f0f0'
+                  backgroundColor: '#e5e7eb',
+                  minHeight: '500px',
+                  width: '100%',
+                  height: '100%'
                 }}
               ></div>
               {/* Farm Vibe Decorative Corner */}
