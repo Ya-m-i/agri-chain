@@ -1818,34 +1818,62 @@ const AdminDashboard = () => {
           }));
         }, 100);
 
-        // Set view and force resize
+        // Set view and force resize - ensure map is visible
         setTimeout(() => {
-          if (leafletMapRef.current) {
+          if (leafletMapRef.current && container) {
             const finalRect = container.getBoundingClientRect();
             
+            // Ensure container is visible
+            container.style.opacity = '1';
+            container.style.visibility = 'visible';
+            container.style.display = 'block';
+            
             if (finalRect.height > 0 && finalRect.width > 0) {
+              // Set view first
               leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
               
-              // Multiple resize attempts
+              // Force immediate resize
+              leafletMapRef.current.invalidateSize(true);
+              
+              // Multiple resize attempts with delays
               forceMapResize(leafletMapRef.current, 150);
               forceMapResize(leafletMapRef.current, 350);
               forceMapResize(leafletMapRef.current, 550);
               
+              // Final check and log
               setTimeout(() => {
-                if (leafletMapRef.current) {
+                if (leafletMapRef.current && container) {
+                  leafletMapRef.current.invalidateSize(true);
                   const mapBounds = leafletMapRef.current.getBounds();
-                  console.log('✅ Map fully initialized');
+                  const mapCenter = leafletMapRef.current.getCenter();
+                  console.log('✅ Map fully initialized and visible');
                   console.log('📍 Map bounds:', mapBounds);
-                  console.log('📍 Map center:', leafletMapRef.current.getCenter());
+                  console.log('📍 Map center:', mapCenter);
+                  console.log('📍 Container dimensions:', finalRect.width, 'x', finalRect.height);
+                  
+                  // Ensure map container is visible
+                  container.style.opacity = '1';
+                  container.style.visibility = 'visible';
+                  
+                  // Force another resize to ensure tiles are visible
+                  setTimeout(() => {
+                    if (leafletMapRef.current) {
+                      leafletMapRef.current.invalidateSize(true);
+                      window.dispatchEvent(new Event('resize'));
+                    }
+                  }, 200);
                 }
               }, 800);
             } else {
               // Force height and retry
+              console.warn('⚠️ Container has no dimensions, forcing height...');
               container.style.height = `${Math.max(600, window.innerHeight - 300)}px`;
               setTimeout(() => {
                 if (leafletMapRef.current) {
                   leafletMapRef.current.invalidateSize(true);
                   leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
+                  container.style.opacity = '1';
+                  container.style.visibility = 'visible';
                 }
               }, 200);
             }
@@ -2103,39 +2131,84 @@ const AdminDashboard = () => {
 
   // Function to search for a location on the map
   const searchLocation = () => {
-    if (!mapSearchQuery.trim()) return
+    if (!mapSearchQuery || !mapSearchQuery.trim()) {
+      alert("Please enter a location to search.");
+      return;
+    }
 
-    // Use Nominatim API for geocoding
-    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearchQuery)}`)
-      .then((response) => response.json())
+    // Check if map is available
+    if (!leafletMapRef.current) {
+      console.error("❌ Map is not initialized yet");
+      alert("Map is still loading. Please wait a moment and try again.");
+      return;
+    }
+
+    // Use Nominatim API for geocoding with proper headers
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearchQuery.trim())}&limit=1&addressdetails=1`, {
+      headers: {
+        'User-Agent': 'AGRI-CHAIN-App/1.0'
+      }
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
       .then((data) => {
         if (data && data.length > 0) {
-          const { lat, lon } = data[0]
+          const result = data[0];
+          const lat = parseFloat(result.lat);
+          const lon = parseFloat(result.lon);
+
+          if (isNaN(lat) || isNaN(lon)) {
+            throw new Error("Invalid coordinates received");
+          }
+
+          console.log('📍 Search result:', { lat, lon, display_name: result.display_name });
 
           if (leafletMapRef.current) {
-            leafletMapRef.current.setView([lat, lon], 13)
+            // Set view to searched location
+            leafletMapRef.current.setView([lat, lon], 13, { animate: true });
 
             if (mapMode === "add") {
-              setSelectedLocation({ lat, lng: lon })
+              setSelectedLocation({ lat, lng: lon });
 
               // Clear existing markers
-              markersLayerRef.current.clearLayers()
+              if (markersLayerRef.current) {
+                markersLayerRef.current.clearLayers();
+              }
 
-              // Add a new marker at the searched location
-              L.marker([lat, lon]).addTo(markersLayerRef.current)
+              // Add a new marker at the searched location with farm icon
+              const farmIcon = createFarmIcon();
+              const marker = L.marker([lat, lon], {
+                icon: farmIcon,
+                zIndexOffset: 1000,
+              }).addTo(markersLayerRef.current);
+
+              marker.bringToFront();
 
               // Reverse geocode to get address and update form
-              reverseGeocode(lat, lon)
+              reverseGeocode(lat, lon);
+
+              // Force map resize after search
+              setTimeout(() => {
+                if (leafletMapRef.current) {
+                  leafletMapRef.current.invalidateSize(true);
+                }
+              }, 300);
             }
+          } else {
+            throw new Error("Map instance not available");
           }
         } else {
-          alert("Location not found. Please try a different search term.")
+          alert("Location not found. Please try a different search term.");
         }
       })
       .catch((error) => {
-        console.error("Error searching for location:", error)
-        alert("Error searching for location. Please try again.")
-      })
+        console.error("❌ Error searching for location:", error);
+        alert(`Error searching for location: ${error.message}. Please try again.`);
+      });
   }
 
   // 1. Add state for feedback modal

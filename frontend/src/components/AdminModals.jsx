@@ -1491,14 +1491,15 @@ const AdminModals = ({
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  zIndex: 10,
+                  zIndex: leafletMapRef?.current ? 10 : 1,
                   backgroundColor: '#e5e7eb',
                   minHeight: '600px',
                   height: '100%',
                   width: '100%',
                   display: 'block',
                   visibility: 'visible',
-                  overflow: 'visible'
+                  overflow: 'visible',
+                  opacity: leafletMapRef?.current ? 1 : 0
                 }}
               ></div>
               {/* Farm Vibe Decorative Corner */}
