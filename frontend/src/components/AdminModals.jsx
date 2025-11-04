@@ -1397,6 +1397,16 @@ const AdminModals = ({
 
             {/* Map Container - Using background map for wider view with Farm Vibe */}
             <div className="flex-1 relative bg-white overflow-hidden border-4 border-black" style={{ minHeight: '600px', height: '100%' }}>
+              {/* Loading indicator */}
+              {!mapRef.current && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-20">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lime-600 mx-auto mb-4"></div>
+                    <p className="text-black font-bold uppercase">Loading Map...</p>
+                    <p className="text-sm text-gray-600 mt-2">Kapalong Maniki Area</p>
+                  </div>
+                </div>
+              )}
               <div 
                 ref={mapRef} 
                 id="location-picker-map"
@@ -1416,7 +1426,7 @@ const AdminModals = ({
               ></div>
               {/* Farm Vibe Decorative Corner */}
               <div className="absolute top-2 right-2 bg-black text-lime-400 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider z-10" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
-                🌾 GPS Active
+                🌾 GPS Active - Kapalong Maniki
               </div>
             </div>
 
@@ -1447,7 +1457,9 @@ const AdminModals = ({
                     <button
                       onClick={() => {
                         if (selectedLocation) {
+                          // Close modal after confirming location
                           setShowMapModal(false)
+                          console.log('✅ Location confirmed:', selectedLocation)
                         } else {
                           alert("Please select a location on the map first.")
                         }

@@ -662,7 +662,12 @@ const AdminDashboard = () => {
   // Function to reverse geocode coordinates to address
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const reverseGeocode = (lat, lng) => {
-    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+    console.log('🌍 Reverse geocoding coordinates:', lat, lng);
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`, {
+      headers: {
+        'User-Agent': 'AGRI-CHAIN-App'
+      }
+    })
       .then((response) => response.json())
       .then((data) => {
         if (data && data.display_name) {
@@ -670,15 +675,35 @@ const AdminDashboard = () => {
           const lotNumber = `LOT-${Math.abs(lat).toFixed(4)}-${Math.abs(lng).toFixed(4)}`.replace(/\./g, "")
 
           // Update the form data address and lot number fields
+          setFormData((prev) => {
+            const updated = {
+              ...prev,
+              address: data.display_name,
+              lotNumber: lotNumber,
+            };
+            console.log('✅ Address updated in form:', data.display_name);
+            return updated;
+          })
+        } else {
+          // Fallback if no display_name
+          const fallbackAddress = `Kapalong Maniki, ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
           setFormData((prev) => ({
             ...prev,
-            address: data.display_name,
-            lotNumber: lotNumber,
+            address: fallbackAddress,
+            lotNumber: `LOT-${Math.abs(lat).toFixed(4)}-${Math.abs(lng).toFixed(4)}`.replace(/\./g, "")
           }))
+          console.log('⚠️ Using fallback address:', fallbackAddress);
         }
       })
       .catch((error) => {
-        console.error("Error reverse geocoding:", error)
+        console.error("❌ Error reverse geocoding:", error)
+        // Fallback address on error
+        const fallbackAddress = `Kapalong Maniki, ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        setFormData((prev) => ({
+          ...prev,
+          address: fallbackAddress,
+          lotNumber: `LOT-${Math.abs(lat).toFixed(4)}-${Math.abs(lng).toFixed(4)}`.replace(/\./g, "")
+        }))
       })
   }
 
@@ -1729,14 +1754,20 @@ const AdminDashboard = () => {
                 setTimeout(() => {
                   if (leafletMapRef.current) {
                     leafletMapRef.current.invalidateSize();
-                    console.log('✅ Map initialized and centered on Kapalong Maniki');
+                    // Force another resize to ensure tiles load
+                    setTimeout(() => {
+                      if (leafletMapRef.current) {
+                        leafletMapRef.current.invalidateSize();
+                        console.log('✅ Map initialized and centered on Kapalong Maniki (Department of Agriculture area)');
+                      }
+                    }, 200);
                   }
                 }, 100);
               }
-            }, 300);
+            }, 400);
           } else {
-            // If map exists, update the view to Kapalong Maniki
-            console.log('🔄 Updating existing map to Kapalong Maniki');
+            // If map exists, update the view to Kapalong Maniki (Department of Agriculture area)
+            console.log('🔄 Updating existing map to Kapalong Maniki (Department of Agriculture area)');
             leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
 
             // Force a resize to ensure the map renders correctly in the modal
@@ -1760,8 +1791,8 @@ const AdminDashboard = () => {
           }
         };
 
-        // Delay initialization to ensure modal is fully rendered
-        setTimeout(initMap, 400);
+        // Delay initialization to ensure modal is fully rendered and container is ready
+        setTimeout(initMap, 500);
       };
       
       // Start checking for mapRef
