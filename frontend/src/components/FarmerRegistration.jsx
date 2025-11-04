@@ -389,8 +389,9 @@ const FarmerRegistration = ({
         </div>
         <div className="flex gap-4">
           <button
-            className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-sm font-semibold"
+            className="bg-lime-400 border-2 border-black text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-md font-bold uppercase tracking-wide"
             onClick={() => setShowRegisterForm(true)}
+            style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
           >
             <UserPlus className="mr-2 h-5 w-5" />
             Register New Farmer
@@ -1179,15 +1180,23 @@ const FarmerRegistration = ({
 
                     <div>
                       <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Agency</label>
-                      <input
-                        type="text"
+                      <select
                         name="agency"
                         value={formData.agency || ""}
                         onChange={handleChange}
-                        placeholder="Enter agency name (e.g., DA-PCIC, LGU)"
-                        className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                        className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
                         style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
-                      />
+                      >
+                        <option value="">Select Agency</option>
+                        <option value="DA">DA - Department of Agriculture</option>
+                        <option value="LGU">LGU - Local Government Unit</option>
+                        <option value="DA-PCIC">DA-PCIC - Philippine Crop Insurance Corporation</option>
+                        <option value="DA-Kapalong">DA-Kapalong - Department of Agriculture Kapalong</option>
+                        <option value="NIA">NIA - National Irrigation Administration</option>
+                        <option value="ATI">ATI - Agricultural Training Institute</option>
+                        <option value="PCAF">PCAF - Philippine Council for Agriculture and Fisheries</option>
+                        <option value="Other">Other</option>
+                      </select>
                     </div>
                   </div>
                 </div>

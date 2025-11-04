@@ -13,8 +13,8 @@ const MapPicker = ({ onLocationSelect }) => {
 
     console.log('🗺️ MapPicker: Initializing map...');
 
-    // Always use Kapalong Maniki area as center
-    const kapalongManikiCenter = [7.584813, 125.706932]; // Kapalong Maniki area coordinates
+    // Use exact Kapalong Maniki coordinates as specified
+    const kapalongManikiCenter = [7.591509, 125.696724]; // Exact Kapalong Maniki coordinates
     const kapalongZoom = 14; // Closer zoom to see Maniki area better
 
     // Create map instance
@@ -27,8 +27,8 @@ const MapPicker = ({ onLocationSelect }) => {
       maxZoom: 18,
       // Wider bounds to allow movement within Kapalong municipality
       maxBounds: [
-        [7.50, 125.75],  // Southwest - covers Kapalong area
-        [7.70, 125.95]   // Northeast - covers Kapalong area
+        [7.50, 125.65],  // Southwest - covers Kapalong area
+        [7.70, 125.75]   // Northeast - covers Kapalong area
       ],
       maxBoundsViscosity: 1.0, // Allow easier movement within bounds
     });
@@ -45,7 +45,7 @@ const MapPicker = ({ onLocationSelect }) => {
     // Force set view to Kapalong Maniki area after initialization
     setTimeout(() => {
       map.setView(kapalongManikiCenter, kapalongZoom, { animate: false });
-      console.log('📍 MapPicker centered on Kapalong Maniki area:', kapalongManikiCenter);
+      console.log('📍 MapPicker centered on Kapalong Maniki:', kapalongManikiCenter);
     }, 100);
 
     // Add click handler
@@ -58,35 +58,46 @@ const MapPicker = ({ onLocationSelect }) => {
         map.removeLayer(markerRef.current);
       }
 
-      // Add new marker with visible geotagging icon
-      // Fix Leaflet default icon issue by using a custom icon
-      const customIcon = L.divIcon({
-        className: 'custom-marker-lime',
-        html: `<div style="
-          background-color: #84cc16; 
-          width: 32px; 
-          height: 32px; 
-          border-radius: 50%; 
-          border: 3px solid #000;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-        ">
+      // Create custom farm marker icon with visible styling
+      const farmIcon = L.divIcon({
+        className: 'farm-marker-icon',
+        html: `
           <div style="
-            width: 12px;
-            height: 12px;
-            background-color: #000;
-            border-radius: 50%;
-          "></div>
-        </div>`,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16],
+            position: relative;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">
+            <div style="
+              background-color: #84cc16;
+              width: 40px;
+              height: 40px;
+              border-radius: 50% 50% 50% 0;
+              transform: rotate(-45deg);
+              border: 4px solid #000000;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 15px rgba(132, 204, 22, 0.6);
+            "></div>
+            <div style="
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%) rotate(45deg);
+              font-size: 20px;
+              line-height: 1;
+              z-index: 10;
+            ">🌾</div>
+          </div>
+        `,
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+        popupAnchor: [0, -40],
       });
 
       markerRef.current = L.marker([lat, lng], {
-        icon: customIcon,
+        icon: farmIcon,
+        draggable: false,
       }).addTo(map);
 
       // Call callback with location
@@ -99,7 +110,7 @@ const MapPicker = ({ onLocationSelect }) => {
     setTimeout(() => {
       map.invalidateSize();
       map.setView(kapalongManikiCenter, kapalongZoom, { animate: false }); 
-      console.log('✅ MapPicker: Map initialized and centered on Kapalong Maniki area');
+      console.log('✅ MapPicker: Map initialized and centered on Kapalong Maniki');
     }, 300);
 
     // Cleanup on unmount
