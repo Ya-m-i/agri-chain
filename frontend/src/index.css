@@ -6,3 +6,18 @@
 *{
     font-family: 'Poppins', sans-serif;
 }
+
+/* Farm Marker Icon Styling */
+.farm-marker-icon {
+    background: transparent !important;
+    border: none !important;
+}
+
+.farm-marker-icon div {
+    pointer-events: none !important;
+}
+
+/* Ensure Leaflet markers are visible */
+.leaflet-marker-icon {
+    border: none !important;
+}

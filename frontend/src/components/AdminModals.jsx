@@ -1305,32 +1305,34 @@ const AdminModals = ({
 
       {/* Map Modal - Fullscreen with Farm Vibe */}
       {showMapModal && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-10 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-lime-50 border-2 border-black w-full h-full overflow-hidden flex flex-col shadow-lg relative z-50" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.4)' }}>
-            {/* Header with Farm Vibe */}
-            <div className="sticky top-0 bg-lime-50 border-b-2 border-black p-4 flex justify-between items-center z-20" style={{ boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)' }}>
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-black rounded-lg" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
-                  <MapPin className="h-6 w-6 text-lime-400" />
+        <div className="fixed inset-0 z-50 bg-white bg-opacity-95 flex items-center justify-center">
+          <div className="bg-lime-50 border-4 border-black w-full h-full overflow-hidden flex flex-col shadow-2xl relative z-50" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6), inset 0 0 20px rgba(132, 204, 22, 0.2)' }}>
+            {/* Header with Enhanced Farm Vibe */}
+            <div className="sticky top-0 bg-gradient-to-r from-lime-50 to-lime-100 border-b-4 border-black p-5 flex justify-between items-center z-20" style={{ boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2), inset 0 -2px 10px rgba(132, 204, 22, 0.3)' }}>
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-black rounded-xl shadow-lg" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.8), inset 0 0 10px rgba(132, 204, 22, 0.4)' }}>
+                  <MapPin className="h-7 w-7 text-lime-400" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-black uppercase tracking-wide">
-                    {mapMode === "view" ? "🌾 Farm Locations Map" : "📍 Select Farm Location"}
+                  <h2 className="text-2xl font-black text-black uppercase tracking-wider flex items-center gap-2">
+                    <span>🌾</span>
+                    {mapMode === "view" ? "Farm Locations Map" : "Select Farm Location"}
+                    <span>📍</span>
                   </h2>
-                  <p className="text-xs text-gray-600 uppercase tracking-wider">Kapalong Maniki Area</p>
+                  <p className="text-sm text-gray-700 uppercase tracking-widest font-bold mt-1">Kapalong Maniki Area</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowMapModal(false)}
-                className="text-black hover:text-gray-700 focus:outline-none transition-all hover:rotate-90 duration-300 font-bold"
-                style={{ filter: 'drop-shadow(0 0 5px rgba(0, 0, 0, 0.3))' }}
+                className="text-black hover:text-red-600 focus:outline-none transition-all hover:rotate-90 duration-300 font-black bg-white border-2 border-black rounded-full p-2 shadow-lg hover:shadow-xl"
+                style={{ filter: 'drop-shadow(0 0 8px rgba(0, 0, 0, 0.4))' }}
               >
                 <X size={28} strokeWidth={3} />
               </button>
             </div>
 
-            {/* Search and Controls with Farm Vibe */}
-            <div className="p-4 border-b-2 border-black bg-lime-50 flex flex-wrap gap-4 items-center">
+            {/* Search and Controls with Enhanced Farm Vibe */}
+            <div className="p-4 border-b-4 border-black bg-gradient-to-r from-lime-50 to-lime-100 flex flex-wrap gap-4 items-center" style={{ boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)' }}>
               <div className="flex-1 min-w-[200px]">
                 <div className="relative">
                   <input
@@ -1377,8 +1379,8 @@ const AdminModals = ({
               )}
             </div>
 
-            {/* Map Container - Using background map for wider view */}
-            <div className="flex-1 relative bg-white overflow-hidden border-2 border-black">
+            {/* Map Container - Using background map for wider view with Farm Vibe */}
+            <div className="flex-1 relative bg-white overflow-hidden border-4 border-black" style={{ boxShadow: 'inset 0 0 20px rgba(132, 204, 22, 0.1)' }}>
               <div 
                 ref={mapRef} 
                 id="location-picker-map"
@@ -1389,27 +1391,35 @@ const AdminModals = ({
                   backgroundColor: '#f0f0f0'
                 }}
               ></div>
+              {/* Farm Vibe Decorative Corner */}
+              <div className="absolute top-2 right-2 bg-black text-lime-400 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider z-10" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
+                🌾 GPS Active
+              </div>
             </div>
 
-            {/* Footer with Farm Vibe */}
+            {/* Footer with Enhanced Farm Vibe */}
             {mapMode === "add" && (
-              <div className="p-4 border-t-2 border-black bg-lime-50">
+              <div className="p-5 border-t-4 border-black bg-gradient-to-r from-lime-50 to-lime-100" style={{ boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.1)' }}>
                 <div className="flex justify-between items-center">
-                  <div>
+                  <div className="flex items-center gap-3">
                     {selectedLocation ? (
-                      <p className="text-sm font-bold text-black uppercase">
-                        🌾 Selected coordinates: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
-                      </p>
+                      <div className="bg-black text-lime-400 px-4 py-2 rounded-lg border-2 border-lime-400">
+                        <p className="text-sm font-black uppercase tracking-wider">
+                          🌾 Selected: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
+                        </p>
+                      </div>
                     ) : (
-                      <p className="text-sm font-bold text-black uppercase">📍 Click on the map to select a location</p>
+                      <div className="bg-white border-2 border-black px-4 py-2 rounded-lg">
+                        <p className="text-sm font-black text-black uppercase tracking-wider">📍 Click on the map to select a location</p>
+                      </div>
                     )}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <button
                       onClick={() => setShowMapModal(false)}
-                      className="px-4 py-2 bg-white border-2 border-black text-black rounded-lg hover:bg-gray-100 font-bold uppercase tracking-wide"
+                      className="px-6 py-3 bg-white border-4 border-black text-black rounded-lg hover:bg-gray-100 font-black uppercase tracking-wider shadow-lg hover:shadow-xl transition-all"
                     >
-                      Cancel
+                      ✖ Cancel
                     </button>
                     <button
                       onClick={() => {
@@ -1420,10 +1430,10 @@ const AdminModals = ({
                         }
                       }}
                       disabled={!selectedLocation}
-                      className={`px-4 py-2 bg-lime-400 border-2 border-black text-black rounded-lg hover:bg-lime-500 font-bold uppercase tracking-wide shadow-md ${
-                        !selectedLocation ? "opacity-50 cursor-not-allowed" : ""
+                      className={`px-6 py-3 bg-lime-400 border-4 border-black text-black rounded-lg hover:bg-lime-500 font-black uppercase tracking-wider transition-all ${
+                        !selectedLocation ? "opacity-50 cursor-not-allowed" : "shadow-xl hover:shadow-2xl"
                       }`}
-                      style={!selectedLocation ? {} : { boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
+                      style={!selectedLocation ? {} : { boxShadow: '0 0 20px rgba(132, 204, 22, 0.7)' }}
                     >
                       ✅ Confirm Location
                     </button>

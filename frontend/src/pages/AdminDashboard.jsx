@@ -1581,19 +1581,33 @@ const AdminDashboard = () => {
   // Load Leaflet when map modal is shown
   useEffect(() => {
     if (showMapModal && mapRef.current) {
+      // Fix Leaflet default icon path issue
+      delete L.Icon.Default.prototype._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+      });
+
       // If map doesn't exist yet, create it
       if (!leafletMapRef.current) {
         // Initialize the map with Kapalong Maniki coordinates
         const kapalongManikiCenter = [7.591509, 125.696724];
-        leafletMapRef.current = L.map(mapRef.current).setView(kapalongManikiCenter, 14)
+        leafletMapRef.current = L.map(mapRef.current, {
+          center: kapalongManikiCenter,
+          zoom: 14,
+          zoomControl: true,
+          scrollWheelZoom: true,
+        }).setView(kapalongManikiCenter, 14);
 
         // Add tile layer (OpenStreetMap)
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
           attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        }).addTo(leafletMapRef.current)
+          maxZoom: 19,
+        }).addTo(leafletMapRef.current);
 
         // Create a layer for markers
-        markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current)
+        markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current);
 
         // Add click handler for adding new locations
         leafletMapRef.current.on("click", (e) => {
@@ -1614,37 +1628,60 @@ const AdminDashboard = () => {
               html: `
                 <div style="
                   position: relative;
-                  width: 40px;
-                  height: 40px;
+                  width: 50px;
+                  height: 50px;
                   display: flex;
                   align-items: center;
                   justify-content: center;
+                  pointer-events: none;
                 ">
                   <div style="
                     background-color: #84cc16;
-                    width: 40px;
-                    height: 40px;
+                    width: 50px;
+                    height: 50px;
                     border-radius: 50% 50% 50% 0;
                     transform: rotate(-45deg);
-                    border: 4px solid #000000;
-                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 15px rgba(132, 204, 22, 0.6);
+                    border: 5px solid #000000;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(132, 204, 22, 0.8);
+                    position: relative;
+                    z-index: 1;
                   "></div>
                   <div style="
                     position: absolute;
                     top: 50%;
                     left: 50%;
                     transform: translate(-50%, -50%) rotate(45deg);
-                    font-size: 20px;
+                    font-size: 24px;
                     line-height: 1;
                     z-index: 10;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                    pointer-events: none;
                   ">🌾</div>
+                  <div style="
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%) rotate(45deg);
+                    width: 8px;
+                    height: 8px;
+                    background-color: #000000;
+                    border-radius: 50%;
+                    z-index: 11;
+                    pointer-events: none;
+                  "></div>
                 </div>
               `,
-              iconSize: [40, 40],
-              iconAnchor: [20, 40],
-              popupAnchor: [0, -40],
+              iconSize: [50, 50],
+              iconAnchor: [25, 50],
+              popupAnchor: [0, -50],
             });
-            L.marker([e.latlng.lat, e.latlng.lng], { icon: farmIcon }).addTo(markersLayerRef.current)
+            const marker = L.marker([e.latlng.lat, e.latlng.lng], { 
+              icon: farmIcon,
+              zIndexOffset: 1000,
+            }).addTo(markersLayerRef.current);
+            
+            // Ensure marker is visible
+            marker.bringToFront();
 
             // Reverse geocode to get address and update form
             reverseGeocode(e.latlng.lat, e.latlng.lng)
