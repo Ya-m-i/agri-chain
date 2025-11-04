@@ -13,13 +13,13 @@ const MapPicker = ({ onLocationSelect }) => {
 
     console.log('🗺️ MapPicker: Initializing map...');
 
-    // Always use Kapalong DA area as center (Pag-asa/Maniki area)
-    const kapalongDACenter = [7.6042, 125.8450]; // Kapalong center (near DA office and Pag-asa)
-    const kapalongZoom = 13; // Good zoom to see the area
+    // Always use Kapalong Maniki area as center
+    const kapalongManikiCenter = [7.584813, 125.706932]; // Kapalong Maniki area coordinates
+    const kapalongZoom = 14; // Closer zoom to see Maniki area better
 
     // Create map instance
     const map = L.map(mapContainerRef.current, {
-      center: kapalongDACenter,
+      center: kapalongManikiCenter,
       zoom: kapalongZoom,
       zoomControl: true,
       scrollWheelZoom: true,
@@ -42,10 +42,10 @@ const MapPicker = ({ onLocationSelect }) => {
     // Store map instance
     mapInstanceRef.current = map;
     
-    // Force set view to Kapalong DA area after initialization
+    // Force set view to Kapalong Maniki area after initialization
     setTimeout(() => {
-      map.setView(kapalongDACenter, kapalongZoom, { animate: false });
-      console.log('📍 MapPicker centered on Kapalong (Pag-asa area):', kapalongDACenter);
+      map.setView(kapalongManikiCenter, kapalongZoom, { animate: false });
+      console.log('📍 MapPicker centered on Kapalong Maniki area:', kapalongManikiCenter);
     }, 100);
 
     // Add click handler
@@ -58,21 +58,35 @@ const MapPicker = ({ onLocationSelect }) => {
         map.removeLayer(markerRef.current);
       }
 
-      // Add new marker
+      // Add new marker with visible geotagging icon
+      // Fix Leaflet default icon issue by using a custom icon
+      const customIcon = L.divIcon({
+        className: 'custom-marker-lime',
+        html: `<div style="
+          background-color: #84cc16; 
+          width: 32px; 
+          height: 32px; 
+          border-radius: 50%; 
+          border: 3px solid #000;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+        ">
+          <div style="
+            width: 12px;
+            height: 12px;
+            background-color: #000;
+            border-radius: 50%;
+          "></div>
+        </div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+      });
+
       markerRef.current = L.marker([lat, lng], {
-        icon: L.divIcon({
-          className: 'custom-marker-lime',
-          html: `<div style="
-            background-color: #84cc16; 
-            width: 24px; 
-            height: 24px; 
-            border-radius: 50%; 
-            border: 3px solid #000;
-            box-shadow: 0 0 10px rgba(132, 204, 22, 0.8);
-          "></div>`,
-          iconSize: [24, 24],
-          iconAnchor: [12, 12],
-        }),
+        icon: customIcon,
       }).addTo(map);
 
       // Call callback with location
@@ -81,11 +95,11 @@ const MapPicker = ({ onLocationSelect }) => {
       }
     });
 
-    // Invalidate size after short delay and ensure centered on Kapalong
+    // Invalidate size after short delay and ensure centered on Kapalong Maniki
     setTimeout(() => {
       map.invalidateSize();
-      map.setView(kapalongDACenter, kapalongZoom, { animate: false }); 
-      console.log('✅ MapPicker: Map initialized and centered on Kapalong DA area');
+      map.setView(kapalongManikiCenter, kapalongZoom, { animate: false }); 
+      console.log('✅ MapPicker: Map initialized and centered on Kapalong Maniki area');
     }, 300);
 
     // Cleanup on unmount

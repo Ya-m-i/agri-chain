@@ -353,52 +353,36 @@ const AdminModals = ({
 
       {/* Event Modal */}
       {showEventModal && (
-        <div className="fixed inset-0 z-50 bg-white bg-opacity-90 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white border border-gray-300 rounded-xl shadow-sm w-full max-w-lg max-h-[90vh] overflow-y-auto hide-scrollbar relative animate-[fadeIn_0.3s_ease-in]" style={{ boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
-            {/* Corner Accents */}
-            <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-            <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-            <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-            
-            {/* Decorative Lines */}
-            <div className="absolute top-8 left-8 w-24 h-0.5 bg-gradient-to-r from-lime-500 to-transparent opacity-60 z-10"></div>
-            <div className="absolute top-8 right-8 w-24 h-0.5 bg-gradient-to-l from-lime-500 to-transparent opacity-60 z-10"></div>
-            
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-5 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-lime-50 border border-black rounded-xl shadow-md w-full max-w-lg max-h-[90vh] overflow-y-auto hide-scrollbar relative">
             {/* Header */}
-            <div className="sticky top-0 bg-white border-b-4 border-lime-500 p-6 flex justify-between items-center z-20 relative" style={{ boxShadow: '0 6px 20px rgba(132, 204, 22, 0.4)' }}>
+            <div className="sticky top-0 bg-lime-50 border-b border-black p-6 flex justify-between items-center z-20">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-black rounded-lg animate-pulse" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.8)' }}>
-                  <HandHeart className="h-7 w-7 text-lime-500" />
+                <div className="p-3 bg-white border border-black rounded-lg">
+                  <HandHeart className="h-7 w-7 text-black" />
                 </div>
-              <div>
-                  <h2 className="text-xl font-black text-black tracking-wide uppercase">⛓️ Add Assistance</h2>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
-                    <span className="text-[10px] text-gray-600 uppercase tracking-wider">Blockchain Protocol</span>
-                  </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-black">Add New Assistance</h2>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setShowEventModal(false)}
-                className="text-lime-500 hover:text-lime-600 focus:outline-none transition-all hover:rotate-90 duration-300"
-                style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.6))' }}
+                className="text-black hover:text-gray-700 focus:outline-none transition-all"
               >
-                <X size={28} strokeWidth={3} />
+                <X size={24} />
               </button>
             </div>
             
-            <form onSubmit={handleEventSubmit} className="p-6 space-y-4 relative z-10">
+            <form onSubmit={handleEventSubmit} className="p-6 space-y-4 bg-lime-50 relative z-10">
               {/* Assistance Type */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Assistance Type</label>
+                <label className="block text-sm font-medium text-black">Assistance Type</label>
                 <select
                   name="assistanceType"
                   value={eventForm.assistanceType || ""}
                   onChange={handleEventChange}
-                  className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                  style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                  className="w-full bg-white border border-black p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                   required
                 >
                   <option value="">Select Type</option>
@@ -413,13 +397,12 @@ const AdminModals = ({
               
               {/* Description */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Description</label>
+                <label className="block text-sm font-medium text-black">Description</label>
                 <textarea
                   name="description"
                   value={eventForm.description || ""}
                   onChange={handleEventChange}
-                  className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600 resize-none"
-                  style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                  className="w-full bg-white border border-black p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all resize-none"
                   rows="3"
                   required
                   placeholder="Describe the assistance details..."
@@ -428,13 +411,12 @@ const AdminModals = ({
               
               {/* Crop Type */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Crop Type</label>
+                <label className="block text-sm font-medium text-black">Crop Type</label>
                 <select
                   name="cropType"
                   value={eventForm.cropType}
                   onChange={handleEventChange}
-                  className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                  style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                  className="w-full bg-white border border-black p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                   required
                 >
                   <option value="">Select Crop</option>
@@ -449,15 +431,14 @@ const AdminModals = ({
               
               {/* Other Crop Type (conditional) */}
               {eventForm.cropType === "Other" && (
-                <div className="space-y-2 animate-[fadeIn_0.3s_ease-in]">
-                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Specify Crop Type</label>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-black">Specify Crop Type</label>
                   <input
                     type="text"
                     name="otherCropType"
                     value={eventForm.otherCropType || ""}
                     onChange={handleEventChange}
-                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                    className="w-full bg-white border border-black p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                     required
                     placeholder="Enter crop type..."
                   />
@@ -466,14 +447,13 @@ const AdminModals = ({
               
               {/* Founder Name */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Founder/Agency Name</label>
+                <label className="block text-sm font-medium text-black">Founder/Agency Name</label>
                 <input
                   type="text"
                   name="founderName"
                   value={eventForm.founderName}
                   onChange={handleEventChange}
-                  className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                  style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                  className="w-full bg-white border border-black p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                   required
                   placeholder="e.g., DA-PCIC, LGU..."
                 />
@@ -482,86 +462,80 @@ const AdminModals = ({
               {/* Quantity & Date Grid */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Quantity</label>
-                <input
-                  type="number"
-                  name="quantity"
-                  value={eventForm.quantity}
-                  onChange={handleEventChange}
-                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
-                  required
-                  min="1"
+                  <label className="block text-sm font-medium text-black">Quantity</label>
+                  <input
+                    type="number"
+                    name="quantity"
+                    value={eventForm.quantity}
+                    onChange={handleEventChange}
+                    className="w-full bg-white border border-black p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                    required
+                    min="1"
                     placeholder="0"
-                />
-              </div>
+                  />
+                </div>
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Date Added</label>
-                <input
-                  type="date"
-                  name="dateAdded"
-                  value={eventForm.dateAdded}
-                  onChange={handleEventChange}
-                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
-                  required
-                />
-              </div>
+                  <label className="block text-sm font-medium text-black">Date Added</label>
+                  <input
+                    type="date"
+                    name="dateAdded"
+                    value={eventForm.dateAdded}
+                    onChange={handleEventChange}
+                    className="w-full bg-white border border-black p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                    required
+                  />
+                </div>
               </div>
               
               {/* Photo Upload */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">Photo/Logo</label>
+                <label className="block text-sm font-medium text-black">Photo/Logo</label>
                 <div className="relative">
-                <input
-                  type="file"
-                  name="photo"
-                  accept="image/*"
-                  onChange={e => {
-                    const file = e.target.files && e.target.files[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (ev) => {
-                        handleEventChange({
-                          target: {
-                            name: 'photo',
-                            value: ev.target.result,
-                            type: 'text',
-                          }
-                        });
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
-                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-black file:text-lime-500 hover:file:bg-lime-500 hover:file:text-black file:transition-all"
-                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
-                />
+                  <input
+                    type="file"
+                    name="photo"
+                    accept="image/*"
+                    onChange={e => {
+                      const file = e.target.files && e.target.files[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          handleEventChange({
+                            target: {
+                              name: 'photo',
+                              value: ev.target.result,
+                              type: 'text',
+                            }
+                          });
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="w-full bg-white border border-black p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border file:border-black file:bg-lime-50 file:text-black hover:file:bg-lime-100 file:transition-all"
+                  />
                 </div>
                 {eventForm.photo && (
-                  <div className="mt-3 p-2 border-2 border-lime-400 rounded-lg bg-lime-50">
+                  <div className="mt-3 p-2 border border-black rounded-lg bg-white">
                     <img src={eventForm.photo} alt="Preview" className="h-24 object-contain mx-auto rounded" />
                   </div>
                 )}
               </div>
               
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-6 border-t-2 border-lime-500 mt-6">
+              <div className="flex gap-3 pt-6 border-t border-black mt-6">
                 <button
                   type="button"
                   onClick={() => setShowEventModal(false)}
-                  className="flex-1 bg-white text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-black hover:text-white transition-all font-bold uppercase tracking-wide text-sm"
+                  className="flex-1 bg-white border-2 border-black text-black px-6 py-3 rounded-lg hover:bg-gray-100 transition-all font-medium"
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
-                  className="flex-1 bg-black text-lime-500 px-6 py-3 rounded-lg hover:bg-lime-500 hover:text-black transition-all font-bold uppercase tracking-wide text-sm relative overflow-hidden group border-2 border-black hover:border-lime-500"
-                  style={{ boxShadow: '0 4px 20px rgba(132, 204, 22, 0.5)' }}
+                  className="flex-1 bg-lime-50 border-2 border-black text-black px-6 py-3 rounded-lg hover:bg-lime-100 transition-all font-medium flex items-center justify-center gap-2 shadow-md"
                 >
-                  <span className="relative z-10 flex items-center justify-center gap-2">
-                    <Plus className="w-5 h-5" />
-                    Save
-                  </span>
+                  <Plus className="w-5 h-5" />
+                  Save
                 </button>
               </div>
             </form>
@@ -571,79 +545,79 @@ const AdminModals = ({
 
       {/* Register Farmer Modal */}
       {showRegisterForm && (
-        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar">
-            <div className="sticky top-0 bg-lime-700 text-white p-5 rounded-t-xl flex justify-between items-center">
-              <h2 className="text-2xl font-semibold">Register a New Farmer</h2>
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-5 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-lime-50 rounded-xl shadow-md max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar border border-black">
+            <div className="sticky top-0 bg-lime-50 border-b border-black p-5 rounded-t-xl flex justify-between items-center">
+              <h2 className="text-2xl font-semibold text-black">Register a New Farmer</h2>
               <button
-                className="text-white hover:text-gray-200 focus:outline-none"
+                className="text-black hover:text-gray-700 focus:outline-none"
                 onClick={() => setShowRegisterForm(false)}
               >
                 <X size={24} />
               </button>
             </div>
 
-            <div className="p-6 md:p-8">
+            <div className="p-6 md:p-8 bg-lime-50">
               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">First Name</label>
+                  <label className="block text-sm font-medium text-black">First Name</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User size={18} className="text-gray-400" />
+                      <User size={18} className="text-black" />
                     </div>
                     <input
                       type="text"
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      className="pl-10 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                      className="pl-10 w-full border border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Middle Name</label>
+                  <label className="block text-sm font-medium text-black">Middle Name</label>
                   <input
                     type="text"
                     name="middleName"
                     value={formData.middleName}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                    className="w-full border border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Last Name</label>
+                  <label className="block text-sm font-medium text-black">Last Name</label>
                   <input
                     type="text"
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                    className="w-full border border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Birthday</label>
+                  <label className="block text-sm font-medium text-black">Birthday</label>
                   <input
                     type="date"
                     name="birthday"
                     value={formData.birthday}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                    className="w-full border border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Gender</label>
+                  <label className="block text-sm font-medium text-black">Gender</label>
                   <select
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                    className="w-full border border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                     required
                   >
                     <option value="">Select Gender</option>
@@ -654,135 +628,144 @@ const AdminModals = ({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Contact Number</label>
+                  <label className="block text-sm font-medium text-black">Contact Number</label>
                   <input
                     type="tel"
                     name="contactNum"
                     value={formData.contactNum}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                    className="w-full border border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Address</label>
+                  <label className="block text-sm font-medium text-black">Address</label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <MapPin size={18} className="text-gray-400" />
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowMapModal(true)
+                        setMapMode("add")
+                      }}
+                      className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-auto z-10 hover:opacity-80 transition-opacity"
+                      title="Click to select location on map"
+                    >
+                      <MapPin size={18} className="text-black" />
+                    </button>
                     <input
                       type="text"
                       name="address"
                       value={formData.address}
                       onChange={handleChange}
-                      className="pl-10 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                      className="pl-10 w-full border border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
+                      placeholder="Click the map icon to select location"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Crop Type</label>
+                  <label className="block text-sm font-medium text-black">Crop Type</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Layers size={18} className="text-gray-400" />
+                      <Layers size={18} className="text-black" />
                     </div>
                     <input
                       type="text"
                       name="cropType"
                       value={formData.cropType}
                       onChange={handleChange}
-                      className="pl-10 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                      className="pl-10 w-full border border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Crop Area (hectares)</label>
+                  <label className="block text-sm font-medium text-black">Crop Area (hectares)</label>
                   <input
                     type="text"
                     name="cropArea"
                     value={formData.cropArea}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                    className="w-full border border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Insurance Type</label>
+                  <label className="block text-sm font-medium text-black">Insurance Type</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FileText size={18} className="text-gray-400" />
+                      <FileText size={18} className="text-black" />
                     </div>
                     <input
                       type="text"
                       name="insuranceType"
                       value={formData.insuranceType}
                       onChange={handleChange}
-                      className="pl-10 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                      className="pl-10 w-full border border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Premium Amount</label>
+                  <label className="block text-sm font-medium text-black">Premium Amount</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <DollarSign size={18} className="text-gray-400" />
+                      <DollarSign size={18} className="text-black" />
                     </div>
                     <input
                       type="number"
                       name="premiumAmount"
                       value={formData.premiumAmount}
                       onChange={handleChange}
-                      className="pl-10 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                      className="pl-10 w-full border border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Lot Number</label>
+                  <label className="block text-sm font-medium text-black">Lot Number</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <MapPin size={18} className="text-gray-400" />
+                      <MapPin size={18} className="text-black" />
                     </div>
                     <input
                       type="text"
                       name="lotNumber"
                       value={formData.lotNumber}
                       onChange={handleChange}
-                      className="pl-10 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                      className="pl-10 w-full border border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Lot Area</label>
+                  <label className="block text-sm font-medium text-black">Lot Area</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Layers size={18} className="text-gray-400" />
+                      <Layers size={18} className="text-black" />
                     </div>
                     <input
                       type="text"
                       name="lotArea"
                       value={formData.lotArea}
                       onChange={handleChange}
-                      className="pl-10 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                      className="pl-10 w-full border border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Agency</label>
+                  <label className="block text-sm font-medium text-black">Agency</label>
                   <input
                     type="text"
                     name="agency"
                     value={formData.agency}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                    className="w-full border border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                   />
                 </div>
 
@@ -793,43 +776,43 @@ const AdminModals = ({
                     name="isCertified"
                     checked={formData.isCertified}
                     onChange={handleChange}
-                    className="w-5 h-5 text-lime-600 rounded focus:ring-lime-500"
+                    className="w-5 h-5 text-black border-black rounded focus:ring-black"
                   />
-                  <label htmlFor="isCertified" className="text-gray-700 font-medium">
+                  <label htmlFor="isCertified" className="text-black font-medium">
                     Certified Farmer
                   </label>
                 </div>
 
                 <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Period From</label>
+                    <label className="block text-sm font-medium text-black">Period From</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Calendar size={18} className="text-gray-400" />
+                        <Calendar size={18} className="text-black" />
                       </div>
                       <input
                         type="date"
                         name="periodFrom"
                         value={formData.periodFrom}
                         onChange={handleChange}
-                        className="pl-10 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                        className="pl-10 w-full border border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">Period To</label>
+                    <label className="block text-sm font-medium text-black">Period To</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Calendar size={18} className="text-gray-400" />
+                        <Calendar size={18} className="text-black" />
                       </div>
                       <input
                         type="date"
                         name="periodTo"
                         value={formData.periodTo}
                         onChange={handleChange}
-                        className="pl-10 w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
+                        className="pl-10 w-full border border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
                         required
                       />
                     </div>
@@ -843,7 +826,7 @@ const AdminModals = ({
                       setShowMapModal(true)
                       setMapMode("add")
                     }}
-                    className="bg-lime-600 text-white px-4 py-3 rounded-lg hover:bg-lime-700 transition-colors flex items-center justify-center shadow-sm w-full mb-4"
+                    className="bg-lime-50 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-100 transition-colors flex items-center justify-center shadow-md w-full mb-4"
                   >
                     <MapPin className="mr-2 h-5 w-5" />
                     {selectedLocation ? "Change Farm Location" : "Add Farm Location"}
@@ -854,13 +837,13 @@ const AdminModals = ({
                   <button
                     type="button"
                     onClick={() => setShowRegisterForm(false)}
-                    className="flex-1 bg-gray-200 text-gray-800 px-4 py-3 rounded-lg hover:bg-gray-300 transition-colors"
+                    className="flex-1 bg-white border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 bg-lime-700 text-white px-4 py-3 rounded-lg hover:bg-lime-800 transition-colors flex items-center justify-center"
+                    className="flex-1 bg-lime-50 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-100 transition-colors flex items-center justify-center shadow-md"
                   >
                     <UserPlus className="mr-2 h-5 w-5" />
                     Register Farmer
@@ -1323,21 +1306,21 @@ const AdminModals = ({
 
       {/* Map Modal - Fullscreen */}
       {showMapModal && (
-        <div className="fixed inset-0 z-50 bg-white bg-opacity-50 backdrop-blur-md">
-          <div className="bg-white w-full h-full overflow-hidden flex flex-col">
-            <div className="sticky top-0 bg-lime-700 text-white p-4 flex justify-between items-center">
-              <h2 className="text-xl font-bold">
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-5 backdrop-blur-sm">
+          <div className="bg-lime-50 border border-black w-full h-full overflow-hidden flex flex-col shadow-md">
+            <div className="sticky top-0 bg-lime-50 border-b border-black p-4 flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-black">
                 {mapMode === "view" ? "Farm Locations Map" : "Select Farm Location"}
               </h2>
               <button
                 onClick={() => setShowMapModal(false)}
-                className="text-white hover:text-gray-200 focus:outline-none"
+                className="text-black hover:text-gray-700 focus:outline-none"
               >
                 <X size={24} />
               </button>
             </div>
 
-            <div className="p-4 border-b border-gray-200 flex flex-wrap gap-4 items-center">
+            <div className="p-4 border-b border-black bg-lime-50 flex flex-wrap gap-4 items-center">
               <div className="flex-1 min-w-[200px]">
                 <div className="relative">
                   <input
@@ -1345,7 +1328,7 @@ const AdminModals = ({
                     placeholder="Search for a location..."
                     value={mapSearchQuery}
                     onChange={(e) => setMapSearchQuery(e.target.value)}
-                    className="w-full p-2 pr-10 border rounded-md"
+                    className="w-full p-2 pr-10 border border-black bg-white rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         searchLocation()
@@ -1354,7 +1337,7 @@ const AdminModals = ({
                   />
                   <button
                     onClick={searchLocation}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-black hover:text-gray-700"
                   >
                     <Search className="h-5 w-5" />
                   </button>
@@ -1364,7 +1347,7 @@ const AdminModals = ({
               {mapMode === "view" && (
                 <button
                   onClick={() => setMapMode("add")}
-                  className="bg-lime-600 text-white px-4 py-2 rounded hover:bg-lime-700 flex items-center"
+                  className="bg-lime-50 border-2 border-black text-black px-4 py-2 rounded-lg hover:bg-lime-100 flex items-center shadow-md"
                 >
                   <Plus className="mr-2 h-5 w-5" />
                   Add Location
@@ -1374,7 +1357,7 @@ const AdminModals = ({
               {mapMode === "add" && (
                 <button
                   onClick={() => setMapMode("view")}
-                  className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 flex items-center"
+                  className="bg-white border-2 border-black text-black px-4 py-2 rounded-lg hover:bg-gray-100 flex items-center"
                 >
                   <Layers className="mr-2 h-5 w-5" />
                   View All Locations
@@ -1405,14 +1388,23 @@ const AdminModals = ({
                           if (window.updateFarmerAddress) {
                             window.updateFarmerAddress(address, location.lat, location.lng);
                           }
+                          // Also update the formData directly
+                          if (handleChange) {
+                            handleChange({
+                              target: {
+                                name: 'address',
+                                value: address
+                              }
+                            });
+                          }
                         }
                       })
                       .catch((error) => {
                         console.error('Error reverse geocoding:', error);
                       });
                   }}
-                  initialCenter={[7.6042, 125.8450]}
-                  initialZoom={13}
+                  initialCenter={[7.584813, 125.706932]}
+                  initialZoom={14}
                 />
               ) : (
                 <div 
@@ -1429,21 +1421,21 @@ const AdminModals = ({
             </div>
 
             {mapMode === "add" && (
-              <div className="p-4 border-t border-gray-200 bg-gray-50">
+              <div className="p-4 border-t border-black bg-lime-50">
                 <div className="flex justify-between items-center">
                   <div>
                     {selectedLocation ? (
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-black">
                         Selected coordinates: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
                       </p>
                     ) : (
-                      <p className="text-sm text-gray-600">Click on the map to select a location</p>
+                      <p className="text-sm text-black">Click on the map to select a location</p>
                     )}
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => setShowMapModal(false)}
-                      className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                      className="px-4 py-2 bg-white border-2 border-black text-black rounded-lg hover:bg-gray-100"
                     >
                       Cancel
                     </button>
@@ -1456,7 +1448,7 @@ const AdminModals = ({
                         }
                       }}
                       disabled={!selectedLocation}
-                      className={`px-4 py-2 bg-lime-700 text-white rounded hover:bg-lime-800 ${
+                      className={`px-4 py-2 bg-lime-50 border-2 border-black text-black rounded-lg hover:bg-lime-100 shadow-md ${
                         !selectedLocation ? "opacity-50 cursor-not-allowed" : ""
                       }`}
                     >
