@@ -1073,24 +1073,24 @@ const FarmerRegistration = ({
                     <div>
                       <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Address</label>
                       <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-auto cursor-pointer" onClick={() => { setShowMapModal(true); setMapMode('add'); }}>
+                        {/* Map icon removed - map modal feature disabled */}
+                        {/* <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-auto cursor-pointer" onClick={() => { setShowMapModal(true); setMapMode('add'); }}>
                           <MapPin size={16} className="text-lime-500" />
-                        </div>
+                        </div> */}
                         <input
                           type="text"
                           name="address"
                           value={formData.address || ""}
                           onChange={handleChange}
-                          className="pl-10 w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
+                          className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
                           style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
                           required
-                          readOnly
-                          placeholder="Click the map icon to select location"
+                          placeholder="Enter address manually"
                         />
                       </div>
                       <p className="text-xs text-gray-600 mt-1 flex items-center">
                         <span className="text-lime-500 mr-1">►</span>
-                        Click map icon for GPS-verified location
+                        Enter the complete address manually
                       </p>
                     </div>
                   </div>

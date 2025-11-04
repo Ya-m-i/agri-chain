@@ -70,96 +70,34 @@ const AdminModals = ({
   setFarmerToDelete,
   farmers,
 }) => {
-  // Map modal uses background map (managed by AdminDashboard) for wider view
-  const [mapReady, setMapReady] = useState(false);
+  // Map modal feature removed - all related code disabled
+  // const [mapReady, setMapReady] = useState(false);
   
-  // Listen for map ready event
-  useEffect(() => {
-    const handleMapReady = () => {
-      console.log('📍 AdminModals: Received leafletMapReady event');
-      setMapReady(true);
-    };
-    
-    window.addEventListener('leafletMapReady', handleMapReady);
-    return () => {
-      window.removeEventListener('leafletMapReady', handleMapReady);
-    };
-  }, []);
+  // Map modal event listeners removed
+  // useEffect(() => {
+  //   const handleMapReady = () => {
+  //     console.log('📍 AdminModals: Received leafletMapReady event');
+  //     setMapReady(true);
+  //   };
+  //   window.addEventListener('leafletMapReady', handleMapReady);
+  //   return () => {
+  //     window.removeEventListener('leafletMapReady', handleMapReady);
+  //   };
+  // }, []);
   
-  // Reset mapReady when modal closes
-  useEffect(() => {
-    if (!showMapModal) {
-      setMapReady(false);
-    }
-  }, [showMapModal]);
+  // Map modal reset logic removed
+  // useEffect(() => {
+  //   if (!showMapModal) {
+  //     setMapReady(false);
+  //   }
+  // }, [showMapModal]);
   
-  // Force map to initialize and resize when modal opens
-  useEffect(() => {
-    if (showMapModal && mapMode === "add") {
-      console.log('📍 AdminModals: Map modal opened, waiting for modal to render...');
-      
-      // Wait for modal to fully render before manipulating map
-      const timers = [];
-      
-      // Step 1: Set container height after modal is visible (400ms delay)
-      timers.push(setTimeout(() => {
-        if (mapRef.current) {
-          const container = mapRef.current;
-          const parent = container.parentElement;
-          
-          if (container && parent) {
-            const parentRect = parent.getBoundingClientRect();
-            if (parentRect.height > 0) {
-              container.style.height = `${parentRect.height}px`;
-              console.log('✅ AdminModals: Set explicit height:', parentRect.height);
-            } else {
-              // Fallback to viewport calculation
-              const viewportHeight = window.innerHeight;
-              const calculatedHeight = Math.max(600, viewportHeight - 300);
-              container.style.height = `${calculatedHeight}px`;
-              console.log('✅ AdminModals: Set explicit height from viewport:', calculatedHeight);
-            }
-            
-            // Ensure container is visible
-            container.style.opacity = '1';
-            container.style.visibility = 'visible';
-            container.style.display = 'block';
-          }
-        }
-      }, 400)); // Wait for modal animation to complete
-      
-      // Step 2: Resize map if it already exists (500ms delay)
-      timers.push(setTimeout(() => {
-        if (mapRef.current && leafletMapRef?.current) {
-          leafletMapRef.current.invalidateSize(true);
-          leafletMapRef.current.setView([7.591509, 125.696724], 14, { animate: false });
-          window.dispatchEvent(new Event('resize'));
-          console.log('✅ AdminModals: Map resized and view reset after modal open');
-        }
-      }, 500));
-      
-      // Step 3: Additional resize attempts to ensure tiles load
-      timers.push(setTimeout(() => {
-        if (mapRef.current && leafletMapRef?.current) {
-          leafletMapRef.current.invalidateSize(true);
-          console.log('📍 AdminModals: Second invalidateSize() call');
-        }
-      }, 700));
-      
-      // Step 4: Final resize attempt
-      timers.push(setTimeout(() => {
-        if (mapRef.current && leafletMapRef?.current) {
-          leafletMapRef.current.invalidateSize(true);
-          window.dispatchEvent(new Event('resize'));
-          console.log('📍 AdminModals: Final resize and invalidateSize() - tiles should be visible');
-        }
-      }, 1000));
-      
-      return () => {
-        timers.forEach(timer => clearTimeout(timer));
-      };
-    }
-  }, [showMapModal, mapMode, mapRef, leafletMapRef]);
+  // Map modal initialization and resize logic removed
+  // useEffect(() => {
+  //   if (showMapModal && mapMode === "add") {
+  //     // ... map modal initialization code removed
+  //   }
+  // }, [showMapModal, mapMode, mapRef, leafletMapRef]);
 
   // Custom scrollbar styling
   const scrollbarStyle = `
@@ -1393,181 +1331,7 @@ const AdminModals = ({
         </div>
       )}
 
-      {/* Map Modal - Fullscreen with Farm Vibe */}
-      {showMapModal && (
-        <div className="fixed inset-0 z-[9999] bg-lime-50 flex items-center justify-center" style={{ backgroundColor: '#f7fee7' }}>
-          <div className="bg-lime-50 border-4 border-black w-full h-full overflow-hidden flex flex-col shadow-2xl relative z-[9999]" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6)' }}>
-            {/* Header with Enhanced Farm Vibe */}
-            <div className="sticky top-0 bg-gradient-to-r from-lime-50 to-lime-100 border-b-4 border-black p-5 flex justify-between items-center z-20" style={{ boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)' }}>
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-black rounded-xl shadow-lg" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.8), inset 0 0 10px rgba(132, 204, 22, 0.4)' }}>
-                  <MapPin className="h-7 w-7 text-lime-400" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-black text-black uppercase tracking-wider flex items-center gap-2">
-                    <span>🌾</span>
-                    {mapMode === "view" ? "Farm Locations Map" : "Select Farm Location"}
-                    <span>📍</span>
-                  </h2>
-                  <p className="text-sm text-gray-700 uppercase tracking-widest font-bold mt-1">Kapalong Maniki Area</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowMapModal(false)}
-                className="text-black hover:text-red-600 focus:outline-none transition-all hover:rotate-90 duration-300 font-black bg-white border-2 border-black rounded-full p-2 shadow-lg hover:shadow-xl"
-                style={{ filter: 'drop-shadow(0 0 8px rgba(0, 0, 0, 0.4))' }}
-              >
-                <X size={28} strokeWidth={3} />
-              </button>
-            </div>
-
-            {/* Search and Controls with Enhanced Farm Vibe */}
-            <div className="p-4 border-b-4 border-black bg-gradient-to-r from-lime-50 to-lime-100 flex flex-wrap gap-4 items-center" style={{ boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)' }}>
-              <div className="flex-1 min-w-[200px]">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search for a location..."
-                    value={mapSearchQuery}
-                    onChange={(e) => setMapSearchQuery(e.target.value)}
-                    className="w-full p-3 pr-10 border-2 border-black bg-white rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-black font-medium"
-                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.3)' }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        searchLocation()
-                      }
-                    }}
-                  />
-                  <button
-                    onClick={searchLocation}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-black hover:text-gray-700 bg-lime-100 p-1 rounded"
-                  >
-                    <Search className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-
-              {mapMode === "view" && (
-                <button
-                  onClick={() => setMapMode("add")}
-                  className="bg-lime-400 border-2 border-black text-black px-4 py-2 rounded-lg hover:bg-lime-500 flex items-center font-bold uppercase tracking-wide shadow-md"
-                  style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
-                >
-                  <Plus className="mr-2 h-5 w-5" />
-                  Add Location
-                </button>
-              )}
-
-              {mapMode === "add" && (
-                <button
-                  onClick={() => setMapMode("view")}
-                  className="bg-white border-2 border-black text-black px-4 py-2 rounded-lg hover:bg-gray-100 flex items-center font-bold uppercase tracking-wide"
-                >
-                  <Layers className="mr-2 h-5 w-5" />
-                  View All Locations
-                </button>
-              )}
-            </div>
-
-            {/* Map Container - Using background map for wider view with Farm Vibe */}
-            <div 
-              className="relative bg-white border-4 border-black" 
-              style={{ 
-                minHeight: '600px', 
-                height: 'calc(100vh - 250px)',
-                width: '100%',
-                position: 'relative',
-                flex: '1 1 auto',
-                overflow: 'visible'
-              }}
-            >
-              {/* Loading indicator - Show while map is initializing - Lower z-index so map can render above */}
-              {(!mapRef.current || !leafletMapRef?.current || !mapReady) && (
-                <div className="absolute inset-0 flex items-center justify-center bg-lime-50 z-[1]" style={{ backgroundColor: '#f7fee7' }}>
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lime-600 mx-auto mb-4"></div>
-                    <p className="text-black font-bold uppercase">Loading Map...</p>
-                    <p className="text-sm text-gray-600 mt-2">Kapalong Maniki Area</p>
-                    <p className="text-xs text-gray-500 mt-1">Initializing Leaflet...</p>
-                  </div>
-                </div>
-              )}
-              <div 
-                ref={mapRef} 
-                id="location-picker-map"
-                className="w-full h-full"
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  zIndex: 10,
-                  backgroundColor: '#e5e7eb',
-                  minHeight: '400px',
-                  height: '100%',
-                  width: '100%',
-                  display: 'block',
-                  visibility: 'visible',
-                  overflow: 'visible',
-                  opacity: 1
-                }}
-              ></div>
-              {/* Farm Vibe Decorative Corner */}
-              <div className="absolute top-2 right-2 bg-black text-lime-400 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider z-20" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
-                🌾 GPS Active - Kapalong Maniki
-              </div>
-            </div>
-
-            {/* Footer with Enhanced Farm Vibe */}
-            {mapMode === "add" && (
-              <div className="p-5 border-t-4 border-black bg-gradient-to-r from-lime-50 to-lime-100" style={{ boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.1)' }}>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    {selectedLocation ? (
-                      <div className="bg-black text-lime-400 px-4 py-2 rounded-lg border-2 border-lime-400">
-                        <p className="text-sm font-black uppercase tracking-wider">
-                          🌾 Selected: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="bg-white border-2 border-black px-4 py-2 rounded-lg">
-                        <p className="text-sm font-black text-black uppercase tracking-wider">📍 Click on the map to select a location</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setShowMapModal(false)}
-                      className="px-6 py-3 bg-white border-4 border-black text-black rounded-lg hover:bg-gray-100 font-black uppercase tracking-wider shadow-lg hover:shadow-xl transition-all"
-                    >
-                      ✖ Cancel
-                    </button>
-                    <button
-                      onClick={() => {
-                        if (selectedLocation) {
-                          // Close modal after confirming location
-                          setShowMapModal(false)
-                          console.log('✅ Location confirmed:', selectedLocation)
-                        } else {
-                          alert("Please select a location on the map first.")
-                        }
-                      }}
-                      disabled={!selectedLocation}
-                      className={`px-6 py-3 bg-lime-400 border-4 border-black text-black rounded-lg hover:bg-lime-500 font-black uppercase tracking-wider transition-all ${
-                        !selectedLocation ? "opacity-50 cursor-not-allowed" : "shadow-xl hover:shadow-2xl"
-                      }`}
-                      style={!selectedLocation ? {} : { boxShadow: '0 0 20px rgba(132, 204, 22, 0.7)' }}
-                    >
-                      ✅ Confirm Location
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Map Modal - REMOVED - Feature disabled per user request */}
 
       {/* Farmer Details Modal */}
       {showFarmerDetails && selectedFarmer && (

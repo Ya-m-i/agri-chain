@@ -74,7 +74,7 @@ import DashboardMapOverview from "../components/DashboardMapOverview"
 import DashboardClaims from "../components/DashboardClaims"
 import AnalyticsModal from "../components/AnalyticsModal"
 import CalendarModal from "../components/CalendarModal"
-import MapModal from "../components/MapModal"
+// import MapModal from "../components/MapModal" // Map modal feature removed
 import ViewAssistanceModal from "../components/ViewAssistanceModal"
 import FarmerDetailsModal from "../components/FarmerDetailsModal"
 import DeleteConfirmationModal from "../components/DeleteConfirmationModal"
@@ -616,7 +616,6 @@ const AdminDashboard = () => {
   }
 
   // Function to add farmers to map
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const addFarmersToMap = () => {
     if (!markersLayerRef.current || !leafletMapRef.current) return
 
@@ -660,7 +659,6 @@ const AdminDashboard = () => {
   }
 
   // Function to reverse geocode coordinates to address
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const reverseGeocode = (lat, lng) => {
     console.log('🌍 Reverse geocoding coordinates:', lat, lng);
     fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`, {
@@ -1615,8 +1613,8 @@ const AdminDashboard = () => {
     }
   };
 
-  // Helper function to ensure container has dimensions
-  const ensureContainerDimensions = (container) => {
+  // Helper function to ensure container has dimensions (unused)
+  const ENSURE_CONTAINER_DIMENSIONS = (container) => {
     if (!container) return false;
     
     const rect = container.getBoundingClientRect();
@@ -1640,8 +1638,8 @@ const AdminDashboard = () => {
     return rect.width > 0 && rect.height > 0;
   };
 
-  // Helper function to style container for map
-  const styleMapContainer = (container) => {
+  // Helper function to style container for map (may be unused)
+  const STYLE_MAP_CONTAINER = (container) => {
     if (!container) return;
     
     container.style.display = 'block';
@@ -1764,8 +1762,8 @@ const AdminDashboard = () => {
     }, delay);
   };
 
-  // Main map initialization function - Uses overview map instance
-  const initializeLocationMap = (container) => {
+  // Main map initialization function - Uses overview map instance (unused)
+  const INITIALIZE_LOCATION_MAP = (container) => {
     if (!container || !mapRef.current) {
       console.error('❌ Container or mapRef.current is null');
       return;
@@ -1789,7 +1787,7 @@ const AdminDashboard = () => {
     if (!leafletMapRef.current) {
       try {
         // Style container
-        styleMapContainer(container);
+        STYLE_MAP_CONTAINER(container);
 
         // Create map instance - sync with overview map view and data
         // Get initial center and zoom from overview map if it exists
@@ -1994,54 +1992,13 @@ const AdminDashboard = () => {
     }
   };
 
-  // Load Leaflet when map modal is shown
-  useEffect(() => {
-    if (showMapModal && mapMode === "add") {
-      console.log('🗺️ Map modal opened, starting initialization...');
-
-      let retryCount = 0;
-      const maxRetries = 50; // Max 5 seconds
-
-      const checkContainerReady = () => {
-        retryCount++;
-
-        if (retryCount > maxRetries) {
-          console.error('❌ Max retries reached. Proceeding with initialization...');
-          if (mapRef.current) {
-            initializeLocationMap(mapRef.current);
-          }
-          return;
-        }
-
-        if (!mapRef.current) {
-          console.warn(`⚠️ mapRef.current is null, retrying (${retryCount}/${maxRetries})...`);
-          setTimeout(checkContainerReady, 100);
-          return;
-        }
-
-        const container = mapRef.current;
-
-        // Try to fix dimensions if needed
-        if (!ensureContainerDimensions(container)) {
-          const rect = container.getBoundingClientRect();
-          console.warn(`⚠️ Container has no dimensions, retrying (${retryCount}/${maxRetries})...`, rect);
-          setTimeout(checkContainerReady, 100);
-          return;
-        }
-
-        const rect = container.getBoundingClientRect();
-        console.log('✅ Container is ready with dimensions:', rect.width, 'x', rect.height);
-        
-        // Small delay to ensure DOM is settled
-        setTimeout(() => {
-          initializeLocationMap(container);
-        }, 100);
-      };
-
-      // Start checking
-      checkContainerReady();
-    }
-  }, [showMapModal, mapMode, farmers, reverseGeocode, addFarmersToMap])
+  // Map modal feature removed - initialization disabled
+  // useEffect(() => {
+  //   if (showMapModal && mapMode === "add") {
+  //     console.log('🗺️ Map modal opened, starting initialization...');
+  //     // ... all map modal initialization code removed
+  //   }
+  // }, [showMapModal, mapMode, farmers, reverseGeocode, addFarmersToMap])
 
   // Load crop insurance records and group by farmer for dashboard overview
   // Note: This useEffect removed as we now use React Query data directly
@@ -3419,8 +3376,8 @@ const AdminDashboard = () => {
         onGeneratePdfReport={generatePdfReport}
       />
 
-      {/* Map Modal */}
-      <MapModal
+      {/* Map Modal - REMOVED - Feature disabled per user request */}
+      {/* <MapModal
         isOpen={showMapModal}
         onClose={() => setShowMapModal(false)}
         mapMode={mapMode}
@@ -3437,7 +3394,7 @@ const AdminDashboard = () => {
             alert("Please select a location on the map first.")
           }
         }}
-      />
+      /> */}
 
       {/* Farmer Details Modal */}
       <FarmerDetailsModal
