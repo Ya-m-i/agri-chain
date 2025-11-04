@@ -1603,336 +1603,318 @@ const AdminDashboard = () => {
     console.log('AdminDashboard: Total pages:', totalPages);
   }, [currentItems, currentPage, totalPages]);
 
+  // Helper function to fix Leaflet icon paths
+  const fixLeafletIconPaths = () => {
+    if (typeof L !== 'undefined' && L.Icon && L.Icon.Default) {
+      delete L.Icon.Default.prototype._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+      });
+    }
+  };
+
+  // Helper function to ensure container has dimensions
+  const ensureContainerDimensions = (container) => {
+    if (!container) return false;
+    
+    const rect = container.getBoundingClientRect();
+    
+    // If height is 0 but width is available, try to set height
+    if (rect.height === 0 && rect.width > 0) {
+      const parent = container.parentElement;
+      if (parent) {
+        const parentRect = parent.getBoundingClientRect();
+        if (parentRect.height > 0) {
+          container.style.height = `${parentRect.height}px`;
+          return true;
+        }
+      }
+      // Fallback to viewport calculation
+      const viewportHeight = window.innerHeight;
+      container.style.height = `${Math.max(600, viewportHeight - 300)}px`;
+      return true;
+    }
+    
+    return rect.width > 0 && rect.height > 0;
+  };
+
+  // Helper function to style container for map
+  const styleMapContainer = (container) => {
+    if (!container) return;
+    
+    container.style.display = 'block';
+    container.style.visibility = 'visible';
+    container.style.position = 'absolute';
+    container.style.top = '0';
+    container.style.left = '0';
+    container.style.right = '0';
+    container.style.bottom = '0';
+    container.style.zIndex = '10';
+    container.style.width = '100%';
+    container.style.height = '100%';
+    
+    // Ensure parent has dimensions
+    const parent = container.parentElement;
+    if (parent) {
+      const parentRect = parent.getBoundingClientRect();
+      if (parentRect.height === 0) {
+        const viewportHeight = window.innerHeight;
+        parent.style.height = `${Math.max(600, viewportHeight - 300)}px`;
+      }
+    }
+  };
+
+  // Helper function to create farm marker icon
+  const createFarmIcon = () => {
+    return L.divIcon({
+      className: 'farm-marker-icon',
+      html: `
+        <div style="
+          position: relative;
+          width: 50px;
+          height: 50px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          pointer-events: none;
+        ">
+          <div style="
+            background-color: #84cc16;
+            width: 50px;
+            height: 50px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            border: 5px solid #000000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(132, 204, 22, 0.8);
+            position: relative;
+            z-index: 1;
+          "></div>
+          <div style="
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+            font-size: 24px;
+            line-height: 1;
+            z-index: 10;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            pointer-events: none;
+          ">🌾</div>
+          <div style="
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+            width: 8px;
+            height: 8px;
+            background-color: #000000;
+            border-radius: 50%;
+            z-index: 11;
+            pointer-events: none;
+          "></div>
+        </div>
+      `,
+      iconSize: [50, 50],
+      iconAnchor: [25, 50],
+      popupAnchor: [0, -50],
+    });
+  };
+
+  // Helper function to setup map click handler
+  const setupMapClickHandler = (map) => {
+    map.on("click", (e) => {
+      if (mapMode === "add") {
+        setSelectedLocation({
+          lat: e.latlng.lat,
+          lng: e.latlng.lng,
+        });
+
+        // Clear existing markers
+        if (markersLayerRef.current) {
+          markersLayerRef.current.clearLayers();
+        }
+
+        // Add new marker
+        const farmIcon = createFarmIcon();
+        const marker = L.marker([e.latlng.lat, e.latlng.lng], {
+          icon: farmIcon,
+          zIndexOffset: 1000,
+        }).addTo(markersLayerRef.current);
+
+        marker.bringToFront();
+        reverseGeocode(e.latlng.lat, e.latlng.lng);
+      }
+    });
+  };
+
+  // Helper function to force map resize
+  const forceMapResize = (map, delay = 100) => {
+    setTimeout(() => {
+      if (map) {
+        map.invalidateSize(true);
+        window.dispatchEvent(new Event('resize'));
+      }
+    }, delay);
+  };
+
+  // Main map initialization function
+  const initializeLocationMap = (container) => {
+    if (!container || !mapRef.current) {
+      console.error('❌ Container or mapRef.current is null');
+      return;
+    }
+
+    // Check if Leaflet is available
+    if (typeof window === 'undefined' || !window.L || typeof L === 'undefined') {
+      console.error('❌ Leaflet (L) is not available');
+      return;
+    }
+
+    // Fix icon paths
+    fixLeafletIconPaths();
+
+    // Kapalong Maniki coordinates
+    const kapalongManikiCenter = [7.591509, 125.696724];
+
+    // If map doesn't exist, create it
+    if (!leafletMapRef.current) {
+      try {
+        // Style container
+        styleMapContainer(container);
+
+        // Create map instance
+        leafletMapRef.current = L.map(container, {
+          center: kapalongManikiCenter,
+          zoom: 14,
+          zoomControl: true,
+          scrollWheelZoom: true,
+          minZoom: 11,
+          maxZoom: 18,
+          preferCanvas: false,
+        });
+
+        console.log('✅ Leaflet map instance created');
+
+        // Add tile layer
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          maxZoom: 19,
+        }).addTo(leafletMapRef.current);
+
+        // Create markers layer
+        markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current);
+
+        // Setup click handler
+        setupMapClickHandler(leafletMapRef.current);
+
+        console.log('✅ Map initialized successfully');
+
+        // Dispatch ready event
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('leafletMapReady', {
+            detail: { mapInstance: leafletMapRef.current }
+          }));
+        }, 100);
+
+        // Set view and force resize
+        setTimeout(() => {
+          if (leafletMapRef.current) {
+            const finalRect = container.getBoundingClientRect();
+            
+            if (finalRect.height > 0 && finalRect.width > 0) {
+              leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
+              
+              // Multiple resize attempts
+              forceMapResize(leafletMapRef.current, 150);
+              forceMapResize(leafletMapRef.current, 350);
+              forceMapResize(leafletMapRef.current, 550);
+              
+              setTimeout(() => {
+                if (leafletMapRef.current) {
+                  const mapBounds = leafletMapRef.current.getBounds();
+                  console.log('✅ Map fully initialized');
+                  console.log('📍 Map bounds:', mapBounds);
+                  console.log('📍 Map center:', leafletMapRef.current.getCenter());
+                }
+              }, 800);
+            } else {
+              // Force height and retry
+              container.style.height = `${Math.max(600, window.innerHeight - 300)}px`;
+              setTimeout(() => {
+                if (leafletMapRef.current) {
+                  leafletMapRef.current.invalidateSize(true);
+                  leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
+                }
+              }, 200);
+            }
+          }
+        }, 300);
+      } catch (error) {
+        console.error('❌ Error initializing map:', error);
+        console.error('Error details:', error.stack);
+      }
+    } else {
+      // Update existing map
+      console.log('🔄 Updating existing map');
+      leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
+      forceMapResize(leafletMapRef.current, 200);
+      forceMapResize(leafletMapRef.current, 400);
+    }
+
+    // Add existing farmers to map (view mode)
+    if (mapMode === "view") {
+      addFarmersToMap();
+    }
+  };
+
   // Load Leaflet when map modal is shown
   useEffect(() => {
     if (showMapModal && mapMode === "add") {
       console.log('🗺️ Map modal opened, starting initialization...');
-      
-      // Wait for container to be ready and visible
+
       let retryCount = 0;
-      const maxRetries = 50; // Max 5 seconds (50 * 100ms)
-      
+      const maxRetries = 50; // Max 5 seconds
+
       const checkContainerReady = () => {
         retryCount++;
-        
+
         if (retryCount > maxRetries) {
-          console.error('❌ Max retries reached. Container may not have proper dimensions. Proceeding with initialization anyway...');
-          // Proceed anyway - sometimes Leaflet can handle it
-          initializeMap();
+          console.error('❌ Max retries reached. Proceeding with initialization...');
+          if (mapRef.current) {
+            initializeLocationMap(mapRef.current);
+          }
           return;
         }
-        
+
         if (!mapRef.current) {
           console.warn(`⚠️ mapRef.current is null, retrying (${retryCount}/${maxRetries})...`);
           setTimeout(checkContainerReady, 100);
           return;
         }
 
-        // Check if container has dimensions
         const container = mapRef.current;
-        const rect = container.getBoundingClientRect();
-        
-        // If height is 0, try to force a height by setting it explicitly
-        if (rect.height === 0 && rect.width > 0) {
-          console.warn(`⚠️ Container has height 0, attempting to set explicit height (${retryCount}/${maxRetries})...`, rect);
-          // Try to get height from parent or use a default
-          const parent = container.parentElement;
-          if (parent) {
-            const parentRect = parent.getBoundingClientRect();
-            if (parentRect.height > 0) {
-              container.style.height = `${parentRect.height}px`;
-              console.log('✅ Set explicit height from parent:', parentRect.height);
-            } else {
-              // Use viewport height as fallback
-              const viewportHeight = window.innerHeight;
-              container.style.height = `${Math.max(600, viewportHeight - 300)}px`;
-              console.log('✅ Set explicit height from viewport:', container.style.height);
-            }
-          }
-          // Wait a bit for the height to take effect
-          setTimeout(checkContainerReady, 150);
-          return;
-        }
-        
-        if (rect.width === 0 || rect.height === 0) {
+
+        // Try to fix dimensions if needed
+        if (!ensureContainerDimensions(container)) {
+          const rect = container.getBoundingClientRect();
           console.warn(`⚠️ Container has no dimensions, retrying (${retryCount}/${maxRetries})...`, rect);
           setTimeout(checkContainerReady, 100);
           return;
         }
 
+        const rect = container.getBoundingClientRect();
         console.log('✅ Container is ready with dimensions:', rect.width, 'x', rect.height);
-        initializeMap();
-      };
-      
-      const initializeMap = () => {
-
-        if (!mapRef.current) {
-          console.error('❌ mapRef.current became null during delay');
-          return;
-        }
-
-        // Fix Leaflet default icon path issue
-        if (typeof L !== 'undefined' && L.Icon && L.Icon.Default) {
-          delete L.Icon.Default.prototype._getIconUrl;
-          L.Icon.Default.mergeOptions({
-            iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-          });
-        }
-
-        // Initialize map after container is ready
+        
+        // Small delay to ensure DOM is settled
         setTimeout(() => {
-          if (!mapRef.current) {
-            console.error('❌ mapRef.current became null during delay');
-            return;
-          }
-
-          // Check if Leaflet is available
-          if (typeof window === 'undefined' || !window.L || typeof L === 'undefined') {
-            console.error('❌ Leaflet (L) is not available');
-            return;
-          }
-
-          // Kapalong Maniki coordinates
-          const kapalongManikiCenter = [7.591509, 125.696724];
-
-          // If map doesn't exist yet, create it
-          if (!leafletMapRef.current) {
-            console.log('🗺️ Creating new map with Kapalong Maniki coordinates:', kapalongManikiCenter);
-            
-            try {
-              // Ensure container is visible and has proper styling
-              container.style.display = 'block';
-              container.style.visibility = 'visible';
-              container.style.position = 'absolute';
-              container.style.top = '0';
-              container.style.left = '0';
-              container.style.right = '0';
-              container.style.bottom = '0';
-              container.style.zIndex = '10';
-              container.style.width = '100%';
-              container.style.height = '100%';
-              
-              // Ensure parent container also has proper dimensions
-              const parent = container.parentElement;
-              if (parent) {
-                const parentRect = parent.getBoundingClientRect();
-                if (parentRect.height === 0) {
-                  const viewportHeight = window.innerHeight;
-                  parent.style.height = `${Math.max(600, viewportHeight - 300)}px`;
-                  console.log('✅ Set parent height to:', parent.style.height);
-                }
-              }
-              
-              leafletMapRef.current = L.map(container, {
-                center: kapalongManikiCenter,
-                zoom: 14,
-                zoomControl: true,
-                scrollWheelZoom: true,
-                minZoom: 11,
-                maxZoom: 18,
-                preferCanvas: false,
-              });
-
-              console.log('✅ Leaflet map instance created');
-
-              // Add tile layer (OpenStreetMap)
-              L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                maxZoom: 19,
-              }).addTo(leafletMapRef.current);
-
-              console.log('✅ Tile layer added');
-
-              // Create a layer for markers
-              markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current);
-              
-              console.log('✅ Map initialized successfully');
-              
-              // Force a state update to trigger re-render and hide loading indicator
-              // This ensures React knows the map is ready
-              setTimeout(() => {
-                // Dispatch a custom event that AdminModals can listen to
-                window.dispatchEvent(new CustomEvent('leafletMapReady', { 
-                  detail: { mapInstance: leafletMapRef.current } 
-                }));
-                console.log('✅ Dispatched leafletMapReady event');
-              }, 100);
-            } catch (error) {
-              console.error('❌ Error initializing map:', error);
-              console.error('Error details:', error.stack);
-              return;
-            }
-
-            // Add click handler for adding new locations
-            leafletMapRef.current.on("click", (e) => {
-              if (mapMode === "add") {
-                setSelectedLocation({
-                  lat: e.latlng.lat,
-                  lng: e.latlng.lng,
-                })
-
-                // Clear existing markers in add mode
-                if (markersLayerRef.current) {
-                  markersLayerRef.current.clearLayers()
-                }
-
-                // Add a new marker at the clicked location with custom farm marker
-                const farmIcon = L.divIcon({
-                className: 'farm-marker-icon',
-                html: `
-                  <div style="
-                    position: relative;
-                    width: 50px;
-                    height: 50px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    pointer-events: none;
-                  ">
-                    <div style="
-                      background-color: #84cc16;
-                      width: 50px;
-                      height: 50px;
-                      border-radius: 50% 50% 50% 0;
-                      transform: rotate(-45deg);
-                      border: 5px solid #000000;
-                      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(132, 204, 22, 0.8);
-                      position: relative;
-                      z-index: 1;
-                    "></div>
-                    <div style="
-                      position: absolute;
-                      top: 50%;
-                      left: 50%;
-                      transform: translate(-50%, -50%) rotate(45deg);
-                      font-size: 24px;
-                      line-height: 1;
-                      z-index: 10;
-                      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-                      pointer-events: none;
-                    ">🌾</div>
-                    <div style="
-                      position: absolute;
-                      top: 50%;
-                      left: 50%;
-                      transform: translate(-50%, -50%) rotate(45deg);
-                      width: 8px;
-                      height: 8px;
-                      background-color: #000000;
-                      border-radius: 50%;
-                      z-index: 11;
-                      pointer-events: none;
-                    "></div>
-                  </div>
-                `,
-                iconSize: [50, 50],
-                iconAnchor: [25, 50],
-                popupAnchor: [0, -50],
-                });
-                const marker = L.marker([e.latlng.lat, e.latlng.lng], { 
-                  icon: farmIcon,
-                  zIndexOffset: 1000,
-                }).addTo(markersLayerRef.current);
-                
-                // Ensure marker is visible
-                marker.bringToFront();
-
-                // Reverse geocode to get address and update form
-                reverseGeocode(e.latlng.lat, e.latlng.lng)
-              }
-            });
-
-            // Set view to Kapalong Maniki after map is ready and force resize
-            setTimeout(() => {
-              if (leafletMapRef.current && container) {
-                // Ensure container still has dimensions
-                const finalRect = container.getBoundingClientRect();
-                console.log('📐 Final container dimensions before setView:', finalRect.width, 'x', finalRect.height);
-                
-                if (finalRect.height > 0 && finalRect.width > 0) {
-                  leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
-                  console.log('✅ Map view set to Kapalong Maniki');
-                  
-                  // Force resize multiple times to ensure map renders
-                  setTimeout(() => {
-                    if (leafletMapRef.current) {
-                      leafletMapRef.current.invalidateSize(true); // Force immediate recalculation
-                      console.log('✅ First invalidateSize(true) called');
-                      
-                      // Force another resize to ensure tiles load
-                      setTimeout(() => {
-                        if (leafletMapRef.current) {
-                          leafletMapRef.current.invalidateSize(true);
-                          // Trigger window resize to help Leaflet recalculate
-                          window.dispatchEvent(new Event('resize'));
-                          console.log('✅ Second invalidateSize(true) called - Map should be visible now');
-                          
-                          // Final check and resize
-                          setTimeout(() => {
-                            if (leafletMapRef.current) {
-                              leafletMapRef.current.invalidateSize(true);
-                              const mapBounds = leafletMapRef.current.getBounds();
-                              console.log('✅ Map fully initialized and centered on Kapalong Maniki');
-                              console.log('📍 Map bounds:', mapBounds);
-                              console.log('📍 Map center:', leafletMapRef.current.getCenter());
-                            }
-                          }, 300);
-                        }
-                      }, 200);
-                    }
-                  }, 150);
-                } else {
-                  console.warn('⚠️ Container still has no dimensions, forcing height...');
-                  container.style.height = `${Math.max(600, window.innerHeight - 300)}px`;
-                  setTimeout(() => {
-                    if (leafletMapRef.current) {
-                      leafletMapRef.current.invalidateSize(true);
-                      leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
-                    }
-                  }, 200);
-                }
-              }
-            }, 500);
-          } else {
-            // If map exists, update the view to Kapalong Maniki (Department of Agriculture area)
-            console.log('🔄 Updating existing map to Kapalong Maniki (Department of Agriculture area)');
-            leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
-
-            // Force a resize to ensure the map renders correctly in the modal
-            setTimeout(() => {
-              if (leafletMapRef.current) {
-                leafletMapRef.current.invalidateSize();
-                // Force another resize after a short delay
-                setTimeout(() => {
-                  if (leafletMapRef.current) {
-                    leafletMapRef.current.invalidateSize();
-                  }
-                }, 200);
-                console.log('✅ Map size invalidated');
-              }
-            }, 400);
-          }
-
-          // Add existing farm locations to the map (only in view mode)
-          if (mapMode === "view") {
-            addFarmersToMap();
-          }
-        }, 300); // Small delay before initializing
+          initializeLocationMap(container);
+        }, 100);
       };
-      
-      // Start checking for mapRef
+
+      // Start checking
       checkContainerReady();
-      
-      // Cleanup function - only cleanup when modal is closed
-      return () => {
-        // Don't cleanup here - let the map persist for better UX
-        // Cleanup will happen when component unmounts or modal is explicitly closed
-      };
-    } else {
-      // When modal is not open, keep map instance available for next time
-      // Don't cleanup the map instance to avoid re-initialization delays
     }
   }, [showMapModal, mapMode, farmers, reverseGeocode, addFarmersToMap])
 
