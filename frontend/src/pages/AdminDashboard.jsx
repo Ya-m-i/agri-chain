@@ -1580,59 +1580,83 @@ const AdminDashboard = () => {
 
   // Load Leaflet when map modal is shown
   useEffect(() => {
-    if (showMapModal && mapRef.current) {
-      // Fix Leaflet default icon path issue
-      delete L.Icon.Default.prototype._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-      });
+    if (showMapModal) {
+      // Wait a bit to ensure modal container is rendered
+      const checkAndInit = () => {
+        if (!mapRef.current) {
+          console.warn('⚠️ mapRef.current is still null, retrying...');
+          setTimeout(checkAndInit, 100);
+          return;
+        }
 
-      // Wait for modal to fully render before initializing map
-      const initMap = () => {
-        if (!mapRef.current) return;
+        // Fix Leaflet default icon path issue
+        delete L.Icon.Default.prototype._getIconUrl;
+        L.Icon.Default.mergeOptions({
+          iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+        });
 
-        // Kapalong Maniki coordinates
-        const kapalongManikiCenter = [7.591509, 125.696724];
+        // Wait for modal to fully render before initializing map
+        const initMap = () => {
+          if (!mapRef.current) {
+            console.warn('⚠️ mapRef.current is null, cannot initialize map');
+            return;
+          }
 
-        // If map doesn't exist yet, create it
-        if (!leafletMapRef.current) {
-          console.log('🗺️ Initializing map with Kapalong Maniki coordinates:', kapalongManikiCenter);
-          
-          leafletMapRef.current = L.map(mapRef.current, {
-            center: kapalongManikiCenter,
-            zoom: 14,
-            zoomControl: true,
-            scrollWheelZoom: true,
-            minZoom: 11,
-            maxZoom: 18,
-          });
+          // Check if Leaflet is available
+          if (typeof window === 'undefined' || !window.L) {
+            console.error('❌ Leaflet is not available');
+            return;
+          }
 
-          // Add tile layer (OpenStreetMap)
-          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19,
-          }).addTo(leafletMapRef.current);
+          // Kapalong Maniki coordinates
+          const kapalongManikiCenter = [7.591509, 125.696724];
 
-          // Create a layer for markers
-          markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current);
+          // If map doesn't exist yet, create it
+          if (!leafletMapRef.current) {
+            console.log('🗺️ Initializing map with Kapalong Maniki coordinates:', kapalongManikiCenter);
+            
+            try {
+              leafletMapRef.current = L.map(mapRef.current, {
+                center: kapalongManikiCenter,
+                zoom: 14,
+                zoomControl: true,
+                scrollWheelZoom: true,
+                minZoom: 11,
+                maxZoom: 18,
+              });
 
-          // Add click handler for adding new locations
-          leafletMapRef.current.on("click", (e) => {
-            if (mapMode === "add") {
-              setSelectedLocation({
-                lat: e.latlng.lat,
-                lng: e.latlng.lng,
-              })
+              // Add tile layer (OpenStreetMap)
+              L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19,
+              }).addTo(leafletMapRef.current);
 
-              // Clear existing markers in add mode
-              if (markersLayerRef.current) {
-                markersLayerRef.current.clearLayers()
-              }
+              // Create a layer for markers
+              markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current);
+              
+              console.log('✅ Map initialized successfully');
+            } catch (error) {
+              console.error('❌ Error initializing map:', error);
+              return;
+            }
 
-              // Add a new marker at the clicked location with custom farm marker
-              const farmIcon = L.divIcon({
+            // Add click handler for adding new locations
+            leafletMapRef.current.on("click", (e) => {
+              if (mapMode === "add") {
+                setSelectedLocation({
+                  lat: e.latlng.lat,
+                  lng: e.latlng.lng,
+                })
+
+                // Clear existing markers in add mode
+                if (markersLayerRef.current) {
+                  markersLayerRef.current.clearLayers()
+                }
+
+                // Add a new marker at the clicked location with custom farm marker
+                const farmIcon = L.divIcon({
                 className: 'farm-marker-icon',
                 html: `
                   <div style="
@@ -1683,59 +1707,82 @@ const AdminDashboard = () => {
                 iconSize: [50, 50],
                 iconAnchor: [25, 50],
                 popupAnchor: [0, -50],
-              });
-              const marker = L.marker([e.latlng.lat, e.latlng.lng], { 
-                icon: farmIcon,
-                zIndexOffset: 1000,
-              }).addTo(markersLayerRef.current);
-              
-              // Ensure marker is visible
-              marker.bringToFront();
+                });
+                const marker = L.marker([e.latlng.lat, e.latlng.lng], { 
+                  icon: farmIcon,
+                  zIndexOffset: 1000,
+                }).addTo(markersLayerRef.current);
+                
+                // Ensure marker is visible
+                marker.bringToFront();
 
-              // Reverse geocode to get address and update form
-              reverseGeocode(e.latlng.lat, e.latlng.lng)
-            }
-          });
+                // Reverse geocode to get address and update form
+                reverseGeocode(e.latlng.lat, e.latlng.lng)
+              }
+            });
 
-          // Set view to Kapalong Maniki after map is ready
-          setTimeout(() => {
-            if (leafletMapRef.current) {
-              leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
-              leafletMapRef.current.invalidateSize();
-              console.log('✅ Map initialized and centered on Kapalong Maniki');
-            }
-          }, 200);
-        } else {
-          // If map exists, update the view to Kapalong Maniki
-          console.log('🔄 Updating existing map to Kapalong Maniki');
-          leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
+            // Set view to Kapalong Maniki after map is ready
+            setTimeout(() => {
+              if (leafletMapRef.current) {
+                leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
+                // Force resize multiple times to ensure map renders
+                setTimeout(() => {
+                  if (leafletMapRef.current) {
+                    leafletMapRef.current.invalidateSize();
+                    console.log('✅ Map initialized and centered on Kapalong Maniki');
+                  }
+                }, 100);
+              }
+            }, 300);
+          } else {
+            // If map exists, update the view to Kapalong Maniki
+            console.log('🔄 Updating existing map to Kapalong Maniki');
+            leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
 
-          // Force a resize to ensure the map renders correctly in the modal
-          setTimeout(() => {
-            if (leafletMapRef.current) {
-              leafletMapRef.current.invalidateSize();
-              console.log('✅ Map size invalidated');
-            }
-          }, 300);
-        }
+            // Force a resize to ensure the map renders correctly in the modal
+            setTimeout(() => {
+              if (leafletMapRef.current) {
+                leafletMapRef.current.invalidateSize();
+                // Force another resize after a short delay
+                setTimeout(() => {
+                  if (leafletMapRef.current) {
+                    leafletMapRef.current.invalidateSize();
+                  }
+                }, 200);
+                console.log('✅ Map size invalidated');
+              }
+            }, 400);
+          }
 
-        // Add existing farm locations to the map (only in view mode)
-        if (mapMode === "view") {
-          addFarmersToMap();
-        }
+          // Add existing farm locations to the map (only in view mode)
+          if (mapMode === "view") {
+            addFarmersToMap();
+          }
+        };
+
+        // Delay initialization to ensure modal is fully rendered
+        setTimeout(initMap, 400);
       };
-
-      // Delay initialization to ensure modal is fully rendered
-      const timer = setTimeout(initMap, 100);
       
+      // Start checking for mapRef
+      checkAndInit();
+      
+      // Cleanup function
       return () => {
-        clearTimeout(timer);
         if (leafletMapRef.current && !showMapModal) {
           leafletMapRef.current.remove();
           leafletMapRef.current = null;
           markersLayerRef.current = null;
         }
       };
+    } else {
+      // If modal is not shown but map exists, ensure it's properly cleaned up
+      if (leafletMapRef.current) {
+        console.log('🧹 Cleaning up map');
+        leafletMapRef.current.remove();
+        leafletMapRef.current = null;
+        markersLayerRef.current = null;
+      }
     }
   }, [showMapModal, mapMode, farmers, reverseGeocode, addFarmersToMap])
 

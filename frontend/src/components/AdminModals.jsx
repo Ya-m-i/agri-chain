@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   X,
   MapPin,
@@ -70,6 +70,22 @@ const AdminModals = ({
   farmers,
 }) => {
   // Map modal uses background map (managed by AdminDashboard) for wider view
+  
+  // Force map to initialize when modal opens
+  useEffect(() => {
+    if (showMapModal && mapRef.current) {
+      // Small delay to ensure modal container is fully rendered
+      const timer = setTimeout(() => {
+        // Trigger map initialization by checking if mapRef is available
+        if (mapRef.current && typeof window !== 'undefined' && window.L) {
+          // Force a resize event to trigger map initialization
+          window.dispatchEvent(new Event('resize'));
+        }
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [showMapModal, mapRef]);
 
   // Custom scrollbar styling
   const scrollbarStyle = `
@@ -1380,16 +1396,20 @@ const AdminModals = ({
             </div>
 
             {/* Map Container - Using background map for wider view with Farm Vibe */}
-            <div className="flex-1 relative bg-white overflow-hidden border-4 border-black" style={{ minHeight: '500px' }}>
+            <div className="flex-1 relative bg-white overflow-hidden border-4 border-black" style={{ minHeight: '600px', height: '100%' }}>
               <div 
                 ref={mapRef} 
                 id="location-picker-map"
                 className="w-full h-full"
                 style={{
-                  position: 'relative',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
                   zIndex: 1,
                   backgroundColor: '#e5e7eb',
-                  minHeight: '500px',
+                  minHeight: '600px',
                   width: '100%',
                   height: '100%'
                 }}
