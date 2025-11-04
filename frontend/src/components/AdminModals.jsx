@@ -60,6 +60,7 @@ const AdminModals = ({
   setMapSearchQuery,
   searchLocation,
   mapRef,
+  leafletMapRef,
   showFarmerDetails,
   setShowFarmerDetails,
   selectedFarmer,
@@ -71,21 +72,44 @@ const AdminModals = ({
 }) => {
   // Map modal uses background map (managed by AdminDashboard) for wider view
   
-  // Force map to initialize when modal opens
+  // Force map to initialize and resize when modal opens
   useEffect(() => {
-    if (showMapModal && mapRef.current) {
-      // Small delay to ensure modal container is fully rendered
-      const timer = setTimeout(() => {
-        // Trigger map initialization by checking if mapRef is available
-        if (mapRef.current && typeof window !== 'undefined' && window.L) {
-          // Force a resize event to trigger map initialization
-          window.dispatchEvent(new Event('resize'));
-        }
-      }, 300);
+    if (showMapModal && mapMode === "add") {
+      console.log('📍 AdminModals: Map modal opened, waiting for map to initialize...');
       
-      return () => clearTimeout(timer);
+      // Multiple resize attempts to ensure map renders
+      const timers = [];
+      
+      // First resize attempt
+      timers.push(setTimeout(() => {
+        if (mapRef.current && typeof window !== 'undefined' && window.L) {
+          window.dispatchEvent(new Event('resize'));
+          console.log('📍 AdminModals: First resize event dispatched');
+        }
+      }, 200));
+      
+      // Second resize attempt
+      timers.push(setTimeout(() => {
+        if (mapRef.current && leafletMapRef?.current) {
+          leafletMapRef.current.invalidateSize();
+          console.log('📍 AdminModals: Forced invalidateSize() on map');
+        }
+      }, 600));
+      
+      // Third resize attempt
+      timers.push(setTimeout(() => {
+        if (mapRef.current && leafletMapRef?.current) {
+          leafletMapRef.current.invalidateSize();
+          window.dispatchEvent(new Event('resize'));
+          console.log('📍 AdminModals: Final resize and invalidateSize()');
+        }
+      }, 1000));
+      
+      return () => {
+        timers.forEach(timer => clearTimeout(timer));
+      };
     }
-  }, [showMapModal, mapRef]);
+  }, [showMapModal, mapMode, mapRef, leafletMapRef]);
 
   // Custom scrollbar styling
   const scrollbarStyle = `
@@ -1396,14 +1420,23 @@ const AdminModals = ({
             </div>
 
             {/* Map Container - Using background map for wider view with Farm Vibe */}
-            <div className="flex-1 relative bg-white overflow-hidden border-4 border-black" style={{ minHeight: '600px', height: '100%' }}>
-              {/* Loading indicator */}
-              {!mapRef.current && (
-                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-20">
+            <div 
+              className="flex-1 relative bg-white overflow-hidden border-4 border-black" 
+              style={{ 
+                minHeight: '600px', 
+                height: 'calc(100vh - 200px)',
+                width: '100%',
+                position: 'relative'
+              }}
+            >
+              {/* Loading indicator - Show while map is initializing */}
+              {(!mapRef.current || !leafletMapRef?.current) && (
+                <div className="absolute inset-0 flex items-center justify-center bg-lime-50 z-30" style={{ backgroundColor: '#f7fee7' }}>
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lime-600 mx-auto mb-4"></div>
                     <p className="text-black font-bold uppercase">Loading Map...</p>
                     <p className="text-sm text-gray-600 mt-2">Kapalong Maniki Area</p>
+                    <p className="text-xs text-gray-500 mt-1">Initializing Leaflet...</p>
                   </div>
                 </div>
               )}
@@ -1417,15 +1450,17 @@ const AdminModals = ({
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  zIndex: 1,
+                  zIndex: 2,
                   backgroundColor: '#e5e7eb',
                   minHeight: '600px',
+                  height: '100%',
                   width: '100%',
-                  height: '100%'
+                  display: 'block',
+                  visibility: 'visible'
                 }}
               ></div>
               {/* Farm Vibe Decorative Corner */}
-              <div className="absolute top-2 right-2 bg-black text-lime-400 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider z-10" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
+              <div className="absolute top-2 right-2 bg-black text-lime-400 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider z-20" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
                 🌾 GPS Active - Kapalong Maniki
               </div>
             </div>

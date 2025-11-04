@@ -1605,33 +1605,48 @@ const AdminDashboard = () => {
 
   // Load Leaflet when map modal is shown
   useEffect(() => {
-    if (showMapModal) {
-      // Wait a bit to ensure modal container is rendered
-      const checkAndInit = () => {
+    if (showMapModal && mapMode === "add") {
+      console.log('🗺️ Map modal opened, starting initialization...');
+      
+      // Wait for container to be ready and visible
+      const checkContainerReady = () => {
         if (!mapRef.current) {
-          console.warn('⚠️ mapRef.current is still null, retrying...');
-          setTimeout(checkAndInit, 100);
+          console.warn('⚠️ mapRef.current is null, retrying in 100ms...');
+          setTimeout(checkContainerReady, 100);
           return;
         }
 
-        // Fix Leaflet default icon path issue
-        delete L.Icon.Default.prototype._getIconUrl;
-        L.Icon.Default.mergeOptions({
-          iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-        });
+        // Check if container has dimensions
+        const container = mapRef.current;
+        const rect = container.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) {
+          console.warn('⚠️ Container has no dimensions, retrying...', rect);
+          setTimeout(checkContainerReady, 100);
+          return;
+        }
 
-        // Wait for modal to fully render before initializing map
-        const initMap = () => {
+        console.log('✅ Container is ready with dimensions:', rect.width, 'x', rect.height);
+
+        // Fix Leaflet default icon path issue
+        if (typeof L !== 'undefined' && L.Icon && L.Icon.Default) {
+          delete L.Icon.Default.prototype._getIconUrl;
+          L.Icon.Default.mergeOptions({
+            iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+            iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+          });
+        }
+
+        // Initialize map after container is ready
+        setTimeout(() => {
           if (!mapRef.current) {
-            console.warn('⚠️ mapRef.current is null, cannot initialize map');
+            console.error('❌ mapRef.current became null during delay');
             return;
           }
 
           // Check if Leaflet is available
-          if (typeof window === 'undefined' || !window.L) {
-            console.error('❌ Leaflet is not available');
+          if (typeof window === 'undefined' || !window.L || typeof L === 'undefined') {
+            console.error('❌ Leaflet (L) is not available');
             return;
           }
 
@@ -1640,17 +1655,24 @@ const AdminDashboard = () => {
 
           // If map doesn't exist yet, create it
           if (!leafletMapRef.current) {
-            console.log('🗺️ Initializing map with Kapalong Maniki coordinates:', kapalongManikiCenter);
+            console.log('🗺️ Creating new map with Kapalong Maniki coordinates:', kapalongManikiCenter);
             
             try {
-              leafletMapRef.current = L.map(mapRef.current, {
+              // Ensure container is visible
+              container.style.display = 'block';
+              container.style.visibility = 'visible';
+              
+              leafletMapRef.current = L.map(container, {
                 center: kapalongManikiCenter,
                 zoom: 14,
                 zoomControl: true,
                 scrollWheelZoom: true,
                 minZoom: 11,
                 maxZoom: 18,
+                preferCanvas: false,
               });
+
+              console.log('✅ Leaflet map instance created');
 
               // Add tile layer (OpenStreetMap)
               L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -1658,12 +1680,15 @@ const AdminDashboard = () => {
                 maxZoom: 19,
               }).addTo(leafletMapRef.current);
 
+              console.log('✅ Tile layer added');
+
               // Create a layer for markers
               markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current);
               
               console.log('✅ Map initialized successfully');
             } catch (error) {
               console.error('❌ Error initializing map:', error);
+              console.error('Error details:', error.stack);
               return;
             }
 
@@ -1746,25 +1771,37 @@ const AdminDashboard = () => {
               }
             });
 
-            // Set view to Kapalong Maniki after map is ready
+            // Set view to Kapalong Maniki after map is ready and force resize
             setTimeout(() => {
               if (leafletMapRef.current) {
                 leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
+                console.log('✅ Map view set to Kapalong Maniki');
+                
                 // Force resize multiple times to ensure map renders
                 setTimeout(() => {
                   if (leafletMapRef.current) {
                     leafletMapRef.current.invalidateSize();
+                    console.log('✅ First invalidateSize() called');
+                    
                     // Force another resize to ensure tiles load
                     setTimeout(() => {
                       if (leafletMapRef.current) {
                         leafletMapRef.current.invalidateSize();
-                        console.log('✅ Map initialized and centered on Kapalong Maniki (Department of Agriculture area)');
+                        console.log('✅ Second invalidateSize() called - Map should be visible now');
+                        
+                        // Final check and resize
+                        setTimeout(() => {
+                          if (leafletMapRef.current) {
+                            leafletMapRef.current.invalidateSize();
+                            console.log('✅ Map fully initialized and centered on Kapalong Maniki (Department of Agriculture area)');
+                          }
+                        }, 300);
                       }
                     }, 200);
                   }
-                }, 100);
+                }, 150);
               }
-            }, 400);
+            }, 500);
           } else {
             // If map exists, update the view to Kapalong Maniki (Department of Agriculture area)
             console.log('🔄 Updating existing map to Kapalong Maniki (Department of Agriculture area)');
@@ -1789,31 +1826,20 @@ const AdminDashboard = () => {
           if (mapMode === "view") {
             addFarmersToMap();
           }
-        };
-
-        // Delay initialization to ensure modal is fully rendered and container is ready
-        setTimeout(initMap, 500);
+        }, 300); // Small delay before initializing
       };
       
       // Start checking for mapRef
-      checkAndInit();
+      checkContainerReady();
       
-      // Cleanup function
+      // Cleanup function - only cleanup when modal is closed
       return () => {
-        if (leafletMapRef.current && !showMapModal) {
-          leafletMapRef.current.remove();
-          leafletMapRef.current = null;
-          markersLayerRef.current = null;
-        }
+        // Don't cleanup here - let the map persist for better UX
+        // Cleanup will happen when component unmounts or modal is explicitly closed
       };
     } else {
-      // If modal is not shown but map exists, ensure it's properly cleaned up
-      if (leafletMapRef.current) {
-        console.log('🧹 Cleaning up map');
-        leafletMapRef.current.remove();
-        leafletMapRef.current = null;
-        markersLayerRef.current = null;
-      }
+      // When modal is not open, keep map instance available for next time
+      // Don't cleanup the map instance to avoid re-initialization delays
     }
   }, [showMapModal, mapMode, farmers, reverseGeocode, addFarmersToMap])
 
@@ -3085,6 +3111,7 @@ const AdminDashboard = () => {
         setMapSearchQuery={setMapSearchQuery}
         searchLocation={searchLocation}
         mapRef={mapRef}
+        leafletMapRef={leafletMapRef}
         showFarmerDetails={showFarmerDetails}
         setShowFarmerDetails={setShowFarmerDetails}
         showDeleteConfirmation={showDeleteConfirmation}
