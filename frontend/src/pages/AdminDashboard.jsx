@@ -1609,9 +1609,21 @@ const AdminDashboard = () => {
       console.log('🗺️ Map modal opened, starting initialization...');
       
       // Wait for container to be ready and visible
+      let retryCount = 0;
+      const maxRetries = 50; // Max 5 seconds (50 * 100ms)
+      
       const checkContainerReady = () => {
+        retryCount++;
+        
+        if (retryCount > maxRetries) {
+          console.error('❌ Max retries reached. Container may not have proper dimensions. Proceeding with initialization anyway...');
+          // Proceed anyway - sometimes Leaflet can handle it
+          initializeMap();
+          return;
+        }
+        
         if (!mapRef.current) {
-          console.warn('⚠️ mapRef.current is null, retrying in 100ms...');
+          console.warn(`⚠️ mapRef.current is null, retrying (${retryCount}/${maxRetries})...`);
           setTimeout(checkContainerReady, 100);
           return;
         }
@@ -1619,13 +1631,45 @@ const AdminDashboard = () => {
         // Check if container has dimensions
         const container = mapRef.current;
         const rect = container.getBoundingClientRect();
+        
+        // If height is 0, try to force a height by setting it explicitly
+        if (rect.height === 0 && rect.width > 0) {
+          console.warn(`⚠️ Container has height 0, attempting to set explicit height (${retryCount}/${maxRetries})...`, rect);
+          // Try to get height from parent or use a default
+          const parent = container.parentElement;
+          if (parent) {
+            const parentRect = parent.getBoundingClientRect();
+            if (parentRect.height > 0) {
+              container.style.height = `${parentRect.height}px`;
+              console.log('✅ Set explicit height from parent:', parentRect.height);
+            } else {
+              // Use viewport height as fallback
+              const viewportHeight = window.innerHeight;
+              container.style.height = `${Math.max(600, viewportHeight - 300)}px`;
+              console.log('✅ Set explicit height from viewport:', container.style.height);
+            }
+          }
+          // Wait a bit for the height to take effect
+          setTimeout(checkContainerReady, 150);
+          return;
+        }
+        
         if (rect.width === 0 || rect.height === 0) {
-          console.warn('⚠️ Container has no dimensions, retrying...', rect);
+          console.warn(`⚠️ Container has no dimensions, retrying (${retryCount}/${maxRetries})...`, rect);
           setTimeout(checkContainerReady, 100);
           return;
         }
 
         console.log('✅ Container is ready with dimensions:', rect.width, 'x', rect.height);
+        initializeMap();
+      };
+      
+      const initializeMap = () => {
+
+        if (!mapRef.current) {
+          console.error('❌ mapRef.current became null during delay');
+          return;
+        }
 
         // Fix Leaflet default icon path issue
         if (typeof L !== 'undefined' && L.Icon && L.Icon.Default) {
@@ -1658,9 +1702,28 @@ const AdminDashboard = () => {
             console.log('🗺️ Creating new map with Kapalong Maniki coordinates:', kapalongManikiCenter);
             
             try {
-              // Ensure container is visible
+              // Ensure container is visible and has proper styling
               container.style.display = 'block';
               container.style.visibility = 'visible';
+              container.style.position = 'absolute';
+              container.style.top = '0';
+              container.style.left = '0';
+              container.style.right = '0';
+              container.style.bottom = '0';
+              container.style.zIndex = '10';
+              container.style.width = '100%';
+              container.style.height = '100%';
+              
+              // Ensure parent container also has proper dimensions
+              const parent = container.parentElement;
+              if (parent) {
+                const parentRect = parent.getBoundingClientRect();
+                if (parentRect.height === 0) {
+                  const viewportHeight = window.innerHeight;
+                  parent.style.height = `${Math.max(600, viewportHeight - 300)}px`;
+                  console.log('✅ Set parent height to:', parent.style.height);
+                }
+              }
               
               leafletMapRef.current = L.map(container, {
                 center: kapalongManikiCenter,
@@ -1686,6 +1749,16 @@ const AdminDashboard = () => {
               markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current);
               
               console.log('✅ Map initialized successfully');
+              
+              // Force a state update to trigger re-render and hide loading indicator
+              // This ensures React knows the map is ready
+              setTimeout(() => {
+                // Dispatch a custom event that AdminModals can listen to
+                window.dispatchEvent(new CustomEvent('leafletMapReady', { 
+                  detail: { mapInstance: leafletMapRef.current } 
+                }));
+                console.log('✅ Dispatched leafletMapReady event');
+              }, 100);
             } catch (error) {
               console.error('❌ Error initializing map:', error);
               console.error('Error details:', error.stack);
@@ -1773,33 +1846,53 @@ const AdminDashboard = () => {
 
             // Set view to Kapalong Maniki after map is ready and force resize
             setTimeout(() => {
-              if (leafletMapRef.current) {
-                leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
-                console.log('✅ Map view set to Kapalong Maniki');
+              if (leafletMapRef.current && container) {
+                // Ensure container still has dimensions
+                const finalRect = container.getBoundingClientRect();
+                console.log('📐 Final container dimensions before setView:', finalRect.width, 'x', finalRect.height);
                 
-                // Force resize multiple times to ensure map renders
-                setTimeout(() => {
-                  if (leafletMapRef.current) {
-                    leafletMapRef.current.invalidateSize();
-                    console.log('✅ First invalidateSize() called');
-                    
-                    // Force another resize to ensure tiles load
-                    setTimeout(() => {
-                      if (leafletMapRef.current) {
-                        leafletMapRef.current.invalidateSize();
-                        console.log('✅ Second invalidateSize() called - Map should be visible now');
-                        
-                        // Final check and resize
-                        setTimeout(() => {
-                          if (leafletMapRef.current) {
-                            leafletMapRef.current.invalidateSize();
-                            console.log('✅ Map fully initialized and centered on Kapalong Maniki (Department of Agriculture area)');
-                          }
-                        }, 300);
-                      }
-                    }, 200);
-                  }
-                }, 150);
+                if (finalRect.height > 0 && finalRect.width > 0) {
+                  leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
+                  console.log('✅ Map view set to Kapalong Maniki');
+                  
+                  // Force resize multiple times to ensure map renders
+                  setTimeout(() => {
+                    if (leafletMapRef.current) {
+                      leafletMapRef.current.invalidateSize(true); // Force immediate recalculation
+                      console.log('✅ First invalidateSize(true) called');
+                      
+                      // Force another resize to ensure tiles load
+                      setTimeout(() => {
+                        if (leafletMapRef.current) {
+                          leafletMapRef.current.invalidateSize(true);
+                          // Trigger window resize to help Leaflet recalculate
+                          window.dispatchEvent(new Event('resize'));
+                          console.log('✅ Second invalidateSize(true) called - Map should be visible now');
+                          
+                          // Final check and resize
+                          setTimeout(() => {
+                            if (leafletMapRef.current) {
+                              leafletMapRef.current.invalidateSize(true);
+                              const mapBounds = leafletMapRef.current.getBounds();
+                              console.log('✅ Map fully initialized and centered on Kapalong Maniki');
+                              console.log('📍 Map bounds:', mapBounds);
+                              console.log('📍 Map center:', leafletMapRef.current.getCenter());
+                            }
+                          }, 300);
+                        }
+                      }, 200);
+                    }
+                  }, 150);
+                } else {
+                  console.warn('⚠️ Container still has no dimensions, forcing height...');
+                  container.style.height = `${Math.max(600, window.innerHeight - 300)}px`;
+                  setTimeout(() => {
+                    if (leafletMapRef.current) {
+                      leafletMapRef.current.invalidateSize(true);
+                      leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
+                    }
+                  }, 200);
+                }
               }
             }, 500);
           } else {

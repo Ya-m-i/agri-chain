@@ -71,11 +71,50 @@ const AdminModals = ({
   farmers,
 }) => {
   // Map modal uses background map (managed by AdminDashboard) for wider view
+  const [mapReady, setMapReady] = useState(false);
+  
+  // Listen for map ready event
+  useEffect(() => {
+    const handleMapReady = () => {
+      console.log('📍 AdminModals: Received leafletMapReady event');
+      setMapReady(true);
+    };
+    
+    window.addEventListener('leafletMapReady', handleMapReady);
+    return () => {
+      window.removeEventListener('leafletMapReady', handleMapReady);
+    };
+  }, []);
+  
+  // Reset mapReady when modal closes
+  useEffect(() => {
+    if (!showMapModal) {
+      setMapReady(false);
+    }
+  }, [showMapModal]);
   
   // Force map to initialize and resize when modal opens
   useEffect(() => {
-    if (showMapModal && mapMode === "add") {
-      console.log('📍 AdminModals: Map modal opened, waiting for map to initialize...');
+    if (showMapModal && mapMode === "add" && mapRef.current) {
+      console.log('📍 AdminModals: Map modal opened, setting explicit height on container...');
+      
+      // Set explicit height on the map container to fix height: 0 issue
+      const container = mapRef.current;
+      const parent = container.parentElement;
+      
+      if (container && parent) {
+        const parentRect = parent.getBoundingClientRect();
+        if (parentRect.height > 0) {
+          container.style.height = `${parentRect.height}px`;
+          console.log('✅ AdminModals: Set explicit height:', parentRect.height);
+        } else {
+          // Fallback to viewport calculation
+          const viewportHeight = window.innerHeight;
+          const calculatedHeight = Math.max(600, viewportHeight - 300);
+          container.style.height = `${calculatedHeight}px`;
+          console.log('✅ AdminModals: Set explicit height from viewport:', calculatedHeight);
+        }
+      }
       
       // Multiple resize attempts to ensure map renders
       const timers = [];
@@ -1421,17 +1460,19 @@ const AdminModals = ({
 
             {/* Map Container - Using background map for wider view with Farm Vibe */}
             <div 
-              className="flex-1 relative bg-white overflow-hidden border-4 border-black" 
+              className="relative bg-white border-4 border-black" 
               style={{ 
                 minHeight: '600px', 
-                height: 'calc(100vh - 200px)',
+                height: 'calc(100vh - 250px)',
                 width: '100%',
-                position: 'relative'
+                position: 'relative',
+                flex: '1 1 auto',
+                overflow: 'visible'
               }}
             >
-              {/* Loading indicator - Show while map is initializing */}
-              {(!mapRef.current || !leafletMapRef?.current) && (
-                <div className="absolute inset-0 flex items-center justify-center bg-lime-50 z-30" style={{ backgroundColor: '#f7fee7' }}>
+              {/* Loading indicator - Show while map is initializing - Lower z-index so map can render above */}
+              {(!mapRef.current || !leafletMapRef?.current || !mapReady) && (
+                <div className="absolute inset-0 flex items-center justify-center bg-lime-50 z-[1]" style={{ backgroundColor: '#f7fee7' }}>
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lime-600 mx-auto mb-4"></div>
                     <p className="text-black font-bold uppercase">Loading Map...</p>
@@ -1450,13 +1491,14 @@ const AdminModals = ({
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  zIndex: 2,
+                  zIndex: 10,
                   backgroundColor: '#e5e7eb',
                   minHeight: '600px',
                   height: '100%',
                   width: '100%',
                   display: 'block',
-                  visibility: 'visible'
+                  visibility: 'visible',
+                  overflow: 'visible'
                 }}
               ></div>
               {/* Farm Vibe Decorative Corner */}
