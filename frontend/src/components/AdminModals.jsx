@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import {
   X,
   MapPin,
@@ -22,7 +22,6 @@ import {
 } from "lucide-react"
 import { calculateCompensation, getDamageSeverity, getCoverageDetails } from "../utils/insuranceUtils"
 // Note: Notifications are now handled by backend API
-import MapPicker from "./MapPicker"
 
 const AdminModals = ({
   showModal,
@@ -70,16 +69,7 @@ const AdminModals = ({
   setFarmerToDelete,
   farmers,
 }) => {
-  // State to force map remount when modal opens
-  const [mapKey, setMapKey] = useState(Date.now());
-
-  // Update map key when map modal opens to ensure fresh Kapalong-centered map
-  useEffect(() => {
-    if (showMapModal && mapMode === "add") {
-      setMapKey(Date.now());
-      console.log('🗺️ Map modal opened - resetting map to Kapalong center');
-    }
-  }, [showMapModal, mapMode]);
+  // Map modal uses background map (managed by AdminDashboard) for wider view
 
   // Custom scrollbar styling
   const scrollbarStyle = `
@@ -1315,8 +1305,8 @@ const AdminModals = ({
 
       {/* Map Modal - Fullscreen with Farm Vibe */}
       {showMapModal && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-5 backdrop-blur-sm">
-          <div className="bg-lime-50 border-2 border-black w-full h-full overflow-hidden flex flex-col shadow-lg" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.4)' }}>
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-10 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-lime-50 border-2 border-black w-full h-full overflow-hidden flex flex-col shadow-lg relative z-50" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.4)' }}>
             {/* Header with Farm Vibe */}
             <div className="sticky top-0 bg-lime-50 border-b-2 border-black p-4 flex justify-between items-center z-20" style={{ boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)' }}>
               <div className="flex items-center gap-3">
@@ -1387,60 +1377,18 @@ const AdminModals = ({
               )}
             </div>
 
-            {/* Map Container */}
+            {/* Map Container - Using background map for wider view */}
             <div className="flex-1 relative bg-white overflow-hidden border-2 border-black">
-              {mapMode === "add" ? (
-                <MapPicker
-                  key={`map-picker-${mapKey}`}
-                  onLocationSelect={(location) => {
-                    setSelectedLocation(location);
-                    // Reverse geocode to get address
-                    fetch(
-                      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${location.lat}&lon=${location.lng}&addressdetails=1`,
-                      {
-                        headers: {
-                          'User-Agent': 'AGRI-CHAIN-App'
-                        }
-                      }
-                    )
-                      .then((res) => res.json())
-                      .then((data) => {
-                        if (data && data.display_name) {
-                          const address = data.display_name;
-                          // Update form data if callback exists
-                          if (window.updateFarmerAddress) {
-                            window.updateFarmerAddress(address, location.lat, location.lng);
-                          }
-                          // Also update the formData directly
-                          if (handleChange) {
-                            handleChange({
-                              target: {
-                                name: 'address',
-                                value: address
-                              }
-                            });
-                          }
-                        }
-                      })
-                      .catch((error) => {
-                        console.error('Error reverse geocoding:', error);
-                      });
-                  }}
-                  initialCenter={[7.591509, 125.696724]}
-                  initialZoom={14}
-                />
-              ) : (
-                <div 
-                  ref={mapRef} 
-                  id="location-picker-map"
-                  className="w-full h-full"
-                  style={{
-                    position: 'relative',
-                    zIndex: 1,
-                    backgroundColor: '#f0f0f0'
-                  }}
-                ></div>
-              )}
+              <div 
+                ref={mapRef} 
+                id="location-picker-map"
+                className="w-full h-full"
+                style={{
+                  position: 'relative',
+                  zIndex: 1,
+                  backgroundColor: '#f0f0f0'
+                }}
+              ></div>
             </div>
 
             {/* Footer with Farm Vibe */}

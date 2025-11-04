@@ -449,8 +449,8 @@ const AdminDashboard = () => {
   const [mapSearchQuery, setMapSearchQuery] = useState("")
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [mapMode, setMapMode] = useState("view") // view or add
-  const [mapCenter, setMapCenter] = useState([7.5815, 125.8235]) // Precise coordinates for Kapalong, Davao del Norte
-  const [mapZoom, setMapZoom] = useState(12) // Medium zoom to see all farmer locations in Kapalong area
+  const [mapCenter, setMapCenter] = useState([7.591509, 125.696724]) // Kapalong Maniki coordinates
+  const [mapZoom, setMapZoom] = useState(14) // Closer zoom for Kapalong Maniki area
   const [weatherData, setWeatherData] = useState([]) // Weather data for all farmer locations
   const [showWeatherOverlay, setShowWeatherOverlay] = useState(true) // Toggle weather overlay
   const [weatherLoading, setWeatherLoading] = useState(false) // Loading state for weather data
@@ -1583,8 +1583,9 @@ const AdminDashboard = () => {
     if (showMapModal && mapRef.current) {
       // If map doesn't exist yet, create it
       if (!leafletMapRef.current) {
-        // Initialize the map
-        leafletMapRef.current = L.map(mapRef.current).setView(mapCenter, 12)
+        // Initialize the map with Kapalong Maniki coordinates
+        const kapalongManikiCenter = [7.591509, 125.696724];
+        leafletMapRef.current = L.map(mapRef.current).setView(kapalongManikiCenter, 14)
 
         // Add tile layer (OpenStreetMap)
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -1607,16 +1608,52 @@ const AdminDashboard = () => {
               markersLayerRef.current.clearLayers()
             }
 
-            // Add a new marker at the clicked location
-            L.marker([e.latlng.lat, e.latlng.lng]).addTo(markersLayerRef.current)
+            // Add a new marker at the clicked location with custom farm marker
+            const farmIcon = L.divIcon({
+              className: 'farm-marker-icon',
+              html: `
+                <div style="
+                  position: relative;
+                  width: 40px;
+                  height: 40px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                ">
+                  <div style="
+                    background-color: #84cc16;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50% 50% 50% 0;
+                    transform: rotate(-45deg);
+                    border: 4px solid #000000;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 15px rgba(132, 204, 22, 0.6);
+                  "></div>
+                  <div style="
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%) rotate(45deg);
+                    font-size: 20px;
+                    line-height: 1;
+                    z-index: 10;
+                  ">🌾</div>
+                </div>
+              `,
+              iconSize: [40, 40],
+              iconAnchor: [20, 40],
+              popupAnchor: [0, -40],
+            });
+            L.marker([e.latlng.lat, e.latlng.lng], { icon: farmIcon }).addTo(markersLayerRef.current)
 
             // Reverse geocode to get address and update form
             reverseGeocode(e.latlng.lat, e.latlng.lng)
           }
         })
       } else {
-        // If map exists, just update the view
-        leafletMapRef.current.setView(mapCenter, mapZoom)
+        // If map exists, just update the view to Kapalong Maniki
+        const kapalongManikiCenter = [7.591509, 125.696724];
+        leafletMapRef.current.setView(kapalongManikiCenter, 14)
 
         // Force a resize to ensure the map renders correctly in the modal
         setTimeout(() => {
