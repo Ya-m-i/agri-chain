@@ -1305,10 +1305,10 @@ const AdminModals = ({
 
       {/* Map Modal - Fullscreen with Farm Vibe */}
       {showMapModal && (
-        <div className="fixed inset-0 z-50 bg-white bg-opacity-95 flex items-center justify-center">
-          <div className="bg-lime-50 border-4 border-black w-full h-full overflow-hidden flex flex-col shadow-2xl relative z-50" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6), inset 0 0 20px rgba(132, 204, 22, 0.2)' }}>
+        <div className="fixed inset-0 z-[9999] bg-lime-50 flex items-center justify-center" style={{ backgroundColor: '#f7fee7' }}>
+          <div className="bg-lime-50 border-4 border-black w-full h-full overflow-hidden flex flex-col shadow-2xl relative z-[9999]" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.6)' }}>
             {/* Header with Enhanced Farm Vibe */}
-            <div className="sticky top-0 bg-gradient-to-r from-lime-50 to-lime-100 border-b-4 border-black p-5 flex justify-between items-center z-20" style={{ boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2), inset 0 -2px 10px rgba(132, 204, 22, 0.3)' }}>
+            <div className="sticky top-0 bg-gradient-to-r from-lime-50 to-lime-100 border-b-4 border-black p-5 flex justify-between items-center z-20" style={{ boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)' }}>
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-black rounded-xl shadow-lg" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.8), inset 0 0 10px rgba(132, 204, 22, 0.4)' }}>
                   <MapPin className="h-7 w-7 text-lime-400" />
@@ -1380,7 +1380,7 @@ const AdminModals = ({
             </div>
 
             {/* Map Container - Using background map for wider view with Farm Vibe */}
-            <div className="flex-1 relative bg-white overflow-hidden border-4 border-black" style={{ boxShadow: 'inset 0 0 20px rgba(132, 204, 22, 0.1)' }}>
+            <div className="flex-1 relative bg-white overflow-hidden border-4 border-black">
               <div 
                 ref={mapRef} 
                 id="location-picker-map"
