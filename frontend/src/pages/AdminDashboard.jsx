@@ -1731,12 +1731,8 @@ const AdminDashboard = () => {
           lng: e.latlng.lng,
         });
 
-        // Clear existing markers
-        if (markersLayerRef.current) {
-          markersLayerRef.current.clearLayers();
-        }
-
-        // Add new marker
+        // Don't clear all markers - just add selection marker
+        // Add new marker with farm icon
         const farmIcon = createFarmIcon();
         const marker = L.marker([e.latlng.lat, e.latlng.lng], {
           icon: farmIcon,
@@ -1745,6 +1741,15 @@ const AdminDashboard = () => {
 
         marker.bringToFront();
         reverseGeocode(e.latlng.lat, e.latlng.lng);
+        
+        // Also add to overview map if it exists
+        if (overviewMarkersLayerRef.current && overviewMarkersLayerRef.current !== markersLayerRef.current) {
+          const overviewMarker = L.marker([e.latlng.lat, e.latlng.lng], {
+            icon: farmIcon,
+            zIndexOffset: 1000,
+          }).addTo(overviewMarkersLayerRef.current);
+          overviewMarker.bringToFront();
+        }
       }
     });
   };
@@ -1759,7 +1764,7 @@ const AdminDashboard = () => {
     }, delay);
   };
 
-  // Main map initialization function
+  // Main map initialization function - Uses overview map instance
   const initializeLocationMap = (container) => {
     if (!container || !mapRef.current) {
       console.error('❌ Container or mapRef.current is null');
@@ -1779,15 +1784,25 @@ const AdminDashboard = () => {
     const kapalongManikiCenter = [7.591509, 125.696724];
 
     // If map doesn't exist, create it
+    // Note: We create a separate map instance for the modal (Leaflet maps are bound to specific containers)
+    // But we sync it with the overview map's view and markers
     if (!leafletMapRef.current) {
       try {
         // Style container
         styleMapContainer(container);
 
-        // Create map instance
+        // Create map instance - sync with overview map view and data
+        // Get initial center and zoom from overview map if it exists
+        const initialCenter = overviewLeafletMapRef.current 
+          ? overviewLeafletMapRef.current.getCenter() 
+          : kapalongManikiCenter;
+        const initialZoom = overviewLeafletMapRef.current 
+          ? overviewLeafletMapRef.current.getZoom() 
+          : 14;
+        
         leafletMapRef.current = L.map(container, {
-          center: kapalongManikiCenter,
-          zoom: 14,
+          center: initialCenter,
+          zoom: initialZoom,
           zoomControl: true,
           scrollWheelZoom: true,
           minZoom: 11,
@@ -1795,7 +1810,7 @@ const AdminDashboard = () => {
           preferCanvas: false,
         });
 
-        console.log('✅ Leaflet map instance created');
+        console.log('✅ Leaflet map instance created for modal - synced with overview map view');
 
         // Add tile layer
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -1805,6 +1820,23 @@ const AdminDashboard = () => {
 
         // Create markers layer
         markersLayerRef.current = L.layerGroup().addTo(leafletMapRef.current);
+        
+        // Copy markers from overview map if it exists
+        if (overviewMarkersLayerRef.current) {
+          console.log('✅ Copying markers from overview map to modal');
+          overviewMarkersLayerRef.current.eachLayer((layer) => {
+            if (layer instanceof L.Marker) {
+              const latlng = layer.getLatLng();
+              const options = { ...layer.options };
+              const newMarker = L.marker(latlng, options);
+              if (layer.getPopup()) {
+                newMarker.bindPopup(layer.getPopup().getContent());
+              }
+              newMarker.addTo(markersLayerRef.current);
+            }
+          });
+          console.log('✅ Modal map initialized with overview map markers');
+        }
 
         // Setup click handler
         setupMapClickHandler(leafletMapRef.current);
@@ -1884,48 +1916,76 @@ const AdminDashboard = () => {
         console.error('Error details:', error.stack);
       }
     } else {
-      // Update existing map - ensure it's properly resized after modal becomes visible
-      console.log('🔄 Updating existing map');
+      // Update existing modal map - sync with overview map
+      console.log('🔄 Updating existing modal map - syncing with overview map');
       
-      // Wait for modal to be fully visible before resizing
-      setTimeout(() => {
-        if (leafletMapRef.current && container) {
-          // Ensure container is visible
-          container.style.opacity = '1';
-          container.style.visibility = 'visible';
-          container.style.display = 'block';
+      if (leafletMapRef.current && container) {
+        // Sync view with overview map if it exists
+        if (overviewLeafletMapRef.current) {
+          const overviewCenter = overviewLeafletMapRef.current.getCenter();
+          const overviewZoom = overviewLeafletMapRef.current.getZoom();
+          leafletMapRef.current.setView(overviewCenter, overviewZoom, { animate: false });
+          console.log('✅ Modal map synced with overview map view:', overviewCenter, 'zoom:', overviewZoom);
           
-          // Set view to Kapalong Maniki
+          // Sync markers from overview map
+          if (overviewMarkersLayerRef.current && markersLayerRef.current) {
+            // Clear modal markers and copy from overview
+            markersLayerRef.current.clearLayers();
+            overviewMarkersLayerRef.current.eachLayer((layer) => {
+              if (layer instanceof L.Marker) {
+                const latlng = layer.getLatLng();
+                const options = { ...layer.options };
+                const newMarker = L.marker(latlng, options);
+                if (layer.getPopup()) {
+                  newMarker.bindPopup(layer.getPopup().getContent());
+                }
+                newMarker.addTo(markersLayerRef.current);
+              }
+            });
+            console.log('✅ Modal map markers synced with overview map');
+          }
+        } else {
+          // Set view to Kapalong Maniki if no overview map
           leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
-          
-          // Force immediate resize
-          leafletMapRef.current.invalidateSize(true);
-          
-          // Multiple resize attempts with delays to ensure tiles load
-          setTimeout(() => {
-            if (leafletMapRef.current) {
-              leafletMapRef.current.invalidateSize(true);
-              window.dispatchEvent(new Event('resize'));
-              console.log('✅ Map resized after modal open');
-            }
-          }, 400);
-          
-          setTimeout(() => {
-            if (leafletMapRef.current) {
-              leafletMapRef.current.invalidateSize(true);
-              console.log('✅ Second map resize after modal open');
-            }
-          }, 600);
-          
-          setTimeout(() => {
-            if (leafletMapRef.current) {
-              leafletMapRef.current.invalidateSize(true);
-              window.dispatchEvent(new Event('resize'));
-              console.log('✅ Final map resize - tiles should be visible now');
-            }
-          }, 800);
         }
-      }, 300); // Wait for modal animation to complete
+        
+        // Wait for modal to be fully visible before resizing
+        setTimeout(() => {
+          if (leafletMapRef.current && container) {
+            // Ensure container is visible
+            container.style.opacity = '1';
+            container.style.visibility = 'visible';
+            container.style.display = 'block';
+            
+            // Force immediate resize
+            leafletMapRef.current.invalidateSize(true);
+            
+            // Multiple resize attempts with delays to ensure tiles load
+            setTimeout(() => {
+              if (leafletMapRef.current) {
+                leafletMapRef.current.invalidateSize(true);
+                window.dispatchEvent(new Event('resize'));
+                console.log('✅ Modal map resized after modal open');
+              }
+            }, 400);
+            
+            setTimeout(() => {
+              if (leafletMapRef.current) {
+                leafletMapRef.current.invalidateSize(true);
+                console.log('✅ Second modal map resize after modal open');
+              }
+            }, 600);
+            
+            setTimeout(() => {
+              if (leafletMapRef.current) {
+                leafletMapRef.current.invalidateSize(true);
+                window.dispatchEvent(new Event('resize'));
+                console.log('✅ Final modal map resize - tiles should be visible now');
+              }
+            }, 800);
+          }
+        }, 300); // Wait for modal animation to complete
+      }
     }
 
     // Add existing farmers to map (view mode)
@@ -2173,12 +2233,19 @@ const AdminDashboard = () => {
       return;
     }
 
-    // Check if map is available
-    if (!leafletMapRef.current) {
+    // Check if map is available - prefer overview map, fallback to modal map
+    const mapInstance = overviewLeafletMapRef.current || leafletMapRef.current;
+    const markersInstance = overviewMarkersLayerRef.current || markersLayerRef.current;
+    
+    if (!mapInstance) {
       console.error("❌ Map is not initialized yet");
       alert("Map is still loading. Please wait a moment and try again.");
       return;
     }
+
+    // Sync references
+    leafletMapRef.current = mapInstance;
+    markersLayerRef.current = markersInstance;
 
     // Use Nominatim API for geocoding with proper headers
     fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearchQuery.trim())}&limit=1&addressdetails=1`, {
@@ -2204,24 +2271,26 @@ const AdminDashboard = () => {
 
           console.log('📍 Search result:', { lat, lon, display_name: result.display_name });
 
-          if (leafletMapRef.current) {
-            // Set view to searched location
-            leafletMapRef.current.setView([lat, lon], 13, { animate: true });
+          // Use the same map instance for both overview and modal
+          if (mapInstance) {
+            // Set view to searched location on both maps
+            mapInstance.setView([lat, lon], 13, { animate: true });
+            
+            // Also update overview map if it's separate
+            if (overviewLeafletMapRef.current && overviewLeafletMapRef.current !== mapInstance) {
+              overviewLeafletMapRef.current.setView([lat, lon], 13, { animate: true });
+            }
 
             if (mapMode === "add") {
               setSelectedLocation({ lat, lng: lon });
 
-              // Clear existing markers
-              if (markersLayerRef.current) {
-                markersLayerRef.current.clearLayers();
-              }
-
+              // Don't clear all markers - just add selection marker
               // Add a new marker at the searched location with farm icon
               const farmIcon = createFarmIcon();
               const marker = L.marker([lat, lon], {
                 icon: farmIcon,
                 zIndexOffset: 1000,
-              }).addTo(markersLayerRef.current);
+              }).addTo(markersInstance);
 
               marker.bringToFront();
 
@@ -2230,8 +2299,11 @@ const AdminDashboard = () => {
 
               // Force map resize after search
               setTimeout(() => {
-                if (leafletMapRef.current) {
-                  leafletMapRef.current.invalidateSize(true);
+                if (mapInstance) {
+                  mapInstance.invalidateSize(true);
+                }
+                if (overviewLeafletMapRef.current && overviewLeafletMapRef.current !== mapInstance) {
+                  overviewLeafletMapRef.current.invalidateSize(true);
                 }
               }, 300);
             }
