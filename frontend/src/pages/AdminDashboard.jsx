@@ -1884,11 +1884,48 @@ const AdminDashboard = () => {
         console.error('Error details:', error.stack);
       }
     } else {
-      // Update existing map
+      // Update existing map - ensure it's properly resized after modal becomes visible
       console.log('🔄 Updating existing map');
-      leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
-      forceMapResize(leafletMapRef.current, 200);
-      forceMapResize(leafletMapRef.current, 400);
+      
+      // Wait for modal to be fully visible before resizing
+      setTimeout(() => {
+        if (leafletMapRef.current && container) {
+          // Ensure container is visible
+          container.style.opacity = '1';
+          container.style.visibility = 'visible';
+          container.style.display = 'block';
+          
+          // Set view to Kapalong Maniki
+          leafletMapRef.current.setView(kapalongManikiCenter, 14, { animate: false });
+          
+          // Force immediate resize
+          leafletMapRef.current.invalidateSize(true);
+          
+          // Multiple resize attempts with delays to ensure tiles load
+          setTimeout(() => {
+            if (leafletMapRef.current) {
+              leafletMapRef.current.invalidateSize(true);
+              window.dispatchEvent(new Event('resize'));
+              console.log('✅ Map resized after modal open');
+            }
+          }, 400);
+          
+          setTimeout(() => {
+            if (leafletMapRef.current) {
+              leafletMapRef.current.invalidateSize(true);
+              console.log('✅ Second map resize after modal open');
+            }
+          }, 600);
+          
+          setTimeout(() => {
+            if (leafletMapRef.current) {
+              leafletMapRef.current.invalidateSize(true);
+              window.dispatchEvent(new Event('resize'));
+              console.log('✅ Final map resize - tiles should be visible now');
+            }
+          }, 800);
+        }
+      }, 300); // Wait for modal animation to complete
     }
 
     // Add existing farmers to map (view mode)

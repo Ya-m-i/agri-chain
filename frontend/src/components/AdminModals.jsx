@@ -95,52 +95,63 @@ const AdminModals = ({
   
   // Force map to initialize and resize when modal opens
   useEffect(() => {
-    if (showMapModal && mapMode === "add" && mapRef.current) {
-      console.log('📍 AdminModals: Map modal opened, setting explicit height on container...');
+    if (showMapModal && mapMode === "add") {
+      console.log('📍 AdminModals: Map modal opened, waiting for modal to render...');
       
-      // Set explicit height on the map container to fix height: 0 issue
-      const container = mapRef.current;
-      const parent = container.parentElement;
-      
-      if (container && parent) {
-        const parentRect = parent.getBoundingClientRect();
-        if (parentRect.height > 0) {
-          container.style.height = `${parentRect.height}px`;
-          console.log('✅ AdminModals: Set explicit height:', parentRect.height);
-        } else {
-          // Fallback to viewport calculation
-          const viewportHeight = window.innerHeight;
-          const calculatedHeight = Math.max(600, viewportHeight - 300);
-          container.style.height = `${calculatedHeight}px`;
-          console.log('✅ AdminModals: Set explicit height from viewport:', calculatedHeight);
-        }
-      }
-      
-      // Multiple resize attempts to ensure map renders
+      // Wait for modal to fully render before manipulating map
       const timers = [];
       
-      // First resize attempt
+      // Step 1: Set container height after modal is visible (400ms delay)
       timers.push(setTimeout(() => {
-        if (mapRef.current && typeof window !== 'undefined' && window.L) {
-          window.dispatchEvent(new Event('resize'));
-          console.log('📍 AdminModals: First resize event dispatched');
+        if (mapRef.current) {
+          const container = mapRef.current;
+          const parent = container.parentElement;
+          
+          if (container && parent) {
+            const parentRect = parent.getBoundingClientRect();
+            if (parentRect.height > 0) {
+              container.style.height = `${parentRect.height}px`;
+              console.log('✅ AdminModals: Set explicit height:', parentRect.height);
+            } else {
+              // Fallback to viewport calculation
+              const viewportHeight = window.innerHeight;
+              const calculatedHeight = Math.max(600, viewportHeight - 300);
+              container.style.height = `${calculatedHeight}px`;
+              console.log('✅ AdminModals: Set explicit height from viewport:', calculatedHeight);
+            }
+            
+            // Ensure container is visible
+            container.style.opacity = '1';
+            container.style.visibility = 'visible';
+            container.style.display = 'block';
+          }
         }
-      }, 200));
+      }, 400)); // Wait for modal animation to complete
       
-      // Second resize attempt
+      // Step 2: Resize map if it already exists (500ms delay)
       timers.push(setTimeout(() => {
         if (mapRef.current && leafletMapRef?.current) {
-          leafletMapRef.current.invalidateSize();
-          console.log('📍 AdminModals: Forced invalidateSize() on map');
+          leafletMapRef.current.invalidateSize(true);
+          leafletMapRef.current.setView([7.591509, 125.696724], 14, { animate: false });
+          window.dispatchEvent(new Event('resize'));
+          console.log('✅ AdminModals: Map resized and view reset after modal open');
         }
-      }, 600));
+      }, 500));
       
-      // Third resize attempt
+      // Step 3: Additional resize attempts to ensure tiles load
       timers.push(setTimeout(() => {
         if (mapRef.current && leafletMapRef?.current) {
-          leafletMapRef.current.invalidateSize();
+          leafletMapRef.current.invalidateSize(true);
+          console.log('📍 AdminModals: Second invalidateSize() call');
+        }
+      }, 700));
+      
+      // Step 4: Final resize attempt
+      timers.push(setTimeout(() => {
+        if (mapRef.current && leafletMapRef?.current) {
+          leafletMapRef.current.invalidateSize(true);
           window.dispatchEvent(new Event('resize'));
-          console.log('📍 AdminModals: Final resize and invalidateSize()');
+          console.log('📍 AdminModals: Final resize and invalidateSize() - tiles should be visible');
         }
       }, 1000));
       
@@ -1491,15 +1502,15 @@ const AdminModals = ({
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  zIndex: leafletMapRef?.current ? 10 : 1,
+                  zIndex: 10,
                   backgroundColor: '#e5e7eb',
-                  minHeight: '600px',
+                  minHeight: '400px',
                   height: '100%',
                   width: '100%',
                   display: 'block',
                   visibility: 'visible',
                   overflow: 'visible',
-                  opacity: leafletMapRef?.current ? 1 : 0
+                  opacity: 1
                 }}
               ></div>
               {/* Farm Vibe Decorative Corner */}
