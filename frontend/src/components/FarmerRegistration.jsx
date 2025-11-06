@@ -392,9 +392,9 @@ const FarmerRegistration = ({
         </div>
         <div className="flex gap-4">
           <button
-            className="bg-lime-400 border-2 border-black text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-md font-bold uppercase tracking-wide"
+            className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center font-bold uppercase tracking-wide"
             onClick={() => setShowRegisterForm(true)}
-            style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
+            style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}
           >
             <UserPlus className="mr-2 h-5 w-5" />
             Register New Farmer
@@ -923,7 +923,7 @@ const FarmerRegistration = ({
       */}
       {/* Register Farmer Modal - Farm Vibe Design */}
       {showRegisterForm && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-30 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar border-2 border-black">
             <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
               <h2 className="text-2xl font-bold text-black">🌾 Register a New Farmer</h2>
@@ -938,8 +938,8 @@ const FarmerRegistration = ({
             <div className="p-6 md:p-8 bg-white">
               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Personal Information Block - Minimalist Blockchain Style */}
-                <div className="bg-white rounded-lg p-5 border-2 border-lime-500 relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
-                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
+                <div className="bg-white rounded-lg p-5 border-2 border-black relative" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
                     <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
                       <User size={18} className="text-lime-500" />
                     </div>
@@ -964,8 +964,7 @@ const FarmerRegistration = ({
                           value={formData.firstName || ""}
                           onChange={handleChange}
                           placeholder="Enter first name"
-                          className="pl-10 w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                          style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                          className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                           required
                         />
                       </div>
@@ -979,8 +978,7 @@ const FarmerRegistration = ({
                         value={formData.middleName || ""}
                         onChange={handleChange}
                         placeholder="Enter middle name (optional)"
-                        className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                        style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                        className="w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                       />
                     </div>
 
@@ -992,8 +990,7 @@ const FarmerRegistration = ({
                         value={formData.lastName || ""}
                         onChange={handleChange}
                         placeholder="Enter last name"
-                        className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                        style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                        className="w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                         required
                       />
                     </div>
@@ -1005,8 +1002,7 @@ const FarmerRegistration = ({
                         name="birthday"
                         value={formData.birthday || ""}
                         onChange={handleChange}
-                        className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                        style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                        className="w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                         required
                       />
                     </div>
@@ -1017,8 +1013,7 @@ const FarmerRegistration = ({
                         name="gender"
                         value={formData.gender || ""}
                         onChange={handleChange}
-                        className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                        style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                        className="w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                         required
                       >
                         <option value="">Select Gender</option>
@@ -1036,8 +1031,7 @@ const FarmerRegistration = ({
                         value={formData.contactNum || ""}
                         onChange={handleChange}
                         placeholder="Enter contact number (e.g., 09123456789)"
-                        className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                        style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                        className="w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                         required
                       />
                     </div>
@@ -1045,8 +1039,8 @@ const FarmerRegistration = ({
                 </div>
 
                 {/* Address Information Block - Minimalist Blockchain Style */}
-                <div className="bg-white rounded-lg p-5 border-2 border-lime-500 relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
-                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
+                <div className="bg-white rounded-lg p-5 border-2 border-black relative" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
                     <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
                       <MapPin size={18} className="text-lime-500" />
                     </div>
@@ -1092,8 +1086,8 @@ const FarmerRegistration = ({
                 </div>
 
                 {/* Farm Information Block - Minimalist Blockchain Style */}
-                <div className="bg-white rounded-lg p-5 border-2 border-lime-500 relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
-                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
+                <div className="bg-white rounded-lg p-5 border-2 border-black relative" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
                     <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
                       <Layers size={18} className="text-lime-500" />
                     </div>
@@ -1114,8 +1108,7 @@ const FarmerRegistration = ({
                         value={formData.cropArea || ""}
                         onChange={handleChange}
                         placeholder="Enter crop area (e.g., 2.5)"
-                        className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                        style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                        className="w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                         required
                       />
                     </div>
@@ -1123,8 +1116,8 @@ const FarmerRegistration = ({
                 </div>
 
                 {/* Lot Information Block - Minimalist Blockchain Style */}
-                <div className="bg-white rounded-lg p-5 border-2 border-lime-500 relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
-                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
+                <div className="bg-white rounded-lg p-5 border-2 border-black relative" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
                     <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
                       <MapPin size={18} className="text-lime-500" />
                     </div>
@@ -1149,8 +1142,7 @@ const FarmerRegistration = ({
                           value={formData.lotNumber || ""}
                           onChange={handleChange}
                           placeholder="Enter lot number (e.g., Lot 123)"
-                          className="pl-10 w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                          style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                          className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                         />
                       </div>
                     </div>
@@ -1167,8 +1159,7 @@ const FarmerRegistration = ({
                           value={formData.lotArea || ""}
                           onChange={handleChange}
                           placeholder="Enter lot area (e.g., 1.5 hectares)"
-                          className="pl-10 w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                          style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                          className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                         />
                       </div>
                     </div>
@@ -1179,8 +1170,7 @@ const FarmerRegistration = ({
                         name="agency"
                         value={formData.agency || ""}
                         onChange={handleChange}
-                        className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                        style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                        className="w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                       >
                         <option value="">Select Agency</option>
                         <option value="DA">DA - Department of Agriculture</option>
@@ -1196,28 +1186,28 @@ const FarmerRegistration = ({
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3 py-3 bg-white p-4 rounded-lg border-2 border-lime-500" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}>
+                <div className="flex items-center space-x-3 py-3 bg-white p-4 rounded-lg border-2 border-black" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
                   <input
                     type="checkbox"
                     id="isCertified"
                     name="isCertified"
                     checked={formData.isCertified || false}
                     onChange={handleChange}
-                    className="w-5 h-5 text-lime-600 bg-white border-2 border-lime-500 rounded focus:ring-2 focus:ring-lime-400"
+                    className="w-5 h-5 text-lime-600 bg-white border-2 border-black rounded focus:ring-2 focus:ring-lime-400"
                   />
                   <label htmlFor="isCertified" className="text-black font-bold uppercase text-sm tracking-wide">
                     Certified Farmer
                   </label>
                 </div>
                 {/* RSBSA Registered checkbox - Minimalist */}
-                <div className="flex items-center space-x-3 py-3 bg-white p-4 rounded-lg border-2 border-lime-500" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}>
+                <div className="flex items-center space-x-3 py-3 bg-white p-4 rounded-lg border-2 border-black" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
                   <input
                     type="checkbox"
                     id="rsbsaRegistered"
                     name="rsbsaRegistered"
                     checked={formData.rsbsaRegistered || false}
                     onChange={handleChange}
-                    className="w-5 h-5 text-lime-600 bg-white border-2 border-lime-500 rounded focus:ring-2 focus:ring-lime-400"
+                    className="w-5 h-5 text-lime-600 bg-white border-2 border-black rounded focus:ring-2 focus:ring-lime-400"
                   />
                   <label htmlFor="rsbsaRegistered" className="text-black font-bold uppercase text-sm tracking-wide">
                     RSBSA Registered <span className="text-xs text-gray-600 normal-case font-normal">(Required)</span>
@@ -1251,8 +1241,7 @@ const FarmerRegistration = ({
                           value={formData.username || ""}
                           onChange={handleChange}
                           placeholder="Enter username for farmer login"
-                          className="pl-10 w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                          style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                          className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                           required
                         />
                       </div>
@@ -1269,8 +1258,7 @@ const FarmerRegistration = ({
                           value={formData.password || ""}
                           onChange={handleChange}
                           placeholder="Enter password for farmer login"
-                          className="pl-10 w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                          style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                          className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                           required
                         />
                       </div>
@@ -1540,9 +1528,31 @@ const FarmerRegistration = ({
             // Update the address field if address is available
             if (setFormData) {
               const addressValue = location.address || `Lat: ${location.lat.toFixed(6)}, Lng: ${location.lng.toFixed(6)}`;
+              
+              // Extract lot number from address if available, or generate one from coordinates
+              let lotNumber = '';
+              if (location.address) {
+                // Try to extract lot number from address (e.g., "Lot 123" or "Lot-456")
+                const lotMatch = location.address.match(/\bLot\s*[-\s]?\s*(\d+[A-Za-z]?)\b/i);
+                if (lotMatch) {
+                  lotNumber = `Lot ${lotMatch[1]}`;
+                } else {
+                  // Generate lot number from coordinates (last 4 digits of lat and lng)
+                  const latStr = location.lat.toFixed(6).replace('.', '').slice(-4);
+                  const lngStr = location.lng.toFixed(6).replace('.', '').slice(-4);
+                  lotNumber = `Lot ${latStr}${lngStr}`;
+                }
+              } else {
+                // Generate lot number from coordinates if no address
+                const latStr = location.lat.toFixed(6).replace('.', '').slice(-4);
+                const lngStr = location.lng.toFixed(6).replace('.', '').slice(-4);
+                lotNumber = `Lot ${latStr}${lngStr}`;
+              }
+              
               setFormData((prev) => ({
                 ...prev,
-                address: addressValue
+                address: addressValue,
+                lotNumber: lotNumber
               }));
             }
             // Update selected location

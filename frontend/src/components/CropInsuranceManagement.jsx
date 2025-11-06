@@ -575,46 +575,23 @@ const CropInsuranceManagement = () => {
         )}
       </div>
 
-      {/* Add New Crop Modal - Minimalist Blockchain Style */}
+      {/* Add New Crop Modal - Farm Vibe Design (matches Register Farmer form) */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-white bg-opacity-90 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto hide-scrollbar border border-gray-300 relative animate-[fadeIn_0.3s_ease-in]" style={{ boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
-            {/* Corner Accents */}
-            <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-            <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-            <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-            
-            {/* Decorative Lines */}
-            <div className="absolute top-8 left-8 w-24 h-0.5 bg-gradient-to-r from-lime-500 to-transparent opacity-60 z-10"></div>
-            <div className="absolute top-8 right-8 w-24 h-0.5 bg-gradient-to-l from-lime-500 to-transparent opacity-60 z-10"></div>
-            
-            <div className="sticky top-0 bg-white border-b-4 border-lime-500 p-6 flex justify-between items-center z-20 relative" style={{ boxShadow: '0 6px 20px rgba(132, 204, 22, 0.4)' }}>
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-black rounded-lg animate-pulse" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.8)' }}>
-                  <Shield className="h-7 w-7 text-lime-500" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-black text-black tracking-wide uppercase">⛓️ Add Insurance</h3>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
-                    <span className="text-[10px] text-gray-600 uppercase tracking-wider">Blockchain Protocol</span>
-                  </div>
-                </div>
-              </div>
+        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar border-2 border-black">
+            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
+              <h2 className="text-2xl font-bold text-black">🌾 Add New Crop Insurance</h2>
               <button
-                type="button"
+                className="text-black hover:bg-lime-200 rounded-full p-1 focus:outline-none transition-all"
                 onClick={() => setShowAddModal(false)}
-                className="text-lime-500 hover:text-lime-600 focus:outline-none transition-all hover:rotate-90 duration-300"
-                style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.6))' }}
               >
-                <X size={28} strokeWidth={3} />
+                <X size={24} />
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4 relative z-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
+            <div className="p-6 md:p-8 bg-white">
+              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-black mb-1 uppercase">
                     Farmer
                   </label>
                   <select
@@ -622,8 +599,7 @@ const CropInsuranceManagement = () => {
                     value={formData.farmerId}
                     onChange={handleFormChange}
                     required
-                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                   >
                     <option value="">Select Farmer</option>
                     {farmers.map((farmer) => (
@@ -633,8 +609,8 @@ const CropInsuranceManagement = () => {
                     ))}
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
+                <div>
+                  <label className="block text-xs font-bold text-black mb-1 uppercase">
                     Crop Type
                   </label>
                   <select
@@ -642,8 +618,7 @@ const CropInsuranceManagement = () => {
                     value={formData.cropType}
                     onChange={handleFormChange}
                     required
-                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                   >
                     <option value="">Select Crop Type</option>
                     {Object.keys(cropConfigurations).map((crop) => (
@@ -653,8 +628,8 @@ const CropInsuranceManagement = () => {
                     ))}
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
+                <div>
+                  <label className="block text-xs font-bold text-black mb-1 uppercase">
                     Crop Area (hectares)
                   </label>
                   <input
@@ -664,12 +639,12 @@ const CropInsuranceManagement = () => {
                     onChange={handleFormChange}
                     required
                     step="0.01"
-                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                    placeholder="e.g., 5.0"
+                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
+                <div>
+                  <label className="block text-xs font-bold text-black mb-1 uppercase">
                     Lot Number
                   </label>
                   <input
@@ -678,12 +653,12 @@ const CropInsuranceManagement = () => {
                     value={formData.lotNumber}
                     onChange={handleFormChange}
                     required
-                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                    placeholder="e.g., Lot 1 or A-1"
+                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
+                <div>
+                  <label className="block text-xs font-bold text-black mb-1 uppercase">
                     Lot Area (hectares)
                   </label>
                   <input
@@ -693,12 +668,12 @@ const CropInsuranceManagement = () => {
                     onChange={handleFormChange}
                     required
                     step="0.01"
-                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                    placeholder="e.g., 2.5"
+                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
+                <div>
+                  <label className="block text-xs font-bold text-black mb-1 uppercase">
                     Insurance Day Limit
                   </label>
                   <input
@@ -707,12 +682,11 @@ const CropInsuranceManagement = () => {
                     value={formData.insuranceDayLimit}
                     onChange={handleFormChange}
                     required
-                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
+                <div>
+                  <label className="block text-xs font-bold text-black mb-1 uppercase">
                     Planting Date
                   </label>
                   <input
@@ -721,12 +695,11 @@ const CropInsuranceManagement = () => {
                     value={formData.plantingDate}
                     onChange={handleFormChange}
                     required
-                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
+                <div>
+                  <label className="block text-xs font-bold text-black mb-1 uppercase">
                     Expected Harvest Date
                   </label>
                   <input
@@ -735,46 +708,43 @@ const CropInsuranceManagement = () => {
                     value={formData.expectedHarvestDate}
                     onChange={handleFormChange}
                     required
-                    className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
+                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                   />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <label className="block text-xs font-bold text-lime-600 uppercase tracking-wider">
-                  Notes
-                </label>
-                <textarea
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleFormChange}
-                  rows="3"
-                  className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-black font-medium focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600 resize-none"
-                  style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}
-                />
-              </div>
-              <div className="flex gap-3 pt-6 border-t-2 border-lime-500 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="flex-1 bg-white text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-black hover:text-white transition-all font-bold uppercase tracking-wide text-sm"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-black text-lime-500 px-6 py-3 rounded-lg hover:bg-lime-500 hover:text-black disabled:opacity-50 transition-all font-bold uppercase tracking-wide text-sm relative overflow-hidden group border-2 border-black hover:border-lime-500"
-                  style={{ boxShadow: '0 4px 20px rgba(132, 204, 22, 0.5)' }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-lime-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <span className="relative z-10 flex items-center justify-center gap-2">
-                    <Shield className="w-5 h-5" />
-                    {loading ? 'Processing...' : 'Create Record'}
-                  </span>
-                </button>
-              </div>
-            </form>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-black mb-1 uppercase">
+                    Notes
+                  </label>
+                  <textarea
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleFormChange}
+                    rows="3"
+                    placeholder="Add any additional notes or remarks about this crop insurance record..."
+                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400 resize-none"
+                  />
+                </div>
+                
+                <div className="flex gap-3 md:col-span-2 mt-6 pt-6 border-t-2 border-black">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="flex-1 bg-white border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-gray-100 transition-all font-bold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 bg-lime-400 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-500 transition-all font-bold shadow-lg flex items-center justify-center disabled:opacity-50"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
+                  >
+                    <Shield className="mr-2 h-5 w-5" />
+                    {loading ? 'Creating...' : 'Create Record'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
