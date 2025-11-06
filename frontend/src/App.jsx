@@ -14,6 +14,7 @@ const Login = lazy(() => import("./pages/Login"))
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"))
 const FarmerDashboard = lazy(() => import("./pages/FarmerDashboard"))
 const FarmerForm = lazy(() => import("./pages/FarmerForm/FarmerForm"))
+const MapPickerPage = lazy(() => import("./pages/MapPickerPage"))
 const SocketTestComponent = lazy(() => import("./components/SocketTestComponent"))
 const ConnectionTestComponent = lazy(() => import("./components/ConnectionTestComponent"))
 const NotFound = lazy(() => import("./pages/NotFound"))
@@ -136,6 +137,15 @@ function App() {
             element={
               <AuthRoute userType="admin">
                 <AdminDashboard />
+              </AuthRoute>
+            }
+          />
+
+          <Route
+            path="/map-picker"
+            element={
+              <AuthRoute userType="admin">
+                <MapPickerPage />
               </AuthRoute>
             }
           />

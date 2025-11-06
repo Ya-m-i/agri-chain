@@ -114,6 +114,26 @@ const AdminModals = ({
   // Before rendering the form, ensure modalForm.isCertified is always boolean
   const safeModalForm = { ...modalForm, isCertified: typeof modalForm.isCertified === 'boolean' ? modalForm.isCertified : false };
 
+  // Listen for map picker selection from new tab and auto-fill address
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === 'mapPickerSelection' && e.newValue) {
+        try {
+          const data = JSON.parse(e.newValue)
+          if (data && data.address) {
+            handleChange({ target: { name: 'address', value: data.address } })
+          }
+          // Clear after consumption
+          localStorage.removeItem('mapPickerSelection')
+        } catch (err) {
+          console.error('Error reading mapPickerSelection:', err)
+        }
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [handleChange])
+
   return (
     <>
       <style>{scrollbarStyle}</style>
@@ -360,7 +380,7 @@ const AdminModals = ({
                 </button>
               </div>
               <div className="md:col-span-2">
-                <button type="submit" className="bg-lime-700 text-white px-4 py-2 rounded hover:bg-lime-600 w-full">
+                <button type="submit" className="w-full bg-lime-400 border-4 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-500 font-black uppercase tracking-wider shadow-lg transition-all" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.4)' }}>
                   Submit
                 </button>
               </div>
@@ -563,9 +583,9 @@ const AdminModals = ({
 
       {/* Register Farmer Modal */}
       {showRegisterForm && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-5 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-lime-50 rounded-xl shadow-md max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar border border-black">
-            <div className="sticky top-0 bg-lime-50 border-b border-black p-5 rounded-t-xl flex justify-between items-center">
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-20 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar border-4 border-black" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.4)' }}>
+            <div className="sticky top-0 bg-gradient-to-r from-lime-50 to-lime-100 border-b-4 border-black p-5 rounded-t-xl flex justify-between items-center">
               <h2 className="text-2xl font-semibold text-black">Register a New Farmer</h2>
               <button
                 className="text-black hover:text-gray-700 focus:outline-none"
@@ -575,7 +595,7 @@ const AdminModals = ({
               </button>
             </div>
 
-            <div className="p-6 md:p-8 bg-lime-50">
+            <div className="p-6 md:p-8 bg-white">
               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-black">First Name</label>
@@ -660,26 +680,26 @@ const AdminModals = ({
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-black">Address</label>
                   <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowMapModal(true)
-                        setMapMode("add")
-                      }}
-                      className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-auto z-10 hover:opacity-80 transition-opacity"
-                      title="Click to select location on map"
-                    >
-                      <MapPin size={18} className="text-black" />
-                    </button>
                     <input
                       type="text"
                       name="address"
                       value={formData.address}
                       onChange={handleChange}
-                      className="pl-10 w-full border border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-all"
-                      placeholder="Click the map icon to select location"
+                      className="pr-12 w-full border-2 border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-black transition-all"
+                      placeholder="Select location or enter address"
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const url = `${window.location.origin}${window.location.pathname}#/map-picker`;
+                        window.open(url, '_blank');
+                      }}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-auto z-10 hover:opacity-80 transition-opacity"
+                      title="Open map picker in new tab"
+                    >
+                      <MapPin size={18} className="text-black" />
+                    </button>
                   </div>
                 </div>
 
