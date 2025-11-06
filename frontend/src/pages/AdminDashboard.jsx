@@ -157,7 +157,6 @@ import {
   useUpdateApplicationStatus,
   useCreateAssistance,
   useDeleteAssistance,
-  useRegisterFarmer,
   useDeleteFarmer,
   useCropPrices,
   useNotifications,
@@ -310,7 +309,7 @@ const AdminDashboard = () => {
   const updateApplicationMutation = useUpdateApplicationStatus()
   const createAssistanceMutation = useCreateAssistance()
   const deleteAssistanceMutation = useDeleteAssistance()
-  const registerFarmerMutation = useRegisterFarmer()
+  // NOTE: registerFarmerMutation removed - farmer registration is handled by FarmerRegistration component
   const deleteFarmerMutation = useDeleteFarmer()
   
   // Note: Combined loading state available but removed due to ESLint unused variable warning
@@ -437,9 +436,8 @@ const AdminDashboard = () => {
   }, [apiNotificationsArray]);
 
   // Form states
-  const [showModal, setShowModal] = useState(false)
+  // NOTE: showModal and showRegisterForm removed - farmer registration is handled by FarmerRegistration component's local state
   const [showEventModal, setShowEventModal] = useState(false)
-  const [showRegisterForm, setShowRegisterForm] = useState(false)
 
   // Filter states
   const [claimsTabView, setClaimsTabView] = useState("pending") // For Insurance Claims tab view
@@ -484,28 +482,8 @@ const AdminDashboard = () => {
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Form data
-  const initialModalForm = {
-    firstName: "",
-    middleName: "",
-    lastName: "",
-    birthday: "",
-    gender: "",
-    contactNum: "",
-    address: "",
-    cropType: "",
-    cropArea: "",
-    farmName: "",
-    insuranceType: "",
-    premiumAmount: "",
-    lotNumber: "",
-    lotArea: "",
-    agency: "",
-    isCertified: false,
-    periodFrom: "",
-    periodTo: "",
-    location: null, // For map coordinates
-  }
-
+  // NOTE: initialModalForm and modalForm removed - farmer registration is handled by FarmerRegistration component
+  
   const [eventForm, setEventForm] = useState({
     assistanceType: "",
     description: "",
@@ -519,14 +497,12 @@ const AdminDashboard = () => {
 
   const [, setEditingEvent] = useState(null) // Will be used when edit functionality is implemented
 
-  const [modalForm, setModalForm] = useState(initialModalForm)
-
   // Add these state variables for farmer actions
   const [showFarmerDetails, setShowFarmerDetails] = useState(false)
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
   const [farmerToDelete, setFarmerToDelete] = useState(null)
 
-  // State for the registration form
+  // State for the registration form (shared with FarmerRegistration component for map location updates)
   const [formData, setFormData] = useState({
     firstName: "",
     middleName: "",
@@ -547,73 +523,6 @@ const AdminDashboard = () => {
     username: "",
     password: "",
   })
-
-  // Handle form changes
-  const handleChange = (e) => {
-    const { name, type, value, checked } = e.target
-    setFormData((prevFormData) => ({
-      ...prevFormData,
-      [name]: type === "checkbox" ? checked : value,
-    }))
-  }
-
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    
-    try {
-      // Prepare farmer data with location
-      const farmerData = {
-        ...formData,
-        location: selectedLocation // Include map coordinates if selected
-      };
-      
-      // Register farmer using React Query mutation
-      await registerFarmerMutation.mutateAsync(farmerData);
-      
-      // Reset the form
-      setFormData({
-        firstName: "",
-        middleName: "",
-        lastName: "",
-        birthday: "",
-        gender: "",
-        contactNum: "",
-        address: "",
-        cropType: "",
-        cropArea: "",
-        insuranceType: "",
-        lotNumber: "",
-        lotArea: "",
-        agency: "",
-        isCertified: false,
-        periodFrom: "",
-        periodTo: "",
-        username: "",
-        password: "",
-      })
-
-      // Reset selected location
-      setSelectedLocation(null)
-
-      // Close the modal
-      setShowRegisterForm(false)
-
-      // Show success message
-      addLocalNotification({
-        type: 'success',
-        title: 'Farmer Registered Successfully',
-        message: `${formData.firstName} ${formData.lastName} has been registered successfully.`,
-      });
-    } catch (error) {
-      console.error('Error registering farmer:', error);
-      addLocalNotification({
-        type: 'error',
-        title: 'Registration Failed',
-        message: `Error: ${error.message}`,
-      });
-    }
-  }
 
   // Function to add farmers to map
   const addFarmersToMap = () => {
@@ -3291,12 +3200,8 @@ const AdminDashboard = () => {
       </div>
 
       {/* Admin Modals Component */}
+      {/* NOTE: showModal, modalForm, showRegisterForm removed - farmer registration is handled by FarmerRegistration component */}
       <AdminModals
-        showModal={showModal}
-        setShowModal={setShowModal}
-        modalForm={modalForm}
-        setModalForm={setModalForm}
-        initialModalForm={initialModalForm}
         selectedLocation={selectedLocation}
         setSelectedLocation={setSelectedLocation}
         setShowMapModal={setShowMapModal}
@@ -3306,11 +3211,6 @@ const AdminDashboard = () => {
         eventForm={eventForm}
         handleEventChange={handleEventChange}
         handleEventSubmit={handleEventSubmit}
-        showRegisterForm={showRegisterForm}
-        setShowRegisterForm={setShowRegisterForm}
-        formData={formData}
-        handleChange={handleChange}
-        handleSubmit={handleSubmit}
         showClaimDetails={showClaimDetails}
         setShowClaimDetails={setShowClaimDetails}
         selectedClaim={selectedClaim}
@@ -3333,6 +3233,7 @@ const AdminDashboard = () => {
         farmerToDelete={farmerToDelete}
         setFarmerToDelete={setFarmerToDelete}
         farmers={farmers}
+        setFarmers={() => {}} // Placeholder - farmers are managed by React Query
         feedbackText={feedbackText}
         setFeedbackText={setFeedbackText}
       />

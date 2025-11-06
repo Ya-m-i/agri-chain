@@ -910,6 +910,17 @@ const FarmerRegistration = ({
         </div>
       )}
 
+      {/* 
+        ============================================
+        THE ONLY FARMER REGISTRATION MODAL
+        ============================================
+        This is the ONLY modal for registering farmers.
+        Located in: FarmerRegistration.jsx
+        Triggered by: "Register New Farmer" button in this component
+        State: Local state 'showRegisterForm' (line 56)
+        DO NOT create duplicate modals elsewhere!
+        ============================================
+      */}
       {/* Register Farmer Modal - Farm Vibe Design */}
       {showRegisterForm && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-30 backdrop-blur-md flex items-center justify-center p-4">

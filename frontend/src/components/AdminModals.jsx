@@ -23,16 +23,6 @@ import { calculateCompensation, getDamageSeverity, getCoverageDetails } from "..
 // Note: Notifications are now handled by backend API
 
 const AdminModals = ({
-  showModal,
-  setShowModal,
-  modalForm,
-  setModalForm,
-  initialModalForm,
-  selectedLocation,
-  setSelectedLocation,
-  setShowMapModal,
-  setMapMode,
-  setFarmers,
   showEventModal,
   setShowEventModal,
   eventForm,
@@ -56,6 +46,7 @@ const AdminModals = ({
   farmerToDelete,
   setFarmerToDelete,
   farmers,
+  setFarmers,
 }) => {
   // Map modal feature removed - all related code disabled
   // const [mapReady, setMapReady] = useState(false);
@@ -98,263 +89,24 @@ const AdminModals = ({
     }
   `
 
-  // Before rendering the form, ensure modalForm.isCertified is always boolean
-  const safeModalForm = { ...modalForm, isCertified: typeof modalForm.isCertified === 'boolean' ? modalForm.isCertified : false };
-
   return (
     <>
       <style>{scrollbarStyle}</style>
 
-      {/* Modal Forms */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar">
-            <div className="sticky top-0 bg-lime-700 text-white p-4 rounded-t-xl flex justify-between items-center">
-              <button
-                className="absolute top-2 right-2 text-gray-500 hover:text-red-600 text-xl font-bold"
-                onClick={() => setShowModal(false)}
-              >
-                ×
-              </button>
-              <h2 className="text-xl font-bold mb-4">Register Farmer</h2>
-            </div>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                // Username uniqueness validation
-                const storedFarmers = JSON.parse(localStorage.getItem("farmers") || "[]")
-                if (storedFarmers.some(f => f.username === modalForm.username)) {
-                  alert("Username already exists. Please choose a different username.")
-                  return
-                }
-                if (!modalForm.username || !modalForm.password) {
-                  alert("Username and password are required.")
-                  return
-                }
-                const newFarmer = {
-                  id: Date.now().toString(),
-                  farmerName: `${modalForm.firstName} ${modalForm.middleName} ${modalForm.lastName}`.trim(),
-                  address: modalForm.address,
-                  cropType: modalForm.cropType,
-                  cropArea: modalForm.cropArea,
-                  farmName: modalForm.farmName,
-                  insuranceType: modalForm.insuranceType,
-                  premiumAmount: modalForm.premiumAmount,
-                  lotNumber: modalForm.lotNumber,
-                  lotArea: modalForm.lotArea,
-                  agency: modalForm.agency,
-                  isCertified: modalForm.isCertified,
-                  periodFrom: modalForm.periodFrom,
-                  periodTo: modalForm.periodTo,
-                  birthday: modalForm.birthday,
-                  gender: modalForm.gender,
-                  contactNum: modalForm.contactNum,
-                  location: selectedLocation,
-                  username: modalForm.username,
-                  password: modalForm.password,
-                  rsbsaRegistered: !!modalForm.rsbsaRegistered,
-                }
-                // Save to localStorage
-                const updatedFarmers = [...storedFarmers, newFarmer]
-                localStorage.setItem("farmers", JSON.stringify(updatedFarmers))
-                setFarmers(updatedFarmers)
-                setModalForm(initialModalForm) // Reset
-                setSelectedLocation(null)
-                setShowModal(false) // Close
-                alert("Farmer registered successfully!")
-              }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6"
-            >
-              <input
-                type="text"
-                placeholder="First Name"
-                value={modalForm.firstName}
-                onChange={(e) => setModalForm({ ...modalForm, firstName: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Middle Name"
-                value={modalForm.middleName}
-                onChange={(e) => setModalForm({ ...modalForm, middleName: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-              />
-              <input
-                type="text"
-                placeholder="Last Name"
-                value={modalForm.lastName}
-                onChange={(e) => setModalForm({ ...modalForm, lastName: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-                required
-              />
-              <input
-                type="date"
-                placeholder="Birthday"
-                value={modalForm.birthday}
-                onChange={(e) => setModalForm({ ...modalForm, birthday: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-                required
-              />
-              <select
-                value={modalForm.gender}
-                onChange={(e) => setModalForm({ ...modalForm, gender: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-                required
-              >
-                <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-              </select>
-              <input
-                type="tel"
-                placeholder="Contact Number"
-                value={modalForm.contactNum}
-                onChange={(e) => setModalForm({ ...modalForm, contactNum: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-                required
-              />
-              {/* Username field */}
-              <input
-                type="text"
-                placeholder="Username"
-                value={modalForm.username || ""}
-                onChange={e => setModalForm({ ...modalForm, username: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-                required
-              />
-              {/* Password field */}
-              <input
-                type="password"
-                placeholder="Password"
-                value={modalForm.password || ""}
-                onChange={e => setModalForm({ ...modalForm, password: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-                required
-              />
-              {/* RSBSA Registered checkbox */}
-              <div className="flex items-center space-x-2 md:col-span-2">
-                <input
-                  type="checkbox"
-                  checked={!!modalForm.rsbsaRegistered}
-                  onChange={e => setModalForm({ ...modalForm, rsbsaRegistered: e.target.checked })}
-                />
-                <label>RSBSA Registered <span className="text-xs text-gray-500">(Required to avail government assistance)</span></label>
-              </div>
-              <input
-                type="text"
-                placeholder="Address"
-                value={modalForm.address}
-                onChange={(e) => setModalForm({ ...modalForm, address: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Crop Type"
-                value={modalForm.cropType}
-                onChange={(e) => setModalForm({ ...modalForm, cropType: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Crop Area (hectares)"
-                value={modalForm.cropArea}
-                onChange={(e) => setModalForm({ ...modalForm, cropArea: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Farm Name"
-                value={modalForm.farmName}
-                onChange={(e) => setModalForm({ ...modalForm, farmName: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-              />
-              <select
-                value={modalForm.insuranceType}
-                onChange={(e) => setModalForm({ ...modalForm, insuranceType: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-              >
-                <option value="">Select Insurance Type</option>
-                <option value="Crop Damage">Crop Damage</option>
-                <option value="Flood">Flood</option>
-                <option value="Pest">Pest</option>
-              </select>
-              <input
-                type="number"
-                placeholder="Premium Amount"
-                value={modalForm.premiumAmount}
-                onChange={(e) => setModalForm({ ...modalForm, premiumAmount: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-              />
-              <input
-                type="text"
-                placeholder="Lot Number"
-                value={modalForm.lotNumber}
-                onChange={(e) => setModalForm({ ...modalForm, lotNumber: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-              />
-              <input
-                type="text"
-                placeholder="Lot Area"
-                value={modalForm.lotArea}
-                onChange={(e) => setModalForm({ ...modalForm, lotArea: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-              />
-              <input
-                type="text"
-                placeholder="Agency"
-                value={modalForm.agency}
-                onChange={(e) => setModalForm({ ...modalForm, agency: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-              />
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={!!safeModalForm.isCertified}
-                  onChange={e => setModalForm({ ...modalForm, isCertified: e.target.checked })}
-                />
-                <label>Certified</label>
-              </div>
-              <input
-                type="date"
-                value={modalForm.periodFrom}
-                onChange={(e) => setModalForm({ ...modalForm, periodFrom: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-                required
-              />
-              <input
-                type="date"
-                value={modalForm.periodTo}
-                onChange={(e) => setModalForm({ ...modalForm, periodTo: e.target.value })}
-                className="border border-gray-300 p-2.5 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent transition-all"
-                required
-              />
-              <div className="md:col-span-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowMapModal(true)
-                    setMapMode("add")
-                  }}
-                  className="bg-lime-600 text-white px-4 py-2 rounded-lg hover:bg-lime-700 transition-colors flex items-center justify-center shadow-sm"
-                >
-                  <MapPin className="mr-2 h-5 w-5" />
-                  {selectedLocation ? "Change Farm Location" : "Add Farm Location"}
-                </button>
-              </div>
-              <div className="md:col-span-2">
-                <button type="submit" className="bg-lime-700 text-white px-4 py-2 rounded hover:bg-lime-600 w-full">
-                  Submit
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* 
+        ============================================
+        NOTE: OLD LEGACY MODAL REMOVED
+        ============================================
+        The farmer registration modal (showModal) that used localStorage
+        has been REMOVED to prevent duplicates.
+        
+        THE ONLY FARMER REGISTRATION MODAL is now in:
+        - Component: FarmerRegistration.jsx
+        - Location: Line 914
+        - State: Local 'showRegisterForm' state
+        - Trigger: "Register New Farmer" button in FarmerRegistration component
+        ============================================
+      */}
 
       {/* Event Modal */}
       {showEventModal && (
