@@ -57,6 +57,16 @@ export const useDeleteFarmer = () => {
   })
 }
 
+export const useUpdateFarmer = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ farmerId, updateData }) => api.updateFarmer(farmerId, updateData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.FARMERS] })
+    },
+  })
+}
+
 export const useLoginFarmer = () => {
   return useMutation({
     mutationFn: ({ username, password }) => api.loginFarmer(username, password),

@@ -216,6 +216,48 @@ const getAllFarmerProfileImages = async (req, res) => {
     }
 };
 
+// @desc    Update farmer password and username
+// @route   PUT /api/farmers/:id
+// @access  Public
+const updateFarmer = async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const updateData = {};
+        
+        if (username) {
+            updateData.username = username;
+        }
+        
+        if (password) {
+            // Hash password before saving
+            const salt = await bcrypt.genSalt(10);
+            updateData.password = await bcrypt.hash(password, salt);
+        }
+        
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({ message: 'No fields to update' });
+        }
+        
+        const farmer = await Farmer.findByIdAndUpdate(
+            req.params.id,
+            updateData,
+            { new: true }
+        ).select('-password');
+        
+        if (!farmer) {
+            return res.status(404).json({ message: 'Farmer not found' });
+        }
+        
+        res.json({
+            success: true,
+            message: 'Farmer updated successfully',
+            farmer: farmer
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 function generateToken(id) {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 }
@@ -229,5 +271,6 @@ module.exports = {
     logoutFarmer,
     saveFarmerProfileImage,
     getFarmerProfileImage,
-    getAllFarmerProfileImages
+    getAllFarmerProfileImages,
+    updateFarmer
 } 

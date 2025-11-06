@@ -28,6 +28,16 @@ export const deleteFarmer = async (farmerId) => {
   });
 };
 
+export const updateFarmer = async (farmerId, updateData) => {
+  return await fetchWithRetry(apiUrl(`/api/farmers/${farmerId}`), {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(updateData),
+  });
+};
+
 // Fetch farmers without caching
 export const fetchFarmers = async () => {
   return await fetchWithRetry(apiUrl('/api/farmers'));

@@ -15,13 +15,15 @@ import {
   Layers,
   AlertTriangle,
   Shield,
+  Key,
 } from "lucide-react"
 // Image assets removed - no longer used in this component
 import {
   useRegisterFarmer,
   useFarmers,
   useDeleteFarmer,
-  useCropInsurance
+  useCropInsurance,
+  useUpdateFarmer
 } from '../hooks/useAPI'
 import { 
   saveFarmerProfileImage, 
@@ -52,8 +54,16 @@ const FarmerRegistration = ({
   const { data: allCropInsurance = [], isLoading: cropInsuranceLoading } = useCropInsurance()
   const registerFarmerMutation = useRegisterFarmer()
   const deleteFarmerMutation = useDeleteFarmer()
+  const updateFarmerMutation = useUpdateFarmer()
   // Local state for farmer registration
   const [showRegisterForm, setShowRegisterForm] = useState(false)
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
+  const [selectedFarmerForPassword, setSelectedFarmerForPassword] = useState(null)
+  const [passwordForm, setPasswordForm] = useState({
+    username: '',
+    password: '',
+    confirmPassword: ''
+  })
   const [searchQuery, setSearchQuery] = useState("")
   const [timePeriod, setTimePeriod] = useState("monthly") // monthly or quarterly
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
@@ -834,6 +844,27 @@ const FarmerRegistration = ({
                       </button>
                       <button 
                         onClick={() => { 
+                          setSelectedFarmerForPassword(farmer);
+                          setPasswordForm({
+                            username: farmer.username || '',
+                            password: '',
+                            confirmPassword: ''
+                          });
+                          setShowChangePasswordModal(true);
+                        }} 
+                        className="text-gray-600 hover:text-black hover:font-bold hover:cursor-pointer transition-all"
+                        style={{ textShadow: '0 0 0 transparent' }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.textShadow = '0 1px 2px rgba(0,0,0,0.2)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.textShadow = '0 0 0 transparent';
+                        }}
+                      >
+                        Password
+                      </button>
+                      <button 
+                        onClick={() => { 
                           console.log('Delete button clicked for farmer:', farmer); 
                           setFarmerToDelete(farmer); 
                           setShowDeleteConfirmation(true); 
@@ -1570,6 +1601,144 @@ const FarmerRegistration = ({
             }
           }}
         />
+      )}
+
+      {/* Change Password Modal - Farm Vibe Design */}
+      {showChangePasswordModal && selectedFarmerForPassword && (
+        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto hide-scrollbar border-2 border-black">
+            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
+              <h2 className="text-2xl font-bold text-black">🔑 Change Password</h2>
+              <button
+                className="text-black hover:bg-lime-200 rounded-full p-1 focus:outline-none transition-all"
+                onClick={() => {
+                  setShowChangePasswordModal(false);
+                  setSelectedFarmerForPassword(null);
+                  setPasswordForm({ username: '', password: '', confirmPassword: '' });
+                }}
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-6 md:p-8 bg-white">
+              <div className="mb-4 p-3 bg-lime-50 border-2 border-black rounded-lg">
+                <p className="text-sm font-semibold text-black mb-1">Farmer:</p>
+                <p className="text-sm text-gray-700">
+                  {selectedFarmerForPassword.farmerName || 
+                   `${selectedFarmerForPassword.firstName || ''} ${selectedFarmerForPassword.middleName || ''} ${selectedFarmerForPassword.lastName || ''}`.replace(/  +/g, ' ').trim()}
+                </p>
+              </div>
+
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                
+                if (passwordForm.password !== passwordForm.confirmPassword) {
+                  alert('Passwords do not match!');
+                  return;
+                }
+
+                if (passwordForm.password.length < 6) {
+                  alert('Password must be at least 6 characters long!');
+                  return;
+                }
+
+                try {
+                  const updateData = {};
+                  if (passwordForm.username && passwordForm.username.trim() !== '') {
+                    updateData.username = passwordForm.username.trim();
+                  }
+                  if (passwordForm.password && passwordForm.password.trim() !== '') {
+                    updateData.password = passwordForm.password.trim();
+                  }
+
+                  if (Object.keys(updateData).length === 0) {
+                    alert('Please enter at least a new username or password!');
+                    return;
+                  }
+
+                  await updateFarmerMutation.mutateAsync({
+                    farmerId: selectedFarmerForPassword._id || selectedFarmerForPassword.id,
+                    updateData
+                  });
+
+                  setShowChangePasswordModal(false);
+                  setSelectedFarmerForPassword(null);
+                  setPasswordForm({ username: '', password: '', confirmPassword: '' });
+                  
+                  alert('Password and/or username updated successfully!');
+                } catch (error) {
+                  console.error('Error updating password:', error);
+                  alert('Failed to update password. Please try again.');
+                }
+              }} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-black mb-1 uppercase">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    value={passwordForm.username}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, username: e.target.value })}
+                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
+                    placeholder="Enter new username (optional)"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-black mb-1 uppercase">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordForm.password}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, password: e.target.value })}
+                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
+                    placeholder="Enter new password"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-black mb-1 uppercase">
+                    Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
+                    placeholder="Confirm new password"
+                    required
+                  />
+                </div>
+
+                <div className="flex gap-3 mt-6 pt-6 border-t-2 border-black">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowChangePasswordModal(false);
+                      setSelectedFarmerForPassword(null);
+                      setPasswordForm({ username: '', password: '', confirmPassword: '' });
+                    }}
+                    className="flex-1 bg-white border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-gray-100 transition-all font-bold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={updateFarmerMutation.isPending}
+                    className="flex-1 bg-lime-400 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-500 transition-all font-bold shadow-lg flex items-center justify-center disabled:opacity-50"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
+                  >
+                    <Key className="mr-2 h-5 w-5" />
+                    {updateFarmerMutation.isPending ? 'Updating...' : 'Update Password'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
