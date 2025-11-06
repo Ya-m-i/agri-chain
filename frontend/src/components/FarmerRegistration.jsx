@@ -64,6 +64,12 @@ const FarmerRegistration = ({
     password: '',
     confirmPassword: ''
   })
+  const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false)
+  const [passwordConfirmationData, setPasswordConfirmationData] = useState({
+    type: '', // 'confirm', 'error', 'success'
+    message: '',
+    onConfirm: null
+  })
   const [searchQuery, setSearchQuery] = useState("")
   const [timePeriod, setTimePeriod] = useState("monthly") // monthly or quarterly
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
@@ -1633,44 +1639,81 @@ const FarmerRegistration = ({
               <form onSubmit={async (e) => {
                 e.preventDefault();
                 
+                // Validation checks
                 if (passwordForm.password !== passwordForm.confirmPassword) {
-                  alert('Passwords do not match!');
+                  setPasswordConfirmationData({
+                    type: 'error',
+                    message: 'Passwords do not match!',
+                    onConfirm: null
+                  });
+                  setShowPasswordConfirmation(true);
                   return;
                 }
 
                 if (passwordForm.password.length < 6) {
-                  alert('Password must be at least 6 characters long!');
+                  setPasswordConfirmationData({
+                    type: 'error',
+                    message: 'Password must be at least 6 characters long!',
+                    onConfirm: null
+                  });
+                  setShowPasswordConfirmation(true);
                   return;
                 }
 
-                try {
-                  const updateData = {};
-                  if (passwordForm.username && passwordForm.username.trim() !== '') {
-                    updateData.username = passwordForm.username.trim();
-                  }
-                  if (passwordForm.password && passwordForm.password.trim() !== '') {
-                    updateData.password = passwordForm.password.trim();
-                  }
-
-                  if (Object.keys(updateData).length === 0) {
-                    alert('Please enter at least a new username or password!');
-                    return;
-                  }
-
-                  await updateFarmerMutation.mutateAsync({
-                    farmerId: selectedFarmerForPassword._id || selectedFarmerForPassword.id,
-                    updateData
-                  });
-
-                  setShowChangePasswordModal(false);
-                  setSelectedFarmerForPassword(null);
-                  setPasswordForm({ username: '', password: '', confirmPassword: '' });
-                  
-                  alert('Password and/or username updated successfully!');
-                } catch (error) {
-                  console.error('Error updating password:', error);
-                  alert('Failed to update password. Please try again.');
+                const updateData = {};
+                if (passwordForm.username && passwordForm.username.trim() !== '') {
+                  updateData.username = passwordForm.username.trim();
                 }
+                if (passwordForm.password && passwordForm.password.trim() !== '') {
+                  updateData.password = passwordForm.password.trim();
+                }
+
+                if (Object.keys(updateData).length === 0) {
+                  setPasswordConfirmationData({
+                    type: 'error',
+                    message: 'Please enter at least a new username or password!',
+                    onConfirm: null
+                  });
+                  setShowPasswordConfirmation(true);
+                  return;
+                }
+
+                // Show confirmation modal before updating
+                setPasswordConfirmationData({
+                  type: 'confirm',
+                  message: 'Are you sure you want to update the password and/or username for this farmer?',
+                  onConfirm: async () => {
+                    try {
+                      await updateFarmerMutation.mutateAsync({
+                        farmerId: selectedFarmerForPassword._id || selectedFarmerForPassword.id,
+                        updateData
+                      });
+
+                      setShowChangePasswordModal(false);
+                      setSelectedFarmerForPassword(null);
+                      setPasswordForm({ username: '', password: '', confirmPassword: '' });
+                      setShowPasswordConfirmation(false);
+                      
+                      // Show success confirmation
+                      setPasswordConfirmationData({
+                        type: 'success',
+                        message: 'Password and/or username updated successfully!',
+                        onConfirm: null
+                      });
+                      setShowPasswordConfirmation(true);
+                    } catch (error) {
+                      console.error('Error updating password:', error);
+                      setShowPasswordConfirmation(false);
+                      setPasswordConfirmationData({
+                        type: 'error',
+                        message: 'Failed to update password. Please try again.',
+                        onConfirm: null
+                      });
+                      setShowPasswordConfirmation(true);
+                    }
+                  }
+                });
+                setShowPasswordConfirmation(true);
               }} className="space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-black mb-1 uppercase">
@@ -1736,6 +1779,68 @@ const FarmerRegistration = ({
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Password Update Confirmation Modal - Farm Vibe Design */}
+      {showPasswordConfirmation && (
+        <div className="fixed inset-0 z-[60] bg-transparent backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full border-2 border-black">
+            <div className="bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl">
+              <h2 className="text-2xl font-bold text-black">
+                {passwordConfirmationData.type === 'confirm' && '🔒 Confirm Update'}
+                {passwordConfirmationData.type === 'error' && '⚠️ Error'}
+                {passwordConfirmationData.type === 'success' && '✅ Success'}
+              </h2>
+            </div>
+
+            <div className="p-6 bg-white">
+              <p className="text-black mb-6 text-center">
+                {passwordConfirmationData.message}
+              </p>
+
+              <div className="flex gap-3">
+                {passwordConfirmationData.type === 'confirm' ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowPasswordConfirmation(false);
+                        setPasswordConfirmationData({ type: '', message: '', onConfirm: null });
+                      }}
+                      className="flex-1 bg-white border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-gray-100 transition-all font-bold"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (passwordConfirmationData.onConfirm) {
+                          passwordConfirmationData.onConfirm();
+                        }
+                      }}
+                      className="flex-1 bg-lime-400 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-500 transition-all font-bold shadow-lg"
+                      style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
+                    >
+                      Confirm
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPasswordConfirmation(false);
+                      setPasswordConfirmationData({ type: '', message: '', onConfirm: null });
+                    }}
+                    className="flex-1 bg-lime-400 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-500 transition-all font-bold shadow-lg"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
+                  >
+                    OK
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
