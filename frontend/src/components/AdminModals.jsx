@@ -1,6 +1,5 @@
 "use client"
 
-import React from "react"
 import {
   X,
   MapPin,
@@ -557,105 +556,81 @@ const AdminModals = ({
         </div>
       )}
 
-      {/* Register Farmer Modal - Farm Vibe Design */}
+      {/* Register Farmer Modal */}
       {showRegisterForm && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-30 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar border-4 border-black relative" style={{ boxShadow: '0 0 30px rgba(132, 204, 22, 0.5)' }}>
-            {/* Farm Vibe Decorative Corners */}
-            <div className="absolute top-0 left-0 w-16 h-16 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10"></div>
-            <div className="absolute top-0 right-0 w-16 h-16 border-t-4 border-r-4 border-lime-400 pointer-events-none z-10"></div>
-            <div className="absolute bottom-0 left-0 w-16 h-16 border-b-4 border-l-4 border-lime-400 pointer-events-none z-10"></div>
-            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-4 border-r-4 border-lime-400 pointer-events-none z-10"></div>
-            
-            <div className="sticky top-0 bg-gradient-to-r from-lime-50 via-white to-lime-50 border-b-4 border-black p-6 rounded-t-xl flex justify-between items-center z-20" style={{ boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)' }}>
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-black rounded-xl shadow-lg" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.8), inset 0 0 10px rgba(132, 204, 22, 0.4)' }}>
-                  <UserPlus className="h-7 w-7 text-lime-400" />
-                </div>
-                <div>
-                  <h2 className="text-2xl font-black text-black uppercase tracking-wider flex items-center gap-2">
-                    <span>🌾</span>
-                    Register a New Farmer
-                    <span>📍</span>
-                  </h2>
-                  <p className="text-sm text-gray-700 uppercase tracking-widest font-bold mt-1">Kapalong Maniki Area</p>
-                </div>
-              </div>
+          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar border-2 border-black">
+            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-black">🌾 Register a New Farmer</h2>
               <button
-                className="text-black hover:text-red-600 focus:outline-none transition-all hover:rotate-90 duration-300 font-black bg-white border-2 border-black rounded-full p-2 shadow-lg hover:shadow-xl"
-                style={{ filter: 'drop-shadow(0 0 8px rgba(0, 0, 0, 0.4))' }}
+                className="text-black hover:bg-lime-200 rounded-full p-1 focus:outline-none transition-all"
                 onClick={() => setShowRegisterForm(false)}
               >
-                <X size={28} strokeWidth={3} />
+                <X size={24} />
               </button>
             </div>
 
-            <div className="p-6 md:p-8 bg-gradient-to-br from-white via-lime-50 to-white">
+            <div className="p-6 md:p-8 bg-white">
               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">First Name</label>
+                  <label className="block text-sm font-medium text-black">First Name</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User size={18} className="text-lime-500" />
+                      <User size={18} className="text-black" />
                     </div>
                     <input
                       type="text"
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                      style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                      className="pl-10 w-full border-2 border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Middle Name</label>
+                  <label className="block text-sm font-medium text-black">Middle Name</label>
                   <input
                     type="text"
                     name="middleName"
                     value={formData.middleName}
                     onChange={handleChange}
-                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                    className="w-full border-2 border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Last Name</label>
+                  <label className="block text-sm font-medium text-black">Last Name</label>
                   <input
                     type="text"
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleChange}
-                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                    className="w-full border-2 border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Birthday</label>
+                  <label className="block text-sm font-medium text-black">Birthday</label>
                   <input
                     type="date"
                     name="birthday"
                     value={formData.birthday}
                     onChange={handleChange}
-                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                    className="w-full border-2 border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Gender</label>
+                  <label className="block text-sm font-medium text-black">Gender</label>
                   <select
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
-                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                    className="w-full border-2 border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
                     required
                   >
                     <option value="">Select Gender</option>
@@ -666,29 +641,27 @@ const AdminModals = ({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Contact Number</label>
+                  <label className="block text-sm font-medium text-black">Contact Number</label>
                   <input
                     type="tel"
                     name="contactNum"
                     value={formData.contactNum}
                     onChange={handleChange}
-                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                    className="w-full border-2 border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Address</label>
+                  <label className="block text-sm font-medium text-black">Address</label>
                   <div className="relative">
                     <input
                       type="text"
                       name="address"
                       value={formData.address}
                       onChange={handleChange}
-                      className="pr-10 w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                      style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
-                      placeholder="Enter address or click location icon to select"
+                      className="w-full pr-10 border-2 border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
+                      placeholder="Enter address or click map icon to select location"
                       required
                     />
                     <button
@@ -697,125 +670,114 @@ const AdminModals = ({
                         setShowMapModal(true)
                         setMapMode("add")
                       }}
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-auto z-10 hover:opacity-80 transition-opacity cursor-pointer"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-auto z-10 hover:opacity-80 transition-opacity"
                       title="Click to select location on map"
                     >
-                      <MapPin size={20} className="text-lime-500 hover:text-lime-600" style={{ filter: 'drop-shadow(0 0 4px rgba(132, 204, 22, 0.8))' }} />
+                      <MapPin size={20} className="text-black" />
                     </button>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1 flex items-center">
-                    <span className="text-lime-500 mr-1">►</span>
-                    Click the location icon to select from map
-                  </p>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Crop Type</label>
+                  <label className="block text-sm font-medium text-black">Crop Type</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Layers size={18} className="text-lime-500" />
+                      <Layers size={18} className="text-black" />
                     </div>
                     <input
                       type="text"
                       name="cropType"
                       value={formData.cropType}
                       onChange={handleChange}
-                      className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                      style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                      className="pl-10 w-full border-2 border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
                       required
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Crop Area (hectares)</label>
+                  <label className="block text-sm font-medium text-black">Crop Area (hectares)</label>
                   <input
                     type="text"
                     name="cropArea"
                     value={formData.cropArea}
                     onChange={handleChange}
-                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                    className="w-full border-2 border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Insurance Type</label>
+                  <label className="block text-sm font-medium text-black">Insurance Type</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <FileText size={18} className="text-lime-500" />
+                      <FileText size={18} className="text-black" />
                     </div>
                     <input
                       type="text"
                       name="insuranceType"
                       value={formData.insuranceType}
                       onChange={handleChange}
-                      className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                      style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                      className="pl-10 w-full border-2 border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Premium Amount</label>
+                  <label className="block text-sm font-medium text-black">Premium Amount</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <DollarSign size={18} className="text-lime-500" />
+                      <DollarSign size={18} className="text-black" />
                     </div>
                     <input
                       type="number"
                       name="premiumAmount"
                       value={formData.premiumAmount}
                       onChange={handleChange}
-                      className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                      style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                      className="pl-10 w-full border-2 border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Lot Number</label>
+                  <label className="block text-sm font-medium text-black">Lot Number</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <MapPin size={18} className="text-lime-500" />
+                      <MapPin size={18} className="text-black" />
                     </div>
                     <input
                       type="text"
                       name="lotNumber"
                       value={formData.lotNumber}
                       onChange={handleChange}
-                      className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                      style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                      className="pl-10 w-full border-2 border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Lot Area</label>
+                  <label className="block text-sm font-medium text-black">Lot Area</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Layers size={18} className="text-lime-500" />
+                      <Layers size={18} className="text-black" />
                     </div>
                     <input
                       type="text"
                       name="lotArea"
                       value={formData.lotArea}
                       onChange={handleChange}
-                      className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                      style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                      className="pl-10 w-full border-2 border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Agency</label>
+                  <label className="block text-sm font-medium text-black">Agency</label>
                   <select
                     name="agency"
                     value={formData.agency}
                     onChange={handleChange}
-                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                    style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                    className="w-full border-2 border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
                   >
                     <option value="">Select Agency</option>
                     <option value="DA">DA - Department of Agriculture</option>
@@ -836,46 +798,43 @@ const AdminModals = ({
                     name="isCertified"
                     checked={formData.isCertified}
                     onChange={handleChange}
-                    className="w-5 h-5 text-lime-400 border-2 border-black rounded focus:ring-lime-400 focus:ring-2"
-                    style={{ accentColor: '#84cc16' }}
+                    className="w-5 h-5 text-black border-black rounded focus:ring-black"
                   />
-                  <label htmlFor="isCertified" className="text-black font-bold uppercase tracking-wide">
+                  <label htmlFor="isCertified" className="text-black font-medium">
                     Certified Farmer
                   </label>
                 </div>
 
                 <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                   <div className="space-y-2">
-                    <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Period From</label>
+                    <label className="block text-sm font-medium text-black">Period From</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Calendar size={18} className="text-lime-500" />
+                        <Calendar size={18} className="text-black" />
                       </div>
                       <input
                         type="date"
                         name="periodFrom"
                         value={formData.periodFrom}
                         onChange={handleChange}
-                        className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                        style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                        className="pl-10 w-full border-2 border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Period To</label>
+                    <label className="block text-sm font-medium text-black">Period To</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Calendar size={18} className="text-lime-500" />
+                        <Calendar size={18} className="text-black" />
                       </div>
                       <input
                         type="date"
                         name="periodTo"
                         value={formData.periodTo}
                         onChange={handleChange}
-                        className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                        style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                        className="pl-10 w-full border-2 border-black bg-white p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
                         required
                       />
                     </div>
@@ -886,17 +845,17 @@ const AdminModals = ({
                   <button
                     type="button"
                     onClick={() => setShowRegisterForm(false)}
-                    className="flex-1 bg-white border-4 border-black text-black px-6 py-3 rounded-lg hover:bg-gray-100 font-black uppercase tracking-wider transition-all shadow-lg hover:shadow-xl"
+                    className="flex-1 bg-white border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-gray-100 transition-all font-semibold"
                   >
-                    ✖ Cancel
+                    Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 bg-lime-400 border-4 border-black text-black px-6 py-3 rounded-lg hover:bg-lime-500 font-black uppercase tracking-wider transition-all flex items-center justify-center shadow-xl hover:shadow-2xl"
-                    style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.7)' }}
+                    className="flex-1 bg-lime-400 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-500 transition-all font-bold shadow-lg flex items-center justify-center"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
                   >
                     <UserPlus className="mr-2 h-5 w-5" />
-                    ✅ Register Farmer
+                    Register Farmer
                   </button>
                 </div>
               </form>
@@ -1354,35 +1313,7 @@ const AdminModals = ({
         </div>
       )}
 
-      {/* Map Modal - Select Farm Location */}
-      {showMapModal && mapMode === "add" && (
-        <SimpleMapPicker
-          onLocationSelect={(location) => {
-            // Update form data with selected location
-            if (location && location.address) {
-              // Create a synthetic event to update the address field
-              const syntheticEvent = {
-                target: {
-                  name: 'address',
-                  value: location.address
-                }
-              };
-              handleChange(syntheticEvent);
-              
-              // Also update selectedLocation for coordinates
-              if (setSelectedLocation) {
-                setSelectedLocation({ lat: location.lat, lng: location.lng });
-              }
-              
-              console.log('✅ Location selected and address updated:', location.address);
-            }
-          }}
-          onClose={() => {
-            setShowMapModal(false);
-            setMapMode(null);
-          }}
-        />
-      )}
+      {/* Map Modal - REMOVED - Feature disabled per user request */}
 
       {/* Farmer Details Modal */}
       {showFarmerDetails && selectedFarmer && (
@@ -1501,6 +1432,37 @@ const AdminModals = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Map Picker Modal for Address Selection */}
+      {showMapModal && mapMode === "add" && (
+        <SimpleMapPicker
+          onLocationSelect={(location) => {
+            // Update the address field if address is available
+            if (handleChange) {
+              const addressValue = location.address || `Lat: ${location.lat.toFixed(6)}, Lng: ${location.lng.toFixed(6)}`;
+              handleChange({
+                target: {
+                  name: 'address',
+                  value: addressValue
+                }
+              });
+            }
+            // Update selected location
+            if (setSelectedLocation) {
+              setSelectedLocation({
+                lat: location.lat,
+                lng: location.lng
+              });
+            }
+          }}
+          onClose={() => {
+            // Close the map modal when user confirms or closes
+            if (setShowMapModal) {
+              setShowMapModal(false);
+            }
+          }}
+        />
       )}
 
       {/* Delete Confirmation Modal */}

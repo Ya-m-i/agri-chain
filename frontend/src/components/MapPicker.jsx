@@ -66,11 +66,11 @@ const MapPicker = ({ onLocationSelect }) => {
             position: relative;
             width: 40px;
             height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          ">
-            <div style="
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        ">
+          <div style="
               background-color: #84cc16;
               width: 40px;
               height: 40px;
@@ -78,7 +78,7 @@ const MapPicker = ({ onLocationSelect }) => {
               transform: rotate(-45deg);
               border: 4px solid #000000;
               box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 15px rgba(132, 204, 22, 0.6);
-            "></div>
+          "></div>
             <div style="
               position: absolute;
               top: 50%;
