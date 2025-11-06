@@ -55,6 +55,8 @@ const loginUser = asyncHandler(async (req, res) => {
         res.json({
             _id: user._id,
             username: user.username,
+            role: user.role || 'user',
+            name: user.name || user.username,
             token: generateToken(user._id)
         })
     }else{

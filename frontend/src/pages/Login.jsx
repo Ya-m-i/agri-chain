@@ -6,7 +6,7 @@ import { useAuthStore } from "../store/authStore"
 // Add imports for both logos
 import farmerLogoImage from "../assets/Images/FarmLogo.png" // Your farmer logo
 import adminLogoImage from "../assets/Images/DALOGO.png" // Admin logo
-import { loginFarmer } from '../api';
+import { loginFarmer, loginUser } from '../api';
 import LoadingOverlay from '../components/LoadingOverlay';
 
 const Login = () => {
@@ -43,20 +43,40 @@ const Login = () => {
     logout();
 
     if (isAdminMode) {
-      // Dummy admin credentials
-      if (form.username === "admin" && form.password === "admin123") {
+      try {
+        console.log('Login: Attempting admin login...');
+        const user = await loginUser(form.username, form.password);
+        console.log('Login: Backend response:', user);
+        
+        // Verify the user has admin role
+        if (user.role !== 'admin') {
+          setErrorMsg("Access denied. Admin role required.");
+          setIsLoggingIn(false);
+          return;
+        }
+        
         localStorage.setItem("isAdmin", "true") // For backward compatibility
         localStorage.removeItem("isFarmer") // Clear farmer auth
+        
+        // Map backend user data to auth store structure
+        const userData = {
+          id: user._id || user.id,
+          name: user.name || user.username,
+          username: user.username,
+          role: user.role,
+        };
+        
         console.log('Login: Admin credentials validated, logging in...');
-        login("admin")
+        login("admin", userData)
         console.log("Admin login successful, navigating to /admin")
         
         // Add delay for loading animation
         setTimeout(() => {
           navigate("/admin")
         }, 1000);
-      } else {
-        setErrorMsg("Invalid admin credentials");
+      } catch (err) {
+        console.error('Login: Admin login failed:', err);
+        setErrorMsg(err.message || "Invalid admin credentials");
         setIsLoggingIn(false);
       }
     } else {

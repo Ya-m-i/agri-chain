@@ -8,6 +8,14 @@ const userSchema = mongoose.Schema({
     password: {
         type: String,
         required: [true, 'Please add an email']
+    },
+    role: {
+        type: String,
+        enum: ['admin', 'user'],
+        default: 'user'
+    },
+    name: {
+        type: String
     }
 },{
     timestamps: true,

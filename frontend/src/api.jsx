@@ -57,6 +57,16 @@ export const loginFarmer = async (username, password) => {
   });
 };
 
+export const loginUser = async (username, password) => {
+  return await fetchWithRetry(apiUrl('/api/users/login'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ username, password }),
+  });
+};
+
 // Claim operations without caching
 export const createClaim = async (claimData) => {
   try {

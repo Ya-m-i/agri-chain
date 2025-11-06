@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const initDefaultAdmin = require('../scripts/initDefaultAdmin')
 
 const connectDB = async () => {
     try {
@@ -43,6 +44,9 @@ const connectDB = async () => {
         // Note: Index creation disabled to prevent connection timeouts
         // Indexes will be created automatically by MongoDB when needed
         console.log('✅ MongoDB connection established successfully')
+        
+        // Initialize default admin after successful connection
+        await initDefaultAdmin();
         
     } catch (error) {
         console.log('MongoDB connection error:', error)
