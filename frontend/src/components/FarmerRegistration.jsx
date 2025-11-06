@@ -32,13 +32,16 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tool
 import { Doughnut } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { getCropTypeDistributionFromInsurance } from '../utils/cropTypeDistribution'
+import SimpleMapPicker from './SimpleMapPicker'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
 const FarmerRegistration = ({
   formData,
   setFormData,
+  showMapModal,
   setShowMapModal,
+  mapMode,
   setMapMode,
   selectedLocation,
   setSelectedLocation,
@@ -907,46 +910,21 @@ const FarmerRegistration = ({
         </div>
       )}
 
-      {/* Register Farmer Modal - Enhanced Blockchain Style with Neon Lime */}
+      {/* Register Farmer Modal - Farm Vibe Design */}
       {showRegisterForm && (
-        <div className="fixed inset-0 z-50 bg-white bg-opacity-90 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white border border-gray-300 rounded-xl shadow-sm max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar relative animate-[fadeIn_0.3s_ease-in]" style={{ boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
-            {/* Enhanced Corner Accents with Glow */}
-            <div className="absolute top-0 left-0 w-20 h-20 border-t-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-            <div className="absolute top-0 right-0 w-20 h-20 border-t-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-            <div className="absolute bottom-0 left-0 w-20 h-20 border-b-4 border-l-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-            <div className="absolute bottom-0 right-0 w-20 h-20 border-b-4 border-r-4 border-lime-400 pointer-events-none z-10 animate-pulse" style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.8))' }}></div>
-            
-            {/* Decorative Circuit Lines */}
-            <div className="absolute top-10 left-10 w-32 h-0.5 bg-gradient-to-r from-lime-500 to-transparent opacity-60 z-10"></div>
-            <div className="absolute top-10 right-10 w-32 h-0.5 bg-gradient-to-l from-lime-500 to-transparent opacity-60 z-10"></div>
-            <div className="absolute bottom-10 left-10 w-32 h-0.5 bg-gradient-to-r from-lime-500 to-transparent opacity-60 z-10"></div>
-            <div className="absolute bottom-10 right-10 w-32 h-0.5 bg-gradient-to-l from-lime-500 to-transparent opacity-60 z-10"></div>
-            
-            <div className="sticky top-0 bg-white border-b-4 border-lime-500 p-6 flex justify-between items-center z-20 relative" style={{ boxShadow: '0 6px 20px rgba(132, 204, 22, 0.4)' }}>
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-black rounded-lg animate-pulse" style={{ boxShadow: '0 0 20px rgba(132, 204, 22, 0.8)' }}>
-                  <UserPlus className="h-7 w-7 text-lime-500" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-black text-black tracking-wide uppercase">⛓️ Register Farmer</h2>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="w-1.5 h-1.5 bg-lime-500 rounded-full animate-pulse" style={{ boxShadow: '0 0 8px rgba(132, 204, 22, 1)' }}></span>
-                    <span className="text-[10px] text-gray-600 uppercase tracking-wider">Blockchain Protocol</span>
-                  </div>
-                </div>
-              </div>
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-30 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar border-2 border-black">
+            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
+              <h2 className="text-2xl font-bold text-black">🌾 Register a New Farmer</h2>
               <button
-                type="button"
+                className="text-black hover:bg-lime-200 rounded-full p-1 focus:outline-none transition-all"
                 onClick={() => setShowRegisterForm(false)}
-                className="text-lime-500 hover:text-lime-600 focus:outline-none transition-all hover:rotate-90 duration-300"
-                style={{ filter: 'drop-shadow(0 0 8px rgba(132, 204, 22, 0.6))' }}
               >
-                <X size={28} strokeWidth={3} />
+                <X size={24} />
               </button>
             </div>
 
-            <div className="p-6 md:p-8 relative z-10">
+            <div className="p-6 md:p-8 bg-white">
               <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Personal Information Block - Minimalist Blockchain Style */}
                 <div className="bg-white rounded-lg p-5 border-2 border-lime-500 relative" style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}>
@@ -1071,27 +1049,33 @@ const FarmerRegistration = ({
                   </div>
                   <div className="space-y-3">
                     <div>
-                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Address</label>
+                      <label className="block text-xs font-bold text-black mb-1 uppercase">Address</label>
                       <div className="relative">
-                        {/* Map icon removed - map modal feature disabled */}
-                        {/* <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-auto cursor-pointer" onClick={() => { setShowMapModal(true); setMapMode('add'); }}>
-                          <MapPin size={16} className="text-lime-500" />
-                        </div> */}
                         <input
                           type="text"
                           name="address"
                           value={formData.address || ""}
                           onChange={handleChange}
-                          className="w-full bg-white border-2 border-lime-500 p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-lime-400 focus:border-lime-600 transition-all hover:border-lime-600"
-                          style={{ boxShadow: '0 0 15px rgba(132, 204, 22, 0.3)' }}
+                          className="w-full pr-10 bg-white border-2 border-black p-3 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
                           required
-                          placeholder="Enter address manually"
+                          placeholder="Enter address or click map icon to select location"
                         />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (setShowMapModal) {
+                              setShowMapModal(true)
+                            }
+                            if (setMapMode) {
+                              setMapMode("add")
+                            }
+                          }}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-auto z-10 hover:opacity-80 transition-opacity"
+                          title="Click to select location on map"
+                        >
+                          <MapPin size={20} className="text-black" />
+                        </button>
                       </div>
-                      <p className="text-xs text-gray-600 mt-1 flex items-center">
-                        <span className="text-lime-500 mr-1">►</span>
-                        Enter the complete address manually
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -1289,23 +1273,21 @@ const FarmerRegistration = ({
                   </div>
                 </div>
 
-                <div className="md:col-span-2 flex gap-3 pt-6 border-t-2 border-lime-500 mt-6">
+                <div className="md:col-span-2 flex gap-4 pt-4">
                   <button
                     type="button"
                     onClick={() => setShowRegisterForm(false)}
-                    className="flex-1 bg-white text-black border-2 border-black px-6 py-3 rounded-lg hover:bg-black hover:text-white transition-all font-bold uppercase tracking-wide text-sm"
+                    className="flex-1 bg-white border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-gray-100 transition-all font-semibold"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 bg-black text-lime-500 px-6 py-3 rounded-lg hover:bg-lime-500 hover:text-black transition-all font-bold uppercase tracking-wide text-sm relative overflow-hidden group border-2 border-black hover:border-lime-500"
-                    style={{ boxShadow: '0 4px 20px rgba(132, 204, 22, 0.5)' }}
+                    className="flex-1 bg-lime-400 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-500 transition-all font-bold shadow-lg flex items-center justify-center"
+                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
                   >
-                    <span className="relative z-10 flex items-center justify-center gap-2">
-                      <UserPlus className="w-5 h-5" />
-                      Register
-                    </span>
+                    <UserPlus className="mr-2 h-5 w-5" />
+                    Register Farmer
                   </button>
                 </div>
               </form>
@@ -1538,6 +1520,35 @@ const FarmerRegistration = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Map Picker Modal for Address Selection */}
+      {showMapModal && mapMode === "add" && (
+        <SimpleMapPicker
+          onLocationSelect={(location) => {
+            // Update the address field if address is available
+            if (setFormData) {
+              const addressValue = location.address || `Lat: ${location.lat.toFixed(6)}, Lng: ${location.lng.toFixed(6)}`;
+              setFormData((prev) => ({
+                ...prev,
+                address: addressValue
+              }));
+            }
+            // Update selected location
+            if (setSelectedLocation) {
+              setSelectedLocation({
+                lat: location.lat,
+                lng: location.lng
+              });
+            }
+          }}
+          onClose={() => {
+            // Close the map modal when user confirms or closes
+            if (setShowMapModal) {
+              setShowMapModal(false);
+            }
+          }}
+        />
       )}
     </div>
   )

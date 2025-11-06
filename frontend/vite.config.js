@@ -7,7 +7,7 @@ export default defineConfig({
   base: '/',
   plugins: [react(), tailwindcss()],
   optimizeDeps: {
-    include: ["react", "react-dom", "react-router-dom"]
+    include: ["react", "react-dom", "react-router-dom", "leaflet", "leaflet-draw"]
   },
   server: {
     host: '0.0.0.0',
