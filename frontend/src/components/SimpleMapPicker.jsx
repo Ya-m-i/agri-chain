@@ -26,31 +26,26 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
     console.log('🗺️ Initializing farm location picker...');
 
     try {
-      // Create map centered on Kapalong Maniki area
-      // Kapalong Maniki, Davao del Norte - focused on Maniki barangay area
-      const kapalongManikiCenter = [7.6080, 125.8400]; // Kapalong Maniki area (more focused on Maniki)
-      const kapalongZoom = 14; // Closer zoom to focus on Maniki area
+      // Create map centered on Magsaysay Street, Purok 10-A, Maniki, Kapalong
+      // Magsaysay Street, Purok 10-A, Maniki, Kapalong, Davao del Norte, Davao Region, 8113, Philippines
+      const magsaysayCenter = [7.6080, 125.8400]; // Approximate coordinates for Magsaysay Street, Purok 10-A, Maniki
+      const initialZoom = 16; // Close zoom to show street level detail
       
       const map = L.map(mapContainerRef.current, {
-        center: kapalongManikiCenter,
-        zoom: kapalongZoom,
+        center: magsaysayCenter,
+        zoom: initialZoom,
         zoomControl: true,
-        minZoom: 12,  // Allow some zoom out to see surrounding areas
+        minZoom: 2,  // Allow free zoom out to see anywhere in the world
         maxZoom: 18,  // Allow zooming in for precision
-        // Bounds focused on Kapalong Maniki area
-        maxBounds: [
-          [7.55, 125.80],  // Southwest - covers Kapalong Maniki area
-          [7.65, 125.88]   // Northeast - covers Kapalong Maniki area
-        ],
-        maxBoundsViscosity: 1.0, // Allow easier movement within bounds
+        // No maxBounds - map is free to move anywhere
       });
 
       mapInstanceRef.current = map;
       
-      // Force set view to Kapalong Maniki area after initialization
+      // Force set view to Magsaysay Street area after initialization
       setTimeout(() => {
-        map.setView(kapalongManikiCenter, kapalongZoom, { animate: false });
-        console.log('📍 Map centered on Kapalong Maniki area:', kapalongManikiCenter);
+        map.setView(magsaysayCenter, initialZoom, { animate: false });
+        console.log('📍 Map centered on Magsaysay Street, Purok 10-A, Maniki:', magsaysayCenter);
       }, 100);
 
       // Add OpenStreetMap tiles
@@ -124,9 +119,9 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
       // Map loaded - final center
       setTimeout(() => {
         map.invalidateSize();
-        map.setView(kapalongManikiCenter, kapalongZoom, { animate: false }); 
+        map.setView(magsaysayCenter, initialZoom, { animate: false }); 
         setLoading(false);
-        console.log('✅ Farm location picker ready - Kapalong Maniki area centered!');
+        console.log('✅ Farm location picker ready - Magsaysay Street, Purok 10-A, Maniki centered!');
       }, 300);
 
     } catch (error) {
@@ -159,7 +154,7 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
               </div>
               <div>
                 <h2 className="text-2xl font-bold">🌾 Select Farm Location</h2>
-                <p className="text-lime-100 text-sm mt-1">Kapalong Maniki, Davao del Norte - Click on the map to mark your farm location</p>
+                <p className="text-lime-100 text-sm mt-1">Magsaysay Street, Purok 10-A, Maniki, Kapalong - Click on the map to mark your farm location</p>
               </div>
             </div>
             <button
@@ -179,7 +174,7 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
             <div className="absolute inset-0 bg-lime-50 flex items-center justify-center z-10">
               <div className="text-center">
                 <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-lime-200 border-t-lime-600 mb-3"></div>
-                <p className="text-lime-700 font-semibold text-lg">Loading Kapalong Maniki farm map...</p>
+                <p className="text-lime-700 font-semibold text-lg">Loading farm map...</p>
               </div>
             </div>
           )}

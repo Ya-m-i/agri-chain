@@ -427,24 +427,16 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[5px] shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <HandHeart className="h-6 w-6 text-green-600" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">File Assistance Application for Farmer</h2>
-              <p className="text-sm text-gray-500">Submit government assistance application on behalf of a farmer</p>
-            </div>
-          </div>
+    <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden border-2 border-black">
+        {/* Header - Farm Vibe Design */}
+        <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
+          <h2 className="text-2xl font-bold text-black">🌾 File Assistance Application for Farmer</h2>
           <button
+            className="text-black hover:bg-lime-200 rounded-full p-1 focus:outline-none transition-all"
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <X className="h-5 w-5 text-gray-500" />
+            <X size={24} />
           </button>
         </div>
 
@@ -459,7 +451,7 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
               <button
                 type="button"
                 onClick={() => setShowFarmerSearch(!showFarmerSearch)}
-                className="w-full p-3 border border-gray-300 rounded-lg text-left flex items-center justify-between hover:border-gray-400 transition-colors"
+                className="w-full p-3 border-2 border-black rounded-lg text-left flex items-center justify-between hover:border-lime-400 transition-colors"
               >
                 <div className="flex items-center space-x-3">
                   <User className="h-5 w-5 text-gray-400" />
@@ -474,8 +466,8 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
               </button>
               
               {showFarmerSearch && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
-                  <div className="p-3 border-b border-gray-200">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-black rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                  <div className="p-3 border-b-2 border-black">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <input
@@ -483,7 +475,7 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
                         placeholder="Search farmers..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className="w-full pl-10 pr-3 py-2 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                       />
                     </div>
                   </div>
@@ -547,12 +539,12 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
                   return (
                     <div
                       key={assistance._id}
-                      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
                         selectedAssistance?._id === assistance._id
-                          ? 'border-green-500 bg-green-50'
+                          ? 'border-lime-500 bg-lime-50'
                           : eligibility.eligible
-                          ? 'border-gray-200 hover:border-gray-300'
-                          : 'border-gray-200 bg-gray-50 opacity-75'
+                          ? 'border-black hover:border-lime-400'
+                          : 'border-black bg-gray-50 opacity-75'
                       }`}
                       onClick={() => handleAssistanceSelect(assistance)}
                     >
@@ -633,7 +625,7 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
                 onChange={handleInputChange}
                 min="1"
                 max={selectedAssistance?.availableQuantity || 999999}
-                className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="flex-1 p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                 placeholder="Enter quantity"
                 required
               />
@@ -735,23 +727,24 @@ const AdminAssistanceFiling = ({ isOpen, onClose, onSuccess }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+              className="flex-1 bg-white border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-gray-100 transition-all font-bold"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+              className="flex-1 bg-lime-400 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-500 transition-all font-bold shadow-lg flex items-center justify-center disabled:opacity-50"
+              style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
             >
               {isSubmitting ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black mr-2"></div>
                   <span>Filing Application...</span>
                 </>
               ) : (
                 <>
-                  <HandHeart className="h-4 w-4" />
+                  <HandHeart className="h-4 w-4 mr-2" />
                   <span>File Application</span>
                 </>
               )}

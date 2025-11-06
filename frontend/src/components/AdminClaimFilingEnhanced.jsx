@@ -408,32 +408,24 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-transparent flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-[5px] shadow-xl w-full max-w-6xl max-h-[95vh] overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <FileText className="h-6 w-6 text-green-600" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">File Claim for Farmer</h2>
-              <p className="text-sm text-gray-500">Submit insurance claim on behalf of a farmer</p>
-            </div>
-          </div>
+    <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden border-2 border-black">
+        {/* Header - Farm Vibe Design */}
+        <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
+          <h2 className="text-2xl font-bold text-black">🌾 File Claim for Farmer</h2>
           <button
+            className="text-black hover:bg-lime-200 rounded-full p-1 focus:outline-none transition-all"
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <X className="h-5 w-5 text-gray-500" />
+            <X size={24} />
           </button>
         </div>
 
         {/* Progress Bar */}
-        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-          <div className="w-full bg-gray-300 rounded-full h-3 mb-4">
+        <div className="px-6 py-4 bg-white border-b-2 border-black">
+          <div className="w-full bg-gray-200 rounded-full h-3 mb-4 border-2 border-black">
             <div
-              className="bg-green-600 h-3 rounded-full transition-all duration-500 ease-in-out"
+              className="bg-lime-400 h-3 rounded-full transition-all duration-500 ease-in-out"
               style={{ width: `${progressPercentage}%` }}
             ></div>
           </div>
@@ -443,10 +435,10 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
               <button
                 key={navStep}
                 onClick={() => setStep(navStep)}
-                className={`px-6 py-2 rounded-full shadow-lg font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-offset-2 transition-all duration-200 ${
+                className={`px-6 py-2 rounded-full shadow-lg font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-lime-400 focus:ring-offset-2 transition-all duration-200 border-2 ${
                   step === navStep
-                    ? "bg-green-700 text-white transform scale-105"
-                    : "bg-gray-300 text-gray-700 hover:bg-gray-400"
+                    ? "bg-lime-400 text-black border-black transform scale-105"
+                    : "bg-white text-black border-black hover:bg-lime-100"
                 }`}
               >
                 Step {navStep}
@@ -473,7 +465,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                   <button
                     type="button"
                     onClick={() => setShowFarmerSearch(!showFarmerSearch)}
-                    className="w-full p-3 border border-gray-300 rounded-lg text-left flex items-center justify-between hover:border-gray-400 transition-colors"
+                    className="w-full p-3 border-2 border-black rounded-lg text-left flex items-center justify-between hover:border-lime-400 transition-colors"
                   >
                     <div className="flex items-center space-x-3">
                       <User className="h-5 w-5 text-gray-400" />
@@ -488,8 +480,8 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                   </button>
                   
                   {showFarmerSearch && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
-                      <div className="p-3 border-b border-gray-200">
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-black rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                      <div className="p-3 border-b-2 border-black">
                         <div className="relative">
                           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                           <input
@@ -497,7 +489,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                             placeholder="Search farmers..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full pl-10 pr-3 py-2 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                           />
                         </div>
                       </div>
@@ -543,7 +535,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     onBlur={() => setFieldTouched('name')}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                     required
                   />
                   {errors.name && (
@@ -559,7 +551,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                   />
                 </div>
 
@@ -571,7 +563,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     type="text"
                     value={formData.address}
                     onChange={(e) => handleInputChange('address', e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                   />
                 </div>
 
@@ -584,7 +576,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     value={formData.farmerLocation}
                     onChange={(e) => handleInputChange('farmerLocation', e.target.value)}
                     placeholder="e.g., 7.1907, 125.4551"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                   />
                 </div>
               </div>
@@ -605,8 +597,8 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                           onClick={() => handleCropSelect(crop)}
                           className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                             selectedCropInsurance?.cropType === crop.cropType
-                              ? 'border-green-500 bg-green-50'
-                              : 'border-gray-200 hover:border-gray-300'
+                              ? 'border-lime-500 bg-lime-50'
+                              : 'border-2 border-black hover:border-lime-400'
                           }`}
                         >
                           <div className="flex justify-between items-start">
@@ -670,7 +662,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                       onBlur={() => setFieldTouched('areaInsured')}
                       step="0.01"
                       min="0"
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                       required
                     />
                     {errors.areaInsured && (
@@ -686,7 +678,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                       type="date"
                       value={formData.plantingDate}
                       onChange={(e) => handleInputChange('plantingDate', e.target.value)}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      className="w-full p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                     />
                   </div>
                 </div>
@@ -701,7 +693,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {["Regular", "Sikat Saka", "RSBA", "APCP-CAP-PBD", "PUNA", "Cooperative Rice Farming"].map((program) => (
-                      <label key={program} className="inline-flex items-center space-x-2 p-3 border border-gray-200 rounded-lg hover:bg-green-50 cursor-pointer">
+                      <label key={program} className="inline-flex items-center space-x-2 p-3 border-2 border-black rounded-lg hover:bg-lime-50 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={formData.program.includes(program)}
@@ -725,7 +717,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                         value={formData.otherProgramText}
                         onChange={(e) => handleInputChange('otherProgramText', e.target.value)}
                         placeholder="Specify other program"
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        className="w-full p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                       />
                     </div>
                   )}
@@ -740,7 +732,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Farm Sketch/Map
                   </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <div className="border-2 border-dashed border-black rounded-lg p-6 text-center">
                     <input
                       type="file"
                       accept="image/*,.pdf"
@@ -773,7 +765,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Additional Documents
                   </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <div className="border-2 border-dashed border-black rounded-lg p-6 text-center">
                     <input
                       type="file"
                       accept="image/*,.pdf"
@@ -827,7 +819,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     value={formData.damageType}
                     onChange={(e) => handleInputChange('damageType', e.target.value)}
                     onBlur={() => setFieldTouched('damageType')}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                     required
                   >
                     <option value="">Select damage type</option>
@@ -853,7 +845,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     value={formData.lossDate}
                     onChange={(e) => handleInputChange('lossDate', e.target.value)}
                     onBlur={() => setFieldTouched('lossDate')}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                     required
                   />
                   {errors.lossDate && (
@@ -872,7 +864,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     onBlur={() => setFieldTouched('areaDamaged')}
                     step="0.01"
                     min="0"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                     required
                   />
                   {errors.areaDamaged && (
@@ -890,7 +882,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     onChange={(e) => handleInputChange('degreeOfDamage', e.target.value)}
                     min="0"
                     max="100"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                   />
                 </div>
 
@@ -901,7 +893,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                   <select
                     value={formData.ageStage}
                     onChange={(e) => handleInputChange('ageStage', e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                   >
                     <option value="">Select growth stage</option>
                     <option value="Vegetative Stage">Vegetative Stage</option>
@@ -918,7 +910,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                     type="date"
                     value={formData.expectedHarvest}
                     onChange={(e) => handleInputChange('expectedHarvest', e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                   />
                   {selectedCropInsurance?.expectedHarvestDate && (
                     <p className="mt-1 text-xs text-gray-500">
@@ -1015,7 +1007,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                           type="text"
                           value={formData.lotBoundaries[lot].north}
                           onChange={(e) => handleLotBoundaryChange(lot, 'north', e.target.value)}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          className="w-full p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                         />
                       </div>
                       <div>
@@ -1026,7 +1018,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                           type="text"
                           value={formData.lotBoundaries[lot].south}
                           onChange={(e) => handleLotBoundaryChange(lot, 'south', e.target.value)}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          className="w-full p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                         />
                       </div>
                       <div>
@@ -1037,7 +1029,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                           type="text"
                           value={formData.lotBoundaries[lot].east}
                           onChange={(e) => handleLotBoundaryChange(lot, 'east', e.target.value)}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          className="w-full p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                         />
                       </div>
                       <div>
@@ -1048,7 +1040,7 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
                           type="text"
                           value={formData.lotBoundaries[lot].west}
                           onChange={(e) => handleLotBoundaryChange(lot, 'west', e.target.value)}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                          className="w-full p-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500"
                         />
                       </div>
                     </div>
@@ -1079,21 +1071,21 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
         </div>
 
         {/* Footer with Navigation */}
-        <div className="flex justify-between items-center p-6 border-t border-gray-200 bg-gray-50">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-          >
-            Cancel
-          </button>
+        <div className="flex justify-between items-center p-6 border-t-2 border-black bg-white">
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-white border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-gray-100 transition-all font-bold"
+            >
+              Cancel
+            </button>
 
-          <div className="flex space-x-3">
             {step > 1 && (
               <button
                 type="button"
                 onClick={handlePrevious}
-                className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors flex items-center space-x-2"
+                className="px-6 py-3 bg-white border-2 border-black text-black rounded-lg hover:bg-lime-100 transition-all font-bold flex items-center space-x-2"
               >
                 <ArrowLeft className="h-4 w-4" />
                 <span>Previous</span>
@@ -1104,26 +1096,28 @@ const AdminClaimFilingEnhanced = ({ isOpen, onClose, onSuccess }) => {
               <button
                 type="button"
                 onClick={handleNext}
-                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                className="flex-1 bg-lime-400 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-500 transition-all font-bold shadow-lg flex items-center justify-center"
+                style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
               >
                 <span>Next</span>
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4 ml-2" />
               </button>
             ) : (
               <button
                 type="button"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
-                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                className="flex-1 bg-lime-400 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-500 transition-all font-bold shadow-lg flex items-center justify-center disabled:opacity-50"
+                style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
               >
                 {isSubmitting ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black mr-2"></div>
                     <span>Filing Claim...</span>
                   </>
                 ) : (
                   <>
-                    <FileText className="h-4 w-4" />
+                    <FileText className="h-4 w-4 mr-2" />
                     <span>File Claim</span>
                   </>
                 )}
