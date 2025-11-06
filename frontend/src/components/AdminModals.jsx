@@ -110,7 +110,7 @@ const AdminModals = ({
 
       {/* Event Modal */}
       {showEventModal && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-5 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-lime-50 border border-black rounded-xl shadow-md w-full max-w-lg max-h-[90vh] overflow-y-auto hide-scrollbar relative">
             {/* Header */}
             <div className="sticky top-0 bg-lime-50 border-b border-black p-6 flex justify-between items-center z-20">
