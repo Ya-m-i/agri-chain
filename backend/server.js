@@ -206,6 +206,7 @@ app.use('/api/blockchain-claims', require('./routes/blockchainClaimsRoutes'))
 app.use('/api/distribution-records', require('./routes/distributionRoutes'))
 app.use('/api/crop-prices', require('./routes/cropPriceRoutes'))
 app.use('/api/notifications', require('./routes/notificationRoutes'))
+app.use('/api/calendar-events', require('./routes/calendarEventRoutes'))
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {

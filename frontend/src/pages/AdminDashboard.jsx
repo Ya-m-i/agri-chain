@@ -3458,7 +3458,6 @@ const AdminDashboard = () => {
         isOpen={showCalendar}
         onClose={() => setShowCalendar(false)}
         darkMode={darkMode}
-        onTabSwitch={handleTabSwitch}
       />
 
       {/* Crop Price Management Modal */}

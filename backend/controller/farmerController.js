@@ -1,12 +1,21 @@
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const Farmer = require('../models/farmerModel')
+const { validatePasswordWithMessage } = require('../utils/passwordValidator')
 
 // @desc    Register a new farmer
 // @route   POST /api/farmers
 // @access  Public
 const createFarmer = async (req, res) => {
     try {
+        // Validate password strength if provided
+        if (req.body.password) {
+            const passwordError = validatePasswordWithMessage(req.body.password)
+            if (passwordError) {
+                return res.status(400).json({ message: passwordError })
+            }
+        }
+        
         // Hash password before saving
         let farmerData = { ...req.body };
         if (farmerData.password) {
@@ -229,6 +238,11 @@ const updateFarmer = async (req, res) => {
         }
         
         if (password) {
+            // Validate password strength
+            const passwordError = validatePasswordWithMessage(password)
+            if (passwordError) {
+                return res.status(400).json({ message: passwordError })
+            }
             // Hash password before saving
             const salt = await bcrypt.genSalt(10);
             updateData.password = await bcrypt.hash(password, salt);

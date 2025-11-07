@@ -36,6 +36,7 @@ import LoadingOverlay from '../components/LoadingOverlay';
 import FarmerCropPrices from "../components/FarmerCropPrices"
 import { calculateCompensation, getPaymentStatus, getExpectedPaymentDate, getDamageSeverity, getCoverageDetails } from "../utils/insuranceUtils"
 import { useClaims, useCropInsurance, useFarmerApplications, useAssistances, useApplyForAssistance, useNotifications, useMarkNotificationsAsRead, useClearNotifications, useDeleteNotification } from '../hooks/useAPI'
+import { getCalendarEvents, createCalendarEvent } from '../api'
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
@@ -123,12 +124,7 @@ const FarmerDashboard = () => {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [calendarView, setCalendarView] = useState("month") // month, week, day
   const [showEventModal, setShowEventModal] = useState(false)
-  const [calendarEvents, setCalendarEvents] = useState([
-    { id: 1, title: "Planting", date: new Date(2024, 11, 5), type: "planting", color: "blue" },
-    { id: 2, title: "Fertilizer", date: new Date(2024, 11, 12), type: "fertilizer", color: "yellow" },
-    { id: 3, title: "Harvest", date: new Date(2024, 11, 18), type: "harvest", color: "green" },
-    { id: 4, title: "Insurance Due", date: new Date(2024, 11, 25), type: "insurance", color: "red" },
-  ])
+  const [calendarEvents, setCalendarEvents] = useState([])
   const [selectedDate, setSelectedDate] = useState(null)
   const [eventFormData, setEventFormData] = useState({
     title: "",
@@ -136,6 +132,7 @@ const FarmerDashboard = () => {
     type: "planting",
     notes: ""
   })
+  const [eventError, setEventError] = useState("")
 
   // ============================================
   // SECTION 4: REFS
@@ -436,6 +433,32 @@ const FarmerDashboard = () => {
     }
   }, [user, userType, navigate])
   
+  // Load calendar events from backend
+  useEffect(() => {
+    const loadCalendarEvents = async () => {
+      if (!user?.id) return
+      
+      try {
+        const events = await getCalendarEvents(user.id)
+        // Transform backend events to frontend format
+        const transformedEvents = events.map(event => ({
+          id: event._id || event.id,
+          title: event.title,
+          date: new Date(event.date),
+          type: event.type,
+          color: event.color,
+          notes: event.notes || ""
+        }))
+        setCalendarEvents(transformedEvents)
+      } catch (error) {
+        console.error('Error loading calendar events:', error)
+        // Don't show error to user, just log it
+      }
+    }
+    
+    loadCalendarEvents()
+  }, [user?.id])
+
   // Handle initial loading when component mounts
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -1533,7 +1556,16 @@ const FarmerDashboard = () => {
                     </button>
                   </div>
                   <button
-                    onClick={() => setShowEventModal(true)}
+                    onClick={() => {
+                      setShowEventModal(true)
+                      setEventError("")
+                      if (selectedDate) {
+                        setEventFormData(prev => ({
+                          ...prev,
+                          date: selectedDate.toISOString().split('T')[0]
+                        }))
+                      }
+                    }}
                     className="bg-lime-700 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-lime-800 transition text-sm sm:text-base"
                   >
                     Add Event
@@ -1778,34 +1810,61 @@ const FarmerDashboard = () => {
                       </button>
                     </div>
                     <form
-                      onSubmit={(e) => {
+                      onSubmit={async (e) => {
                         e.preventDefault()
-                        if (eventFormData.title && eventFormData.date) {
-                          const eventDate = new Date(eventFormData.date)
-                          const colorMap = {
-                            planting: "blue",
-                            fertilizer: "yellow",
-                            harvest: "green",
-                            insurance: "red",
-                            other: "gray"
-                          }
-                          const newEvent = {
-                            id: Date.now(),
+                        setEventError("")
+                        
+                        if (!eventFormData.title || !eventFormData.date) {
+                          setEventError("Please fill in all required fields")
+                          return
+                        }
+
+                        if (!user?.id) {
+                          setEventError("User not found. Please log in again.")
+                          return
+                        }
+
+                        try {
+                          // Save event to backend
+                          const savedEvent = await createCalendarEvent({
+                            farmerId: user.id,
                             title: eventFormData.title,
-                            date: eventDate,
+                            date: eventFormData.date,
                             type: eventFormData.type,
-                            color: colorMap[eventFormData.type] || "gray",
-                            notes: eventFormData.notes
+                            notes: eventFormData.notes || ""
+                          })
+
+                          // Transform backend event to frontend format
+                          const newEvent = {
+                            id: savedEvent._id || savedEvent.id,
+                            title: savedEvent.title,
+                            date: new Date(savedEvent.date),
+                            type: savedEvent.type,
+                            color: savedEvent.color,
+                            notes: savedEvent.notes || ""
                           }
+
+                          // Add to local state
                           setCalendarEvents(prev => [...prev, newEvent])
+                          
                           addLocalNotification({
                             type: 'success',
                             title: 'Event Added',
-                            message: 'Your event has been added to the calendar.',
+                            message: 'Your event has been saved to the calendar.',
                           })
+                          
                           setShowEventModal(false)
                           setSelectedDate(null)
                           setEventFormData({ title: "", date: "", type: "planting", notes: "" })
+                          setEventError("")
+                        } catch (error) {
+                          console.error('Error saving event:', error)
+                          // Handle duplicate error
+                          if (error.message && error.message.includes('already exists')) {
+                            setEventError("An event with the same title and date already exists. Please choose a different title or date.")
+                          } else {
+                            setEventError(error.message || "Failed to save event. Please try again.")
+                          }
                         }
                       }}
                       className="space-y-4"
@@ -1855,6 +1914,11 @@ const FarmerDashboard = () => {
                           className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-lime-500 focus:border-transparent"
                         />
                       </div>
+                      {eventError && (
+                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-sm text-red-600">{eventError}</p>
+                        </div>
+                      )}
                       <div className="flex justify-end gap-2">
                         <button
                           type="button"
@@ -1862,6 +1926,7 @@ const FarmerDashboard = () => {
                             setShowEventModal(false)
                             setSelectedDate(null)
                             setEventFormData({ title: "", date: "", type: "planting", notes: "" })
+                            setEventError("")
                           }}
                           className="px-4 py-2 border border-gray-300 rounded-lg text-black hover:bg-white transition"
                         >

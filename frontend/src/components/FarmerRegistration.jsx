@@ -35,6 +35,7 @@ import { Doughnut } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { getCropTypeDistributionFromInsurance } from '../utils/cropTypeDistribution'
 import SimpleMapPicker from './SimpleMapPicker'
+import { validatePassword } from '../utils/passwordValidator'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
@@ -1650,10 +1651,12 @@ const FarmerRegistration = ({
                   return;
                 }
 
-                if (passwordForm.password.length < 6) {
+                // Validate password strength
+                const passwordValidation = validatePassword(passwordForm.password);
+                if (!passwordValidation.isValid) {
                   setPasswordConfirmationData({
                     type: 'error',
-                    message: 'Password must be at least 6 characters long!',
+                    message: passwordValidation.errors[0] || 'Password does not meet security requirements!',
                     onConfirm: null
                   });
                   setShowPasswordConfirmation(true);

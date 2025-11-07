@@ -473,4 +473,39 @@ export const clearNotifications = async (recipientType, recipientId = null) => {
   });
 };
 
+// Calendar Events API functions
+export const getCalendarEvents = async (farmerId) => {
+  return await fetchWithRetry(apiUrl(`/api/calendar-events/${farmerId}`));
+};
+
+export const createCalendarEvent = async (eventData) => {
+  return await fetchWithRetry(apiUrl('/api/calendar-events'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(eventData),
+  });
+};
+
+export const updateCalendarEvent = async (eventId, updateData) => {
+  return await fetchWithRetry(apiUrl(`/api/calendar-events/${eventId}`), {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(updateData),
+  });
+};
+
+export const deleteCalendarEvent = async (eventId) => {
+  return await fetchWithRetry(apiUrl(`/api/calendar-events/${eventId}`), {
+    method: 'DELETE',
+  });
+};
+
+export const getCalendarEventsByRange = async (farmerId, startDate, endDate) => {
+  return await fetchWithRetry(apiUrl(`/api/calendar-events/${farmerId}/range?startDate=${startDate}&endDate=${endDate}`));
+};
+
 // Removed preload function as caching is disabled

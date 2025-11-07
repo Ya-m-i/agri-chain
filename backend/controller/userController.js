@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const asyncHandler = require('express-async-handler')
-const User = require('../models/userModel') 
+const User = require('../models/userModel')
+const { validatePasswordWithMessage } = require('../utils/passwordValidator') 
 
 // @desc Register new user
 // @route POST /api/users
@@ -12,6 +13,13 @@ const registerUser = asyncHandler(async (req, res) => {
     if(!username || !password) {
         res.status(400)
         throw new Error('Please add all fields')
+    }
+
+    // Validate password strength
+    const passwordError = validatePasswordWithMessage(password)
+    if (passwordError) {
+        res.status(400)
+        throw new Error(passwordError)
     }
 
     const userExists = await User.findOne({ username })
@@ -113,9 +121,11 @@ const updateUser = asyncHandler(async (req, res) => {
 
     // Hash password if provided
     if (password) {
-        if (password.length < 6) {
+        // Validate password strength
+        const passwordError = validatePasswordWithMessage(password)
+        if (passwordError) {
             res.status(400)
-            throw new Error('Password must be at least 6 characters')
+            throw new Error(passwordError)
         }
         const salt = await bcrypt.genSalt(10)
         updateData.password = await bcrypt.hash(password, salt)

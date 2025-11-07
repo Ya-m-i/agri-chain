@@ -1,9 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { User, Key, Save, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react"
 import { useAuthStore } from "../store/authStore"
 import { getUserProfile, updateUserProfile } from "../api"
+import { validatePassword } from "../utils/passwordValidator"
+import PasswordStrengthMeter from "./PasswordStrengthMeter"
 
 const AdminProfile = () => {
   const { user } = useAuthStore()
@@ -25,11 +27,7 @@ const AdminProfile = () => {
   const [success, setSuccess] = useState("")
   const [loadingProfile, setLoadingProfile] = useState(true)
 
-  useEffect(() => {
-    loadProfile()
-  }, [])
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       setLoadingProfile(true)
       // Get token from localStorage or auth store
@@ -86,7 +84,11 @@ const AdminProfile = () => {
     } finally {
       setLoadingProfile(false)
     }
-  }
+  }, [user])
+
+  useEffect(() => {
+    loadProfile()
+  }, [loadProfile])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -106,16 +108,21 @@ const AdminProfile = () => {
 
     try {
       // Validation
-      if (formData.password && formData.password.length < 6) {
-        setError("Password must be at least 6 characters long")
-        setLoading(false)
-        return
-      }
+      if (formData.password) {
+        // Validate password strength
+        const passwordValidation = validatePassword(formData.password)
+        if (!passwordValidation.isValid) {
+          setError(passwordValidation.errors[0] || "Password does not meet requirements")
+          setLoading(false)
+          return
+        }
 
-      if (formData.password && formData.password !== formData.confirmPassword) {
-        setError("Passwords do not match")
-        setLoading(false)
-        return
+        // Check password match
+        if (formData.password !== formData.confirmPassword) {
+          setError("Passwords do not match")
+          setLoading(false)
+          return
+        }
       }
 
       if (!formData.username.trim()) {
@@ -286,9 +293,7 @@ const AdminProfile = () => {
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-            {formData.password && formData.password.length > 0 && formData.password.length < 6 && (
-              <p className="mt-1 text-sm text-red-600">Password must be at least 6 characters</p>
-            )}
+            {formData.password && <PasswordStrengthMeter password={formData.password} />}
           </div>
 
           {/* Confirm Password */}
