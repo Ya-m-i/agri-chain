@@ -58,6 +58,11 @@ const Login = () => {
         localStorage.setItem("isAdmin", "true") // For backward compatibility
         localStorage.removeItem("isFarmer") // Clear farmer auth
         
+        // Store token if provided
+        if (user.token) {
+          localStorage.setItem("token", user.token)
+        }
+        
         // Map backend user data to auth store structure
         const userData = {
           id: user._id || user.id,

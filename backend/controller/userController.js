@@ -67,15 +67,82 @@ const loginUser = asyncHandler(async (req, res) => {
 })
 
 // @desc Get user data
-// @route POST /api/users/me
+// @route GET /api/users/me
 // @access private
 const getMe = asyncHandler(async (req, res) => {
-    const {id, username, password} = await User.findById(req.user.id)
+    const user = await User.findById(req.user.id).select('-password')
 
     res.status(200).json({
-        id,
-        username,
-        password,
+        _id: user._id,
+        id: user._id,
+        username: user.username,
+        role: user.role || 'user',
+        name: user.name || user.username,
+    })
+})
+
+// @desc Update user profile
+// @route PUT /api/users/:id
+// @access Private
+const updateUser = asyncHandler(async (req, res) => {
+    const { username, password, name } = req.body
+    const updateData = {}
+
+    // Check if user exists
+    const user = await User.findById(req.params.id)
+    if (!user) {
+        res.status(404)
+        throw new Error('User not found')
+    }
+
+    // Only allow users to update their own profile (or admins can update any)
+    if (req.user.id !== req.params.id && user.role !== 'admin') {
+        res.status(403)
+        throw new Error('Not authorized to update this profile')
+    }
+
+    // Check if username is being changed and if it's already taken
+    if (username && username !== user.username) {
+        const usernameExists = await User.findOne({ username })
+        if (usernameExists) {
+            res.status(400)
+            throw new Error('Username already exists')
+        }
+        updateData.username = username
+    }
+
+    // Hash password if provided
+    if (password) {
+        if (password.length < 6) {
+            res.status(400)
+            throw new Error('Password must be at least 6 characters')
+        }
+        const salt = await bcrypt.genSalt(10)
+        updateData.password = await bcrypt.hash(password, salt)
+    }
+
+    // Update name if provided
+    if (name !== undefined) {
+        updateData.name = name
+    }
+
+    if (Object.keys(updateData).length === 0) {
+        res.status(400)
+        throw new Error('No fields to update')
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+        req.params.id,
+        updateData,
+        { new: true }
+    ).select('-password')
+
+    res.status(200).json({
+        _id: updatedUser._id,
+        username: updatedUser.username,
+        role: updatedUser.role || 'user',
+        name: updatedUser.name || updatedUser.username,
+        message: 'Profile updated successfully'
     })
 })
 
@@ -90,4 +157,5 @@ module.exports = {
     registerUser,
     loginUser,
     getMe,
+    updateUser,
 }

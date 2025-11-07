@@ -60,6 +60,7 @@ import "leaflet/dist/leaflet.css"
 import DistributionRecords from "../components/DistributionRecords"
 import FarmerRegistration from "../components/FarmerRegistration"
 import AdminSettings from "../components/AdminSettings"
+import AdminProfile from "../components/AdminProfile"
 import InsuranceClaims from "../components/InsuranceClaims"
 import AdminModals from "../components/AdminModals"
 import CropInsuranceManagement from "../components/CropInsuranceManagement"
@@ -3196,6 +3197,7 @@ const AdminDashboard = () => {
           )}
 
           {activeTab === "settings" && <AdminSettings />}
+          {activeTab === "profile" && <AdminProfile />}
         </main>
       </div>
 
