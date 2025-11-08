@@ -591,6 +591,18 @@ const FarmerDashboard = () => {
   // ============================================
   // SECTION 8: EFFECTS (useEffect)
   // ============================================
+  // Add noindex meta tag for SEO (protected page, shouldn't be indexed)
+  useEffect(() => {
+    // Create or update noindex meta tag
+    let metaRobots = document.querySelector('meta[name="robots"]');
+    if (!metaRobots) {
+      metaRobots = document.createElement('meta');
+      metaRobots.setAttribute('name', 'robots');
+      document.head.appendChild(metaRobots);
+    }
+    metaRobots.setAttribute('content', 'noindex, nofollow');
+  }, []);
+
   // Redirect if not authenticated or not a farmer
   useEffect(() => {
     if (!user) {

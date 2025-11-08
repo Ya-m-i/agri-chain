@@ -215,6 +215,24 @@ const AdminDashboard = () => {
   const [darkMode, setDarkMode] = useState(false)
   const [showCalendar, setShowCalendar] = useState(false)
 
+  // Add noindex meta tag for SEO (protected page, shouldn't be indexed)
+  useEffect(() => {
+    // Create or update noindex meta tag
+    let metaRobots = document.querySelector('meta[name="robots"]');
+    if (!metaRobots) {
+      metaRobots = document.createElement('meta');
+      metaRobots.setAttribute('name', 'robots');
+      document.head.appendChild(metaRobots);
+    }
+    metaRobots.setAttribute('content', 'noindex, nofollow');
+    
+    // Cleanup: restore original robots meta on unmount (optional)
+    return () => {
+      // Optionally restore to index, follow for other pages
+      // For now, we'll leave it as is since this is a protected page
+    };
+  }, []);
+
   // Handle initial loading when component mounts
   useEffect(() => {
     const timer = setTimeout(() => {
