@@ -1373,14 +1373,18 @@ const FarmerRegistration = ({
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirmation && farmerToDelete && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-30 flex items-center justify-center">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4 text-gray-800 flex items-center">
-              <AlertTriangle className="mr-2 text-red-500" size={24} />
-              Delete Farmer
-            </h3>
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-2 border-lime-200">
+            <div className="flex items-center mb-4">
+              <div className="bg-red-100 rounded-full p-2 mr-3">
+                <AlertTriangle className="text-red-600" size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800">
+                Delete Farmer
+              </h3>
+            </div>
             <p className="mb-6 text-gray-600">
-              Are you sure you want to delete <strong>{farmerToDelete.farmerName}</strong>? This action cannot be undone.
+              Are you sure you want to delete <strong className="text-gray-800">{farmerToDelete.farmerName || `${farmerToDelete.firstName || ''} ${farmerToDelete.middleName || ''} ${farmerToDelete.lastName || ''}`.replace(/  +/g, ' ').trim()}</strong>? This action cannot be undone.
             </p>
             <div className="flex justify-end space-x-3">
               <button
@@ -1389,7 +1393,7 @@ const FarmerRegistration = ({
                   setShowDeleteConfirmation(false);
                   setFarmerToDelete(null);
                 }}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+                className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-semibold border-2 border-gray-300"
               >
                 Cancel
               </button>
@@ -1422,7 +1426,7 @@ const FarmerRegistration = ({
                     console.error('Error deleting farmer:', error)
                   }
                 }}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
+                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold border-2 border-red-700 flex items-center"
               >
                 <X size={16} className="mr-1" />
                 Delete

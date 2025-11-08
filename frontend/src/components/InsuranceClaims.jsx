@@ -456,13 +456,13 @@ const InsuranceClaims = ({
                       <td className="p-3 border-b border-gray-200 space-x-2">
                         <button
                           onClick={() => openClaimDetails(claim)}
-                          className="text-blue-600 hover:text-blue-800 font-medium"
+                          className="px-3 py-1.5 text-lime-600 hover:text-lime-700 font-semibold rounded-lg hover:bg-lime-50 transition-colors border-2 border-lime-200 hover:border-lime-300 text-sm"
                         >
                           View
                         </button>
                         <button
                           onClick={() => handleDownloadPDF(claim)}
-                          className="bg-lime-600 text-white px-3 py-1 rounded hover:bg-lime-700 text-sm inline-flex items-center"
+                          className="px-3 py-1.5 bg-lime-600 text-white rounded-lg hover:bg-lime-700 text-sm inline-flex items-center font-semibold border-2 border-lime-700 transition-colors shadow-sm"
                           title="Download Claim Form PDF"
                         >
                           <Download size={14} className="mr-1" />
@@ -472,14 +472,14 @@ const InsuranceClaims = ({
                           <>
                             <button
                               onClick={() => initiateStatusUpdate(claim._id, "approved", claim.farmerId)}
-                              className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm inline-flex items-center"
+                              className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm inline-flex items-center font-semibold border-2 border-green-700 transition-colors shadow-sm"
                             >
                               <CheckCircle size={14} className="mr-1" />
                               Approve
                             </button>
                             <button
                               onClick={() => initiateStatusUpdate(claim._id, "rejected", claim.farmerId)}
-                              className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-sm inline-flex items-center"
+                              className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm inline-flex items-center font-semibold border-2 border-red-700 transition-colors shadow-sm"
                             >
                               <XCircle size={14} className="mr-1" />
                               Reject

@@ -35,7 +35,7 @@ import FarmerCropInsurance from "../components/FarmerCropInsurance"
 import LoadingOverlay from '../components/LoadingOverlay';
 import FarmerCropPrices from "../components/FarmerCropPrices"
 import { calculateCompensation, getPaymentStatus, getExpectedPaymentDate, getDamageSeverity, getCoverageDetails } from "../utils/insuranceUtils"
-import { useClaims, useCropInsurance, useFarmerApplications, useAssistances, useApplyForAssistance, useNotifications, useMarkNotificationsAsRead, useClearNotifications, useDeleteNotification } from '../hooks/useAPI'
+import { useClaims, useCropInsurance, useFarmerApplications, useAssistances, useApplyForAssistance, useNotifications, useMarkNotificationsAsRead, useClearNotifications, useDeleteNotification, useUpdateFarmer } from '../hooks/useAPI'
 import { getCalendarEvents, createCalendarEvent } from '../api'
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
@@ -53,6 +53,177 @@ const hiddenScrollbarStyle = `
     scrollbar-width: none;
   }
 `;
+
+// Farmer Settings Component
+const FarmerSettingsContent = ({ user }) => {
+  const updateFarmerMutation = useUpdateFarmer()
+  const { login } = useAuthStore()
+  const [formData, setFormData] = useState({
+    name: user?.name || '',
+    phone: user?.phone || '',
+    email: user?.email || '',
+    address: user?.address || ''
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
+
+  // Update form data when user changes
+  useEffect(() => {
+    setFormData({
+      name: user?.name || '',
+      phone: user?.phone || '',
+      email: user?.email || '',
+      address: user?.address || ''
+    })
+  }, [user])
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+    setError("")
+    setSuccess("")
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError("")
+    setSuccess("")
+    setLoading(true)
+
+    try {
+      if (!user?.id) {
+        setError("User ID not found. Please log in again.")
+        setLoading(false)
+        return
+      }
+
+      const updateData = {}
+      if (formData.name !== user.name) updateData.name = formData.name.trim()
+      if (formData.phone !== user.phone) updateData.phone = formData.phone.trim()
+      if (formData.email !== user.email) updateData.email = formData.email.trim()
+      if (formData.address !== user.address) updateData.address = formData.address.trim()
+
+      if (Object.keys(updateData).length === 0) {
+        setError("No changes to save")
+        setLoading(false)
+        return
+      }
+
+      await updateFarmerMutation.mutateAsync({
+        farmerId: user.id,
+        updateData
+      })
+
+      // Update auth store with new user data
+      login("farmer", {
+        ...user,
+        ...updateData
+      })
+
+      setSuccess("Profile updated successfully!")
+      setTimeout(() => setSuccess(""), 3000)
+    } catch (err) {
+      setError(err.message || "Failed to update profile. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
+          <User size={20} className="mr-2 text-lime-600" />
+          Personal Information
+        </h3>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full p-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent"
+                placeholder="Enter your full name"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                className="w-full p-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent"
+                placeholder="Enter your phone number"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full p-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent"
+                placeholder="Enter your email"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+              <input
+                type="text"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                className="w-full p-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent"
+                placeholder="Enter your address"
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+
+          {success && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-600">{success}</p>
+            </div>
+          )}
+
+          <div className="pt-4">
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-lime-600 text-white px-6 py-2 rounded-lg hover:bg-lime-700 transition-colors font-semibold shadow-md disabled:opacity-50 flex items-center"
+            >
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <CheckCircle size={18} className="mr-2" />
+                  Save Changes
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
 
 const FarmerDashboard = () => {
   // ============================================
@@ -2325,51 +2496,9 @@ const FarmerDashboard = () => {
           )}
 
           {activeTab === "settings" && (
-            <div className="bg-white rounded-xl shadow p-6">
+            <div className="bg-white rounded-xl shadow-md border-2 border-lime-200 p-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">Account Settings</h2>
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-800 mb-2">Personal Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                      <input type="text" className="w-full p-2 border rounded-md" defaultValue="Juan Dela Cruz" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                      <input type="email" className="w-full p-2 border rounded-md" defaultValue="juan@example.com" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                      <input type="tel" className="w-full p-2 border rounded-md" defaultValue="09123456789" />
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-medium text-gray-800 mb-2">Notification Preferences</h3>
-                  <div className="space-y-2">
-                    <label className="flex items-center">
-                      <input type="checkbox" className="rounded text-lime-600 mr-2" defaultChecked />
-                      <span>Email notifications</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="rounded text-lime-600 mr-2" defaultChecked />
-                      <span>SMS notifications</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="rounded text-lime-600 mr-2" defaultChecked />
-                      <span>Weather alerts</span>
-                    </label>
-                  </div>
-                </div>
-
-                <div className="pt-4">
-                  <button className="bg-lime-700 text-white px-4 py-2 rounded-md hover:bg-lime-800">
-                    Save Changes
-                  </button>
-                </div>
-              </div>
+              <FarmerSettingsContent user={user} />
             </div>
           )}
         </main>
