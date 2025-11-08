@@ -31,7 +31,9 @@ const io = new Server(server, {
           'https://ya-m-i.github.io/agri-chain',
           process.env.FRONTEND_URL,
           'https://agri-chain.onrender.com',
-          'https://agri-chain-frontend.onrender.com'
+          'https://agri-chain-frontend.onrender.com',
+          'https://kapalongagrichain.site',
+          'https://www.kapalongagrichain.site'
         ].filter(Boolean)
       : [
           'http://localhost:3000', 
@@ -40,7 +42,9 @@ const io = new Server(server, {
           'https://ya-m-i.github.io',
           'https://ya-m-i.github.io/agri-chain', 
           'https://agri-chain.onrender.com',
-          'https://agri-chain-frontend.onrender.com'
+          'https://agri-chain-frontend.onrender.com',
+          'https://kapalongagrichain.site',
+          'https://www.kapalongagrichain.site'
         ],
     methods: ['GET', 'POST'],
     credentials: true,
@@ -59,7 +63,9 @@ const corsOptions = {
           'https://ya-m-i.github.io/agri-chain',
           process.env.FRONTEND_URL,
           'https://agri-chain.onrender.com',
-          'https://agri-chain-frontend.onrender.com'
+          'https://agri-chain-frontend.onrender.com',
+          'https://kapalongagrichain.site',
+          'https://www.kapalongagrichain.site'
         ].filter(Boolean)
       : [
           'http://localhost:3000', 
@@ -68,7 +74,9 @@ const corsOptions = {
           'https://ya-m-i.github.io',
           'https://ya-m-i.github.io/agri-chain',
           'https://agri-chain.onrender.com',
-          'https://agri-chain-frontend.onrender.com'
+          'https://agri-chain-frontend.onrender.com',
+          'https://kapalongagrichain.site',
+          'https://www.kapalongagrichain.site'
         ]
     
     console.log('�� CORS Origin Check:', { origin, allowedOrigins })
@@ -78,7 +86,7 @@ const corsOptions = {
     
     // Check if origin is allowed
     if (allowedOrigins.includes(origin) || 
-        (process.env.NODE_ENV === 'production' && origin.includes('ya-m-i.github.io'))) {
+        (process.env.NODE_ENV === 'production' && (origin.includes('ya-m-i.github.io') || origin.includes('kapalongagrichain.site')))) {
       console.log('✅ CORS: Origin allowed -', origin)
       return callback(null, true)
     }
@@ -103,7 +111,9 @@ app.use((req, res, next) => {
             'https://ya-m-i.github.io/agri-chain',
             process.env.FRONTEND_URL,
             'https://agri-chain.onrender.com',
-            'https://agri-chain-frontend.onrender.com'
+            'https://agri-chain-frontend.onrender.com',
+            'https://kapalongagrichain.site',
+            'https://www.kapalongagrichain.site'
           ].filter(Boolean) // Remove undefined values
         : [
             'http://localhost:3000', 
@@ -112,7 +122,9 @@ app.use((req, res, next) => {
             'https://ya-m-i.github.io',
             'https://ya-m-i.github.io/agri-chain',
             'https://agri-chain.onrender.com',
-            'https://agri-chain-frontend.onrender.com'
+            'https://agri-chain-frontend.onrender.com',
+            'https://kapalongagrichain.site',
+            'https://www.kapalongagrichain.site'
           ]
     
     const origin = req.headers.origin
@@ -122,9 +134,9 @@ app.use((req, res, next) => {
         nodeEnv: process.env.NODE_ENV 
     })
     
-    // Always set CORS headers for production GitHub Pages
+    // Always set CORS headers for production GitHub Pages and custom domain
     if (allowedOrigins.includes(origin) || 
-        (process.env.NODE_ENV === 'production' && origin && origin.includes('ya-m-i.github.io'))) {
+        (process.env.NODE_ENV === 'production' && origin && (origin.includes('ya-m-i.github.io') || origin.includes('kapalongagrichain.site')))) {
         res.setHeader('Access-Control-Allow-Origin', origin)
         console.log('✅ CORS allowed for origin:', origin)
     } else if (process.env.NODE_ENV === 'development') {
