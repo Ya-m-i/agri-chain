@@ -1,7 +1,10 @@
 import { fetchWithRetry } from "./utils/fetchWithRetry";
 
 // API Base URL configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.PROD 
+    ? 'https://backend.kapalongagrichain.site'  // Production API domain
+    : 'http://localhost:5000');  // Local development
 
 // Helper function to build full API URLs
 const apiUrl = (endpoint) => `${API_BASE_URL}${endpoint}`;
