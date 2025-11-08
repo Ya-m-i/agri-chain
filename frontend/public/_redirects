@@ -1,0 +1,9 @@
+# Serve static files directly
+/sitemap.xml 200
+/robots.txt 200
+/manifest.json 200
+/sw.js 200
+
+# SPA fallback - all other routes go to index.html
+/*    /index.html   200
+
