@@ -403,16 +403,16 @@ const InsuranceClaims = ({
             <p className="text-gray-500 italic">No claims available matching your filters.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto bg-white rounded-xl shadow-md border-2 border-lime-200">
             <table className="w-full text-left border-separate border-spacing-y-2">
               <thead>
                 <tr>
-                  <th className="p-3 bg-gray-50 rounded-l-lg font-semibold text-gray-600">Claim ID</th>
-                  <th className="p-3 bg-gray-50 font-semibold text-gray-600">Farmer Name</th>
-                  <th className="p-3 bg-gray-50 font-semibold text-gray-600">Crop Type</th>
-                  <th className="p-3 bg-gray-50 font-semibold text-gray-600">Date</th>
-                  <th className="p-3 bg-gray-50 font-semibold text-gray-600">Status</th>
-                  <th className="p-3 bg-gray-50 rounded-r-lg font-semibold text-gray-600">Actions</th>
+                  <th className="p-3 bg-gradient-to-r from-lime-50 to-lime-100 rounded-tl-lg font-semibold text-gray-700">Claim ID</th>
+                  <th className="p-3 bg-gradient-to-r from-lime-50 to-lime-100 font-semibold text-gray-700">Farmer Name</th>
+                  <th className="p-3 bg-gradient-to-r from-lime-50 to-lime-100 font-semibold text-gray-700">Crop Type</th>
+                  <th className="p-3 bg-gradient-to-r from-lime-50 to-lime-100 font-semibold text-gray-700">Date</th>
+                  <th className="p-3 bg-gradient-to-r from-lime-50 to-lime-100 font-semibold text-gray-700">Status</th>
+                  <th className="p-3 bg-gradient-to-r from-lime-50 to-lime-100 rounded-tr-lg font-semibold text-gray-700">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -494,68 +494,53 @@ const InsuranceClaims = ({
           </div>
         )}
 
-        {/* Pagination Controls */}
+        {/* Scrollable Pagination - Hidden Scrollbar */}
         {totalPages > 1 && (
-          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-4">
-            <div className="flex-1 flex justify-between sm:hidden">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </div>
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-gray-700">
-                  Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
-                  <span className="font-medium">{Math.min(endIndex, filteredClaims.length)}</span> of{' '}
-                  <span className="font-medium">{filteredClaims.length}</span> results
-                </p>
+          <div className="mt-6 bg-white rounded-xl shadow-md border-2 border-lime-200 p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm text-gray-700 font-medium">
+                Showing {startIndex + 1} to {Math.min(endIndex, filteredClaims.length)} of {filteredClaims.length} results
               </div>
-              <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <span className="sr-only">Previous</span>
-                    <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-                  </button>
-                  
-                  {/* Page numbers */}
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            </div>
+            <div className="overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <style>{`
+                .scrollbar-hide::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
+              <div className="flex items-center space-x-2 min-w-max">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 text-sm font-semibold bg-lime-100 text-lime-700 rounded-lg hover:bg-lime-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                >
+                  Previous
+                </button>
+                
+                {/* Page Numbers - Scrollable */}
+                <div className="flex space-x-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                        page === currentPage
-                          ? 'z-10 bg-lime-50 border-lime-500 text-lime-600'
-                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                      className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors whitespace-nowrap ${
+                        currentPage === page
+                          ? 'bg-lime-600 text-white shadow-md'
+                          : 'bg-gray-100 text-gray-700 hover:bg-lime-100 hover:text-lime-700'
                       }`}
                     >
                       {page}
                     </button>
                   ))}
-                  
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <span className="sr-only">Next</span>
-                    <ChevronRight className="h-5 w-5" aria-hidden="true" />
-                  </button>
-                </nav>
+                </div>
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 text-sm font-semibold bg-lime-100 text-lime-700 rounded-lg hover:bg-lime-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                >
+                  Next
+                </button>
               </div>
             </div>
           </div>

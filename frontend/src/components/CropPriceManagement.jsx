@@ -244,10 +244,10 @@ const CropPriceManagement = ({ isOpen, onClose, onNotify }) => {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-transparent flex items-center justify-center p-4">
-      <div className="bg-white rounded-[5px] shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col border-2 border-lime-200">
         {/* Header */}
-        <div className="bg-gradient-to-r from-lime-600 to-lime-700 text-white p-6 flex justify-between items-center">
+        <div className="bg-gradient-to-r from-lime-600 to-lime-700 text-white p-6 flex justify-between items-center shadow-lg">
           <div className="flex items-center gap-3">
             <TrendingUp className="h-8 w-8" />
             <div>
@@ -485,65 +485,69 @@ const CropPriceManagement = ({ isOpen, onClose, onNotify }) => {
                 {currentCropPrices.map((crop) => (
                   <div
                     key={crop._id}
-                    className="bg-white border border-gray-200 rounded-[5px] overflow-hidden hover:shadow-lg transition-shadow"
+                    className="bg-white border-2 border-lime-200 rounded-xl overflow-hidden hover:shadow-xl transition-all hover:border-lime-400"
                   >
                     <div className="flex">
-                      {/* Left Section - Text Content */}
-                      <div className="flex-1 p-4">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h4 className="text-lg font-bold text-gray-800">{crop.cropName}</h4>
-                            {crop.cropType && (
-                              <p className="text-sm text-gray-600">{crop.cropType}</p>
-                            )}
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleEdit(crop)}
-                              className="text-blue-600 hover:bg-blue-50 p-2 rounded transition-colors"
-                              title="Edit"
-                            >
-                              <Edit size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(crop._id, crop.cropName)}
-                              className="text-red-600 hover:bg-red-50 p-2 rounded transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 size={16} />
-                            </button>
+                      {/* Left Section - Text Content (Centered) */}
+                      <div className="flex-1 p-6 flex flex-col justify-center items-center text-center">
+                        <div className="w-full mb-4">
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex-1 text-center">
+                              <h4 className="text-xl font-bold text-gray-800 mb-1">{crop.cropName}</h4>
+                              {crop.cropType && (
+                                <p className="text-sm text-gray-600">{crop.cropType}</p>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleEdit(crop)}
+                                className="text-blue-600 hover:bg-blue-50 p-2 rounded-lg transition-colors"
+                                title="Edit"
+                              >
+                                <Edit size={18} />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(crop._id, crop.cropName)}
+                                className="text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                                title="Delete"
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
                           </div>
                         </div>
                         
-                        <div className="space-y-2">
-                          <div className="flex items-baseline gap-2">
-                            <span className="text-3xl font-bold text-lime-600">₱{crop.pricePerKg}</span>
+                        <div className="space-y-3 w-full">
+                          <div className="flex items-baseline justify-center gap-2">
+                            <span className="text-4xl font-bold text-lime-600">₱{crop.pricePerKg}</span>
                             <span className="text-gray-500 text-sm">/ {crop.unit}</span>
                           </div>
                           
-                          <div className="text-xs text-gray-500">
-                            <p>Region: {crop.region}</p>
-                            <p>Updated: {new Date(crop.lastUpdated).toLocaleDateString()}</p>
+                          <div className="text-sm text-gray-500 space-y-1">
+                            <p className="font-medium">Region: <span className="text-gray-700">{crop.region}</span></p>
+                            <p>Updated: <span className="text-gray-700">{new Date(crop.lastUpdated).toLocaleDateString()}</span></p>
                           </div>
                           
                           {crop.notes && (
-                            <p className="text-xs text-gray-600 italic mt-2 border-t pt-2">
+                            <p className="text-sm text-gray-600 italic mt-3 pt-3 border-t border-gray-200">
                               {crop.notes}
                             </p>
                           )}
                         </div>
                       </div>
                       
-                      {/* Right Section - Image */}
-                      {crop.image && (
-                        <div className="w-32 h-32 bg-gray-100 overflow-hidden flex-shrink-0">
+                      {/* Right Section - Image (Centered) */}
+                      <div className="w-48 h-48 bg-gradient-to-br from-lime-50 to-lime-100 flex items-center justify-center flex-shrink-0 border-l-2 border-lime-200">
+                        {crop.image ? (
                           <img
                             src={crop.image}
                             alt={crop.cropName}
                             className="w-full h-full object-cover"
                           />
-                        </div>
-                      )}
+                        ) : (
+                          <ImageIcon className="w-16 h-16 text-lime-400 opacity-50" />
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

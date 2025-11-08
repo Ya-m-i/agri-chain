@@ -387,9 +387,9 @@ const DashboardCharts = ({
             <h3 className="text-lg font-semibold text-gray-800">Kapalong Crop Market Prices</h3>
             <button
               onClick={() => setShowCropPriceManagement(true)}
-              className="flex items-center gap-2 px-3 py-1 text-gray-700 rounded-lg text-xs font-medium hover:text-lime-600 hover:font-bold hover:bg-lime-100 transition-all"
+              className="flex items-center gap-2 px-4 py-2 bg-lime-600 text-white rounded-lg text-sm font-semibold hover:bg-lime-700 transition-all shadow-md hover:shadow-lg"
             >
-              <Settings size={14} />
+              <Settings size={16} />
               Manage Prices
             </button>
           </div>

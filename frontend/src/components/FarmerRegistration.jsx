@@ -741,19 +741,19 @@ const FarmerRegistration = ({
       {/* Farm List Table */}
       {/* 2. Render the table with full responsiveness and no overflow */}
       {filteredFarmers.length > 0 ? (
-        <div className="w-full overflow-x-auto bg-white rounded-lg">
+        <div className="w-full overflow-x-auto bg-white rounded-xl shadow-md border-2 border-lime-200">
           <table className="min-w-full divide-y divide-gray-200 table-auto bg-white">
-            <thead className="bg-gray-50">
+            <thead className="bg-gradient-to-r from-lime-50 to-lime-100">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 rounded-tl-lg whitespace-normal break-words">Profile</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 whitespace-normal break-words">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 whitespace-normal break-words">Address</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 whitespace-normal break-words">Crop</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 whitespace-normal break-words">Lot No.</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 whitespace-normal break-words">Lot Area</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 whitespace-normal break-words">Certified</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 whitespace-normal break-words">Location</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50 rounded-tr-lg whitespace-normal break-words">Actions</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider rounded-tl-lg whitespace-normal break-words">Profile</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Name</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Address</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Crop</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Lot No.</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Lot Area</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Certified</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Location</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider rounded-tr-lg whitespace-normal break-words">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
@@ -822,14 +822,7 @@ const FarmerRegistration = ({
                     <div className="flex space-x-2">
                       <button 
                         onClick={() => { setSelectedFarmer(farmer); setShowFarmerDetails(true); }} 
-                        className="text-gray-600 hover:text-black hover:font-bold hover:cursor-pointer transition-all"
-                        style={{ textShadow: '0 0 0 transparent' }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.textShadow = '0 1px 2px rgba(0,0,0,0.2)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.textShadow = '0 0 0 transparent';
-                        }}
+                        className="text-lime-500 hover:text-lime-600 font-semibold hover:font-bold transition-all"
                       >
                         View
                       </button>
@@ -838,14 +831,7 @@ const FarmerRegistration = ({
                           setSelectedFarmerForProfile(farmer); 
                           setShowProfileModal(true); 
                         }} 
-                        className="text-gray-600 hover:text-black hover:font-bold hover:cursor-pointer transition-all"
-                        style={{ textShadow: '0 0 0 transparent' }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.textShadow = '0 1px 2px rgba(0,0,0,0.2)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.textShadow = '0 0 0 transparent';
-                        }}
+                        className="text-lime-500 hover:text-lime-600 font-semibold hover:font-bold transition-all"
                       >
                         Profile
                       </button>
@@ -859,14 +845,7 @@ const FarmerRegistration = ({
                           });
                           setShowChangePasswordModal(true);
                         }} 
-                        className="text-gray-600 hover:text-black hover:font-bold hover:cursor-pointer transition-all"
-                        style={{ textShadow: '0 0 0 transparent' }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.textShadow = '0 1px 2px rgba(0,0,0,0.2)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.textShadow = '0 0 0 transparent';
-                        }}
+                        className="text-lime-500 hover:text-lime-600 font-semibold hover:font-bold transition-all"
                       >
                         Password
                       </button>
@@ -877,14 +856,7 @@ const FarmerRegistration = ({
                           setShowDeleteConfirmation(true); 
                           console.log('Modal should be open now'); 
                         }} 
-                        className="text-gray-600 hover:text-black hover:font-bold hover:cursor-pointer transition-all"
-                        style={{ textShadow: '0 0 0 transparent' }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.textShadow = '0 1px 2px rgba(0,0,0,0.2)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.textShadow = '0 0 0 transparent';
-                        }}
+                        className="text-black hover:text-gray-800 font-semibold hover:font-bold transition-all"
                       >
                         Delete
                       </button>
@@ -903,47 +875,54 @@ const FarmerRegistration = ({
         </div>
       )}
 
-      {/* Pagination Controls */}
+      {/* Scrollable Pagination - Hidden Scrollbar */}
       {filteredFarmers.length > itemsPerPage && (
-        <div className="flex items-center justify-between mt-6 px-4 py-3 bg-white border-t border-gray-200 rounded-lg">
-          <div className="flex items-center text-sm text-gray-700">
-            <span>
+        <div className="mt-6 bg-white rounded-xl shadow-md border-2 border-lime-200 p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm text-gray-700 font-medium">
               Showing {startIndex + 1} to {Math.min(endIndex, filteredFarmers.length)} of {filteredFarmers.length} results
-            </span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Previous
-            </button>
-            
-            {/* Page Numbers */}
-            <div className="flex space-x-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`px-3 py-1 text-sm border rounded-md ${
-                    currentPage === page
-                      ? 'bg-lime-600 text-white border-lime-600'
-                      : 'border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
             </div>
-            
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Next
-            </button>
+          </div>
+          <div className="overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <style>{`
+              .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
+            <div className="flex items-center space-x-2 min-w-max">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 text-sm font-semibold bg-lime-100 text-lime-700 rounded-lg hover:bg-lime-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+              >
+                Previous
+              </button>
+              
+              {/* Page Numbers - Scrollable */}
+              <div className="flex space-x-2">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors whitespace-nowrap ${
+                      currentPage === page
+                        ? 'bg-lime-600 text-white shadow-md'
+                        : 'bg-gray-100 text-gray-700 hover:bg-lime-100 hover:text-lime-700'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+              
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 text-sm font-semibold bg-lime-100 text-lime-700 rounded-lg hover:bg-lime-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
       )}
