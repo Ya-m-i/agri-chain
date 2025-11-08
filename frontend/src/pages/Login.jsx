@@ -122,6 +122,15 @@ const Login = () => {
 
   return (
     <div className="h-screen w-screen overflow-hidden flex justify-center items-center bg-gradient-to-b from-lime-50 to-white relative px-4 sm:px-6 lg:px-8">
+      {/* SEO-friendly hidden content for search engines */}
+      <div className="sr-only">
+        <h1>Kapalong Agri-Chain Login Portal</h1>
+        <p>Access your farmer or admin account to manage agricultural insurance, track claims, and access government assistance programs in Kapalong.</p>
+        <h2>Farmer Login</h2>
+        <p>Registered farmers can log in to access their dashboard, manage farm information, submit insurance claims, track cash assistance applications, and manage their agricultural calendar.</p>
+        <h2>Admin Login</h2>
+        <p>Administrators can log in to manage farmer registrations, review insurance claims, manage crop prices, and oversee the agricultural assistance platform.</p>
+      </div>
       {/* Toggle Button - Responsive positioning and sizing */}
       <button
         onClick={() => {
