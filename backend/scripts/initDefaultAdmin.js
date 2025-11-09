@@ -14,8 +14,9 @@ const initDefaultAdmin = async () => {
             return;
         }
                 
-        // Hash password for "admin123"
-        const salt = await bcrypt.genSalt(10);
+        // Hash password for "admin123" with salt rounds of 8 for faster hashing (still very secure)
+        // 8 rounds = 256 iterations (vs 10 rounds = 1024 iterations)
+        const salt = await bcrypt.genSalt(8);
         const hashedPassword = await bcrypt.hash('admin123', salt);
                 
         // Create default admin

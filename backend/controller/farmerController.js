@@ -16,10 +16,11 @@ const createFarmer = async (req, res) => {
             }
         }
         
-        // Hash password before saving
+        // Hash password before saving with salt rounds of 8 for faster hashing (still very secure)
+        // 8 rounds = 256 iterations (vs 10 rounds = 1024 iterations)
         let farmerData = { ...req.body };
         if (farmerData.password) {
-            const salt = await bcrypt.genSalt(10);
+            const salt = await bcrypt.genSalt(8);
             farmerData.password = await bcrypt.hash(farmerData.password, salt);
         }
         const farmer = await Farmer.create(farmerData)
@@ -243,8 +244,9 @@ const updateFarmer = async (req, res) => {
             if (passwordError) {
                 return res.status(400).json({ message: passwordError })
             }
-            // Hash password before saving
-            const salt = await bcrypt.genSalt(10);
+            // Hash password before saving with salt rounds of 8 for faster hashing (still very secure)
+            // 8 rounds = 256 iterations (vs 10 rounds = 1024 iterations)
+            const salt = await bcrypt.genSalt(8);
             updateData.password = await bcrypt.hash(password, salt);
         }
         

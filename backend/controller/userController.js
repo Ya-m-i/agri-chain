@@ -28,8 +28,9 @@ const registerUser = asyncHandler(async (req, res) => {
         res.status(400)
         throw new Error('User already exists')
     }
-    // Hash password
-    const salt = await bcrypt.genSalt(10)
+    // Hash password with salt rounds of 8 for faster hashing (still very secure)
+    // 8 rounds = 256 iterations (vs 10 rounds = 1024 iterations)
+    const salt = await bcrypt.genSalt(8)
     const hashedPassword = await bcrypt.hash(password, salt)
 
     // Create user
@@ -127,7 +128,9 @@ const updateUser = asyncHandler(async (req, res) => {
             res.status(400)
             throw new Error(passwordError)
         }
-        const salt = await bcrypt.genSalt(10)
+        // Use salt rounds of 8 for faster hashing (still very secure)
+        // 8 rounds = 256 iterations (vs 10 rounds = 1024 iterations)
+        const salt = await bcrypt.genSalt(8)
         updateData.password = await bcrypt.hash(password, salt)
     }
 
