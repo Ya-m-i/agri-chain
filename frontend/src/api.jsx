@@ -81,6 +81,9 @@ export const getUserProfile = async (token) => {
 };
 
 export const updateUserProfile = async (userId, updateData, token) => {
+  // Increase timeout to 30 seconds for password updates (bcrypt hashing can take time)
+  // Use 15 seconds for other updates to maintain responsiveness
+  const timeout = updateData.password ? 30000 : 15000;
   return await fetchWithRetry(apiUrl(`/api/users/${userId}`), {
     method: 'PUT',
     headers: {
@@ -88,7 +91,7 @@ export const updateUserProfile = async (userId, updateData, token) => {
       'Authorization': `Bearer ${token}`,
     },
     body: JSON.stringify(updateData),
-  });
+  }, 3, timeout); // retries=3, timeout=30s for password updates, 15s for others
 };
 
 // Claim operations without caching
