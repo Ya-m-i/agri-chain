@@ -6,6 +6,7 @@
   "homepage": ".",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node scripts/generate-version.js",
     "build": "vite build --mode production",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",

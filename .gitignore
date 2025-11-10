@@ -89,10 +89,12 @@ dist
 # Gatsby files
 .cache/
 public
-# Exception: Allow SEO files in frontend/public
+# Exception: Allow SEO files, version.json, and service worker in frontend/public
 !frontend/public/sitemap.xml
 !frontend/public/robots.txt
 !frontend/public/_redirects
+!frontend/public/version.json
+!frontend/public/sw.js
 
 # Storybook build outputs
 .out

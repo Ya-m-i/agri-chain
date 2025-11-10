@@ -641,7 +641,7 @@ const FarmerDashboard = () => {
     
     loadCalendarEvents()
   }, [user?.id])
-
+  
   // Handle initial loading when component mounts
   useEffect(() => {
     const timer = setTimeout(() => {

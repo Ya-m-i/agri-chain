@@ -881,7 +881,7 @@ const FarmerRegistration = ({
           <div className="flex items-center justify-between mb-2">
             <div className="text-sm text-gray-700 font-medium">
               Showing {startIndex + 1} to {Math.min(endIndex, filteredFarmers.length)} of {filteredFarmers.length} results
-            </div>
+          </div>
           </div>
           <div className="overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <style>{`
@@ -890,38 +890,38 @@ const FarmerRegistration = ({
               }
             `}</style>
             <div className="flex items-center space-x-2 min-w-max">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
                 className="px-4 py-2 text-sm font-semibold bg-lime-100 text-lime-700 rounded-lg hover:bg-lime-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
-              >
-                Previous
-              </button>
-              
+            >
+              Previous
+            </button>
+            
               {/* Page Numbers - Scrollable */}
               <div className="flex space-x-2">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
                     className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors whitespace-nowrap ${
-                      currentPage === page
+                    currentPage === page
                         ? 'bg-lime-600 text-white shadow-md'
                         : 'bg-gray-100 text-gray-700 hover:bg-lime-100 hover:text-lime-700'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-              </div>
-              
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+            
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
                 className="px-4 py-2 text-sm font-semibold bg-lime-100 text-lime-700 rounded-lg hover:bg-lime-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
-              >
-                Next
-              </button>
+            >
+              Next
+            </button>
             </div>
           </div>
         </div>
@@ -1380,8 +1380,8 @@ const FarmerRegistration = ({
                 <AlertTriangle className="text-red-600" size={24} />
               </div>
               <h3 className="text-xl font-bold text-gray-800">
-                Delete Farmer
-              </h3>
+              Delete Farmer
+            </h3>
             </div>
             <p className="mb-6 text-gray-600">
               Are you sure you want to delete <strong className="text-gray-800">{farmerToDelete.farmerName || `${farmerToDelete.firstName || ''} ${farmerToDelete.middleName || ''} ${farmerToDelete.lastName || ''}`.replace(/  +/g, ' ').trim()}</strong>? This action cannot be undone.

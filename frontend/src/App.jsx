@@ -3,11 +3,13 @@ import { HashRouter, Routes, Route, Navigate } from "react-router-dom"
 import { Toaster } from "react-hot-toast"
 import Loading from "./components/Loading"
 import AuthRoute from "./components/AuthRoute"
+import UpdateNotification from "./components/UpdateNotification"
 import { useAuthStore } from "./store/authStore"
 import { initImageOptimization } from "./utils/imageOptimization"
 import { initAssetOptimization } from "./utils/assetOptimization"
 import { useSocketQuery } from "./hooks/useSocketQuery"
 import { useSocketAuth } from "./hooks/useSocketAuth"
+import { initUpdateChecker, onUpdateAvailable } from "./utils/updateChecker"
 
 // Lazy load page components for better performance
 const Login = lazy(() => import("./pages/Login"))
@@ -42,6 +44,7 @@ const PageLoader = () => (
 
 function App() {
   const [loading, setLoading] = useState(true)
+  const [showUpdateNotification, setShowUpdateNotification] = useState(false)
   const { isAuthenticated, userType, isInitialized, initializeAuth } = useAuthStore()
   
   // HashRouter handles routing automatically - no need for redirect logic
@@ -68,6 +71,33 @@ function App() {
     // Initialize optimizations first
     initAssetOptimization()
     initImageOptimization()
+    
+    // Initialize update checker
+    initUpdateChecker()
+    
+    // Listen for update notifications
+    const unsubscribe = onUpdateAvailable(() => {
+      setShowUpdateNotification(true)
+    })
+    
+    // Listen for service worker messages
+    let handleServiceWorkerMessage = null
+    let handleUpdateEvent = null
+    
+    if ('serviceWorker' in navigator) {
+      handleServiceWorkerMessage = (event) => {
+        if (event.data && event.data.type === 'SW_UPDATED') {
+          setShowUpdateNotification(true)
+        }
+      }
+      navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage)
+      
+      // Also listen for custom update events
+      handleUpdateEvent = () => {
+        setShowUpdateNotification(true)
+      }
+      window.addEventListener('app-update-available', handleUpdateEvent)
+    }
     
     // Initialize authentication state from storage
     if (!isInitialized) {
@@ -101,7 +131,16 @@ function App() {
       setLoading(false);
     }, isInitialized ? 100 : 1000); // Faster loading if already initialized
     
-    return () => clearTimeout(loadingTimeout);
+    return () => {
+      clearTimeout(loadingTimeout)
+      if (unsubscribe) unsubscribe()
+      if (handleServiceWorkerMessage) {
+        navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage)
+      }
+      if (handleUpdateEvent) {
+        window.removeEventListener('app-update-available', handleUpdateEvent)
+      }
+    }
   }, [isInitialized, initializeAuth, isAuthenticated])
   
   // Additional effect to log socket status changes
@@ -118,6 +157,11 @@ function App() {
   return (
     <HashRouter>
       <Toaster position="top-right" />
+      {showUpdateNotification && (
+        <UpdateNotification
+          onDismiss={() => setShowUpdateNotification(false)}
+        />
+      )}
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route

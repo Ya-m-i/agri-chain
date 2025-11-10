@@ -1,11 +1,50 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { resolve, dirname } from 'path'
+import { fileURLToPath } from 'url'
+import { writeFileSync } from 'fs'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+// Generate version before build
+const generateVersion = () => {
+  try {
+    const timestamp = Date.now()
+    const random = Math.random().toString(36).substring(2, 9)
+    const version = `agri-chain-v${timestamp}-${random}`
+    
+    const versionData = {
+      version,
+      timestamp,
+      buildDate: new Date().toISOString()
+    }
+    
+    // Write to public directory
+    const publicPath = resolve(__dirname, 'public', 'version.json')
+    writeFileSync(publicPath, JSON.stringify(versionData, null, 2))
+    
+    console.log(`✅ Generated version: ${version}`)
+    console.log(`   Build date: ${versionData.buildDate}`)
+  } catch (error) {
+    console.warn('Failed to generate version:', error.message)
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
   base: '/',
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(), 
+    tailwindcss(),
+    {
+      name: 'generate-version',
+      buildStart() {
+        generateVersion()
+      }
+    }
+  ],
   optimizeDeps: {
     include: ["react", "react-dom", "react-router-dom", "leaflet", "leaflet-draw"]
   },

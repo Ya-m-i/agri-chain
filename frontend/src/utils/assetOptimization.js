@@ -167,13 +167,20 @@ export const registerServiceWorker = async () => {
       // Listen for updates
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            // New update available
-            showUpdateNotification();
-          }
-        });
+        if (newWorker) {
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New update available - dispatch custom event
+              window.dispatchEvent(new CustomEvent('app-update-available'));
+            }
+          });
+        }
       });
+      
+      // Check for updates periodically (every hour)
+      setInterval(() => {
+        registration.update();
+      }, 60 * 60 * 1000); // 1 hour
       
       return registration;
     } catch (error) {
@@ -181,31 +188,6 @@ export const registerServiceWorker = async () => {
     }
   }
   return null;
-};
-
-// Show update notification
-const showUpdateNotification = () => {
-  const notification = document.createElement('div');
-  notification.innerHTML = `
-    <div style="position: fixed; top: 20px; right: 20px; background: #4CAF50; color: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; max-width: 300px;">
-      <div style="font-weight: 600; margin-bottom: 8px;">App Updated!</div>
-      <div style="font-size: 14px; margin-bottom: 12px;">A new version is available.</div>
-      <button onclick="window.location.reload()" style="background: white; color: #4CAF50; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 600; cursor: pointer;">
-        Reload
-      </button>
-      <button onclick="this.parentElement.remove()" style="background: transparent; color: white; border: 1px solid white; padding: 8px 16px; border-radius: 4px; margin-left: 8px; cursor: pointer;">
-        Later
-      </button>
-    </div>
-  `;
-  document.body.appendChild(notification);
-  
-  // Auto remove after 10 seconds
-  setTimeout(() => {
-    if (notification.parentElement) {
-      notification.remove();
-    }
-  }, 10000);
 };
 
 // Lazy load JavaScript modules

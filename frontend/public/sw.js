@@ -1,8 +1,21 @@
 // Service Worker for advanced caching and offline functionality
-const CACHE_VERSION = 'agri-chain-v1.0.0';
-const STATIC_CACHE = `${CACHE_VERSION}-static`;
-const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
-const API_CACHE = `${CACHE_VERSION}-api`;
+// Version will be loaded dynamically from version.json
+let CACHE_VERSION = 'agri-chain-v1.0.0';
+
+// Helper function to get cache names
+const getCacheNames = () => ({
+  STATIC_CACHE: `${CACHE_VERSION}-static`,
+  DYNAMIC_CACHE: `${CACHE_VERSION}-dynamic`,
+  API_CACHE: `${CACHE_VERSION}-api`
+});
+
+// Try to get version from version.json
+self.addEventListener('message', async (event) => {
+  if (event.data && event.data.type === 'SET_VERSION') {
+    CACHE_VERSION = event.data.version || CACHE_VERSION;
+    console.log('Service Worker version updated:', CACHE_VERSION);
+  }
+});
 
 // Assets to cache immediately
 const STATIC_ASSETS = [
@@ -47,13 +60,29 @@ const ROUTE_STRATEGIES = {
 };
 
 // Install event - cache static assets
-self.addEventListener('install', (event) => {
+self.addEventListener('install', async (event) => {
   console.log('ServiceWorker installing...');
   
+  // Load version first
+  try {
+    const versionResponse = await fetch('/version.json?t=' + Date.now());
+    if (versionResponse.ok) {
+      const versionData = await versionResponse.json();
+      if (versionData && versionData.version) {
+        CACHE_VERSION = versionData.version;
+        console.log('Service Worker loaded version:', CACHE_VERSION);
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to load version in service worker:', error);
+  }
+  
+  const cacheNames = getCacheNames();
+  
   event.waitUntil(
-    caches.open(STATIC_CACHE)
+    caches.open(cacheNames.STATIC_CACHE)
       .then((cache) => {
-        console.log('Caching static assets');
+        console.log('Caching static assets with version:', CACHE_VERSION);
         return cache.addAll(STATIC_ASSETS);
       })
       .then(() => {
@@ -63,22 +92,45 @@ self.addEventListener('install', (event) => {
 });
 
 // Activate event - cleanup old caches
-self.addEventListener('activate', (event) => {
-  console.log('ServiceWorker activating...');
+self.addEventListener('activate', async (event) => {
+  console.log('ServiceWorker activating with version:', CACHE_VERSION);
+  
+  // Reload version in case it changed
+  try {
+    const versionResponse = await fetch('/version.json?t=' + Date.now());
+    if (versionResponse.ok) {
+      const versionData = await versionResponse.json();
+      if (versionData && versionData.version) {
+        CACHE_VERSION = versionData.version;
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to reload version:', error);
+  }
   
   event.waitUntil(
     caches.keys()
-      .then((cacheNames) => {
+      .then((allCacheNames) => {
         return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (cacheName !== STATIC_CACHE && 
-                cacheName !== DYNAMIC_CACHE && 
-                cacheName !== API_CACHE) {
+          allCacheNames.map((cacheName) => {
+            // Delete all caches that don't match current version
+            if (!cacheName.includes(CACHE_VERSION)) {
               console.log('Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
           })
         );
+      })
+      .then(() => {
+        // Notify all clients about the update
+        return self.clients.matchAll().then(clients => {
+          clients.forEach(client => {
+            client.postMessage({
+              type: 'SW_UPDATED',
+              version: CACHE_VERSION
+            });
+          });
+        });
       })
       .then(() => {
         return self.clients.claim();
@@ -241,13 +293,14 @@ async function staleWhileRevalidate(request) {
 // Get appropriate cache for request
 function getCache(request) {
   const url = new URL(request.url);
+  const cacheNames = getCacheNames();
   
   if (url.pathname.startsWith('/api/')) {
-    return caches.open(API_CACHE);
+    return caches.open(cacheNames.API_CACHE);
   } else if (url.pathname.startsWith('/assets/')) {
-    return caches.open(STATIC_CACHE);
+    return caches.open(cacheNames.STATIC_CACHE);
   } else {
-    return caches.open(DYNAMIC_CACHE);
+    return caches.open(cacheNames.DYNAMIC_CACHE);
   }
 }
 
