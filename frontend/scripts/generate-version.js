@@ -1,8 +1,13 @@
 // Generate a unique version for each build
 // This ensures service worker detects updates
 
-const { writeFileSync } = require('fs');
-const { resolve } = require('path');
+import { writeFileSync } from 'fs';
+import { resolve } from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Generate version based on timestamp and random string
 const timestamp = Date.now();
@@ -19,10 +24,6 @@ const versionData = {
 // Write to public directory so it's accessible
 const publicPath = resolve(process.cwd(), 'public', 'version.json');
 writeFileSync(publicPath, JSON.stringify(versionData, null, 2));
-
-// Also write to src for import
-const srcPath = resolve(process.cwd(), 'src', 'version.json');
-writeFileSync(srcPath, JSON.stringify(versionData, null, 2));
 
 console.log(`✅ Generated version: ${version}`);
 console.log(`   Build date: ${versionData.buildDate}`);
