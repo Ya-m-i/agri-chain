@@ -32,13 +32,17 @@ export const deleteFarmer = async (farmerId) => {
 };
 
 export const updateFarmer = async (farmerId, updateData) => {
+  // Increase timeout to 60 seconds for password updates (bcrypt hashing + slow servers can take time)
+  // Use 15 seconds for other updates to maintain responsiveness
+  // 60 seconds gives enough time for Render free tier and password hashing
+  const timeout = updateData.password ? 60000 : 15000;
   return await fetchWithRetry(apiUrl(`/api/farmers/${farmerId}`), {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(updateData),
-  });
+  }, 3, timeout); // retries=3, timeout=60s for password updates, 15s for others
 };
 
 // Fetch farmers without caching
@@ -81,9 +85,10 @@ export const getUserProfile = async (token) => {
 };
 
 export const updateUserProfile = async (userId, updateData, token) => {
-  // Increase timeout to 30 seconds for password updates (bcrypt hashing can take time)
+  // Increase timeout to 90 seconds for password updates (bcrypt hashing + slow servers + auth middleware can take time)
   // Use 15 seconds for other updates to maintain responsiveness
-  const timeout = updateData.password ? 30000 : 15000;
+  // 90 seconds gives enough time for Render free tier, password hashing, and authentication checks
+  const timeout = updateData.password ? 90000 : 15000;
   return await fetchWithRetry(apiUrl(`/api/users/${userId}`), {
     method: 'PUT',
     headers: {
@@ -91,7 +96,7 @@ export const updateUserProfile = async (userId, updateData, token) => {
       'Authorization': `Bearer ${token}`,
     },
     body: JSON.stringify(updateData),
-  }, 3, timeout); // retries=3, timeout=30s for password updates, 15s for others
+  }, 3, timeout); // retries=3, timeout=90s for password updates, 15s for others
 };
 
 // Claim operations without caching

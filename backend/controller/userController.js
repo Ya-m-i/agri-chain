@@ -97,17 +97,24 @@ const updateUser = asyncHandler(async (req, res) => {
     const { username, password, name } = req.body
     const updateData = {}
 
-    // Check if user exists
-    const user = await User.findById(req.params.id)
-    if (!user) {
-        res.status(404)
-        throw new Error('User not found')
-    }
-
-    // Only allow users to update their own profile (or admins can update any)
-    if (req.user.id !== req.params.id && user.role !== 'admin') {
-        res.status(403)
-        throw new Error('Not authorized to update this profile')
+    // Optimization: Use req.user if updating self, query if admin updating others
+    // This avoids redundant database query when user updates their own profile
+    let user
+    if (req.user.id === req.params.id) {
+        // User updating themselves - use req.user (already fetched in protect middleware)
+        user = req.user
+    } else {
+        // Admin updating someone else - need to query target user
+        user = await User.findById(req.params.id)
+        if (!user) {
+            res.status(404)
+            throw new Error('User not found')
+        }
+        // Security check: Only admins can update other users
+        if (req.user.role !== 'admin') {
+            res.status(403)
+            throw new Error('Not authorized to update this profile')
+        }
     }
 
     // Check if username is being changed and if it's already taken
