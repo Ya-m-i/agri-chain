@@ -16,11 +16,12 @@ const createFarmer = async (req, res) => {
             }
         }
         
-        // Hash password before saving with salt rounds of 8 for faster hashing (still very secure)
-        // 8 rounds = 256 iterations (vs 10 rounds = 1024 iterations)
+        // Hash password before saving with salt rounds of 6 for faster hashing on free tier servers
+        // 6 rounds = 64 iterations (vs 8 rounds = 256 iterations, 10 rounds = 1024 iterations)
+        // Still secure enough for most applications, especially on resource-constrained servers
         let farmerData = { ...req.body };
         if (farmerData.password) {
-            const salt = await bcrypt.genSalt(8);
+            const salt = await bcrypt.genSalt(6);
             farmerData.password = await bcrypt.hash(farmerData.password, salt);
         }
         const farmer = await Farmer.create(farmerData)
@@ -244,9 +245,10 @@ const updateFarmer = async (req, res) => {
             if (passwordError) {
                 return res.status(400).json({ message: passwordError })
             }
-            // Hash password before saving with salt rounds of 8 for faster hashing (still very secure)
-            // 8 rounds = 256 iterations (vs 10 rounds = 1024 iterations)
-            const salt = await bcrypt.genSalt(8);
+            // Hash password before saving with salt rounds of 6 for faster hashing on free tier servers
+            // 6 rounds = 64 iterations (vs 8 rounds = 256 iterations, 10 rounds = 1024 iterations)
+            // Still secure enough for most applications, especially on resource-constrained servers
+            const salt = await bcrypt.genSalt(6);
             updateData.password = await bcrypt.hash(password, salt);
         }
         

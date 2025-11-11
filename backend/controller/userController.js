@@ -28,9 +28,10 @@ const registerUser = asyncHandler(async (req, res) => {
         res.status(400)
         throw new Error('User already exists')
     }
-    // Hash password with salt rounds of 8 for faster hashing (still very secure)
-    // 8 rounds = 256 iterations (vs 10 rounds = 1024 iterations)
-    const salt = await bcrypt.genSalt(8)
+    // Hash password with salt rounds of 6 for faster hashing on free tier servers
+    // 6 rounds = 64 iterations (vs 8 rounds = 256 iterations, 10 rounds = 1024 iterations)
+    // Still secure enough for most applications, especially on resource-constrained servers
+    const salt = await bcrypt.genSalt(6)
     const hashedPassword = await bcrypt.hash(password, salt)
 
     // Create user
@@ -97,20 +98,14 @@ const updateUser = asyncHandler(async (req, res) => {
     const { username, password, name } = req.body
     const updateData = {}
 
-    // Optimization: Use req.user if updating self, query if admin updating others
-    // This avoids redundant database query when user updates their own profile
-    let user
-    if (req.user.id === req.params.id) {
-        // User updating themselves - use req.user (already fetched in protect middleware)
-        user = req.user
-    } else {
-        // Admin updating someone else - need to query target user
-        user = await User.findById(req.params.id)
-        if (!user) {
-            res.status(404)
-            throw new Error('User not found')
-        }
-        // Security check: Only admins can update other users
+    // Security check: Only allow users to update their own profile, or admins to update any profile
+    // req.user is already fetched by protect middleware (with lean() for performance)
+    const userId = req.user._id?.toString() || req.user.id?.toString()
+    const targetUserId = req.params.id
+    
+    if (userId !== targetUserId) {
+        // User trying to update someone else's profile
+        // Only admins can do this
         if (req.user.role !== 'admin') {
             res.status(403)
             throw new Error('Not authorized to update this profile')
@@ -118,14 +113,26 @@ const updateUser = asyncHandler(async (req, res) => {
     }
 
     // Check if username is being changed and if it's already taken
-    // Only check if username is actually being changed to avoid unnecessary DB query
-    if (username && username !== user.username) {
-        const usernameExists = await User.findOne({ username })
-        if (usernameExists) {
-            res.status(400)
-            throw new Error('Username already exists')
+    // Only check if username is actually provided and different from current
+    // We need to fetch current username first if it's being changed
+    if (username) {
+        // Only check uniqueness if username is actually being changed
+        // Fetch current user to compare (only if username is provided)
+        const currentUser = await User.findById(req.params.id).select('username').lean()
+        if (!currentUser) {
+            res.status(404)
+            throw new Error('User not found')
         }
-        updateData.username = username
+        
+        if (username !== currentUser.username) {
+            // Username is being changed - check if new username is available
+            const usernameExists = await User.findOne({ username }).select('_id').lean()
+            if (usernameExists) {
+                res.status(400)
+                throw new Error('Username already exists')
+            }
+            updateData.username = username
+        }
     }
 
     // Hash password if provided
@@ -153,21 +160,17 @@ const updateUser = asyncHandler(async (req, res) => {
         throw new Error('No fields to update')
     }
 
-    // Use updateOne for better performance - doesn't fetch the document first
-    // Then fetch the updated user separately only if we need to return it
-    await User.updateOne(
-        { _id: req.params.id },
-        { $set: updateData }
-    )
-
-    // Fetch updated user data for response (only selected fields, no password)
-    const updatedUser = await User.findById(req.params.id)
-        .select('-password')
-        .lean() // Use lean() for faster query (returns plain JS object, not Mongoose document)
+    // Use findByIdAndUpdate for better performance - single query instead of two
+    // This matches the farmer route performance while maintaining security
+    const updatedUser = await User.findByIdAndUpdate(
+        req.params.id,
+        { $set: updateData },
+        { new: true } // Return updated document
+    ).select('-password').lean() // Use lean() for faster query (returns plain JS object)
 
     if (!updatedUser) {
         res.status(404)
-        throw new Error('User not found after update')
+        throw new Error('User not found')
     }
 
     res.status(200).json({

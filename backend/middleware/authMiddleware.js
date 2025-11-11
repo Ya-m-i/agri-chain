@@ -14,7 +14,18 @@ const protect = asyncHandler(async (req, res, next) => {
             
             const decoded = jwt.verify(token, process.env.JWT_SECRET)
 
-            req.user = await User.findById(decoded.id).select('-password')
+            // Use lean() for faster query - returns plain JS object instead of Mongoose document
+            // Only select necessary fields to reduce data transfer
+            req.user = await User.findById(decoded.id).select('-password').lean()
+
+            if (!req.user) {
+                res.status(401)
+                throw new Error('User not found')
+            }
+
+            // Call next() to continue to the route handler
+            next()
+            return
 
         }catch(error) {
             console.log(error)
