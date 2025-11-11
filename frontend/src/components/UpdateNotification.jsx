@@ -6,8 +6,22 @@ import { RefreshCw, X } from "lucide-react"
 const UpdateNotification = ({ onDismiss }) => {
   const [isVisible, setIsVisible] = useState(true)
 
-  const handleUpdate = () => {
+  const handleUpdate = async () => {
     setIsVisible(false)
+    
+    // Get current server version before reloading
+    try {
+      const response = await fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
+      if (response.ok) {
+        const data = await response.json()
+        // Update stored version BEFORE reloading so it doesn't show again
+        const { updateStoredVersion } = await import('../utils/updateChecker')
+        updateStoredVersion(data.version)
+      }
+    } catch (error) {
+      console.warn('Failed to get version before reload:', error)
+    }
+    
     // Clear all caches
     if ('caches' in window) {
       caches.keys().then((names) => {
@@ -24,8 +38,21 @@ const UpdateNotification = ({ onDismiss }) => {
     window.location.reload()
   }
 
-  const handleDismiss = () => {
+  const handleDismiss = async () => {
     setIsVisible(false)
+    
+    // Mark this version as shown so it doesn't pop up again
+    try {
+      const response = await fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
+      if (response.ok) {
+        const data = await response.json()
+        const { markVersionAsShown } = await import('../utils/updateChecker')
+        markVersionAsShown(data.version)
+      }
+    } catch (error) {
+      console.warn('Failed to mark version as shown:', error)
+    }
+    
     if (onDismiss) onDismiss()
   }
 

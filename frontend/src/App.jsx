@@ -75,9 +75,29 @@ function App() {
     // Initialize update checker
     initUpdateChecker()
     
-    // Listen for update notifications
-    const unsubscribe = onUpdateAvailable(() => {
-      setShowUpdateNotification(true)
+    // Listen for update notifications (only show once per version)
+    const unsubscribe = onUpdateAvailable(async () => {
+      // Check if we've already shown this notification in this session
+      const lastShownVersion = sessionStorage.getItem('last_shown_update_version')
+      
+      // Get current server version
+      try {
+        const response = await fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
+        if (response.ok) {
+          const data = await response.json()
+          const serverVersion = data.version
+          
+          // Only show if we haven't shown this version in this session
+          if (lastShownVersion !== serverVersion) {
+            setShowUpdateNotification(true)
+            // Mark as shown in this session
+            sessionStorage.setItem('last_shown_update_version', serverVersion)
+          }
+        }
+      } catch {
+        // If we can't get version, show notification anyway (better to show than miss)
+        setShowUpdateNotification(true)
+      }
     })
     
     // Listen for service worker messages
@@ -85,16 +105,44 @@ function App() {
     let handleUpdateEvent = null
     
     if ('serviceWorker' in navigator) {
-      handleServiceWorkerMessage = (event) => {
+      handleServiceWorkerMessage = async (event) => {
         if (event.data && event.data.type === 'SW_UPDATED') {
-          setShowUpdateNotification(true)
+          // Check if we've already shown this version
+          const lastShownVersion = sessionStorage.getItem('last_shown_update_version')
+          const swVersion = event.data.version
+          
+          // Only show if we haven't shown this version in this session
+          if (lastShownVersion !== swVersion) {
+            setShowUpdateNotification(true)
+            if (swVersion) {
+              sessionStorage.setItem('last_shown_update_version', swVersion)
+            }
+          }
         }
       }
       navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage)
       
       // Also listen for custom update events
-      handleUpdateEvent = () => {
-        setShowUpdateNotification(true)
+      handleUpdateEvent = async () => {
+        // Check if we've already shown this version
+        const lastShownVersion = sessionStorage.getItem('last_shown_update_version')
+        
+        try {
+          const response = await fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
+          if (response.ok) {
+            const data = await response.json()
+            const serverVersion = data.version
+            
+            // Only show if we haven't shown this version in this session
+            if (lastShownVersion !== serverVersion) {
+              setShowUpdateNotification(true)
+              sessionStorage.setItem('last_shown_update_version', serverVersion)
+            }
+          }
+        } catch {
+          // If we can't get version, show notification anyway
+          setShowUpdateNotification(true)
+        }
       }
       window.addEventListener('app-update-available', handleUpdateEvent)
     }
