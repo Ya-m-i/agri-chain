@@ -85,10 +85,10 @@ export const getUserProfile = async (token) => {
 };
 
 export const updateUserProfile = async (userId, updateData, token) => {
-  // Increase timeout to 90 seconds for password updates (bcrypt hashing + slow servers + auth middleware can take time)
+  // Increase timeout to 120 seconds for password updates on free tier servers
+  // Reduced bcrypt rounds to 6 for faster hashing, but still need buffer for slow servers
   // Use 15 seconds for other updates to maintain responsiveness
-  // 90 seconds gives enough time for Render free tier, password hashing, and authentication checks
-  const timeout = updateData.password ? 90000 : 15000;
+  const timeout = updateData.password ? 120000 : 15000;
   return await fetchWithRetry(apiUrl(`/api/users/${userId}`), {
     method: 'PUT',
     headers: {

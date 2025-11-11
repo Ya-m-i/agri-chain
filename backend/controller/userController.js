@@ -118,6 +118,7 @@ const updateUser = asyncHandler(async (req, res) => {
     }
 
     // Check if username is being changed and if it's already taken
+    // Only check if username is actually being changed to avoid unnecessary DB query
     if (username && username !== user.username) {
         const usernameExists = await User.findOne({ username })
         if (usernameExists) {
@@ -135,9 +136,10 @@ const updateUser = asyncHandler(async (req, res) => {
             res.status(400)
             throw new Error(passwordError)
         }
-        // Use salt rounds of 8 for faster hashing (still very secure)
-        // 8 rounds = 256 iterations (vs 10 rounds = 1024 iterations)
-        const salt = await bcrypt.genSalt(8)
+        // Use salt rounds of 6 for faster hashing on free tier servers
+        // 6 rounds = 64 iterations (vs 8 rounds = 256 iterations, 10 rounds = 1024 iterations)
+        // Still secure enough for most applications, especially on resource-constrained servers
+        const salt = await bcrypt.genSalt(6)
         updateData.password = await bcrypt.hash(password, salt)
     }
 
@@ -151,11 +153,22 @@ const updateUser = asyncHandler(async (req, res) => {
         throw new Error('No fields to update')
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-        req.params.id,
-        updateData,
-        { new: true }
-    ).select('-password')
+    // Use updateOne for better performance - doesn't fetch the document first
+    // Then fetch the updated user separately only if we need to return it
+    await User.updateOne(
+        { _id: req.params.id },
+        { $set: updateData }
+    )
+
+    // Fetch updated user data for response (only selected fields, no password)
+    const updatedUser = await User.findById(req.params.id)
+        .select('-password')
+        .lean() // Use lean() for faster query (returns plain JS object, not Mongoose document)
+
+    if (!updatedUser) {
+        res.status(404)
+        throw new Error('User not found after update')
+    }
 
     res.status(200).json({
         _id: updatedUser._id,

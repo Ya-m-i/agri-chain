@@ -102,6 +102,12 @@ const AdminProfile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Prevent multiple submissions
+    if (loading) {
+      return
+    }
+    
     setError("")
     setSuccess("")
     setLoading(true)
@@ -350,7 +356,14 @@ const AdminProfile = () => {
               className="flex-1 bg-lime-600 text-white px-6 py-3 rounded-lg hover:bg-lime-700 transition-colors font-semibold shadow-md hover:shadow-lg flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={18} className="mr-2" />
-              {loading ? "Saving..." : "Save Changes"}
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  {formData.password ? "Updating password (this may take a moment)..." : "Saving..."}
+                </>
+              ) : (
+                "Save Changes"
+              )}
             </button>
           </div>
         </form>
