@@ -28,7 +28,8 @@ export const useSocketQuery = (options = {}) => {
     if (isInitializedRef.current) return;
     
     try {
-      socketManager.connect(options.serverUrl || import.meta.env.VITE_SOCKET_URL || 'https://agri-chain.onrender.com');
+      // Use provided serverUrl or let socketManager determine from environment
+      socketManager.connect(options.serverUrl);
       isInitializedRef.current = true;
       
       // Join user-specific room for targeted updates

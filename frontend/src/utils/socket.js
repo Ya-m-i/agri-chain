@@ -16,7 +16,23 @@ class SocketManager {
   }
 
   // Initialize socket connection
-  connect(url = import.meta.env.VITE_SOCKET_URL || 'https://agri-chain.onrender.com') {
+  connect(url = null) {
+    // Use environment variable or construct from API URL, fallback to default
+    if (!url) {
+      if (import.meta.env.VITE_SOCKET_URL) {
+        url = import.meta.env.VITE_SOCKET_URL
+      } else if (import.meta.env.VITE_API_URL) {
+        // Use API URL as base for Socket.IO (same server)
+        url = import.meta.env.VITE_API_URL
+      } else if (import.meta.env.PROD) {
+        // Production: use backend domain
+        url = 'https://backend.kapalongagrichain.site'
+      } else {
+        // Development fallback
+        url = 'https://agri-chain.onrender.com'
+      }
+    }
+    
     if (this.socket && this.isConnected) {
       console.log('SocketManager: Already connected, reusing existing connection');
       return this.socket;
@@ -34,22 +50,26 @@ class SocketManager {
       VITE_SOCKET_URL: import.meta.env.VITE_SOCKET_URL,
       VITE_API_URL: import.meta.env.VITE_API_URL,
       NODE_ENV: import.meta.env.NODE_ENV,
-      MODE: import.meta.env.MODE
+      MODE: import.meta.env.MODE,
+      PROD: import.meta.env.PROD
     });
 
     this.socket = io(url, {
       transports: ['websocket', 'polling'],
-      timeout: 10000, // Increased timeout for production
+      timeout: 30000, // Increased to 30 seconds for free tier servers
       retries: 5, // More retries for reliability
       autoConnect: true,
-      forceNew: true, // Force new connection to avoid stale connections
+      forceNew: false, // Don't force new connection - reuse if possible
       reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      maxReconnectionAttempts: 10, // Increased for better reliability
+      reconnectionDelay: 2000, // Start with 2 seconds
+      reconnectionDelayMax: 10000, // Max 10 seconds between retries
+      reconnectionAttempts: 10, // Increased for better reliability
       // Ensure secure connection for HTTPS
       secure: true,
-      rejectUnauthorized: false
+      rejectUnauthorized: false,
+      // Additional options for free tier servers
+      upgrade: true,
+      rememberUpgrade: true
     });
 
     // Connection event handlers

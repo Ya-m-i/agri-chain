@@ -50,8 +50,15 @@ function App() {
   // HashRouter handles routing automatically - no need for redirect logic
   
   // Initialize Socket.IO integration with React Query
+  // Use API URL as base for Socket.IO (same server) or environment variable
+  const socketUrl = import.meta.env.VITE_SOCKET_URL || 
+    (import.meta.env.VITE_API_URL || 
+      (import.meta.env.PROD 
+        ? 'https://backend.kapalongagrichain.site' 
+        : 'https://agri-chain.onrender.com'))
+  
   const { isConnected } = useSocketQuery({
-    serverUrl: import.meta.env.VITE_SOCKET_URL || 'https://agri-chain.onrender.com'
+    serverUrl: socketUrl
   })
   
   // Manage socket connection based on authentication state
