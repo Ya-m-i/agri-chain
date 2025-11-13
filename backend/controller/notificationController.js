@@ -129,6 +129,21 @@ const createNotification = async (req, res) => {
       timestamp: new Date()
     });
 
+    // Emit Socket.IO event for real-time notification delivery
+    // Get io instance from app (set in server.js)
+    const io = req.app.get('io');
+    if (io) {
+      if (recipientType === 'farmer' && recipientId) {
+        // Send to specific farmer room
+        io.to(`farmer-${recipientId}`).emit('new-notification', notification);
+        console.log(`📨 Notification sent to farmer room: farmer-${recipientId}`);
+      } else if (recipientType === 'admin') {
+        // Send to admin room
+        io.to('admin-room').emit('new-notification', notification);
+        console.log('📨 Notification sent to admin room');
+      }
+    }
+
     res.status(201).json(notification);
   } catch (error) {
     res.status(500).json({ message: error.message });

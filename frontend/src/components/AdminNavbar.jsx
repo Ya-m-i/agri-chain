@@ -1,4 +1,6 @@
-import { Menu, X, Bell, User, ChevronDown, Settings, HelpCircle, Plus, Calendar, Moon, Sun, LogOut, MessageSquare, Check, AlertTriangle, Info } from "lucide-react"
+import { useState } from "react"
+import { Menu, X, Bell, User, ChevronDown, Settings, HelpCircle, Plus, Calendar, Moon, Sun, LogOut, MessageSquare, Check, AlertTriangle, Info, Send } from "lucide-react"
+import SendNotificationModal from "./SendNotificationModal"
 
 const AdminNavbar = ({
   sidebarOpen,
@@ -30,6 +32,7 @@ const AdminNavbar = ({
   setDarkMode,
   handleLogout
 }) => {
+  const [sendModalOpen, setSendModalOpen] = useState(false)
   return (
     <header style={{ backgroundColor: 'white' }} className={`text-black transition-all duration-300 ease-in-out ${sidebarExpanded ? 'md:ml-64' : 'md:ml-16'}`}>
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
@@ -96,6 +99,14 @@ const AdminNavbar = ({
                 <div className="p-4 text-black flex justify-between items-center bg-lime-400">
                   <h3 className="font-semibold">Notifications</h3>
                   <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setSendModalOpen(true)}
+                      className="text-black hover:text-gray-700 text-sm font-semibold px-2 py-1 rounded hover:bg-lime-500 transition-colors flex items-center gap-1"
+                      title="Send notification to farmer"
+                    >
+                      <Send size={14} />
+                      Send
+                    </button>
                     <button
                       onClick={refreshNotifications}
                       className="text-black hover:text-gray-700 text-sm font-semibold px-2 py-1 rounded hover:bg-lime-500 transition-colors"
@@ -270,6 +281,18 @@ const AdminNavbar = ({
           </div>
         </div>
       </div>
+
+      {/* Send Notification Modal */}
+      <SendNotificationModal
+        isOpen={sendModalOpen}
+        onClose={() => setSendModalOpen(false)}
+        onSuccess={() => {
+          // Refresh notifications after sending
+          if (refreshNotifications) {
+            refreshNotifications()
+          }
+        }}
+      />
     </header>
   )
 }
