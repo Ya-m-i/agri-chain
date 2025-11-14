@@ -121,7 +121,7 @@ const AdminSidebar = ({
                 style={activeTab === "distribution" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
               >
                 <img src={distributionIcon} alt="Distribution" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] mr-3 object-contain" />
-                Distribution Records
+                Blockchain Records
               </button>
             </li>
             <li>
@@ -244,10 +244,10 @@ const AdminSidebar = ({
                 : "text-black hover:bg-lime-600"
             }`}
             style={activeTab === "distribution" && sidebarExpanded ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
-            title={!sidebarExpanded ? "Distribution Records" : ""}
-          >
+            title={!sidebarExpanded ? "Blockchain Records" : ""}
+            >
             <img src={distributionIcon} alt="Distribution" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
-            {sidebarExpanded && <span className="text-black">Distribution Records</span>}
+            {sidebarExpanded && <span className="text-black">Blockchain Records</span>}
           </button>
         </div>
 
