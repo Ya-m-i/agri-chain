@@ -34,6 +34,7 @@ import farmInsuranceIcon from "../assets/Images/farmInsurance.png"
 import FarmerCropInsurance from "../components/FarmerCropInsurance"
 import LoadingOverlay from '../components/LoadingOverlay';
 import FarmerCropPrices from "../components/FarmerCropPrices"
+import FarmerHelpCenterModal from "../components/FarmerHelpCenterModal"
 import { calculateCompensation, getPaymentStatus, getExpectedPaymentDate, getDamageSeverity, getCoverageDetails } from "../utils/insuranceUtils"
 import { useClaims, useCropInsurance, useFarmerApplications, useAssistances, useApplyForAssistance, useNotifications, useMarkNotificationsAsRead, useClearNotifications, useDeleteNotification, useUpdateFarmer } from '../hooks/useAPI'
 import { getCalendarEvents, createCalendarEvent } from '../api'
@@ -263,6 +264,7 @@ const FarmerDashboard = () => {
   const [notificationOpen, setNotificationOpen] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [showHelpCenterModal, setShowHelpCenterModal] = useState(false)
   const [isTabLoading, setIsTabLoading] = useState(false)
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   
@@ -1091,7 +1093,8 @@ const FarmerDashboard = () => {
                     <HelpCircle size={16} className="mr-2" />
                     Help Center
                   </button>
-                  <button
+                  {/* Test Notification - Hidden */}
+                  {/* <button
                     onClick={() => {
                       addLocalNotification({
                         type: 'success',
@@ -1103,7 +1106,7 @@ const FarmerDashboard = () => {
                   >
                     <Bell size={16} className="mr-2" />
                     Test Notification
-                  </button>
+                  </button> */}
                   <button
                     onClick={handleLogout}
                     className="flex items-center w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
@@ -3031,6 +3034,12 @@ const FarmerDashboard = () => {
       
       {/* Loading Overlays */}
       <LoadingOverlay isVisible={isInitialLoading || isTabLoading} />
+
+      {/* Help Center Modal */}
+      <FarmerHelpCenterModal
+        isOpen={showHelpCenterModal}
+        onClose={() => setShowHelpCenterModal(false)}
+      />
     </div>
   )
 }

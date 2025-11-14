@@ -26,7 +26,8 @@ const AdminNavbar = ({
   dropdownOpen,
   setDropdownOpen,
   setActiveTab,
-  addLocalNotification,
+  // eslint-disable-next-line no-unused-vars
+  addLocalNotification, // Kept for compatibility but not used (buttons are hidden)
   setShowCalendar,
   darkMode,
   setDarkMode,
@@ -223,7 +224,8 @@ const AdminNavbar = ({
                   <Settings size={16} className="mr-2" />
                   Settings
                 </button>
-                <button
+                {/* Help Center - Hidden */}
+                {/* <button
                   onClick={() => {
                     addLocalNotification({
                       type: 'info',
@@ -235,8 +237,9 @@ const AdminNavbar = ({
                 >
                   <HelpCircle size={16} className="mr-2" />
                   Help Center
-                </button>
-                <button
+                </button> */}
+                {/* Test Notification - Hidden */}
+                {/* <button
                   onClick={() => {
                     addLocalNotification({
                       type: 'success',
@@ -248,7 +251,7 @@ const AdminNavbar = ({
                 >
                   <Plus size={16} className="mr-2" />
                   Test Notification
-                </button>
+                </button> */}
                 <button
                   onClick={() => {
                     setShowCalendar(true)
