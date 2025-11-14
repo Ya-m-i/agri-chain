@@ -140,7 +140,7 @@ const AdminSidebar = ({
               </button>
             </li>
             {/* File for Farmers - Hidden for now */}
-            <li className="hidden">
+            {/* <li>
               <button
                 onClick={() => {
                   setActiveTab("admin-filing")
@@ -154,7 +154,7 @@ const AdminSidebar = ({
                 <img src={fileIcon} alt="File" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] mr-3 object-contain" />
                 File for Farmers
               </button>
-            </li>
+            </li> */}
           </ul>
         </nav>
       </div>
@@ -268,9 +268,9 @@ const AdminSidebar = ({
           </button>
 
           {/* File for Farmers - Hidden for now */}
-          <button
+          {/* <button
             onClick={() => handleTabSwitch("admin-filing")}
-            className={`hidden flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
+            className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
               activeTab === "admin-filing"
                 ? "text-black font-bold"
                 : "text-black hover:bg-lime-600"
@@ -280,7 +280,7 @@ const AdminSidebar = ({
           >
             <img src={fileIcon} alt="File" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
             {sidebarExpanded && <span className="text-black">File for Farmers</span>}
-          </button>
+          </button> */}
         </div>
       </aside>
     </>
