@@ -139,7 +139,8 @@ const AdminSidebar = ({
                 Assistance Inventory
               </button>
             </li>
-            <li>
+            {/* File for Farmers - Hidden for now */}
+            <li className="hidden">
               <button
                 onClick={() => {
                   setActiveTab("admin-filing")
@@ -266,9 +267,10 @@ const AdminSidebar = ({
             {sidebarExpanded && <span className="text-black">Assistance Inventory</span>}
           </button>
 
+          {/* File for Farmers - Hidden for now */}
           <button
             onClick={() => handleTabSwitch("admin-filing")}
-            className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
+            className={`hidden flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
               activeTab === "admin-filing"
                 ? "text-black font-bold"
                 : "text-black hover:bg-lime-600"
