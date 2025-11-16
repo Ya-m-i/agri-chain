@@ -6,6 +6,7 @@ import { useAuthStore } from "../store/authStore"
 // Add imports for both logos
 import farmerLogoImage from "../assets/Images/FarmLogo.png" // Your farmer logo
 import adminLogoImage from "../assets/Images/DALOGO.png" // Admin logo
+// Import background image - Vite will handle the path
 import loginBackgroundImage from "../assets/Images/LoginBG.png" // Login background image
 import { loginFarmer, loginUser } from '../api';
 import LoadingOverlay from '../components/LoadingOverlay';
@@ -19,6 +20,11 @@ const Login = () => {
   useEffect(() => {
     console.log("Current mode:", isAdminMode ? "Admin" : "Farmer")
   }, [isAdminMode])
+
+  // Debug: Log the image path to verify it's loading
+  useEffect(() => {
+    console.log("Login background image path:", loginBackgroundImage)
+  }, [])
 
   const navigate = useNavigate()  
   const { isAuthenticated, userType, login, logout } = useAuthStore()
@@ -127,13 +133,16 @@ const Login = () => {
       style={{
         backgroundImage: `url(${loginBackgroundImage})`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundPosition: 'center center',
         backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed'
+        backgroundAttachment: 'fixed',
+        minHeight: '100vh',
+        width: '100%',
+        backgroundColor: '#000' // Fallback color while image loads
       }}
     >
-      {/* Overlay for better readability */}
-      <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+      {/* Overlay for better readability - removed to show image clearly */}
+      {/* <div className="absolute inset-0 bg-black bg-opacity-5 z-0"></div> */}
       {/* SEO-friendly hidden content for search engines */}
       <div className="sr-only">
         <h1>Kapalong Agri-Chain Login Portal</h1>
