@@ -6,6 +6,7 @@ import { useAuthStore } from "../store/authStore"
 // Add imports for both logos
 import farmerLogoImage from "../assets/Images/FarmLogo.png" // Your farmer logo
 import adminLogoImage from "../assets/Images/DALOGO.png" // Admin logo
+import loginBackgroundImage from "../assets/Images/LoginBG.png" // Login background image
 import { loginFarmer, loginUser } from '../api';
 import LoadingOverlay from '../components/LoadingOverlay';
 
@@ -121,7 +122,18 @@ const Login = () => {
   }
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex justify-center items-center bg-gradient-to-b from-lime-50 to-white relative px-4 sm:px-6 lg:px-8">
+    <div 
+      className="h-screen w-screen overflow-hidden flex justify-center items-center relative px-4 sm:px-6 lg:px-8"
+      style={{
+        backgroundImage: `url(${loginBackgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      {/* Overlay for better readability */}
+      <div className="absolute inset-0 bg-black bg-opacity-30"></div>
       {/* SEO-friendly hidden content for search engines */}
       <div className="sr-only">
         <h1>Kapalong Agri-Chain Login Portal</h1>
@@ -137,13 +149,13 @@ const Login = () => {
           console.log("Toggling mode from", isAdminMode, "to", !isAdminMode)
           setIsAdminMode(!isAdminMode)
         }}
-        className="absolute top-4 sm:top-6 right-4 sm:right-6 bg-white text-lime-800 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium shadow-md hover:shadow-lg transition-all duration-300 border border-lime-200 hover:bg-lime-50 z-10 max-w-[200px] sm:max-w-none"
+        className="absolute top-4 sm:top-6 right-4 sm:right-6 bg-white text-lime-800 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium shadow-md hover:shadow-lg transition-all duration-300 border border-lime-200 hover:bg-lime-50 z-20 max-w-[200px] sm:max-w-none"
       >
         <span className="hidden sm:inline">Switch to {isAdminMode ? "Farmer" : "Admin"} Login</span>
         <span className="sm:hidden">{isAdminMode ? "Farmer" : "Admin"}</span>
       </button>
 
-      <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-lg shadow-xl w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl border border-gray-100 transition-all duration-300 hover:shadow-2xl">
+      <div className="relative z-10 bg-white bg-opacity-95 backdrop-blur-sm p-4 sm:p-6 lg:p-8 rounded-lg shadow-xl w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl border border-gray-100 transition-all duration-300 hover:shadow-2xl">
         {/* Conditional Logo - Responsive sizing */}
         <div className="flex justify-center mb-4 sm:mb-6">
           {isAdminMode ? (
@@ -261,8 +273,8 @@ const Login = () => {
       </div>
 
       {/* Decorative elements - Responsive sizing */}
-      <div className="absolute top-0 left-0 w-full h-16 sm:h-24 lg:h-32 bg-lime-800 opacity-5 rounded-b-full"></div>
-      <div className="absolute bottom-0 right-0 w-32 h-32 sm:w-48 sm:h-48 lg:w-64 lg:h-64 bg-lime-800 opacity-5 rounded-full -mr-16 sm:-mr-24 lg:-mr-32 -mb-16 sm:-mb-24 lg:-mb-32"></div>
+      <div className="absolute top-0 left-0 w-full h-16 sm:h-24 lg:h-32 bg-lime-800 opacity-5 rounded-b-full z-10"></div>
+      <div className="absolute bottom-0 right-0 w-32 h-32 sm:w-48 sm:h-48 lg:w-64 lg:h-64 bg-lime-800 opacity-5 rounded-full -mr-16 sm:-mr-24 lg:-mr-32 -mb-16 sm:-mb-24 lg:-mb-32 z-10"></div>
       
       {/* Loading Overlay */}
       <LoadingOverlay isVisible={isLoggingIn} />
