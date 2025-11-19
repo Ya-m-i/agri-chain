@@ -669,7 +669,7 @@ const InsuranceClaims = ({
                       Loss Assessment
                     </span>
                   </div>
-                </div>
+                  </div>
                 <div className="space-y-3 mb-4">
                   <div>
                     <span className="text-gray-500 text-xs uppercase font-bold">Cause of Loss</span>
@@ -690,73 +690,73 @@ const InsuranceClaims = ({
                     <p className="font-medium text-black">
                       {selectedClaim.expectedHarvest ? `${selectedClaim.expectedHarvest} tons` : "Not provided"}
                     </p>
-                  </div>
                 </div>
-                
+              </div>
+
                 {/* Damage Evidence Photos - Moved to Damage Information Section */}
-                {selectedClaim.damagePhotos && selectedClaim.damagePhotos.length > 0 && (
+              {selectedClaim.damagePhotos && selectedClaim.damagePhotos.length > 0 && (
                   <div className="mt-4 pt-4 border-t-2 border-black">
                     <h4 className="text-sm font-black text-black uppercase tracking-wider mb-3 flex items-center gap-2">
                       <Camera size={16} className="text-lime-500" />
                       Damage Evidence Photos ({selectedClaim.damagePhotos.length})
                     </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {selectedClaim.damagePhotos.map((photo, index) => {
-                        // Check if photo is a valid data URL
-                        const isValidDataUrl = typeof photo === 'string' && photo.startsWith('data:');
-                        
-                        if (!isValidDataUrl) {
-                          return (
-                            <div key={index} className="relative group">
-                              <div className="w-full h-32 bg-gray-200 rounded-lg border-2 border-black flex items-center justify-center">
-                                <div className="text-center">
-                                  <FileText className="h-8 w-8 text-gray-400 mx-auto mb-1" />
-                                  <p className="text-xs text-gray-500">Photo {index + 1}</p>
-                                  <p className="text-xs text-gray-400">Not available</p>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        }
-
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {selectedClaim.damagePhotos.map((photo, index) => {
+                      // Check if photo is a valid data URL
+                      const isValidDataUrl = typeof photo === 'string' && photo.startsWith('data:');
+                      
+                      if (!isValidDataUrl) {
                         return (
                           <div key={index} className="relative group">
-                            <img
-                              src={photo}
-                              alt={`Damage evidence ${index + 1}`}
-                              className="w-full h-32 object-cover rounded-lg border-2 border-black cursor-pointer hover:opacity-90 transition-opacity"
-                              onClick={() => {
-                                // Open photo in full screen modal
-                                const modal = document.createElement('div');
-                                modal.className = 'fixed inset-0 z-[60] bg-black bg-opacity-75 flex items-center justify-center p-4';
-                                modal.innerHTML = `
-                                  <div class="relative max-w-4xl max-h-full">
-                                    <img src="${photo}" alt="Damage evidence ${index + 1}" class="max-w-full max-h-full object-contain" />
-                                    <button class="absolute top-4 right-4 bg-white bg-opacity-20 text-white p-2 rounded-full hover:bg-opacity-30 transition-colors" onclick="this.parentElement.parentElement.remove()">
-                                      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                      </svg>
-                                    </button>
-                                  </div>
-                                `;
-                                document.body.appendChild(modal);
-                                modal.addEventListener('click', (e) => {
-                                  if (e.target === modal) modal.remove();
-                                });
-                              }}
-                            />
-                            <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded border border-white">
-                              Photo {index + 1}
+                              <div className="w-full h-32 bg-gray-200 rounded-lg border-2 border-black flex items-center justify-center">
+                              <div className="text-center">
+                                <FileText className="h-8 w-8 text-gray-400 mx-auto mb-1" />
+                                <p className="text-xs text-gray-500">Photo {index + 1}</p>
+                                <p className="text-xs text-gray-400">Not available</p>
+                              </div>
                             </div>
                           </div>
                         );
-                      })}
-                    </div>
-                    <p className="text-xs text-gray-600 mt-3 font-semibold">
-                      Click on any photo to view it in full size
-                    </p>
+                      }
+
+                      return (
+                        <div key={index} className="relative group">
+                          <img
+                            src={photo}
+                            alt={`Damage evidence ${index + 1}`}
+                              className="w-full h-32 object-cover rounded-lg border-2 border-black cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => {
+                              // Open photo in full screen modal
+                              const modal = document.createElement('div');
+                                modal.className = 'fixed inset-0 z-[60] bg-black bg-opacity-75 flex items-center justify-center p-4';
+                              modal.innerHTML = `
+                                <div class="relative max-w-4xl max-h-full">
+                                  <img src="${photo}" alt="Damage evidence ${index + 1}" class="max-w-full max-h-full object-contain" />
+                                  <button class="absolute top-4 right-4 bg-white bg-opacity-20 text-white p-2 rounded-full hover:bg-opacity-30 transition-colors" onclick="this.parentElement.parentElement.remove()">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                  </button>
+                                </div>
+                              `;
+                              document.body.appendChild(modal);
+                              modal.addEventListener('click', (e) => {
+                                if (e.target === modal) modal.remove();
+                              });
+                            }}
+                          />
+                            <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded border border-white">
+                            Photo {index + 1}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
+                    <p className="text-xs text-gray-600 mt-3 font-semibold">
+                    Click on any photo to view it in full size
+                  </p>
+                </div>
+              )}
               </div>
 
               {selectedClaim.adminFeedback && (

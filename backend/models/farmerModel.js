@@ -26,7 +26,36 @@ const farmerSchema = mongoose.Schema({
     },
     lastLogin: { type: Date, default: null },
     isOnline: { type: Boolean, default: false },
-    profileImage: { type: String } // Base64 encoded image or URL
+    profileImage: { type: String }, // Base64 encoded image or URL
+    // Verification fields
+    isVerified: { 
+        type: Boolean, 
+        default: false 
+    },
+    verificationStatus: {
+        type: String,
+        enum: ['pending', 'verified', 'rejected'],
+        default: 'pending'
+    },
+    verificationDate: { 
+        type: Date 
+    },
+    verifiedBy: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'User' 
+    },
+    verificationNotes: { 
+        type: String 
+    },
+    verificationMethod: {
+        type: String,
+        enum: ['auto', 'manual', 'pending'],
+        default: 'pending'
+    },
+    matchedInsuranceCount: {
+        type: Number,
+        default: 0
+    }
 }, {
     timestamps: true,
 })

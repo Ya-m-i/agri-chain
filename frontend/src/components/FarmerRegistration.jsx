@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   Shield,
   Key,
+  Upload,
 } from "lucide-react"
 // Image assets removed - no longer used in this component
 import {
@@ -27,7 +28,8 @@ import {
 } from '../hooks/useAPI'
 import { 
   saveFarmerProfileImage, 
-  getAllFarmerProfileImages 
+  getAllFarmerProfileImages,
+  bulkImportFarmers
 } from '../api'
 // Note: Notifications are now handled by backend API
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts'
@@ -97,6 +99,12 @@ const FarmerRegistration = ({
   
   // Password validation state
   const [passwordValidation, setPasswordValidation] = useState(null)
+  
+  // CSV import state
+  const [showImportModal, setShowImportModal] = useState(false)
+  const [csvFile, setCsvFile] = useState(null)
+  const [importResults, setImportResults] = useState(null)
+  const [isImporting, setIsImporting] = useState(false)
 
   // Define selectedLocation and setSelectedLocation if needed for registration
   const [selectedFarmer, setSelectedFarmer] = useState(null);
@@ -319,6 +327,37 @@ const FarmerRegistration = ({
     }
   }
 
+  // Handle CSV import
+  const handleCsvImport = async () => {
+    if (!csvFile) {
+      alert('Please select a CSV file')
+      return
+    }
+
+    setIsImporting(true)
+    try {
+      const result = await bulkImportFarmers(csvFile)
+      
+      if (result.success) {
+        setImportResults(result)
+        refetchFarmers()
+        // Auto-close after 5 seconds
+        setTimeout(() => {
+          setShowImportModal(false)
+          setCsvFile(null)
+          setImportResults(null)
+        }, 5000)
+      } else {
+        alert(`Import failed: ${result.message || 'Unknown error'}`)
+      }
+    } catch (error) {
+      console.error('Import error:', error)
+      alert(`Failed to import CSV file: ${error.message || 'Unknown error'}`)
+    } finally {
+      setIsImporting(false)
+    }
+  }
+
   // Handle location view - navigate to dashboard map
   const handleLocationView = (farmer) => {
     // Store farmer location data for dashboard map
@@ -429,6 +468,13 @@ const FarmerRegistration = ({
           >
             <UserPlus className="mr-2 h-5 w-5" />
             Register New Farmer
+          </button>
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center shadow-sm font-semibold"
+            onClick={() => setShowImportModal(true)}
+          >
+            <Upload className="mr-2 h-5 w-5" />
+            Import Farmers (CSV)
           </button>
           <button
             className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-sm font-semibold"
@@ -1317,13 +1363,13 @@ const FarmerRegistration = ({
                             <span className={`text-xs font-bold px-2 py-1 rounded ${getPasswordStrengthTextColor(passwordValidation.strength.level)}`}>
                               {getPasswordStrengthLabel(passwordValidation.strength.level)}
                             </span>
-                          </div>
+                    </div>
                           <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                             <div
                               className={`h-2 rounded-full transition-all ${getPasswordStrengthColor(passwordValidation.strength.level)}`}
                               style={{ width: `${passwordValidation.strength.score}%` }}
                             />
-                          </div>
+                  </div>
                           {passwordValidation.errors.length > 0 && (
                             <div className="mt-2 space-y-1">
                               <p className="text-xs font-bold text-red-600">Requirements:</p>
@@ -1477,11 +1523,11 @@ const FarmerRegistration = ({
                   <div>
                     <span className="text-gray-500 text-xs uppercase font-bold">Insured Crops</span>
                     <p className="font-medium text-black">{getInsuredCrops(selectedFarmer)}</p>
-                  </div>
+                </div>
                   <div>
                     <span className="text-gray-500 text-xs uppercase font-bold">Agency</span>
                     <p className="font-medium text-black">{selectedFarmer.agency || "Not provided"}</p>
-                  </div>
+              </div>
                 </div>
               </div>
               <div className="flex justify-end">
@@ -1954,6 +2000,141 @@ const FarmerRegistration = ({
                   </button>
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CSV Import Modal */}
+      {showImportModal && (
+        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border-2 border-black">
+            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
+              <h2 className="text-2xl font-bold text-black">📥 Import Farmers from CSV</h2>
+              <button
+                onClick={() => {
+                  setShowImportModal(false)
+                  setCsvFile(null)
+                  setImportResults(null)
+                }}
+                className="text-black hover:bg-lime-200 rounded-full p-1"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-6 md:p-8 bg-white">
+              {!importResults ? (
+                <>
+                  <div className="mb-6">
+                    <label className="block text-sm font-bold text-black mb-2 uppercase">
+                      Select CSV File
+                    </label>
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={(e) => setCsvFile(e.target.files[0])}
+                      className="w-full border-2 border-black p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400"
+                    />
+                  </div>
+
+                  <div className="mb-6 p-4 bg-lime-50 border-2 border-lime-500 rounded-lg">
+                    <p className="text-sm font-bold text-black mb-2">CSV Format Required (Farmer Data Only):</p>
+                    <div className="text-xs text-gray-700 font-mono bg-white p-3 rounded border border-black">
+                      firstName, middleName, lastName, birthday, gender, contactNum, address,<br/>
+                      username, password, rsbsaRegistered, isCertified, agency,<br/>
+                      cropType, cropArea, lotNumber, lotArea, periodFrom, periodTo
+                    </div>
+                    <p className="text-xs text-gray-600 mt-2">
+                      <strong>Note:</strong> Insurance records should be created separately through Crop Insurance Management. 
+                      Farmers will be auto-verified when insurance records are created.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setShowImportModal(false)
+                        setCsvFile(null)
+                      }}
+                      className="flex-1 bg-white border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-gray-100 font-bold"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleCsvImport}
+                      disabled={!csvFile || isImporting}
+                      className="flex-1 bg-lime-400 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-500 font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    >
+                      {isImporting ? (
+                        <>Importing...</>
+                      ) : (
+                        <>
+                          <Upload className="mr-2 h-5 w-5" />
+                          Import CSV
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <div className="mb-4 p-4 bg-green-50 border-2 border-green-500 rounded-lg">
+                    <h3 className="text-lg font-bold text-black mb-2">✅ Import Complete</h3>
+                    <p className="text-sm text-gray-700">
+                      Successfully imported: <strong>{importResults.imported}</strong> farmers
+                    </p>
+                    {importResults.errors > 0 && (
+                      <p className="text-sm text-red-600 mt-1">
+                        ⚠️ Errors: <strong>{importResults.errors}</strong> rows failed
+                      </p>
+                    )}
+                  </div>
+
+                  {importResults.results && importResults.results.length > 0 && (
+                    <div className="mb-4 max-h-60 overflow-y-auto">
+                      <h4 className="text-sm font-bold mb-2">Imported Farmers:</h4>
+                      <div className="space-y-2">
+                        {importResults.results.map((result, index) => (
+                          <div key={index} className="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded">
+                            <CheckCircle size={16} className="text-green-600" />
+                            <span className="font-medium">{result.farmerName}</span>
+                            <span className="text-xs text-gray-500">({result.username})</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {importResults.errorDetails && importResults.errorDetails.length > 0 && (
+                    <div className="mb-4 max-h-60 overflow-y-auto">
+                      <h4 className="text-sm font-bold mb-2 text-red-600">Errors:</h4>
+                      <div className="space-y-2">
+                        {importResults.errorDetails.map((error, index) => (
+                          <div key={index} className="flex items-start gap-2 text-sm p-2 bg-red-50 rounded">
+                            <AlertTriangle size={16} className="text-red-600 mt-0.5" />
+                            <div>
+                              <span className="font-semibold">{error.row}:</span>
+                              <span className="text-gray-700 ml-2">{error.error}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => {
+                      setShowImportModal(false)
+                      setCsvFile(null)
+                      setImportResults(null)
+                    }}
+                    className="w-full bg-lime-400 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-500 font-bold"
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

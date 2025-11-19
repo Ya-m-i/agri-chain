@@ -1162,7 +1162,7 @@ const AdminDashboard = () => {
 
   // Add a new state variable for feedback
   const [feedbackText, setFeedbackText] = useState("")
-  
+
   // Payment date state for claim approval
   const [paymentDate, setPaymentDate] = useState("")
 
@@ -1183,8 +1183,8 @@ const AdminDashboard = () => {
     const { type: actionType, claimId: actionClaimId } = confirmationAction;
     try {
       const updateData = {
-        status: actionType,
-        adminFeedback: feedbackText,
+          status: actionType,
+          adminFeedback: feedbackText,
       };
       
       // Add payment date if approving

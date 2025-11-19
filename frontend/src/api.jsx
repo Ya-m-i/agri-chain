@@ -25,6 +25,16 @@ export const registerFarmer = async (farmerData) => {
   });
 };
 
+export const bulkImportFarmers = async (csvFile) => {
+  const formData = new FormData();
+  formData.append('csvFile', csvFile);
+  
+  return await fetchWithRetry(apiUrl('/api/farmers/import'), {
+    method: 'POST',
+    body: formData,
+  }, 3, 60000); // 60 second timeout for bulk import
+};
+
 export const deleteFarmer = async (farmerId) => {
   return await fetchWithRetry(apiUrl(`/api/farmers/${farmerId}`), {
     method: 'DELETE',

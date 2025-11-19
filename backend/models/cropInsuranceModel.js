@@ -69,6 +69,15 @@ const cropInsuranceSchema = mongoose.Schema({
     location: {
         lat: { type: Number },
         lng: { type: Number }
+    },
+    // Verification fields
+    verificationStatus: {
+        type: String,
+        enum: ['matched', 'mismatch', 'warning'],
+        default: 'matched'
+    },
+    verificationNotes: {
+        type: String
     }
 }, {
     timestamps: true,

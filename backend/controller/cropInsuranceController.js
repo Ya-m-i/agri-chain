@@ -1,6 +1,57 @@
 const CropInsurance = require('../models/cropInsuranceModel')
 const Farmer = require('../models/farmerModel')
 
+// Helper function to verify farmer-insurance match
+const verifyFarmerInsuranceMatch = (farmer, insuranceData) => {
+    const mismatches = []
+    const matches = []
+    
+    // Check lot number match
+    if (farmer.lotNumber && insuranceData.lotNumber) {
+        if (farmer.lotNumber.toLowerCase().trim() === insuranceData.lotNumber.toLowerCase().trim()) {
+            matches.push('lotNumber')
+        } else {
+            mismatches.push(`Lot number: Farmer "${farmer.lotNumber}" vs Insurance "${insuranceData.lotNumber}"`)
+        }
+    }
+    
+    // Check crop type match
+    if (farmer.cropType && insuranceData.cropType) {
+        if (farmer.cropType.toLowerCase().trim() === insuranceData.cropType.toLowerCase().trim()) {
+            matches.push('cropType')
+        } else {
+            mismatches.push(`Crop type: Farmer "${farmer.cropType}" vs Insurance "${insuranceData.cropType}"`)
+        }
+    }
+    
+    // Check lot area match (with 10% tolerance)
+    if (farmer.lotArea && insuranceData.lotArea) {
+        const farmerArea = parseFloat(farmer.lotArea)
+        const insuranceArea = parseFloat(insuranceData.lotArea)
+        
+        if (!isNaN(farmerArea) && !isNaN(insuranceArea)) {
+            const difference = Math.abs(farmerArea - insuranceArea)
+            const tolerance = farmerArea * 0.1 // 10% tolerance
+            
+            if (difference <= tolerance) {
+                matches.push('lotArea')
+            } else {
+                mismatches.push(`Lot area: Farmer "${farmer.lotArea}" vs Insurance "${insuranceData.lotArea}"`)
+            }
+        }
+    }
+    
+    let status = 'matched'
+    let notes = matches.length > 0 ? `Matched: ${matches.join(', ')}` : 'No matching fields found'
+    
+    if (mismatches.length > 0) {
+        status = mismatches.length >= 2 ? 'mismatch' : 'warning'
+        notes = `${notes}. Issues: ${mismatches.join('; ')}`
+    }
+    
+    return { status, matches, mismatches, notes }
+}
+
 // @desc    Create new crop insurance record
 // @route   POST /api/crop-insurance
 // @access  Private
@@ -43,6 +94,15 @@ const createCropInsurance = async (req, res) => {
 
         console.log('Farmer found:', farmer.firstName, farmer.lastName)
 
+        // Verify farmer details match insurance data
+        const verificationResult = verifyFarmerInsuranceMatch(farmer, {
+            lotNumber,
+            cropType,
+            lotArea
+        })
+
+        console.log('Verification result:', verificationResult)
+
         // Create crop insurance record
         console.log('About to create crop insurance with data:', {
             farmerId,
@@ -67,10 +127,33 @@ const createCropInsurance = async (req, res) => {
             expectedHarvestDate,
             insuranceDayLimit,
             location,
-            notes
+            notes,
+            verificationStatus: verificationResult.status,
+            verificationNotes: verificationResult.notes
         })
 
         console.log('Crop insurance record created successfully:', cropInsurance._id)
+
+        // Update farmer verification status
+        if (verificationResult.status === 'matched') {
+            // Auto-verify farmer if details match
+            await Farmer.findByIdAndUpdate(farmerId, {
+                isVerified: true,
+                verificationStatus: 'verified',
+                verificationDate: new Date(),
+                verificationMethod: 'auto',
+                verificationNotes: `Auto-verified via crop insurance record. ${verificationResult.notes}`,
+                $inc: { matchedInsuranceCount: 1 }
+            })
+            console.log('Farmer auto-verified:', farmerId)
+        } else if (verificationResult.status === 'mismatch') {
+            // Flag for review
+            await Farmer.findByIdAndUpdate(farmerId, {
+                verificationStatus: 'pending',
+                verificationNotes: `Data mismatch detected. ${verificationResult.notes}`
+            })
+            console.log('Farmer flagged for review due to mismatch:', farmerId)
+        }
         
         // Populate the farmer data before sending response
         const populatedRecord = await CropInsurance.findById(cropInsurance._id)

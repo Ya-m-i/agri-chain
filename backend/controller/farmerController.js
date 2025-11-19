@@ -2,6 +2,9 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const Farmer = require('../models/farmerModel')
 const { validatePasswordWithMessage } = require('../utils/passwordValidator')
+const multer = require('multer')
+const csv = require('csv-parser')
+const fs = require('fs')
 
 // @desc    Register a new farmer
 // @route   POST /api/farmers
@@ -276,6 +279,125 @@ const updateFarmer = async (req, res) => {
     }
 };
 
+// @desc    Bulk import farmers from CSV (farmer data only)
+// @route   POST /api/farmers/import
+// @access  Private
+const bulkImportFarmers = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'CSV file is required' })
+        }
+
+        const results = []
+        const errors = []
+        const filePath = req.file.path
+
+        // Parse CSV file
+        const stream = fs.createReadStream(filePath)
+            .pipe(csv())
+            .on('data', async (row) => {
+                try {
+                    // Validate required fields
+                    if (!row.firstName || !row.lastName || !row.username || !row.password) {
+                        errors.push({
+                            row: row.firstName || 'Unknown',
+                            error: 'Missing required fields: firstName, lastName, username, or password'
+                        })
+                        return
+                    }
+
+                    // Check if farmer already exists
+                    const existingFarmer = await Farmer.findOne({ username: row.username.trim() })
+                    if (existingFarmer) {
+                        errors.push({
+                            row: `${row.firstName} ${row.lastName}`,
+                            error: `Farmer with username "${row.username}" already exists`
+                        })
+                        return
+                    }
+
+                    // Validate password
+                    const passwordError = validatePasswordWithMessage(row.password)
+                    if (passwordError) {
+                        errors.push({
+                            row: `${row.firstName} ${row.lastName}`,
+                            error: `Password validation failed: ${passwordError}`
+                        })
+                        return
+                    }
+
+                    // Hash password
+                    const salt = await bcrypt.genSalt(6)
+                    const hashedPassword = await bcrypt.hash(row.password, salt)
+
+                    // Create farmer (NO verification at this stage)
+                    const farmerData = {
+                        firstName: row.firstName.trim(),
+                        middleName: row.middleName?.trim() || '',
+                        lastName: row.lastName.trim(),
+                        birthday: row.birthday || '',
+                        gender: row.gender || '',
+                        contactNum: row.contactNum || '',
+                        address: row.address || '',
+                        username: row.username.trim(),
+                        password: hashedPassword,
+                        cropType: row.cropType || '',
+                        cropArea: row.cropArea || '',
+                        lotNumber: row.lotNumber || '',
+                        lotArea: row.lotArea || '',
+                        agency: row.agency || '',
+                        isCertified: row.isCertified === 'true' || row.isCertified === true,
+                        rsbsaRegistered: row.rsbsaRegistered === 'true' || row.rsbsaRegistered === true,
+                        periodFrom: row.periodFrom || '',
+                        periodTo: row.periodTo || '',
+                        // Verification status - pending until insurance is created
+                        isVerified: false,
+                        verificationStatus: 'pending',
+                        verificationMethod: 'pending'
+                    }
+
+                    const farmer = await Farmer.create(farmerData)
+
+                    results.push({
+                        success: true,
+                        farmerId: farmer._id,
+                        farmerName: `${farmer.firstName} ${farmer.lastName}`,
+                        username: farmer.username
+                    })
+                } catch (error) {
+                    errors.push({
+                        row: row.firstName || 'Unknown',
+                        error: error.message
+                    })
+                }
+            })
+            .on('end', () => {
+                // Clean up uploaded file
+                if (fs.existsSync(filePath)) {
+                    fs.unlinkSync(filePath)
+                }
+                
+                res.status(200).json({
+                    success: true,
+                    message: `Imported ${results.length} farmers successfully`,
+                    imported: results.length,
+                    errors: errors.length,
+                    results,
+                    errorDetails: errors.slice(0, 20)
+                })
+            })
+            .on('error', (error) => {
+                // Clean up uploaded file on error
+                if (fs.existsSync(filePath)) {
+                    fs.unlinkSync(filePath)
+                }
+                res.status(500).json({ message: `CSV parsing error: ${error.message}` })
+            })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
+}
+
 function generateToken(id) {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 }
@@ -290,5 +412,6 @@ module.exports = {
     saveFarmerProfileImage,
     getFarmerProfileImage,
     getAllFarmerProfileImages,
-    updateFarmer
+    updateFarmer,
+    bulkImportFarmers
 } 
