@@ -35,7 +35,7 @@ import { Doughnut } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { getCropTypeDistributionFromInsurance } from '../utils/cropTypeDistribution'
 import SimpleMapPicker from './SimpleMapPicker'
-import { validatePassword } from '../utils/passwordValidator'
+import { validatePassword, getPasswordStrengthColor, getPasswordStrengthTextColor, getPasswordStrengthLabel } from '../utils/passwordValidator'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
@@ -91,6 +91,12 @@ const FarmerRegistration = ({
   
   // Report state
   const [showReport, setShowReport] = useState(false)
+  
+  // Password visibility state
+  const [showPassword, setShowPassword] = useState(false)
+  
+  // Password validation state
+  const [passwordValidation, setPasswordValidation] = useState(null)
 
   // Define selectedLocation and setSelectedLocation if needed for registration
   const [selectedFarmer, setSelectedFarmer] = useState(null);
@@ -254,6 +260,14 @@ const FarmerRegistration = ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }))
+    
+    // Validate password in real-time
+    if (name === 'password' && value) {
+      const validation = validatePassword(value)
+      setPasswordValidation(validation)
+    } else if (name === 'password' && !value) {
+      setPasswordValidation(null)
+    }
   }
 
   // Fetch farmers from backend on mount - now handled by React Query
@@ -1270,17 +1284,79 @@ const FarmerRegistration = ({
                           <FileText size={16} className="text-lime-500" />
                         </div>
                         <input
-                          type="password"
+                          type={showPassword ? "text" : "password"}
                           name="password"
                           value={formData.password || ""}
                           onChange={handleChange}
                           placeholder="Enter password for farmer login"
-                          className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
+                          className="pl-10 pr-10 w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
                           required
                         />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-lime-600 hover:text-lime-700"
+                        >
+                          {showPassword ? (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          )}
+                        </button>
                       </div>
+                      {/* Password Validation Display */}
+                      {formData.password && passwordValidation && (
+                        <div className="mt-2 p-3 bg-white rounded-lg border-2 border-lime-500" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-bold text-black uppercase">Password Strength</span>
+                            <span className={`text-xs font-bold px-2 py-1 rounded ${getPasswordStrengthTextColor(passwordValidation.strength.level)}`}>
+                              {getPasswordStrengthLabel(passwordValidation.strength.level)}
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                            <div
+                              className={`h-2 rounded-full transition-all ${getPasswordStrengthColor(passwordValidation.strength.level)}`}
+                              style={{ width: `${passwordValidation.strength.score}%` }}
+                            />
+                          </div>
+                          {passwordValidation.errors.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              <p className="text-xs font-bold text-red-600">Requirements:</p>
+                              <ul className="list-disc list-inside text-xs text-gray-700 space-y-0.5">
+                                {passwordValidation.errors.map((error, index) => (
+                                  <li key={index} className="text-red-600">{error}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {passwordValidation.isValid && (
+                            <p className="text-xs text-green-600 font-semibold mt-2">✓ Password meets all requirements</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
+                  {/* Username Validation Display */}
+                  {formData.username && (
+                    <div className="mt-3 p-3 bg-white rounded-lg border-2 border-lime-500" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-gray-700 flex items-center">
+                          <span className="text-lime-500 mr-2 font-bold">►</span>
+                          Username: <span className="font-bold text-black ml-1">{formData.username}</span>
+                        </p>
+                        {formData.username.length >= 3 ? (
+                          <span className="text-xs text-green-600 font-semibold">✓ Valid</span>
+                        ) : (
+                          <span className="text-xs text-red-600 font-semibold">⚠ Minimum 3 characters</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   <div className="mt-3 p-3 bg-white rounded-lg border-2 border-lime-500" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}>
                     <p className="text-xs text-gray-700 flex items-center">
                       <span className="text-lime-500 mr-2 font-bold">►</span>
@@ -1312,56 +1388,107 @@ const FarmerRegistration = ({
         </div>
       )}
 
-      {/* Farmer Details Modal */}
+      {/* Farmer Details Modal - Design Vibe */}
       {showFarmerDetails && selectedFarmer && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-30 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-lime-700 text-white p-4 rounded-t-xl flex justify-between items-center">
-              <h2 className="text-xl font-bold">Farmer Details</h2>
+        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar border-2 border-black">
+            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
+              <h2 className="text-2xl font-bold text-black">🌾 Farmer Details</h2>
               <button
                 onClick={() => setShowFarmerDetails(false)}
-                className="text-white hover:text-gray-200 focus:outline-none"
+                className="text-black hover:bg-lime-200 rounded-full p-1 focus:outline-none transition-all"
               >
                 <X size={24} />
               </button>
             </div>
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <h3 className="text-lg font-semibold text-lime-800 mb-3 flex items-center gap-2">
-                    <User size={20} /> Personal Information
-                  </h3>
+            <div className="p-6 md:p-8 bg-white">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="bg-white rounded-lg p-5 border-2 border-black relative" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
+                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
+                      <User size={18} className="text-lime-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Personal Data</h3>
+                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
+                        Blockchain Record
+                      </span>
+                    </div>
+                  </div>
                   <div className="space-y-3">
-                    <div><span className="text-gray-500 text-sm">Full Name</span><p className="font-medium">{selectedFarmer.farmerName}</p></div>
-                    <div><span className="text-gray-500 text-sm">Birthday</span><p className="font-medium">{selectedFarmer.birthday || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-sm">Gender</span><p className="font-medium">{selectedFarmer.gender || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-sm">Contact Number</span><p className="font-medium">{selectedFarmer.contactNum || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-sm">Address</span><p className="font-medium">{selectedFarmer.address}</p></div>
+                    <div><span className="text-gray-500 text-xs uppercase font-bold">Full Name</span><p className="font-medium text-black">{selectedFarmer.farmerName}</p></div>
+                    <div><span className="text-gray-500 text-xs uppercase font-bold">Birthday</span><p className="font-medium text-black">{selectedFarmer.birthday || "Not provided"}</p></div>
+                    <div><span className="text-gray-500 text-xs uppercase font-bold">Gender</span><p className="font-medium text-black">{selectedFarmer.gender || "Not provided"}</p></div>
+                    <div><span className="text-gray-500 text-xs uppercase font-bold">Contact Number</span><p className="font-medium text-black">{selectedFarmer.contactNum || "Not provided"}</p></div>
+                    <div><span className="text-gray-500 text-xs uppercase font-bold">Address</span><p className="font-medium text-black">{selectedFarmer.address}</p></div>
                   </div>
                 </div>
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <h3 className="text-lg font-semibold text-blue-800 mb-3">Farm Information</h3>
+                <div className="bg-white rounded-lg p-5 border-2 border-black relative" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
+                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
+                      <Layers size={18} className="text-lime-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Farm Registry</h3>
+                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
+                        Immutable Ledger
+                      </span>
+                    </div>
+                  </div>
                   <div className="space-y-3">
-                    <div><span className="text-gray-500 text-sm">Crop Type</span><p className="font-medium">{selectedFarmer.cropType}</p></div>
-                    <div><span className="text-gray-500 text-sm">Crop Area</span><p className="font-medium">{selectedFarmer.cropArea} hectares</p></div>
-                    <div><span className="text-gray-500 text-sm">Lot Number</span><p className="font-medium">{selectedFarmer.lotNumber || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-sm">Lot Area</span><p className="font-medium">{selectedFarmer.lotArea || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-sm">Certified</span><p className="font-medium">{selectedFarmer.isCertified ? (<span className="text-green-600 flex items-center"><CheckCircle size={16} className="mr-1" /> Yes</span>) : (<span className="text-gray-600">No</span>)}</p></div>
+                    <div><span className="text-gray-500 text-xs uppercase font-bold">Crop Type</span><p className="font-medium text-black">{selectedFarmer.cropType || "Not provided"}</p></div>
+                    <div><span className="text-gray-500 text-xs uppercase font-bold">Crop Area</span><p className="font-medium text-black">{selectedFarmer.cropArea ? `${selectedFarmer.cropArea} hectares` : "Not provided"}</p></div>
+                    <div><span className="text-gray-500 text-xs uppercase font-bold">Lot Number</span><p className="font-medium text-black">{selectedFarmer.lotNumber || "Not provided"}</p></div>
+                    <div><span className="text-gray-500 text-xs uppercase font-bold">Lot Area</span><p className="font-medium text-black">{selectedFarmer.lotArea || "Not provided"}</p></div>
+                    <div><span className="text-gray-500 text-xs uppercase font-bold">Certified</span><p className="font-medium">{selectedFarmer.isCertified ? (<span className="text-green-600 flex items-center"><CheckCircle size={16} className="mr-1" /> Yes</span>) : (<span className="text-gray-600">No</span>)}</p></div>
                   </div>
                 </div>
               </div>
-              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mt-6">
-                <h3 className="text-lg font-semibold text-yellow-800 mb-3">Insurance Information</h3>
+              <div className="bg-white rounded-lg p-5 border-2 border-black relative mb-6" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+                <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-black">
+                  <div className="flex items-center">
+                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
+                      <Shield size={18} className="text-lime-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Insurance Information</h3>
+                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
+                        Coverage Details
+                      </span>
+                    </div>
+                  </div>
+                  {onTabSwitch && (
+                    <button
+                      onClick={() => {
+                        setShowFarmerDetails(false)
+                        onTabSwitch('crop-insurance')
+                      }}
+                      className="px-4 py-2 bg-lime-400 text-black rounded-lg hover:bg-lime-500 transition-all font-bold border-2 border-black text-xs uppercase"
+                      style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}
+                    >
+                      View Crop Insurance
+                    </button>
+                  )}
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div><span className="text-gray-500 text-sm">Insurance Type</span><p className="font-medium">{selectedFarmer.insuranceType || "Not provided"}</p></div>
-                  <div><span className="text-gray-500 text-sm">Premium Amount</span><p className="font-medium">{selectedFarmer.premiumAmount || "Not provided"}</p></div>
-                  <div><span className="text-gray-500 text-sm">Agency</span><p className="font-medium">{selectedFarmer.agency || "Not provided"}</p></div>
+                  <div>
+                    <span className="text-gray-500 text-xs uppercase font-bold">Insured Crops</span>
+                    <p className="font-medium text-black">{getInsuredCrops(selectedFarmer)}</p>
+                  </div>
+                  <div>
+                    <span className="text-gray-500 text-xs uppercase font-bold">Agency</span>
+                    <p className="font-medium text-black">{selectedFarmer.agency || "Not provided"}</p>
+                  </div>
                 </div>
               </div>
-              <div className="mt-6 flex justify-end">
+              <div className="flex justify-end">
                 <button
                   onClick={() => setShowFarmerDetails(false)}
-                  className="bg-lime-700 text-white px-6 py-2 rounded-lg hover:bg-lime-800 transition"
+                  className="bg-lime-400 border-2 border-black text-black px-6 py-3 rounded-lg hover:bg-lime-500 transition-all font-bold shadow-lg"
+                  style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
                 >
                   Close
                 </button>

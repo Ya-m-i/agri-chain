@@ -1162,27 +1162,45 @@ const AdminDashboard = () => {
 
   // Add a new state variable for feedback
   const [feedbackText, setFeedbackText] = useState("")
+  
+  // Payment date state for claim approval
+  const [paymentDate, setPaymentDate] = useState("")
 
   // Handle claim status updates with confirmation
   const initiateStatusUpdate = (claimId, newStatus, farmerId) => {
     setConfirmationAction({ type: newStatus, claimId, farmerId })
     setFeedbackText("") // Reset feedback text
+    // Set default payment date to today if approving
+    if (newStatus === "approved") {
+      setPaymentDate(new Date().toISOString().split('T')[0])
+    } else {
+      setPaymentDate("")
+    }
     setShowConfirmationModal(true)
   }
 
   const confirmStatusUpdate = async () => {
     const { type: actionType, claimId: actionClaimId } = confirmationAction;
     try {
+      const updateData = {
+        status: actionType,
+        adminFeedback: feedbackText,
+      };
+      
+      // Add payment date if approving
+      if (actionType === 'approved' && paymentDate) {
+        updateData.paymentDate = paymentDate;
+        updateData.completionDate = new Date().toISOString();
+      }
+      
       await updateClaimMutation.mutateAsync({
         id: actionClaimId,
-        updateData: {
-          status: actionType,
-          adminFeedback: feedbackText,
-        }
+        updateData
       });
       
       setShowConfirmationModal(false);
       setFeedbackText("");
+      setPaymentDate("");
       
       // Find the claim to get farmer details
       const claim = claims.find(c => c._id === actionClaimId || c.id === actionClaimId);
@@ -1190,7 +1208,8 @@ const AdminDashboard = () => {
       // Show success notification to admin
       let adminMessage = `Claim has been ${actionType} successfully.`;
       if (actionType === 'approved' && claim && claim.compensation) {
-        adminMessage = `Claim approved! Compensation: ₱${claim.compensation.toLocaleString()}. Total Insurance Paid updated.`;
+        const paymentDateStr = paymentDate ? new Date(paymentDate).toLocaleDateString() : 'TBD';
+        adminMessage = `Claim approved! Compensation: ₱${claim.compensation.toLocaleString()}. Payment date set: ${paymentDateStr}.`;
       }
       
       addLocalNotification({
@@ -1231,6 +1250,67 @@ const AdminDashboard = () => {
       return `${diffInDays}d ago`
     }
   }
+
+  // Check for payment dates that are due or today
+  useEffect(() => {
+    if (!claims || claims.length === 0) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+    
+    // Get stored notification dates from localStorage
+    const storedNotifications = JSON.parse(localStorage.getItem('paymentDateNotifications') || '{}');
+    
+    claims.forEach(claim => {
+      // Only check approved claims with payment dates
+      if (claim.status === 'approved' && claim.paymentDate) {
+        const claimId = claim._id || claim.id;
+        const paymentDate = new Date(claim.paymentDate);
+        paymentDate.setHours(0, 0, 0, 0);
+        
+        const daysDiff = Math.floor((paymentDate - today) / (1000 * 60 * 60 * 24));
+        
+        // Check if we've already notified for this claim on this date
+        const notificationKey = `${claimId}-${todayStr}`;
+        const alreadyNotified = storedNotifications[notificationKey];
+        
+        // Check if payment date is today or due (past due)
+        if (daysDiff === 0 && !alreadyNotified) {
+          // Payment date is today
+          storedNotifications[notificationKey] = true;
+          localStorage.setItem('paymentDateNotifications', JSON.stringify(storedNotifications));
+          addLocalNotification({
+            type: 'info',
+            title: '💰 Payment Due Today',
+            message: `Claim payment for ${claim.name || 'Farmer'} is due today. Please notify the farmer.`,
+          });
+        } else if (daysDiff < 0 && !alreadyNotified) {
+          // Payment date has passed
+          storedNotifications[notificationKey] = true;
+          localStorage.setItem('paymentDateNotifications', JSON.stringify(storedNotifications));
+          addLocalNotification({
+            type: 'warning',
+            title: '⚠️ Payment Overdue',
+            message: `Claim payment for ${claim.name || 'Farmer'} was due ${Math.abs(daysDiff)} day(s) ago. Please notify the farmer immediately.`,
+          });
+        }
+      }
+    });
+    
+    // Clean up old notification entries (older than 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+    
+    Object.keys(storedNotifications).forEach(key => {
+      const keyDate = key.split('-').slice(1).join('-');
+      if (keyDate < sevenDaysAgoStr) {
+        delete storedNotifications[key];
+      }
+    });
+    localStorage.setItem('paymentDateNotifications', JSON.stringify(storedNotifications));
+  }, [claims, addLocalNotification]);
 
   // Get notification icon based on type
   const getNotificationIcon = (type) => {
@@ -3367,10 +3447,15 @@ const AdminDashboard = () => {
       {/* Confirmation Modal for Claim Status Update */}
       <ClaimStatusConfirmationModal
         isOpen={showConfirmationModal}
-        onClose={() => setShowConfirmationModal(false)}
+        onClose={() => {
+          setShowConfirmationModal(false);
+          setPaymentDate("");
+        }}
         actionType={confirmationAction.type}
         feedbackText={feedbackText}
         onFeedbackChange={setFeedbackText}
+        paymentDate={paymentDate}
+        onPaymentDateChange={setPaymentDate}
         onConfirm={confirmStatusUpdate}
       />
 

@@ -14,6 +14,7 @@ import {
   MapPin,
   User,
   Camera,
+  Layers,
   BarChart3,
   PieChart,
   Download,
@@ -547,50 +548,58 @@ const InsuranceClaims = ({
         )}
       </div>
 
-      {/* Claim Details Modal */}
+      {/* Claim Details Modal - Design Vibe */}
       {showClaimDetails && selectedClaim && (
-        <div className="fixed inset-0 z-50 bg-transparent bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar">
-            <div className="sticky top-0 bg-lime-700 text-white p-4 rounded-t-xl flex justify-between items-center">
-              <h2 className="text-xl font-bold">Claim Details</h2>
+        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar border-2 border-black">
+            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
+              <h2 className="text-2xl font-bold text-black">📋 Claim Details</h2>
               <button
                 onClick={() => setShowClaimDetails(false)}
-                className="text-white hover:text-gray-200 focus:outline-none transition-colors"
+                className="text-black hover:bg-lime-200 rounded-full p-1 focus:outline-none transition-all"
               >
                 <XCircle size={24} />
               </button>
             </div>
 
-            <div className="p-6">
+            <div className="p-6 md:p-8 bg-white">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                  <h3 className="text-lg font-semibold text-lime-800 mb-3 flex items-center gap-2">
-                    <User size={20} />
-                    Basic Information
-                  </h3>
+                <div className="bg-white rounded-lg p-5 border-2 border-black relative" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
+                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
+                      <User size={18} className="text-lime-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Basic Information</h3>
+                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
+                        Claim Details
+                      </span>
+                    </div>
+                  </div>
                   <div className="space-y-3">
                     <div>
-                      <span className="text-gray-500 text-sm">Claim ID</span>
-                      <p className="font-medium">{selectedClaim.claimNumber || selectedClaim._id}</p>
+                      <span className="text-gray-500 text-xs uppercase font-bold">Claim ID</span>
+                      <p className="font-medium text-black">{selectedClaim.claimNumber || selectedClaim._id}</p>
                     </div>
                     <div>
-                      <span className="text-gray-500 text-sm">Farmer Name</span>
-                      <p className="font-medium">{selectedClaim.name}</p>
+                      <span className="text-gray-500 text-xs uppercase font-bold">Farmer Name</span>
+                      <p className="font-medium text-black">{selectedClaim.name}</p>
                     </div>
                     <div>
-                      <span className="text-gray-500 text-sm">Address</span>
-                      <p className="font-medium">{selectedClaim.address || "Not provided"}</p>
+                      <span className="text-gray-500 text-xs uppercase font-bold">Address</span>
+                      <p className="font-medium text-black">{selectedClaim.address || "Not provided"}</p>
                     </div>
                     <div>
-                      <span className="text-gray-500 text-sm">Phone</span>
-                      <p className="font-medium">{selectedClaim.phone || "Not provided"}</p>
+                      <span className="text-gray-500 text-xs uppercase font-bold">Phone</span>
+                      <p className="font-medium text-black">{selectedClaim.phone || "Not provided"}</p>
                     </div>
                     <div>
-                      <span className="text-gray-500 text-sm">Date Filed</span>
-                      <p className="font-medium">{new Date(selectedClaim.date).toLocaleDateString()}</p>
+                      <span className="text-gray-500 text-xs uppercase font-bold">Date Filed</span>
+                      <p className="font-medium text-black">{new Date(selectedClaim.date).toLocaleDateString()}</p>
                     </div>
                     <div>
-                      <span className="text-gray-500 text-sm">Status</span>
+                      <span className="text-gray-500 text-xs uppercase font-bold">Status</span>
                       <p
                         className={`font-medium ${
                           selectedClaim.status === "approved"
@@ -606,28 +615,39 @@ const InsuranceClaims = ({
                   </div>
                 </div>
 
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <h3 className="text-lg font-semibold text-blue-800 mb-3">Crop Information</h3>
+                <div className="bg-white rounded-lg p-5 border-2 border-black relative" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+                  <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
+                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
+                      <Layers size={18} className="text-lime-500" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Crop Information</h3>
+                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
+                        Crop Details
+                      </span>
+                    </div>
+                  </div>
                   <div className="space-y-3">
                     <div>
-                      <span className="text-gray-500 text-sm">Crop Type</span>
-                      <p className="font-medium">{selectedClaim.crop}</p>
+                      <span className="text-gray-500 text-xs uppercase font-bold">Crop Type</span>
+                      <p className="font-medium text-black">{selectedClaim.crop}</p>
                     </div>
                     <div>
-                      <span className="text-gray-500 text-sm">Area Insured</span>
-                      <p className="font-medium">{selectedClaim.areaInsured} hectares</p>
+                      <span className="text-gray-500 text-xs uppercase font-bold">Area Insured</span>
+                      <p className="font-medium text-black">{selectedClaim.areaInsured} hectares</p>
                     </div>
                     <div>
-                      <span className="text-gray-500 text-sm">Area Damaged</span>
-                      <p className="font-medium">{selectedClaim.areaDamaged} hectares</p>
+                      <span className="text-gray-500 text-xs uppercase font-bold">Area Damaged</span>
+                      <p className="font-medium text-black">{selectedClaim.areaDamaged} hectares</p>
                     </div>
                     <div>
-                      <span className="text-gray-500 text-sm">Degree of Damage</span>
-                      <p className="font-medium">{selectedClaim.degreeOfDamage}%</p>
+                      <span className="text-gray-500 text-xs uppercase font-bold">Degree of Damage</span>
+                      <p className="font-medium text-black">{selectedClaim.degreeOfDamage}%</p>
                     </div>
                     <div>
-                      <span className="text-gray-500 text-sm">Program</span>
-                      <p className="font-medium">
+                      <span className="text-gray-500 text-xs uppercase font-bold">Program</span>
+                      <p className="font-medium text-black">
                         {selectedClaim.program && selectedClaim.program.length > 0
                           ? selectedClaim.program.join(", ")
                           : "Not specified"}
@@ -637,128 +657,107 @@ const InsuranceClaims = ({
                 </div>
               </div>
 
-              <div className="bg-green-50 p-4 rounded-lg border border-green-200 mb-6">
-                <h3 className="text-lg font-semibold text-lime-800 mb-3">Additional Crop Information</h3>
-                <div className="space-y-3">
-                  <div>
-                    <span className="text-gray-500 text-sm">Variety Planted</span>
-                    <p className="font-medium">{selectedClaim.varietyPlanted || "Not provided"}</p>
+              <div className="bg-white rounded-lg p-5 border-2 border-black relative mb-6" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
+                <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
+                  <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
+                    <AlertTriangle size={18} className="text-lime-500" />
                   </div>
                   <div>
-                    <span className="text-gray-500 text-sm">Planting Date</span>
-                    <p className="font-medium">
-                      {selectedClaim.plantingDate
-                        ? new Date(selectedClaim.plantingDate).toLocaleDateString()
-                        : "Not provided"}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 text-sm">CIC Number</span>
-                    <p className="font-medium">{selectedClaim.cicNumber || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 text-sm">Underwriter</span>
-                    <p className="font-medium">{selectedClaim.underwriter || "Not provided"}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500 text-sm">Farmer Location</span>
-                    <p className="font-medium">{selectedClaim.farmerLocation || "Not provided"}</p>
+                    <h3 className="text-sm font-black text-black uppercase tracking-wider">Damage Information</h3>
+                    <span className="text-[10px] text-gray-600 flex items-center gap-1">
+                      <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
+                      Loss Assessment
+                    </span>
                   </div>
                 </div>
-              </div>
-
-              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mb-6">
-                <h3 className="text-lg font-semibold text-yellow-800 mb-3 flex items-center gap-2">
-                  <AlertTriangle size={20} />
-                  Damage Information
-                </h3>
-                <div className="space-y-3">
+                <div className="space-y-3 mb-4">
                   <div>
-                    <span className="text-gray-500 text-sm">Cause of Loss</span>
-                    <p className="font-medium">{selectedClaim.damageType}</p>
+                    <span className="text-gray-500 text-xs uppercase font-bold">Cause of Loss</span>
+                    <p className="font-medium text-black">{selectedClaim.damageType}</p>
                   </div>
                   <div>
-                    <span className="text-gray-500 text-sm">Date of Loss</span>
-                    <p className="font-medium">
+                    <span className="text-gray-500 text-xs uppercase font-bold">Date of Loss</span>
+                    <p className="font-medium text-black">
                       {selectedClaim.lossDate ? new Date(selectedClaim.lossDate).toLocaleDateString() : "Not provided"}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500 text-sm">Age/Stage at Time of Loss</span>
-                    <p className="font-medium">{selectedClaim.ageStage || "Not provided"}</p>
+                    <span className="text-gray-500 text-xs uppercase font-bold">Age/Stage at Time of Loss</span>
+                    <p className="font-medium text-black">{selectedClaim.ageStage || "Not provided"}</p>
                   </div>
                   <div>
-                    <span className="text-gray-500 text-sm">Expected Harvest</span>
-                    <p className="font-medium">
+                    <span className="text-gray-500 text-xs uppercase font-bold">Expected Harvest</span>
+                    <p className="font-medium text-black">
                       {selectedClaim.expectedHarvest ? `${selectedClaim.expectedHarvest} tons` : "Not provided"}
                     </p>
                   </div>
                 </div>
-              </div>
+                
+                {/* Damage Evidence Photos - Moved to Damage Information Section */}
+                {selectedClaim.damagePhotos && selectedClaim.damagePhotos.length > 0 && (
+                  <div className="mt-4 pt-4 border-t-2 border-black">
+                    <h4 className="text-sm font-black text-black uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <Camera size={16} className="text-lime-500" />
+                      Damage Evidence Photos ({selectedClaim.damagePhotos.length})
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {selectedClaim.damagePhotos.map((photo, index) => {
+                        // Check if photo is a valid data URL
+                        const isValidDataUrl = typeof photo === 'string' && photo.startsWith('data:');
+                        
+                        if (!isValidDataUrl) {
+                          return (
+                            <div key={index} className="relative group">
+                              <div className="w-full h-32 bg-gray-200 rounded-lg border-2 border-black flex items-center justify-center">
+                                <div className="text-center">
+                                  <FileText className="h-8 w-8 text-gray-400 mx-auto mb-1" />
+                                  <p className="text-xs text-gray-500">Photo {index + 1}</p>
+                                  <p className="text-xs text-gray-400">Not available</p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
 
-              {/* Damage Evidence Photos */}
-              {selectedClaim.damagePhotos && selectedClaim.damagePhotos.length > 0 && (
-                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200 mb-6">
-                  <h3 className="text-lg font-semibold text-orange-800 mb-3 flex items-center gap-2">
-                    📷 Damage Evidence Photos ({selectedClaim.damagePhotos.length})
-                  </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {selectedClaim.damagePhotos.map((photo, index) => {
-                      // Check if photo is a valid data URL
-                      const isValidDataUrl = typeof photo === 'string' && photo.startsWith('data:');
-                      
-                      if (!isValidDataUrl) {
                         return (
                           <div key={index} className="relative group">
-                            <div className="w-full h-32 bg-gray-200 rounded-lg border flex items-center justify-center">
-                              <div className="text-center">
-                                <FileText className="h-8 w-8 text-gray-400 mx-auto mb-1" />
-                                <p className="text-xs text-gray-500">Photo {index + 1}</p>
-                                <p className="text-xs text-gray-400">Not available</p>
-                              </div>
+                            <img
+                              src={photo}
+                              alt={`Damage evidence ${index + 1}`}
+                              className="w-full h-32 object-cover rounded-lg border-2 border-black cursor-pointer hover:opacity-90 transition-opacity"
+                              onClick={() => {
+                                // Open photo in full screen modal
+                                const modal = document.createElement('div');
+                                modal.className = 'fixed inset-0 z-[60] bg-black bg-opacity-75 flex items-center justify-center p-4';
+                                modal.innerHTML = `
+                                  <div class="relative max-w-4xl max-h-full">
+                                    <img src="${photo}" alt="Damage evidence ${index + 1}" class="max-w-full max-h-full object-contain" />
+                                    <button class="absolute top-4 right-4 bg-white bg-opacity-20 text-white p-2 rounded-full hover:bg-opacity-30 transition-colors" onclick="this.parentElement.parentElement.remove()">
+                                      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                      </svg>
+                                    </button>
+                                  </div>
+                                `;
+                                document.body.appendChild(modal);
+                                modal.addEventListener('click', (e) => {
+                                  if (e.target === modal) modal.remove();
+                                });
+                              }}
+                            />
+                            <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded border border-white">
+                              Photo {index + 1}
                             </div>
                           </div>
                         );
-                      }
-
-                      return (
-                        <div key={index} className="relative group">
-                          <img
-                            src={photo}
-                            alt={`Damage evidence ${index + 1}`}
-                            className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition-opacity"
-                            onClick={() => {
-                              // Open photo in full screen modal
-                              const modal = document.createElement('div');
-                              modal.className = 'fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4';
-                              modal.innerHTML = `
-                                <div class="relative max-w-4xl max-h-full">
-                                  <img src="${photo}" alt="Damage evidence ${index + 1}" class="max-w-full max-h-full object-contain" />
-                                  <button class="absolute top-4 right-4 bg-white bg-opacity-20 text-white p-2 rounded-full hover:bg-opacity-30 transition-colors" onclick="this.parentElement.parentElement.remove()">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                  </button>
-                                </div>
-                              `;
-                              document.body.appendChild(modal);
-                              modal.addEventListener('click', (e) => {
-                                if (e.target === modal) modal.remove();
-                              });
-                            }}
-                          />
-                          <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
-                            Photo {index + 1}
-                          </div>
-                        </div>
-                      );
-                    })}
+                      })}
+                    </div>
+                    <p className="text-xs text-gray-600 mt-3 font-semibold">
+                      Click on any photo to view it in full size
+                    </p>
                   </div>
-                  <p className="text-sm text-orange-700 mt-3">
-                    Click on any photo to view it in full size
-                  </p>
-                </div>
-              )}
+                )}
+              </div>
 
               {selectedClaim.adminFeedback && (
                 <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 mb-6">
@@ -918,7 +917,8 @@ const InsuranceClaims = ({
               <div className="mt-6 flex justify-end">
                 <button
                   onClick={() => setShowClaimDetails(false)}
-                  className="bg-lime-700 text-white px-6 py-2 rounded-lg hover:bg-lime-800 transition"
+                  className="bg-lime-400 border-2 border-black text-black px-6 py-3 rounded-lg hover:bg-lime-500 transition-all font-bold shadow-lg"
+                  style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
                 >
                   Close
                 </button>
