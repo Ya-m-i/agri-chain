@@ -358,8 +358,8 @@ const CropInsuranceManagement = () => {
       {/* Records Table - Responsive */}
       <div className="bg-white rounded-lg shadow overflow-hidden border-2 border-black">
         {/* Desktop Table View */}
-        <div className="hidden lg:block overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitScrollbar: 'none' }}>
-          <table className="w-full" style={{ scrollbarWidth: 'none' }}>
+        <div className="hidden lg:block overflow-x-auto scrollbar-hide">
+          <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -892,52 +892,53 @@ const CropInsuranceManagement = () => {
               </button>
             </div>
             <div className="p-6 bg-white">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-lime-50 border-2 border-black rounded-lg">
-                <h4 className="font-bold text-black mb-2 uppercase text-sm">Farmer Information</h4>
-                <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Name:</span> {getFarmerName(selectedRecord.farmerId)}</p>
-                <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Crop:</span> {selectedRecord.cropType}</p>
-                <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Area:</span> {selectedRecord.cropArea} hectares</p>
-                <p className="text-sm text-gray-700"><span className="font-semibold">Lot:</span> {selectedRecord.lotNumber}</p>
-              </div>
-              <div className="p-4 bg-lime-50 border-2 border-black rounded-lg">
-                <h4 className="font-bold text-black mb-2 uppercase text-sm">Timeline</h4>
-                <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Planting:</span> {formatDate(selectedRecord.plantingDate)}</p>
-                <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Expected Harvest:</span> {formatDate(selectedRecord.expectedHarvestDate)}</p>
-                <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Insurance Deadline:</span> {formatDate(selectedRecord.insuranceDeadline)}</p>
-                <p className="text-sm text-gray-700"><span className="font-semibold">Day Limit:</span> {selectedRecord.insuranceDayLimit} days</p>
-              </div>
-              <div className="p-4 bg-lime-50 border-2 border-black rounded-lg">
-                <h4 className="font-bold text-black mb-2 uppercase text-sm">Insurance Status</h4>
-                <p className="text-sm text-gray-700 mb-1">
-                  <span className="font-semibold">Status:</span> <span className={getStatusColor(selectedRecord)}>{getStatusText(selectedRecord)}</span>
-                </p>
-                {selectedRecord.isInsured && (
-                  <>
-                    <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Insurance Date:</span> {formatDate(selectedRecord.insuranceDate)}</p>
-                    <p className="text-sm text-gray-700"><span className="font-semibold">Agency:</span> {selectedRecord.agency}</p>
-                  </>
-                )}
-                {!selectedRecord.isInsured && getRemainingDays(selectedRecord) > 0 && (
-                  <p className="text-sm text-yellow-600">
-                    {getRemainingDays(selectedRecord)} days remaining to apply insurance
-                  </p>
-                )}
-              </div>
-              <div className="p-4 bg-lime-50 border-2 border-black rounded-lg">
-                <h4 className="font-bold text-black mb-2 uppercase text-sm">Additional Information</h4>
-                <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Created:</span> {formatDate(selectedRecord.createdAt)}</p>
-                <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Updated:</span> {formatDate(selectedRecord.updatedAt)}</p>
-                {selectedRecord.notes && (
-                  <p className="text-sm text-gray-700"><span className="font-semibold">Notes:</span> {selectedRecord.notes}</p>
-                )}
-              </div>
-              {selectedRecord.evidenceImage && (
-                <div className="md:col-span-2 p-4 bg-lime-50 border-2 border-black rounded-lg">
-                  <h4 className="font-bold text-black mb-2 uppercase text-sm">Evidence Image</h4>
-                  <img src={selectedRecord.evidenceImage} alt="Evidence" className="max-w-full h-64 object-contain border-2 border-black rounded-lg" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-lime-50 border-2 border-black rounded-lg">
+                  <h4 className="font-bold text-black mb-2 uppercase text-sm">Farmer Information</h4>
+                  <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Name:</span> {getFarmerName(selectedRecord.farmerId)}</p>
+                  <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Crop:</span> {selectedRecord.cropType}</p>
+                  <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Area:</span> {selectedRecord.cropArea} hectares</p>
+                  <p className="text-sm text-gray-700"><span className="font-semibold">Lot:</span> {selectedRecord.lotNumber}</p>
                 </div>
-              )}
+                <div className="p-4 bg-lime-50 border-2 border-black rounded-lg">
+                  <h4 className="font-bold text-black mb-2 uppercase text-sm">Timeline</h4>
+                  <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Planting:</span> {formatDate(selectedRecord.plantingDate)}</p>
+                  <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Expected Harvest:</span> {formatDate(selectedRecord.expectedHarvestDate)}</p>
+                  <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Insurance Deadline:</span> {formatDate(selectedRecord.insuranceDeadline)}</p>
+                  <p className="text-sm text-gray-700"><span className="font-semibold">Day Limit:</span> {selectedRecord.insuranceDayLimit} days</p>
+                </div>
+                <div className="p-4 bg-lime-50 border-2 border-black rounded-lg">
+                  <h4 className="font-bold text-black mb-2 uppercase text-sm">Insurance Status</h4>
+                  <p className="text-sm text-gray-700 mb-1">
+                    <span className="font-semibold">Status:</span> <span className={getStatusColor(selectedRecord)}>{getStatusText(selectedRecord)}</span>
+                  </p>
+                  {selectedRecord.isInsured && (
+                    <>
+                      <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Insurance Date:</span> {formatDate(selectedRecord.insuranceDate)}</p>
+                      <p className="text-sm text-gray-700"><span className="font-semibold">Agency:</span> {selectedRecord.agency}</p>
+                    </>
+                  )}
+                  {!selectedRecord.isInsured && getRemainingDays(selectedRecord) > 0 && (
+                    <p className="text-sm text-yellow-600">
+                      {getRemainingDays(selectedRecord)} days remaining to apply insurance
+                    </p>
+                  )}
+                </div>
+                <div className="p-4 bg-lime-50 border-2 border-black rounded-lg">
+                  <h4 className="font-bold text-black mb-2 uppercase text-sm">Additional Information</h4>
+                  <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Created:</span> {formatDate(selectedRecord.createdAt)}</p>
+                  <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Updated:</span> {formatDate(selectedRecord.updatedAt)}</p>
+                  {selectedRecord.notes && (
+                    <p className="text-sm text-gray-700"><span className="font-semibold">Notes:</span> {selectedRecord.notes}</p>
+                  )}
+                </div>
+                {selectedRecord.evidenceImage && (
+                  <div className="md:col-span-2 p-4 bg-lime-50 border-2 border-black rounded-lg">
+                    <h4 className="font-bold text-black mb-2 uppercase text-sm">Evidence Image</h4>
+                    <img src={selectedRecord.evidenceImage} alt="Evidence" className="max-w-full h-64 object-contain border-2 border-black rounded-lg" />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
