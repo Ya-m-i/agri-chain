@@ -255,6 +255,13 @@ const CropInsuranceManagement = () => {
     return 'text-yellow-600'
   }
 
+  const getStatusText = (record) => {
+    if (record.isInsured) return 'Insured'
+    const remainingDays = getRemainingDays(record)
+    if (remainingDays === 0 || !record.canInsure) return 'Expired'
+    return 'Can Insure'
+  }
+
   const filteredRecords = cropInsuranceRecords.filter(record => {
     const farmerName = getFarmerName(record.farmerId).toLowerCase()
     const cropType = record.cropType.toLowerCase()
@@ -351,13 +358,8 @@ const CropInsuranceManagement = () => {
       {/* Records Table - Responsive */}
       <div className="bg-white rounded-lg shadow overflow-hidden border-2 border-black">
         {/* Desktop Table View */}
-        <div className="hidden lg:block overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          <style>{`
-            div::-webkit-scrollbar {
-              display: none;
-            }
-          `}</style>
-          <table className="w-full">
+        <div className="hidden lg:block overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitScrollbar: 'none' }}>
+          <table className="w-full" style={{ scrollbarWidth: 'none' }}>
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
