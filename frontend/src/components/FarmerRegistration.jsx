@@ -1689,22 +1689,33 @@ const FarmerRegistration = ({
                         const currentProfileImage = profileImages[farmerId];
                         
                         if (currentProfileImage) {
+                          // Check image size (base64 images can be large)
+                          const imageSizeMB = (currentProfileImage.length * 3) / 4 / 1024 / 1024;
+                          if (imageSizeMB > 5) {
+                            alert(`Image is too large (${imageSizeMB.toFixed(2)}MB). Please use an image smaller than 5MB.`);
+                            return;
+                          }
+                          
                           // Save to MongoDB
                           const response = await saveFarmerProfileImage(farmerId, currentProfileImage);
                           
-                          if (response.success) {
+                          if (response && response.success) {
                             setShowProfileModal(false);
                             // Note: Notifications are now created by backend API automatically
                             console.log('Profile picture saved successfully')
                           } else {
-                            throw new Error('Failed to save profile image');
+                            throw new Error(response?.message || 'Failed to save profile image');
                           }
                         } else {
                           // Note: Error notifications are now created by backend API automatically
                           console.error('No image selected')
+                          alert('Please select an image first');
                         }
                       } catch (error) {
                         console.error('Error saving profile image:', error);
+                        // Provide user-friendly error message
+                        const errorMessage = error.message || 'Failed to save profile image. Please check your connection and try again.';
+                        alert(`Error: ${errorMessage}`);
                         // Note: Error notifications are now created by backend API automatically
                       }
                     }}

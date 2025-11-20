@@ -189,8 +189,9 @@ app.use((req, res, next) => {
     next()
 })
 
-app.use(express.json())
-app.use(express.urlencoded({extended: false}))
+// Increase body size limit to 10MB for large payloads (e.g., base64-encoded images)
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ extended: false, limit: '10mb' }))
 
 // Health check and CORS test endpoint
 app.get('/api/health', (req, res) => {
