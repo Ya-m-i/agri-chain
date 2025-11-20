@@ -1,5 +1,6 @@
 const CropInsurance = require('../models/cropInsuranceModel')
 const Farmer = require('../models/farmerModel')
+const Notification = require('../models/notificationModel')
 
 // Helper function to verify farmer-insurance match
 const verifyFarmerInsuranceMatch = (farmer, insuranceData) => {
@@ -69,7 +70,8 @@ const createCropInsurance = async (req, res) => {
             expectedHarvestDate,
             insuranceDayLimit,
             location,
-            notes
+            notes,
+            evidenceImage
         } = req.body
 
         console.log('Extracted data:', {
@@ -128,6 +130,7 @@ const createCropInsurance = async (req, res) => {
             insuranceDayLimit,
             location,
             notes,
+            evidenceImage: evidenceImage || null,
             verificationStatus: verificationResult.status,
             verificationNotes: verificationResult.notes
         })
@@ -205,8 +208,6 @@ const updateCropInsurance = async (req, res) => {
         const { id } = req.params
         const {
             isInsured,
-            insuranceType,
-            premiumAmount,
             agency,
             insuranceDate
         } = req.body
@@ -223,19 +224,48 @@ const updateCropInsurance = async (req, res) => {
             })
         }
 
+        // Check if this is a new insurance application (was not insured before)
+        const wasNotInsured = !cropInsurance.isInsured
+
         // Update the record
         const updatedCropInsurance = await CropInsurance.findByIdAndUpdate(
             id,
             {
                 isInsured,
-                insuranceType,
-                premiumAmount,
                 agency,
                 insuranceDate: isInsured ? (insuranceDate || new Date()) : null,
                 canInsure: !isInsured && cropInsurance.canStillInsure()
             },
             { new: true }
         ).populate('farmerId', 'firstName lastName')
+
+        // Create notification for farmer when crop is insured
+        if (isInsured && wasNotInsured && updatedCropInsurance.farmerId) {
+            const farmer = typeof updatedCropInsurance.farmerId === 'object' 
+                ? updatedCropInsurance.farmerId 
+                : await Farmer.findById(updatedCropInsurance.farmerId)
+            
+            if (farmer) {
+                const notification = await Notification.create({
+                    recipientType: 'farmer',
+                    recipientId: farmer._id,
+                    type: 'success',
+                    title: 'Crop Insurance Applied',
+                    message: `Your ${updatedCropInsurance.cropType} crop insurance has been successfully applied by the admin.`,
+                    relatedEntityType: 'general',
+                    relatedEntityId: updatedCropInsurance._id,
+                    read: false,
+                    timestamp: new Date()
+                })
+
+                // Emit Socket.IO event for real-time notification
+                const io = req.app.get('io')
+                if (io) {
+                    io.to(`farmer-${farmer._id}`).emit('new-notification', notification)
+                    console.log(`📨 Insurance notification sent to farmer: ${farmer._id}`)
+                }
+            }
+        }
 
         res.status(200).json(updatedCropInsurance)
     } catch (error) {

@@ -78,6 +78,9 @@ const cropInsuranceSchema = mongoose.Schema({
     },
     verificationNotes: {
         type: String
+    },
+    evidenceImage: {
+        type: String // Base64 encoded image or URL
     }
 }, {
     timestamps: true,

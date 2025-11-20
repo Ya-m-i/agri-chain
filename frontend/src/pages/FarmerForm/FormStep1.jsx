@@ -51,6 +51,11 @@ const FormStep1 = () => {
       const limits = {}
       const warnings = {}
       insuranceRecords.forEach(record => {
+        // Only show crops that are insured (isInsured: true)
+        if (!record.isInsured) {
+          return // Skip uninsured crops
+        }
+        
         const cropType = record.cropType
         const plantingDate = new Date(record.plantingDate)
         const dayLimit = parseInt(record.insuranceDayLimit)

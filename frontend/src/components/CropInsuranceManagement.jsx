@@ -68,11 +68,14 @@ const CropInsuranceManagement = () => {
     expectedHarvestDate: "",
     insuranceDayLimit: "",
     notes: "",
+    evidenceImage: null,
     location: {
       lat: null,
       lng: null
     }
   })
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [recordToDelete, setRecordToDelete] = useState(null)
 
   // Crop type configurations with day limits
   const cropConfigurations = {
@@ -96,6 +99,20 @@ const CropInsuranceManagement = () => {
       [name]: value
     }))
 
+    // Auto-populate fields when farmer is selected
+    if (name === 'farmerId' && value) {
+      const selectedFarmer = farmers.find(f => f._id === value)
+      if (selectedFarmer) {
+        setFormData(prev => ({
+          ...prev,
+          farmerId: value,
+          cropArea: selectedFarmer.cropArea || "",
+          lotNumber: selectedFarmer.lotNumber || "",
+          lotArea: selectedFarmer.lotArea || ""
+        }))
+      }
+    }
+
     // Auto-set day limit when crop type changes
     if (name === 'cropType' && cropConfigurations[value]) {
       setFormData(prev => ({
@@ -103,6 +120,27 @@ const CropInsuranceManagement = () => {
         cropType: value,
         insuranceDayLimit: cropConfigurations[value].dayLimit.toString()
       }))
+    }
+  }
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size must be less than 5MB')
+        return
+      }
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file')
+        return
+      }
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, evidenceImage: reader.result }))
+      }
+      reader.readAsDataURL(file)
     }
   }
 
@@ -118,7 +156,8 @@ const CropInsuranceManagement = () => {
         lotArea: parseFloat(formData.lotArea),
         insuranceDayLimit: parseInt(formData.insuranceDayLimit),
         plantingDate: new Date(formData.plantingDate).toISOString(),
-        expectedHarvestDate: new Date(formData.expectedHarvestDate).toISOString()
+        expectedHarvestDate: new Date(formData.expectedHarvestDate).toISOString(),
+        evidenceImage: formData.evidenceImage || null
       }
       
       console.log('Submitting crop insurance data:', submissionData)
@@ -136,6 +175,7 @@ const CropInsuranceManagement = () => {
         expectedHarvestDate: "",
         insuranceDayLimit: "",
         notes: "",
+        evidenceImage: null,
         location: { lat: null, lng: null }
       })
 
@@ -151,8 +191,6 @@ const CropInsuranceManagement = () => {
         id: recordId,
         updateData: {
           isInsured: true,
-          insuranceType: insuranceData.insuranceType,
-          premiumAmount: parseFloat(insuranceData.premiumAmount),
           agency: insuranceData.agency,
           insuranceDate: new Date().toISOString()
         }
@@ -164,14 +202,19 @@ const CropInsuranceManagement = () => {
     }
   }
 
-  const handleDeleteRecord = async (recordId) => {
-    if (!window.confirm('Are you sure you want to delete this crop insurance record?')) {
-      return
-    }
+  const handleDeleteClick = (recordId) => {
+    setRecordToDelete(recordId)
+    setShowDeleteConfirm(true)
+  }
+
+  const handleDeleteRecord = async () => {
+    if (!recordToDelete) return
 
     try {
-      await deleteInsuranceMutation.mutateAsync(recordId)
+      await deleteInsuranceMutation.mutateAsync(recordToDelete)
       console.log('Insurance record deleted successfully');
+      setShowDeleteConfirm(false)
+      setRecordToDelete(null)
     } catch (error) {
       console.error('Error deleting insurance record:', error)
     }
@@ -204,16 +247,12 @@ const CropInsuranceManagement = () => {
     return Math.max(0, remaining)
   }
 
+
   const getStatusColor = (record) => {
     if (record.isInsured) return 'text-green-600'
-    if (!record.canInsure) return 'text-red-600'
+    const remainingDays = getRemainingDays(record)
+    if (remainingDays === 0 || !record.canInsure) return 'text-red-600'
     return 'text-yellow-600'
-  }
-
-  const getStatusText = (record) => {
-    if (record.isInsured) return 'Insured'
-    if (!record.canInsure) return 'Expired'
-    return 'Can Insure'
   }
 
   const filteredRecords = cropInsuranceRecords.filter(record => {
@@ -310,9 +349,14 @@ const CropInsuranceManagement = () => {
       </div>
 
       {/* Records Table - Responsive */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-lg shadow overflow-hidden border-2 border-black">
         {/* Desktop Table View */}
-        <div className="hidden lg:block">
+        <div className="hidden lg:block overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <style>{`
+            div::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
@@ -392,26 +436,26 @@ const CropInsuranceManagement = () => {
                           setSelectedRecord(record)
                           setShowDetailsModal(true)
                         }}
-                        className="text-blue-600 hover:text-blue-900 flex items-center gap-1"
+                        className="bg-blue-600 border-2 border-black text-white px-3 py-1 rounded-lg hover:bg-blue-700 font-bold text-sm flex items-center gap-1"
                       >
                         <Eye size={16} />
                         <span>View</span>
                       </button>
-                      {!record.isInsured && record.canInsure && (
+                      {!record.isInsured && record.canInsure && getRemainingDays(record) > 0 && (
                         <button
                           onClick={() => {
                             setSelectedRecord(record)
                             setShowEditModal(true)
                           }}
-                          className="text-green-600 hover:text-green-900 flex items-center gap-1"
+                          className="bg-lime-400 border-2 border-black text-black px-3 py-1 rounded-lg hover:bg-lime-500 font-bold text-sm flex items-center gap-1"
                         >
                           <Shield size={16} />
                           <span>Insure</span>
                         </button>
                       )}
                       <button
-                        onClick={() => handleDeleteRecord(record._id)}
-                        className="text-red-600 hover:text-red-900 flex items-center gap-1"
+                        onClick={() => handleDeleteClick(record._id)}
+                        className="bg-red-500 border-2 border-black text-white px-3 py-1 rounded-lg hover:bg-red-600 font-bold text-sm flex items-center gap-1"
                       >
                         <Trash2 size={16} />
                         <span>Delete</span>
@@ -478,26 +522,26 @@ const CropInsuranceManagement = () => {
                     setSelectedRecord(record)
                     setShowDetailsModal(true)
                   }}
-                  className="flex-1 text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"
+                  className="flex-1 bg-blue-600 border-2 border-black text-white px-3 py-2 rounded-lg hover:bg-blue-700 font-bold text-sm transition-colors flex items-center justify-center gap-1"
                 >
                   <Eye size={16} />
                   <span>View</span>
                 </button>
-                {!record.isInsured && record.canInsure && (
+                {!record.isInsured && record.canInsure && getRemainingDays(record) > 0 && (
                   <button
                     onClick={() => {
                       setSelectedRecord(record)
                       setShowEditModal(true)
                     }}
-                    className="flex-1 text-green-600 hover:bg-green-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"
+                    className="flex-1 bg-lime-400 border-2 border-black text-black px-3 py-2 rounded-lg hover:bg-lime-500 font-bold text-sm transition-colors flex items-center justify-center gap-1"
                   >
                     <Shield size={16} />
                     <span>Insure</span>
                   </button>
                 )}
                 <button
-                  onClick={() => handleDeleteRecord(record._id)}
-                  className="text-red-600 hover:bg-red-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"
+                  onClick={() => handleDeleteClick(record._id)}
+                  className="bg-red-500 border-2 border-black text-white px-3 py-2 rounded-lg hover:bg-red-600 font-bold text-sm transition-colors flex items-center justify-center gap-1"
                 >
                   <Trash2 size={16} />
                   <span>Delete</span>
@@ -713,6 +757,22 @@ const CropInsuranceManagement = () => {
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-xs font-bold text-black mb-1 uppercase">
+                    Evidence Image
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
+                  />
+                  {formData.evidenceImage && (
+                    <div className="mt-2">
+                      <img src={formData.evidenceImage} alt="Evidence" className="max-w-full h-32 object-contain border-2 border-black rounded-lg" />
+                    </div>
+                  )}
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-black mb-1 uppercase">
                     Notes
                   </label>
                   <textarea
@@ -751,147 +811,172 @@ const CropInsuranceManagement = () => {
 
       {/* Apply Insurance Modal */}
       {showEditModal && selectedRecord && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Apply Insurance</h3>
+        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full border-2 border-black">
+            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
+              <h2 className="text-2xl font-bold text-black">🛡️ Apply Insurance</h2>
               <button
                 onClick={() => setShowEditModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-black hover:bg-lime-200 rounded-full p-1"
               >
                 <X size={24} />
               </button>
             </div>
-            <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">
-                Applying insurance for {selectedRecord.cropType} crop by {getFarmerName(selectedRecord.farmerId)}
-              </p>
-              <p className="text-xs text-yellow-600">
-                {getRemainingDays(selectedRecord)} days remaining to apply insurance
-              </p>
+            <div className="p-6 bg-white">
+              <div className="mb-4 p-3 bg-lime-50 border-2 border-black rounded-lg">
+                <p className="text-sm font-semibold text-black mb-1">
+                  {selectedRecord.cropType} crop by {getFarmerName(selectedRecord.farmerId)}
+                </p>
+                <p className="text-xs text-yellow-600">
+                  {getRemainingDays(selectedRecord)} days remaining to apply insurance
+                </p>
+              </div>
+              <form onSubmit={(e) => {
+                e.preventDefault()
+                const formData = new FormData(e.target)
+                handleApplyInsurance(selectedRecord._id, {
+                  agency: formData.get('agency')
+                })
+                setShowEditModal(false)
+              }} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-black mb-1 uppercase">
+                    Insurance Agency
+                  </label>
+                  <select
+                    name="agency"
+                    required
+                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
+                  >
+                    <option value="">Select Agency</option>
+                    <option value="DA-PCIC">DA-PCIC (Philippine Crop Insurance Corporation)</option>
+                    <option value="DA">DA (Department of Agriculture)</option>
+                    <option value="Private Insurance">Private Insurance</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="flex gap-3 pt-4 border-t-2 border-black">
+                  <button
+                    type="button"
+                    onClick={() => setShowEditModal(false)}
+                    className="flex-1 bg-white border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-gray-100 font-bold"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 bg-lime-400 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-500 font-bold"
+                  >
+                    Apply Insurance
+                  </button>
+                </div>
+              </form>
             </div>
-            <form onSubmit={(e) => {
-              e.preventDefault()
-              const formData = new FormData(e.target)
-              handleApplyInsurance(selectedRecord._id, {
-                insuranceType: formData.get('insuranceType'),
-                premiumAmount: formData.get('premiumAmount'),
-                agency: formData.get('agency')
-              })
-              setShowEditModal(false)
-            }} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Insurance Type
-                </label>
-                <select
-                  name="insuranceType"
-                  required
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                >
-                  <option value="">Select Insurance Type</option>
-                  <option value="Basic">Basic Coverage</option>
-                  <option value="Premium">Premium Coverage</option>
-                  <option value="Comprehensive">Comprehensive Coverage</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Premium Amount
-                </label>
-                <input
-                  type="number"
-                  name="premiumAmount"
-                  required
-                  step="0.01"
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Insurance Agency
-                </label>
-                <input
-                  type="text"
-                  name="agency"
-                  required
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowEditModal(false)}
-                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                >
-                  Apply Insurance
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}
 
       {/* Details Modal */}
       {showDetailsModal && selectedRecord && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Crop Insurance Details</h3>
+        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border-2 border-black">
+            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
+              <h2 className="text-2xl font-bold text-black">📋 Crop Insurance Details</h2>
               <button
                 onClick={() => setShowDetailsModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-black hover:bg-lime-200 rounded-full p-1"
               >
                 <X size={24} />
               </button>
             </div>
+            <div className="p-6 bg-white">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Farmer Information</h4>
-                <p className="text-sm text-gray-600">Name: {getFarmerName(selectedRecord.farmerId)}</p>
-                <p className="text-sm text-gray-600">Crop: {selectedRecord.cropType}</p>
-                <p className="text-sm text-gray-600">Area: {selectedRecord.cropArea} hectares</p>
-                <p className="text-sm text-gray-600">Lot: {selectedRecord.lotNumber}</p>
+              <div className="p-4 bg-lime-50 border-2 border-black rounded-lg">
+                <h4 className="font-bold text-black mb-2 uppercase text-sm">Farmer Information</h4>
+                <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Name:</span> {getFarmerName(selectedRecord.farmerId)}</p>
+                <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Crop:</span> {selectedRecord.cropType}</p>
+                <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Area:</span> {selectedRecord.cropArea} hectares</p>
+                <p className="text-sm text-gray-700"><span className="font-semibold">Lot:</span> {selectedRecord.lotNumber}</p>
               </div>
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Timeline</h4>
-                <p className="text-sm text-gray-600">Planting: {formatDate(selectedRecord.plantingDate)}</p>
-                <p className="text-sm text-gray-600">Expected Harvest: {formatDate(selectedRecord.expectedHarvestDate)}</p>
-                <p className="text-sm text-gray-600">Insurance Deadline: {formatDate(selectedRecord.insuranceDeadline)}</p>
-                <p className="text-sm text-gray-600">Day Limit: {selectedRecord.insuranceDayLimit} days</p>
+              <div className="p-4 bg-lime-50 border-2 border-black rounded-lg">
+                <h4 className="font-bold text-black mb-2 uppercase text-sm">Timeline</h4>
+                <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Planting:</span> {formatDate(selectedRecord.plantingDate)}</p>
+                <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Expected Harvest:</span> {formatDate(selectedRecord.expectedHarvestDate)}</p>
+                <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Insurance Deadline:</span> {formatDate(selectedRecord.insuranceDeadline)}</p>
+                <p className="text-sm text-gray-700"><span className="font-semibold">Day Limit:</span> {selectedRecord.insuranceDayLimit} days</p>
               </div>
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Insurance Status</h4>
-                <p className="text-sm text-gray-600">
-                  Status: <span className={getStatusColor(selectedRecord)}>{getStatusText(selectedRecord)}</span>
+              <div className="p-4 bg-lime-50 border-2 border-black rounded-lg">
+                <h4 className="font-bold text-black mb-2 uppercase text-sm">Insurance Status</h4>
+                <p className="text-sm text-gray-700 mb-1">
+                  <span className="font-semibold">Status:</span> <span className={getStatusColor(selectedRecord)}>{getStatusText(selectedRecord)}</span>
                 </p>
                 {selectedRecord.isInsured && (
                   <>
-                    <p className="text-sm text-gray-600">Insurance Date: {formatDate(selectedRecord.insuranceDate)}</p>
-                    <p className="text-sm text-gray-600">Insurance Type: {selectedRecord.insuranceType}</p>
-                    <p className="text-sm text-gray-600">Premium: ₱{selectedRecord.premiumAmount}</p>
-                    <p className="text-sm text-gray-600">Agency: {selectedRecord.agency}</p>
+                    <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Insurance Date:</span> {formatDate(selectedRecord.insuranceDate)}</p>
+                    <p className="text-sm text-gray-700"><span className="font-semibold">Agency:</span> {selectedRecord.agency}</p>
                   </>
                 )}
-                {!selectedRecord.isInsured && selectedRecord.canInsure && (
+                {!selectedRecord.isInsured && getRemainingDays(selectedRecord) > 0 && (
                   <p className="text-sm text-yellow-600">
                     {getRemainingDays(selectedRecord)} days remaining to apply insurance
                   </p>
                 )}
               </div>
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Additional Information</h4>
-                <p className="text-sm text-gray-600">Created: {formatDate(selectedRecord.createdAt)}</p>
-                <p className="text-sm text-gray-600">Updated: {formatDate(selectedRecord.updatedAt)}</p>
+              <div className="p-4 bg-lime-50 border-2 border-black rounded-lg">
+                <h4 className="font-bold text-black mb-2 uppercase text-sm">Additional Information</h4>
+                <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Created:</span> {formatDate(selectedRecord.createdAt)}</p>
+                <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Updated:</span> {formatDate(selectedRecord.updatedAt)}</p>
                 {selectedRecord.notes && (
-                  <p className="text-sm text-gray-600">Notes: {selectedRecord.notes}</p>
+                  <p className="text-sm text-gray-700"><span className="font-semibold">Notes:</span> {selectedRecord.notes}</p>
                 )}
+              </div>
+              {selectedRecord.evidenceImage && (
+                <div className="md:col-span-2 p-4 bg-lime-50 border-2 border-black rounded-lg">
+                  <h4 className="font-bold text-black mb-2 uppercase text-sm">Evidence Image</h4>
+                  <img src={selectedRecord.evidenceImage} alt="Evidence" className="max-w-full h-64 object-contain border-2 border-black rounded-lg" />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full border-2 border-black">
+            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
+              <h2 className="text-2xl font-bold text-black">⚠️ Confirm Delete</h2>
+              <button
+                onClick={() => {
+                  setShowDeleteConfirm(false)
+                  setRecordToDelete(null)
+                }}
+                className="text-black hover:bg-lime-200 rounded-full p-1"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6 bg-white">
+              <p className="text-black mb-6 text-center">
+                Are you sure you want to delete this crop insurance record? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(false)
+                    setRecordToDelete(null)
+                  }}
+                  className="flex-1 bg-white border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-gray-100 font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteRecord}
+                  className="flex-1 bg-red-500 border-2 border-black text-white px-4 py-3 rounded-lg hover:bg-red-600 font-bold"
+                >
+                  Delete
+                </button>
               </div>
             </div>
           </div>
