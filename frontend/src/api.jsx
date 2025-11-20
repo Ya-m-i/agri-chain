@@ -65,23 +65,39 @@ export const fetchActiveFarmers = async () => {
 };
 
 export const loginFarmer = async (username, password) => {
-  return await fetchWithRetry(apiUrl('/api/farmers/login'), {
+  // Use extended timeout (45 seconds) and more retries (5) for login
+  // This helps with low connection scenarios
+  return await fetchWithRetry(
+    apiUrl('/api/farmers/login'), 
+    {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ username, password }),
-  });
+    },
+    5, // 5 retries instead of 3
+    45000, // 45 second timeout instead of 15
+    2000 // 2 second base backoff instead of 1
+  );
 };
 
 export const loginUser = async (username, password) => {
-  return await fetchWithRetry(apiUrl('/api/users/login'), {
+  // Use extended timeout (45 seconds) and more retries (5) for login
+  // This helps with low connection scenarios
+  return await fetchWithRetry(
+    apiUrl('/api/users/login'), 
+    {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ username, password }),
-  });
+    },
+    5, // 5 retries instead of 3
+    45000, // 45 second timeout instead of 15
+    2000 // 2 second base backoff instead of 1
+  );
 };
 
 export const getUserProfile = async (token) => {

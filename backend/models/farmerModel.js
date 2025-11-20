@@ -60,4 +60,9 @@ const farmerSchema = mongoose.Schema({
     timestamps: true,
 })
 
+// Add indexes for faster login queries
+farmerSchema.index({ username: 1 }, { unique: true })
+farmerSchema.index({ lastLogin: -1 })
+farmerSchema.index({ isOnline: 1 })
+
 module.exports = mongoose.model('Farmer', farmerSchema) 

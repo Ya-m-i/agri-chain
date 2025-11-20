@@ -52,18 +52,23 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 })
 
-// @desc Auth user & get token
+// @desc Auth user & get token (optimized for speed)
 // @route POST /api/users/login
 // @access Public
 const loginUser = asyncHandler(async (req, res) => {
-
     const { username, password } = req.body
-    // check for user email
+    
+    // Optimize: Only fetch essential fields for login
+    // Use lean() for faster query (returns plain JS object, no Mongoose overhead)
     const user = await User.findOne({ username })
+        .select('_id username password role name')
+        .lean()
 
     if(user && (await bcrypt.compare(password, user.password))) {
+        // Return minimal data - only what's needed for login
         res.json({
             _id: user._id,
+            id: user._id,
             username: user.username,
             role: user.role || 'user',
             name: user.name || user.username,
@@ -73,7 +78,6 @@ const loginUser = asyncHandler(async (req, res) => {
         res.status(400)
         throw new Error('Invalid credentials')
     }
-
 })
 
 // @desc Get user data

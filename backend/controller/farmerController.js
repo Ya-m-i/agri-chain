@@ -64,26 +64,42 @@ const getFarmers = async (req, res) => {
     }
 }
 
-// @desc    Farmer login
+// @desc    Farmer login (optimized for speed - returns minimal data)
 // @route   POST /api/farmers/login
 // @access  Public
 const loginFarmer = async (req, res) => {
     try {
         const { username, password } = req.body;
-        const farmer = await Farmer.findOne({ username });
+        
+        // Optimize: Only fetch essential fields for login check
+        // Use lean() for faster query (returns plain JS object, no Mongoose overhead)
+        const farmer = await Farmer.findOne({ username })
+            .select('_id username password firstName lastName middleName contactNum cropType cropArea')
+            .lean();
         
         if (farmer && await bcrypt.compare(password, farmer.password)) {
-            // Update lastLogin and isOnline status
-            await Farmer.findByIdAndUpdate(farmer._id, {
-                lastLogin: new Date(),
-                isOnline: true
-            });
+            const now = new Date();
             
-            // Exclude password from response
-            const { password, ...farmerData } = farmer.toObject();
+            // Optimize: Update in background (don't wait for it) for faster response
+            // Use updateOne instead of findByIdAndUpdate for better performance
+            Farmer.findByIdAndUpdate(farmer._id, {
+                lastLogin: now,
+                isOnline: true
+            }).catch(err => console.error('Background update error:', err));
+            
+            // Return only essential data for login - minimal payload
+            // Full profile can be fetched later if needed
             res.json({
-                ...farmerData,
-                lastLogin: new Date(),
+                _id: farmer._id,
+                id: farmer._id,
+                username: farmer.username,
+                firstName: farmer.firstName,
+                lastName: farmer.lastName,
+                middleName: farmer.middleName,
+                contactNum: farmer.contactNum,
+                cropType: farmer.cropType,
+                cropArea: farmer.cropArea,
+                lastLogin: now,
                 isOnline: true,
                 token: generateToken(farmer._id)
             });

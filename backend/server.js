@@ -1,5 +1,6 @@
 const express = require('express')
 const cors = require('cors')
+const compression = require('compression')
 const { createServer } = require('http')
 const { Server } = require('socket.io')
 const colors = require('colors')
@@ -101,6 +102,20 @@ const corsOptions = {
 }
 
 app.use(cors(corsOptions))
+
+// Enable compression for all responses (reduces payload size significantly)
+// This helps with slow connections by reducing data transfer
+app.use(compression({
+  level: 6, // Balance between compression and CPU usage
+  threshold: 1024, // Only compress responses larger than 1KB
+  filter: (req, res) => {
+    // Compress all responses except if client doesn't support it
+    if (req.headers['x-no-compression']) {
+      return false
+    }
+    return compression.filter(req, res)
+  }
+}))
 
 // Enhanced CORS configuration for production deployment
 app.use((req, res, next) => {

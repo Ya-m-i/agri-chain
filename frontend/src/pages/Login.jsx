@@ -49,6 +49,18 @@ const Login = () => {
     console.log('Login: Clearing existing auth state before new login');
     logout();
 
+    // Detect connection quality for user feedback
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const isSlowConnection = connection && (
+      connection.effectiveType === 'slow-2g' || 
+      connection.effectiveType === '2g' ||
+      connection.downlink < 1.5
+    );
+    
+    if (isSlowConnection) {
+      console.log('Login: Slow connection detected, using extended timeout');
+    }
+
     if (isAdminMode) {
       try {
         console.log('Login: Attempting admin login...');
@@ -82,13 +94,19 @@ const Login = () => {
         login("admin", userData)
         console.log("Admin login successful, navigating to /admin")
         
-        // Add delay for loading animation
-        setTimeout(() => {
-          navigate("/admin")
-        }, 1000);
+        // Navigate immediately - no delay for faster login experience
+        // Full profile data can be fetched in background after navigation
+        navigate("/admin")
       } catch (err) {
         console.error('Login: Admin login failed:', err);
-        setErrorMsg(err.message || "Invalid admin credentials");
+        // Provide more helpful error messages
+        let errorMessage = err.message || "Invalid admin credentials";
+        if (errorMessage.includes('timeout') || errorMessage.includes('timed out')) {
+          errorMessage = "Connection timeout. Please check your internet connection and try again. The system will automatically retry.";
+        } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('network')) {
+          errorMessage = "Network error. Please check your internet connection and try again.";
+        }
+        setErrorMsg(errorMessage);
         setIsLoggingIn(false);
       }
     } else {
@@ -115,13 +133,19 @@ const Login = () => {
         
         login("farmer", userData);
         
-        // Add delay for loading animation
-        setTimeout(() => {
-          navigate("/farmer-dashboard");
-        }, 1000);
+        // Navigate immediately - no delay for faster login experience
+        // Full profile data can be fetched in background after navigation
+        navigate("/farmer-dashboard");
       } catch (err) {
         console.error('Login: Farmer login failed:', err);
-        setErrorMsg(err.message || "Invalid farmer credentials");
+        // Provide more helpful error messages
+        let errorMessage = err.message || "Invalid farmer credentials";
+        if (errorMessage.includes('timeout') || errorMessage.includes('timed out')) {
+          errorMessage = "Connection timeout. Please check your internet connection and try again. The system will automatically retry.";
+        } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('network')) {
+          errorMessage = "Network error. Please check your internet connection and try again.";
+        }
+        setErrorMsg(errorMessage);
         setIsLoggingIn(false);
       }
     }
@@ -286,7 +310,7 @@ const Login = () => {
       <div className="absolute bottom-0 right-0 w-32 h-32 sm:w-48 sm:h-48 lg:w-64 lg:h-64 bg-lime-800 opacity-5 rounded-full -mr-16 sm:-mr-24 lg:-mr-32 -mb-16 sm:-mb-24 lg:-mb-32 z-10"></div>
       
       {/* Loading Overlay */}
-      <LoadingOverlay isVisible={isLoggingIn} />
+      <LoadingOverlay isVisible={isLoggingIn} message="Logging in..." />
     </div>
   )
 }
