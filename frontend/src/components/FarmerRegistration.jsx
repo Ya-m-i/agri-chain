@@ -17,6 +17,7 @@ import {
   Shield,
   Key,
   Upload,
+  Eye,
 } from "lucide-react"
 // Image assets removed - no longer used in this component
 import {
@@ -73,6 +74,8 @@ const FarmerRegistration = ({
     message: '',
     onConfirm: null
   })
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [timePeriod, setTimePeriod] = useState("monthly") // monthly or quarterly
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
@@ -1544,66 +1547,67 @@ const FarmerRegistration = ({
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal - Design Vibe */}
       {showDeleteConfirmation && farmerToDelete && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-2 border-lime-200">
-            <div className="flex items-center mb-4">
-              <div className="bg-red-100 rounded-full p-2 mr-3">
-                <AlertTriangle className="text-red-600" size={24} />
-              </div>
-              <h3 className="text-xl font-bold text-gray-800">
-              Delete Farmer
-            </h3>
-            </div>
-            <p className="mb-6 text-gray-600">
-              Are you sure you want to delete <strong className="text-gray-800">{farmerToDelete.farmerName || `${farmerToDelete.firstName || ''} ${farmerToDelete.middleName || ''} ${farmerToDelete.lastName || ''}`.replace(/  +/g, ' ').trim()}</strong>? This action cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-3">
+        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full border-2 border-black">
+            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
+              <h2 className="text-2xl font-bold text-black">⚠️ Delete Farmer</h2>
               <button
                 onClick={() => {
-                  console.log('Cancel button clicked');
                   setShowDeleteConfirmation(false);
                   setFarmerToDelete(null);
                 }}
-                className="px-6 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-semibold border-2 border-gray-300"
+                className="text-black hover:bg-lime-200 rounded-full p-1"
+              >
+                <X size={24} />
+              </button>
+              </div>
+            <div className="p-6 bg-white">
+              <div className="mb-4 p-3 bg-red-50 border-2 border-red-500 rounded-lg">
+                <p className="text-sm font-semibold text-black mb-2">
+                  Are you sure you want to delete this farmer?
+                </p>
+                <p className="text-sm text-gray-700 font-bold">
+                  {farmerToDelete.farmerName || `${farmerToDelete.firstName || ''} ${farmerToDelete.middleName || ''} ${farmerToDelete.lastName || ''}`.replace(/  +/g, ' ').trim()}
+                </p>
+                <p className="text-xs text-red-600 mt-2">
+                  ⚠️ This action cannot be undone.
+            </p>
+              </div>
+              <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteConfirmation(false);
+                  setFarmerToDelete(null);
+                }}
+                  className="flex-1 bg-white border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-gray-100 font-bold"
               >
                 Cancel
               </button>
               <button
                 onClick={async () => {
-                  console.log('Delete confirmation button clicked');
                   try {
-                    console.log('Attempting to delete farmer:', farmerToDelete);
-                    
-                    // Check if farmer has _id (from database) or id (from localStorage)
                     const farmerId = farmerToDelete._id || farmerToDelete.id;
-                    console.log('Using farmer ID:', farmerId);
                     
                     if (!farmerId) {
                       throw new Error('No valid farmer ID found');
                     }
                     
-                    // Delete from backend database using React Query
                     await deleteFarmerMutation.mutateAsync(farmerId)
                     
                     setShowDeleteConfirmation(false)
                     setFarmerToDelete(null)
-                    
-                    // Note: Notifications are now created by backend API automatically
-                    console.log('Farmer deleted successfully:', farmerToDelete.farmerName)
                   } catch (error) {
                     console.error('Error deleting farmer:', error);
-                    
-                    // Note: Error notifications are now created by backend API automatically
-                    console.error('Error deleting farmer:', error)
                   }
                 }}
-                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold border-2 border-red-700 flex items-center"
+                  className="flex-1 bg-red-500 border-2 border-black text-white px-4 py-3 rounded-lg hover:bg-red-600 font-bold flex items-center justify-center"
               >
-                <X size={16} className="mr-1" />
+                  <X size={20} className="mr-2" />
                 Delete
               </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1778,6 +1782,8 @@ const FarmerRegistration = ({
                   setShowChangePasswordModal(false);
                   setSelectedFarmerForPassword(null);
                   setPasswordForm({ username: '', password: '', confirmPassword: '' });
+                  setShowNewPassword(false);
+                  setShowConfirmPassword(false);
                 }}
               >
                 <X size={24} />
@@ -1851,6 +1857,8 @@ const FarmerRegistration = ({
                       setShowChangePasswordModal(false);
                       setSelectedFarmerForPassword(null);
                       setPasswordForm({ username: '', password: '', confirmPassword: '' });
+                      setShowNewPassword(false);
+                      setShowConfirmPassword(false);
                       setShowPasswordConfirmation(false);
                       
                       // Show success confirmation
@@ -1891,28 +1899,46 @@ const FarmerRegistration = ({
                   <label className="block text-xs font-bold text-black mb-1 uppercase">
                     New Password
                   </label>
+                  <div className="relative">
                   <input
-                    type="password"
+                      type={showNewPassword ? "text" : "password"}
                     value={passwordForm.password}
                     onChange={(e) => setPasswordForm({ ...passwordForm, password: e.target.value })}
-                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
+                      className="w-full bg-white border-2 border-black p-3 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400 pr-10"
                     placeholder="Enter new password"
                     required
                   />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-black"
+                    >
+                      {showNewPassword ? <Eye size={20} /> : <Key size={20} />}
+                    </button>
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-black mb-1 uppercase">
                     Confirm Password
                   </label>
+                  <div className="relative">
                   <input
-                    type="password"
+                      type={showConfirmPassword ? "text" : "password"}
                     value={passwordForm.confirmPassword}
                     onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                    className="w-full bg-white border-2 border-black p-3 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
+                      className="w-full bg-white border-2 border-black p-3 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400 pr-10"
                     placeholder="Confirm new password"
                     required
                   />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-black"
+                    >
+                      {showConfirmPassword ? <Eye size={20} /> : <Key size={20} />}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex gap-3 mt-6 pt-6 border-t-2 border-black">
@@ -1922,6 +1948,8 @@ const FarmerRegistration = ({
                       setShowChangePasswordModal(false);
                       setSelectedFarmerForPassword(null);
                       setPasswordForm({ username: '', password: '', confirmPassword: '' });
+                      setShowNewPassword(false);
+                      setShowConfirmPassword(false);
                     }}
                     className="flex-1 bg-white border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-gray-100 transition-all font-bold"
                   >

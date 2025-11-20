@@ -16,13 +16,21 @@ export const fetchMessage = async () => {
 
 // API functions without caching
 export const registerFarmer = async (farmerData) => {
-  return await fetchWithRetry(apiUrl('/api/farmers'), {
+  // Use extended timeout (45 seconds) and more retries (5) for farmer registration
+  // Registration includes password hashing which can be slow on free tier servers
+  return await fetchWithRetry(
+    apiUrl('/api/farmers'), 
+    {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(farmerData),
-  });
+    },
+    5, // 5 retries
+    45000, // 45 second timeout
+    2000 // 2 second base backoff
+  );
 };
 
 export const bulkImportFarmers = async (csvFile) => {
@@ -36,23 +44,38 @@ export const bulkImportFarmers = async (csvFile) => {
 };
 
 export const deleteFarmer = async (farmerId) => {
-  return await fetchWithRetry(apiUrl(`/api/farmers/${farmerId}`), {
+  // Use extended timeout (30 seconds) and more retries (5) for delete operations
+  // Delete operations may need to clean up related data
+  return await fetchWithRetry(
+    apiUrl(`/api/farmers/${farmerId}`), 
+    {
     method: 'DELETE',
-  });
+    },
+    5, // 5 retries
+    30000, // 30 second timeout
+    2000 // 2 second base backoff
+  );
 };
 
 export const updateFarmer = async (farmerId, updateData) => {
-  // Increase timeout to 60 seconds for password updates (bcrypt hashing + slow servers can take time)
-  // Use 15 seconds for other updates to maintain responsiveness
-  // 60 seconds gives enough time for Render free tier and password hashing
-  const timeout = updateData.password ? 60000 : 15000;
-  return await fetchWithRetry(apiUrl(`/api/farmers/${farmerId}`), {
+  // Use extended timeout (60 seconds) and more retries (5) for password updates
+  // Use extended timeout (45 seconds) for other updates on slow connections
+  // Password hashing can be slow on free tier servers
+  const timeout = updateData.password ? 60000 : 45000;
+  const retries = updateData.password ? 5 : 5; // 5 retries for all updates
+  return await fetchWithRetry(
+    apiUrl(`/api/farmers/${farmerId}`), 
+    {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(updateData),
-  }, 3, timeout); // retries=3, timeout=60s for password updates, 15s for others
+    }, 
+    retries, 
+    timeout,
+    2000 // 2 second base backoff
+  );
 };
 
 // Fetch farmers without caching
@@ -461,13 +484,21 @@ export const getCropPriceStats = async () => {
 
 // Profile Image API Functions
 export const saveFarmerProfileImage = async (farmerId, profileImage) => {
-  return await fetchWithRetry(apiUrl('/api/farmers/profile-image'), {
+  // Use extended timeout (60 seconds) and more retries (5) for profile image upload
+  // Profile images can be large (base64 encoded), so they need more time on slow connections
+  return await fetchWithRetry(
+    apiUrl('/api/farmers/profile-image'), 
+    {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ farmerId, profileImage }),
-  });
+    },
+    5, // 5 retries
+    60000, // 60 second timeout for large image uploads
+    2000 // 2 second base backoff
+  );
 };
 
 export const getFarmerProfileImage = async (farmerId) => {
