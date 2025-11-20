@@ -26,7 +26,11 @@ const farmerSchema = mongoose.Schema({
     },
     lastLogin: { type: Date, default: null },
     isOnline: { type: Boolean, default: false },
-    profileImage: { type: String }, // Base64 encoded image or URL
+    profileImage: { type: String }, // Legacy Base64 encoded image or URL
+    profileImageData: { type: Buffer },
+    profileImageType: { type: String },
+    profileImageSize: { type: Number },
+    profileImageVersion: { type: Number, default: 0 },
     // Verification fields
     isVerified: { 
         type: Boolean, 

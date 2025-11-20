@@ -30,7 +30,8 @@ import {
 import { 
   saveFarmerProfileImage, 
   getAllFarmerProfileImages,
-  bulkImportFarmers
+  bulkImportFarmers,
+  API_BASE_URL
 } from '../api'
 // Note: Notifications are now handled by backend API
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts'
@@ -86,6 +87,8 @@ const FarmerRegistration = ({
   
   // Profile image state
   const [profileImages, setProfileImages] = useState({})
+  const [profileImageFiles, setProfileImageFiles] = useState({})
+  const [profileImagePreviews, setProfileImagePreviews] = useState({})
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [selectedFarmerForProfile, setSelectedFarmerForProfile] = useState(null)
   const [showProfileImageValidation, setShowProfileImageValidation] = useState(false)
@@ -114,6 +117,37 @@ const FarmerRegistration = ({
   const [csvFile, setCsvFile] = useState(null)
   const [importResults, setImportResults] = useState(null)
   const [isImporting, setIsImporting] = useState(false)
+
+  const buildProfileImageUrl = (farmerId, version = Date.now()) => {
+    if (!farmerId) return ''
+    return `${API_BASE_URL}/api/farmers/profile-image/${farmerId}?v=${version || Date.now()}`
+  }
+
+  const revokeObjectUrl = (url) => {
+    if (url && url.startsWith('blob:')) {
+      URL.revokeObjectURL(url)
+    }
+  }
+
+  const clearProfileImageDraft = (farmerId) => {
+    if (!farmerId) return
+
+    setProfileImageFiles((prev) => {
+      if (!prev[farmerId]) return prev
+      const updated = { ...prev }
+      delete updated[farmerId]
+      return updated
+    })
+
+    setProfileImagePreviews((prev) => {
+      const existingUrl = prev[farmerId]
+      if (!existingUrl) return prev
+      revokeObjectUrl(existingUrl)
+      const updated = { ...prev }
+      delete updated[farmerId]
+      return updated
+    })
+  }
 
   // Define selectedLocation and setSelectedLocation if needed for registration
   const [selectedFarmer, setSelectedFarmer] = useState(null);
@@ -424,6 +458,10 @@ const FarmerRegistration = ({
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const paginatedFarmers = filteredFarmers.slice(startIndex, endIndex)
+  const selectedProfileId = selectedFarmerForProfile?._id || selectedFarmerForProfile?.id
+  const selectedProfileImageSrc = selectedProfileId
+    ? (profileImagePreviews[selectedProfileId] || profileImages[selectedProfileId])
+    : null
 
   // Reset to first page when filters change
   useEffect(() => {
@@ -436,7 +474,16 @@ const FarmerRegistration = ({
       try {
         const response = await getAllFarmerProfileImages();
         if (response.success && response.profileImages) {
-          setProfileImages(response.profileImages);
+          const formattedImages = {};
+          Object.entries(response.profileImages).forEach(([farmerId, imageData]) => {
+            if (!imageData || !imageData.hasImage) return;
+            if (imageData.legacyData) {
+              formattedImages[farmerId] = imageData.legacyData;
+            } else {
+              formattedImages[farmerId] = buildProfileImageUrl(farmerId, imageData.version);
+            }
+          });
+          setProfileImages(formattedImages);
         }
       } catch (error) {
         console.error('Error loading profile images:', error);
@@ -469,7 +516,7 @@ const FarmerRegistration = ({
         <div className="flex items-center">
           <h2 className="text-2xl font-bold text-gray-800">Farmer Registration</h2>
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-wrap justify-end">
           <button
             className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center font-bold uppercase tracking-wide"
             onClick={() => setShowRegisterForm(true)}
@@ -479,7 +526,7 @@ const FarmerRegistration = ({
             Register New Farmer
           </button>
           <button
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center shadow-sm font-semibold"
+            className="bg-black text-lime-300 px-4 py-2 rounded-lg border border-lime-400 hover:bg-lime-300 hover:text-black transition-colors flex items-center justify-center shadow-sm font-semibold"
             onClick={() => setShowImportModal(true)}
           >
             <Upload className="mr-2 h-5 w-5" />
@@ -669,7 +716,7 @@ const FarmerRegistration = ({
           <div className="relative">
             <button
               onClick={() => setShowCropFilter(!showCropFilter)}
-              className="bg-lime-200 text-black px-3 py-2 rounded-lg hover:bg-black hover:text-lime-400 transition-colors focus:outline-none text-sm font-medium"
+              className="bg-black text-lime-300 px-3 py-2 rounded-lg border border-lime-400 hover:bg-lime-300 hover:text-black transition-colors focus:outline-none focus:ring-2 focus:ring-lime-300 text-sm font-semibold"
             >
               <span className="text-sm font-medium">
                 {formData.cropType || "All Crops"}
@@ -710,7 +757,7 @@ const FarmerRegistration = ({
           <div className="relative">
             <button
               onClick={() => setShowBarangayFilter(!showBarangayFilter)}
-              className="bg-lime-200 text-black px-3 py-2 rounded-lg hover:bg-black hover:text-lime-400 transition-colors focus:outline-none text-sm font-medium"
+              className="bg-black text-lime-300 px-3 py-2 rounded-lg border border-lime-400 hover:bg-lime-300 hover:text-black transition-colors focus:outline-none focus:ring-2 focus:ring-lime-300 text-sm font-semibold"
             >
               <span className="text-sm font-medium">
                 {formData.barangay || "All Barangays"}
@@ -751,7 +798,7 @@ const FarmerRegistration = ({
           <div className="relative">
             <button
               onClick={() => setShowCertFilter(!showCertFilter)}
-              className="bg-lime-200 text-black px-3 py-2 rounded-lg hover:bg-black hover:text-lime-400 transition-colors focus:outline-none text-sm font-medium"
+              className="bg-black text-lime-300 px-3 py-2 rounded-lg border border-lime-400 hover:bg-lime-300 hover:text-black transition-colors focus:outline-none focus:ring-2 focus:ring-lime-300 text-sm font-semibold"
             >
               <span className="text-sm font-medium">
                 {formData.isCertified === true ? "Certified" : formData.isCertified === false ? "Not Certified" : "All Certifications"}
@@ -798,7 +845,7 @@ const FarmerRegistration = ({
           <div className="relative">
             <input
               type="text"
-              className="bg-lime-200 text-black border border-black px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 text-sm font-medium placeholder-black placeholder-opacity-60 w-40"
+              className="bg-black text-lime-300 border border-lime-400 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-300 text-sm font-semibold placeholder-lime-500 placeholder-opacity-80 w-40"
               placeholder="Search by name"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -1626,7 +1673,12 @@ const FarmerRegistration = ({
             <div className="sticky top-0 bg-lime-700 text-white p-4 rounded-t-xl flex justify-between items-center">
               <h2 className="text-xl font-bold">Set Profile Picture</h2>
               <button
-                onClick={() => setShowProfileModal(false)}
+                onClick={() => {
+                  if (selectedProfileId) {
+                    clearProfileImageDraft(selectedProfileId)
+                  }
+                  setShowProfileModal(false)
+                }}
                 className="text-white hover:text-gray-200 focus:outline-none"
               >
                 <X size={24} />
@@ -1643,9 +1695,9 @@ const FarmerRegistration = ({
               
               <div className="space-y-4">
                 <div className="flex justify-center">
-                  {profileImages[selectedFarmerForProfile._id || selectedFarmerForProfile.id] ? (
+                  {selectedProfileImageSrc ? (
                     <img 
-                      src={profileImages[selectedFarmerForProfile._id || selectedFarmerForProfile.id]} 
+                      src={selectedProfileImageSrc} 
                       alt="Current Profile" 
                       className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
                     />
@@ -1665,8 +1717,8 @@ const FarmerRegistration = ({
                     accept="image/*"
                     onChange={(e) => {
                       const file = e.target.files[0];
-                      if (file) {
-                        // Check file size before reading (5MB limit)
+                      const farmerId = selectedFarmerForProfile._id || selectedFarmerForProfile.id;
+                      if (file && farmerId) {
                         const fileSizeMB = file.size / 1024 / 1024;
                         if (fileSizeMB > 5) {
                           setProfileImageValidationData({
@@ -1675,23 +1727,28 @@ const FarmerRegistration = ({
                             onConfirm: () => {
                               setShowProfileImageValidation(false);
                               setProfileImageValidationData({ type: '', message: '', onConfirm: null });
-                              // Reset file input
                               e.target.value = '';
                             }
                           });
                           setShowProfileImageValidation(true);
                           return;
                         }
-                        
-                        const reader = new FileReader();
-                        reader.onload = (event) => {
-                          const farmerId = selectedFarmerForProfile._id || selectedFarmerForProfile.id;
-                          setProfileImages(prev => ({
+
+                        setProfileImageFiles((prev) => ({
+                          ...prev,
+                          [farmerId]: file
+                        }));
+
+                        setProfileImagePreviews((prev) => {
+                          const existingUrl = prev[farmerId];
+                          if (existingUrl) {
+                            revokeObjectUrl(existingUrl);
+                          }
+                          return {
                             ...prev,
-                            [farmerId]: event.target.result
-                          }));
-                        };
-                        reader.readAsDataURL(file);
+                            [farmerId]: URL.createObjectURL(file)
+                          };
+                        });
                       }
                     }}
                     className="w-full border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-lime-500"
@@ -1700,7 +1757,12 @@ const FarmerRegistration = ({
                 
                 <div className="flex justify-end space-x-3">
                   <button
-                    onClick={() => setShowProfileModal(false)}
+                    onClick={() => {
+                      if (selectedProfileId) {
+                        clearProfileImageDraft(selectedProfileId)
+                      }
+                      setShowProfileModal(false)
+                    }}
                     className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
                   >
                     Cancel
@@ -1708,16 +1770,15 @@ const FarmerRegistration = ({
                   <button
                     onClick={async () => {
                       try {
-                        const farmerId = selectedFarmerForProfile._id || selectedFarmerForProfile.id;
-                        const currentProfileImage = profileImages[farmerId];
+                        const farmerId = selectedProfileId;
+                        const fileToUpload = farmerId ? profileImageFiles[farmerId] : null;
                         
-                        if (currentProfileImage) {
-                          // Check image size (base64 images can be large)
-                          const imageSizeMB = (currentProfileImage.length * 3) / 4 / 1024 / 1024;
-                          if (imageSizeMB > 5) {
+                        if (farmerId && fileToUpload) {
+                          const fileSizeMB = fileToUpload.size / 1024 / 1024;
+                          if (fileSizeMB > 5) {
                             setProfileImageValidationData({
                               type: 'error',
-                              message: `Image is too large (${imageSizeMB.toFixed(2)}MB). Please use an image smaller than 5MB.`,
+                              message: `Image is too large (${fileSizeMB.toFixed(2)}MB). Please use an image smaller than 5MB.`,
                               onConfirm: () => {
                                 setShowProfileImageValidation(false);
                                 setProfileImageValidationData({ type: '', message: '', onConfirm: null });
@@ -1727,19 +1788,21 @@ const FarmerRegistration = ({
                             return;
                           }
                           
-                          // Save to MongoDB
-                          const response = await saveFarmerProfileImage(farmerId, currentProfileImage);
+                          const response = await saveFarmerProfileImage(farmerId, fileToUpload);
                           
                           if (response && response.success) {
+                            const updatedUrl = buildProfileImageUrl(farmerId, response.version);
+                            setProfileImages((prev) => ({
+                              ...prev,
+                              [farmerId]: updatedUrl
+                            }));
+                            clearProfileImageDraft(farmerId);
                             setShowProfileModal(false);
-                            // Note: Notifications are now created by backend API automatically
-                            console.log('Profile picture saved successfully')
+                            console.log('Profile picture saved successfully');
                           } else {
                             throw new Error(response?.message || 'Failed to save profile image');
                           }
                         } else {
-                          // Note: Error notifications are now created by backend API automatically
-                          console.error('No image selected')
                           setProfileImageValidationData({
                             type: 'error',
                             message: 'Please select an image first',
@@ -1752,7 +1815,6 @@ const FarmerRegistration = ({
                         }
                       } catch (error) {
                         console.error('Error saving profile image:', error);
-                        // Provide user-friendly error message
                         const errorMessage = error.message || 'Failed to save profile image. Please check your connection and try again.';
                         setProfileImageValidationData({
                           type: 'error',
@@ -1763,7 +1825,6 @@ const FarmerRegistration = ({
                           }
                         });
                         setShowProfileImageValidation(true);
-                        // Note: Error notifications are now created by backend API automatically
                       }
                     }}
                     className="px-4 py-2 bg-lime-600 text-white rounded-lg hover:bg-lime-700 transition-colors"

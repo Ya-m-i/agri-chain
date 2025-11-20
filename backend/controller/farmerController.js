@@ -175,27 +175,37 @@ const logoutFarmer = async (req, res) => {
 // @access  Public
 const saveFarmerProfileImage = async (req, res) => {
     try {
-        const { farmerId, profileImage } = req.body;
+        const { farmerId } = req.body;
+        const file = req.file;
         
-        if (!farmerId || !profileImage) {
-            return res.status(400).json({ message: 'Farmer ID and profile image are required' });
+        if (!farmerId) {
+            return res.status(400).json({ message: 'Farmer ID is required' });
+        }
+
+        if (!file) {
+            return res.status(400).json({ message: 'Profile image file is required' });
         }
         
-        // Update farmer with profile image
-        const farmer = await Farmer.findByIdAndUpdate(
-            farmerId,
-            { profileImage },
-            { new: true }
-        );
+        const farmer = await Farmer.findById(farmerId);
         
         if (!farmer) {
             return res.status(404).json({ message: 'Farmer not found' });
         }
+
+        farmer.profileImageData = file.buffer;
+        farmer.profileImageType = file.mimetype;
+        farmer.profileImageSize = file.size;
+        farmer.profileImageVersion = (farmer.profileImageVersion || 0) + 1;
+        if (farmer.profileImage) {
+            farmer.profileImage = undefined;
+        }
+        
+        await farmer.save();
         
         res.json({
             success: true,
             message: 'Profile image saved successfully',
-            farmer: farmer
+            version: farmer.profileImageVersion
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -209,16 +219,35 @@ const getFarmerProfileImage = async (req, res) => {
     try {
         const { farmerId } = req.params;
         
-        const farmer = await Farmer.findById(farmerId).select('profileImage');
+        const farmer = await Farmer.findById(farmerId).select('profileImage profileImageData profileImageType');
         
         if (!farmer) {
             return res.status(404).json({ message: 'Farmer not found' });
         }
-        
-        res.json({
-            success: true,
-            profileImage: farmer.profileImage || null
-        });
+
+        if (farmer.profileImageData && farmer.profileImageData.length) {
+            res.set('Content-Type', farmer.profileImageType || 'image/jpeg');
+            res.set('Cache-Control', 'public, max-age=31536000, immutable');
+            return res.send(farmer.profileImageData);
+        }
+
+        if (farmer.profileImage) {
+            let base64Data = farmer.profileImage;
+            let mimeType = 'image/png';
+
+            if (typeof base64Data === 'string' && base64Data.startsWith('data:')) {
+                const [metadata, data] = base64Data.split(',');
+                mimeType = metadata.split(';')[0].replace('data:', '') || mimeType;
+                base64Data = data;
+            }
+
+            const buffer = Buffer.from(base64Data.replace(/^data:.+;base64,/, ''), 'base64');
+            res.set('Content-Type', mimeType);
+            res.set('Cache-Control', 'public, max-age=31536000, immutable');
+            return res.send(buffer);
+        }
+
+        return res.status(404).json({ message: 'No profile image found' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -229,17 +258,34 @@ const getFarmerProfileImage = async (req, res) => {
 // @access  Public
 const getAllFarmerProfileImages = async (req, res) => {
     try {
-        const farmers = await Farmer.find({ profileImage: { $exists: true, $ne: null } })
-            .select('_id profileImage firstName lastName farmerName');
+        const farmers = await Farmer.find({
+            $or: [
+                { profileImageData: { $exists: true, $ne: null } },
+                { profileImage: { $exists: true, $ne: null } }
+            ]
+        }).select('_id profileImage profileImageData profileImageType profileImageVersion');
         
         const profileImages = {};
         farmers.forEach(farmer => {
-            profileImages[farmer._id] = farmer.profileImage;
+            if (farmer.profileImageData && farmer.profileImageData.length) {
+                profileImages[farmer._id] = {
+                    hasImage: true,
+                    version: farmer.profileImageVersion || 0,
+                    type: farmer.profileImageType || 'image/jpeg'
+                };
+            } else if (farmer.profileImage) {
+                profileImages[farmer._id] = {
+                    hasImage: true,
+                    legacyData: farmer.profileImage,
+                    version: farmer.profileImageVersion || 0,
+                    type: 'image/png'
+                };
+            }
         });
         
         res.json({
             success: true,
-            profileImages: profileImages
+            profileImages
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

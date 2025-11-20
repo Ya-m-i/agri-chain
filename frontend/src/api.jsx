@@ -1,13 +1,13 @@
 import { fetchWithRetry } from "./utils/fetchWithRetry";
 
 // API Base URL configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 
   (import.meta.env.PROD 
     ? 'https://backend.kapalongagrichain.site'  // Production API domain
     : 'http://localhost:5000');  // Local development
 
 // Helper function to build full API URLs
-const apiUrl = (endpoint) => `${API_BASE_URL}${endpoint}`;
+export const apiUrl = (endpoint) => `${API_BASE_URL}${endpoint}`;
 
 // Legacy fetch functions (keeping for backward compatibility)
 export const fetchMessage = async () => {
@@ -483,21 +483,21 @@ export const getCropPriceStats = async () => {
 };
 
 // Profile Image API Functions
-export const saveFarmerProfileImage = async (farmerId, profileImage) => {
-  // Use extended timeout (60 seconds) and more retries (5) for profile image upload
-  // Profile images can be large (base64 encoded), so they need more time on slow connections
+export const saveFarmerProfileImage = async (farmerId, file) => {
+  // Use extended timeout (60 seconds) and more retries (5) for image uploads
+  const formData = new FormData();
+  formData.append('farmerId', farmerId);
+  formData.append('profileImage', file);
+
   return await fetchWithRetry(
-    apiUrl('/api/farmers/profile-image'), 
+    apiUrl('/api/farmers/profile-image'),
     {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+      method: 'POST',
+      body: formData,
     },
-    body: JSON.stringify({ farmerId, profileImage }),
-    },
-    5, // 5 retries
-    60000, // 60 second timeout for large image uploads
-    2000 // 2 second base backoff
+    5,
+    60000,
+    2000
   );
 };
 
