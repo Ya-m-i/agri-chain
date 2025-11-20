@@ -22,6 +22,7 @@ import {
   Timer,
   ChevronLeft,
   ChevronRight,
+  RefreshCw,
 } from "lucide-react"
 
 // Import custom KPI icons
@@ -41,12 +42,29 @@ import {
 
 const CropInsuranceManagement = () => {
   // React Query hooks
-  const { data: cropInsuranceRecords = [], isLoading: insuranceLoading } = useCropInsurance()
-  const { data: farmers = [], isLoading: farmersLoading } = useFarmers()
-  const { data: stats = {}, isLoading: statsLoading } = useCropInsuranceStats()
+  const { data: cropInsuranceRecords = [], isLoading: insuranceLoading, refetch: refetchInsurance } = useCropInsurance()
+  const { data: farmers = [], isLoading: farmersLoading, refetch: refetchFarmers } = useFarmers()
+  const { data: stats = {}, isLoading: statsLoading, refetch: refetchStats } = useCropInsuranceStats()
   const createInsuranceMutation = useCreateCropInsurance()
   const updateInsuranceMutation = useUpdateCropInsurance()
   const deleteInsuranceMutation = useDeleteCropInsurance()
+
+  // Delayed auto-refresh function (5-10 seconds after action)
+  const delayedRefresh = () => {
+    const delay = Math.random() * 5000 + 5000 // Random delay between 5-10 seconds
+    setTimeout(async () => {
+      try {
+        await Promise.all([
+          refetchInsurance(),
+          refetchFarmers(),
+          refetchStats()
+        ]);
+        console.log('Table data refreshed after action');
+      } catch (error) {
+        console.error('Error refreshing data:', error);
+      }
+    }, delay);
+  }
   
   // Combined loading state
   const loading = insuranceLoading || farmersLoading || statsLoading || 
@@ -180,6 +198,8 @@ const CropInsuranceManagement = () => {
       })
 
       console.log('Crop insurance created successfully');
+      // Trigger delayed auto-refresh (5-10 seconds)
+      delayedRefresh();
     } catch (error) {
       console.error('Error creating crop insurance record:', error)
     }
@@ -197,6 +217,8 @@ const CropInsuranceManagement = () => {
       })
 
       console.log('Insurance applied successfully');
+      // Trigger delayed auto-refresh (5-10 seconds)
+      delayedRefresh();
     } catch (error) {
       console.error('Error applying insurance:', error)
     }
@@ -215,6 +237,8 @@ const CropInsuranceManagement = () => {
       console.log('Insurance record deleted successfully');
       setShowDeleteConfirm(false)
       setRecordToDelete(null)
+      // Trigger delayed auto-refresh (5-10 seconds)
+      delayedRefresh();
     } catch (error) {
       console.error('Error deleting insurance record:', error)
     }
@@ -288,13 +312,33 @@ const CropInsuranceManagement = () => {
           <h2 className="text-2xl font-bold text-gray-800">Crop Insurance Management</h2>
           <p className="text-gray-600">Manage crop insurance records with day limits</p>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700"
-        >
-          <Plus size={20} />
-          Add New Crop
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={async () => {
+              try {
+                await Promise.all([
+                  refetchInsurance(),
+                  refetchFarmers(),
+                  refetchStats()
+                ]);
+              } catch (error) {
+                console.error('Error refreshing data:', error);
+              }
+            }}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
+            title="Refresh data"
+          >
+            <RefreshCw size={20} />
+            Refresh
+          </button>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700"
+          >
+            <Plus size={20} />
+            Add New Crop
+          </button>
+        </div>
       </div>
 
       {/* Statistics Cards */}

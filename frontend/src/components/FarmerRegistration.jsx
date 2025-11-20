@@ -88,6 +88,12 @@ const FarmerRegistration = ({
   const [profileImages, setProfileImages] = useState({})
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [selectedFarmerForProfile, setSelectedFarmerForProfile] = useState(null)
+  const [showProfileImageValidation, setShowProfileImageValidation] = useState(false)
+  const [profileImageValidationData, setProfileImageValidationData] = useState({
+    type: '', // 'error', 'warning'
+    message: '',
+    onConfirm: null
+  })
   
   // Filter dropdown state
   const [showCropFilter, setShowCropFilter] = useState(false)
@@ -1660,6 +1666,23 @@ const FarmerRegistration = ({
                     onChange={(e) => {
                       const file = e.target.files[0];
                       if (file) {
+                        // Check file size before reading (5MB limit)
+                        const fileSizeMB = file.size / 1024 / 1024;
+                        if (fileSizeMB > 5) {
+                          setProfileImageValidationData({
+                            type: 'error',
+                            message: `Image is too large (${fileSizeMB.toFixed(2)}MB). Please use an image smaller than 5MB.`,
+                            onConfirm: () => {
+                              setShowProfileImageValidation(false);
+                              setProfileImageValidationData({ type: '', message: '', onConfirm: null });
+                              // Reset file input
+                              e.target.value = '';
+                            }
+                          });
+                          setShowProfileImageValidation(true);
+                          return;
+                        }
+                        
                         const reader = new FileReader();
                         reader.onload = (event) => {
                           const farmerId = selectedFarmerForProfile._id || selectedFarmerForProfile.id;
@@ -1692,7 +1715,15 @@ const FarmerRegistration = ({
                           // Check image size (base64 images can be large)
                           const imageSizeMB = (currentProfileImage.length * 3) / 4 / 1024 / 1024;
                           if (imageSizeMB > 5) {
-                            alert(`Image is too large (${imageSizeMB.toFixed(2)}MB). Please use an image smaller than 5MB.`);
+                            setProfileImageValidationData({
+                              type: 'error',
+                              message: `Image is too large (${imageSizeMB.toFixed(2)}MB). Please use an image smaller than 5MB.`,
+                              onConfirm: () => {
+                                setShowProfileImageValidation(false);
+                                setProfileImageValidationData({ type: '', message: '', onConfirm: null });
+                              }
+                            });
+                            setShowProfileImageValidation(true);
                             return;
                           }
                           
@@ -1709,13 +1740,29 @@ const FarmerRegistration = ({
                         } else {
                           // Note: Error notifications are now created by backend API automatically
                           console.error('No image selected')
-                          alert('Please select an image first');
+                          setProfileImageValidationData({
+                            type: 'error',
+                            message: 'Please select an image first',
+                            onConfirm: () => {
+                              setShowProfileImageValidation(false);
+                              setProfileImageValidationData({ type: '', message: '', onConfirm: null });
+                            }
+                          });
+                          setShowProfileImageValidation(true);
                         }
                       } catch (error) {
                         console.error('Error saving profile image:', error);
                         // Provide user-friendly error message
                         const errorMessage = error.message || 'Failed to save profile image. Please check your connection and try again.';
-                        alert(`Error: ${errorMessage}`);
+                        setProfileImageValidationData({
+                          type: 'error',
+                          message: `Error: ${errorMessage}`,
+                          onConfirm: () => {
+                            setShowProfileImageValidation(false);
+                            setProfileImageValidationData({ type: '', message: '', onConfirm: null });
+                          }
+                        });
+                        setShowProfileImageValidation(true);
                         // Note: Error notifications are now created by backend API automatically
                       }
                     }}
@@ -2174,6 +2221,62 @@ const FarmerRegistration = ({
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Profile Image Validation Modal - Design Vibe */}
+      {showProfileImageValidation && (
+        <div className="fixed inset-0 z-[60] bg-transparent backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full border-2 border-black">
+            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
+              <h2 className="text-2xl font-bold text-black">
+                {profileImageValidationData.type === 'error' && '⚠️ Image Validation Error'}
+                {profileImageValidationData.type === 'warning' && '⚠️ Image Warning'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowProfileImageValidation(false);
+                  if (profileImageValidationData.onConfirm) {
+                    profileImageValidationData.onConfirm();
+                  }
+                  setProfileImageValidationData({ type: '', message: '', onConfirm: null });
+                }}
+                className="text-black hover:bg-lime-200 rounded-full p-1 focus:outline-none transition-all"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-6 bg-white">
+              <div className={`mb-4 p-3 rounded-lg border-2 ${
+                profileImageValidationData.type === 'error' 
+                  ? 'bg-red-50 border-red-500' 
+                  : 'bg-yellow-50 border-yellow-500'
+              }`}>
+                <p className="text-sm font-semibold text-black mb-1">
+                  {profileImageValidationData.type === 'error' ? 'Error:' : 'Warning:'}
+                </p>
+                <p className="text-sm text-gray-700">
+                  {profileImageValidationData.message}
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowProfileImageValidation(false);
+                    if (profileImageValidationData.onConfirm) {
+                      profileImageValidationData.onConfirm();
+                    }
+                    setProfileImageValidationData({ type: '', message: '', onConfirm: null });
+                  }}
+                  className="flex-1 bg-lime-400 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-500 font-bold"
+                >
+                  OK
+                </button>
+              </div>
             </div>
           </div>
         </div>

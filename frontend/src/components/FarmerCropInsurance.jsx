@@ -30,8 +30,21 @@ const FarmerCropInsurance = () => {
   const { user } = useAuthStore()
   
   // React Query hooks
-  const { data: cropInsuranceRecords = [], isLoading: loading } = useCropInsurance(user?._id)
+  const { data: cropInsuranceRecords = [], isLoading: loading, refetch: refetchInsurance } = useCropInsurance(user?._id)
   const createInsuranceMutation = useCreateCropInsurance()
+
+  // Delayed auto-refresh function (5-10 seconds after action)
+  const delayedRefresh = () => {
+    const delay = Math.random() * 5000 + 5000 // Random delay between 5-10 seconds
+    setTimeout(async () => {
+      try {
+        await refetchInsurance();
+        console.log('Table data refreshed after action');
+      } catch (error) {
+        console.error('Error refreshing data:', error);
+      }
+    }, delay);
+  }
   
   // Local state
   const [searchQuery, setSearchQuery] = useState("")
@@ -117,6 +130,8 @@ const FarmerCropInsurance = () => {
 
       console.log('Crop insurance application submitted');
       // Note: Notifications are now created by backend API automatically
+      // Trigger delayed auto-refresh (5-10 seconds)
+      delayedRefresh();
     } catch (error) {
       console.error('Error submitting crop insurance:', error);
       // Note: Notifications are now created by backend API automatically
