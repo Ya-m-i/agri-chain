@@ -15,55 +15,14 @@ export const validatePassword = (password) => {
     return { isValid: false, errors: ['Password is required'], strength: { score: 0, level: 'weak' } }
   }
   
-  // Minimum length: 8 characters
-  if (password.length < 8) {
-    errors.push('Password must be at least 8 characters long')
+  // Minimum length: 4 characters
+  if (password.length < 4) {
+    errors.push('Password must be at least 4 characters long')
   }
   
-  // Maximum length: 128 characters
-  if (password.length > 128) {
-    errors.push('Password must be less than 128 characters')
-  }
-  
-  // At least one uppercase letter
-  if (!/[A-Z]/.test(password)) {
-    errors.push('Password must contain at least one uppercase letter')
-  }
-  
-  // At least one lowercase letter
-  if (!/[a-z]/.test(password)) {
-    errors.push('Password must contain at least one lowercase letter')
-  }
-  
-  // At least one number
-  if (!/[0-9]/.test(password)) {
-    errors.push('Password must contain at least one number')
-  }
-  
-  // At least one special character
-  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
-    errors.push('Password must contain at least one special character (!@#$%^&*...)')
-  }
-  
-  // Check for common weak passwords
-  const commonPasswords = [
-    'password', 'password123', 'admin', 'admin123', '12345678',
-    'qwerty', 'abc123', 'letmein', 'welcome', 'monkey',
-    'dragon', 'master', 'sunshine', 'princess', 'football'
-  ]
-  
-  if (commonPasswords.includes(password.toLowerCase())) {
-    errors.push('This password is too common. Please choose a stronger password')
-  }
-  
-  // Check for repeated characters
-  if (/(.)\1{3,}/.test(password)) {
-    errors.push('Password cannot contain the same character repeated 4 or more times')
-  }
-  
-  // Check for sequential characters
-  if (/012|123|234|345|456|567|678|789|abc|bcd|cde|def|efg|fgh|ghi|hij|ijk|jkl|klm|lmn|mno|nop|opq|pqr|qrs|rst|stu|tuv|uvw|vwx|wxy|xyz/i.test(password)) {
-    errors.push('Password cannot contain sequential characters (e.g., 1234, abcd)')
+  // Check for special characters - not allowed
+  if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)) {
+    errors.push('Password cannot contain special characters')
   }
   
   const strength = calculatePasswordStrength(password)
@@ -85,24 +44,18 @@ export const calculatePasswordStrength = (password) => {
   
   let score = 0
   
-  // Length scoring
-  if (password.length >= 8) score += 10
-  if (password.length >= 12) score += 10
-  if (password.length >= 16) score += 10
+  // Length scoring (simplified for 4+ character requirement)
+  if (password.length >= 4) score += 30
+  if (password.length >= 6) score += 20
+  if (password.length >= 8) score += 20
   
-  // Character variety
-  if (/[a-z]/.test(password)) score += 10
-  if (/[A-Z]/.test(password)) score += 10
-  if (/[0-9]/.test(password)) score += 10
-  if (/[^a-zA-Z0-9]/.test(password)) score += 10
-  
-  // Complexity bonus
-  const uniqueChars = new Set(password).size
-  if (uniqueChars >= password.length * 0.6) score += 10
+  // Character variety (no special characters allowed)
+  if (/[a-z]/.test(password)) score += 15
+  if (/[A-Z]/.test(password)) score += 15
+  if (/[0-9]/.test(password)) score += 20
   
   // Penalties
-  if (password.length < 8) score = Math.max(0, score - 20)
-  if (/(.)\1{2,}/.test(password)) score = Math.max(0, score - 10)
+  if (password.length < 4) score = 0
   
   let level = 'weak'
   if (score >= 70) level = 'strong'

@@ -16,7 +16,6 @@ import {
   AlertTriangle,
   Shield,
   Key,
-  Upload,
   Eye,
 } from "lucide-react"
 // Image assets removed - no longer used in this component
@@ -30,7 +29,6 @@ import {
 import { 
   saveFarmerProfileImage, 
   getAllFarmerProfileImages,
-  bulkImportFarmers,
   API_BASE_URL
 } from '../api'
 // Note: Notifications are now handled by backend API
@@ -111,12 +109,6 @@ const FarmerRegistration = ({
   
   // Password validation state
   const [passwordValidation, setPasswordValidation] = useState(null)
-  
-  // CSV import state
-  const [showImportModal, setShowImportModal] = useState(false)
-  const [csvFile, setCsvFile] = useState(null)
-  const [importResults, setImportResults] = useState(null)
-  const [isImporting, setIsImporting] = useState(false)
 
   const buildProfileImageUrl = (farmerId, version = Date.now()) => {
     if (!farmerId) return ''
@@ -351,9 +343,6 @@ const FarmerRegistration = ({
         contactNum: "",
         address: "",
         cropArea: "",
-        lotNumber: "",
-        lotArea: "",
-        agency: "",
         isCertified: false,
         periodFrom: "",
         periodTo: "",
@@ -370,36 +359,6 @@ const FarmerRegistration = ({
     }
   }
 
-  // Handle CSV import
-  const handleCsvImport = async () => {
-    if (!csvFile) {
-      alert('Please select a CSV file')
-      return
-    }
-
-    setIsImporting(true)
-    try {
-      const result = await bulkImportFarmers(csvFile)
-      
-      if (result.success) {
-        setImportResults(result)
-        refetchFarmers()
-        // Auto-close after 5 seconds
-        setTimeout(() => {
-          setShowImportModal(false)
-          setCsvFile(null)
-          setImportResults(null)
-        }, 5000)
-      } else {
-        alert(`Import failed: ${result.message || 'Unknown error'}`)
-      }
-    } catch (error) {
-      console.error('Import error:', error)
-      alert(`Failed to import CSV file: ${error.message || 'Unknown error'}`)
-    } finally {
-      setIsImporting(false)
-    }
-  }
 
   // Handle location view - navigate to dashboard map
   const handleLocationView = (farmer) => {
@@ -524,13 +483,6 @@ const FarmerRegistration = ({
           >
             <UserPlus className="mr-2 h-5 w-5" />
             Register New Farmer
-          </button>
-          <button
-            className="bg-black text-lime-300 px-4 py-2 rounded-lg border border-lime-400 hover:bg-lime-300 hover:text-black transition-colors flex items-center justify-center shadow-sm font-semibold"
-            onClick={() => setShowImportModal(true)}
-          >
-            <Upload className="mr-2 h-5 w-5" />
-            Import Farmers (CSV)
           </button>
           <button
             className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-sm font-semibold"
@@ -1248,77 +1200,6 @@ const FarmerRegistration = ({
                   </div>
                 </div>
 
-                {/* Lot Information Block - Minimalist Blockchain Style */}
-                <div className="bg-white rounded-lg p-5 border-2 border-black relative" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-                  <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
-                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
-                      <MapPin size={18} className="text-lime-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Lot Registry</h3>
-                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
-                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
-                        Verified Node
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Lot Number</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <MapPin size={16} className="text-lime-500" />
-                        </div>
-                        <input
-                          type="text"
-                          name="lotNumber"
-                          value={formData.lotNumber || ""}
-                          onChange={handleChange}
-                          placeholder="Enter lot number (e.g., Lot 123)"
-                          className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Lot Area</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Layers size={16} className="text-lime-500" />
-                        </div>
-                        <input
-                          type="text"
-                          name="lotArea"
-                          value={formData.lotArea || ""}
-                          onChange={handleChange}
-                          placeholder="Enter lot area (e.g., 1.5 hectares)"
-                          className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Agency</label>
-                      <select
-                        name="agency"
-                        value={formData.agency || ""}
-                        onChange={handleChange}
-                        className="w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
-                      >
-                        <option value="">Select Agency</option>
-                        <option value="DA">DA - Department of Agriculture</option>
-                        <option value="LGU">LGU - Local Government Unit</option>
-                        <option value="DA-PCIC">DA-PCIC - Philippine Crop Insurance Corporation</option>
-                        <option value="DA-Kapalong">DA-Kapalong - Department of Agriculture Kapalong</option>
-                        <option value="NIA">NIA - National Irrigation Administration</option>
-                        <option value="ATI">ATI - Agricultural Training Institute</option>
-                        <option value="PCAF">PCAF - Philippine Council for Agriculture and Fisheries</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
                 <div className="flex items-center space-x-3 py-3 bg-white p-4 rounded-lg border-2 border-black" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
                   <input
                     type="checkbox"
@@ -1411,38 +1292,38 @@ const FarmerRegistration = ({
                           )}
                         </button>
                       </div>
-                      {/* Password Validation Display */}
-                      {formData.password && passwordValidation && (
-                        <div className="mt-2 p-3 bg-white rounded-lg border-2 border-lime-500" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-bold text-black uppercase">Password Strength</span>
-                            <span className={`text-xs font-bold px-2 py-1 rounded ${getPasswordStrengthTextColor(passwordValidation.strength.level)}`}>
-                              {getPasswordStrengthLabel(passwordValidation.strength.level)}
-                            </span>
                     </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                            <div
-                              className={`h-2 rounded-full transition-all ${getPasswordStrengthColor(passwordValidation.strength.level)}`}
-                              style={{ width: `${passwordValidation.strength.score}%` }}
-                            />
                   </div>
-                          {passwordValidation.errors.length > 0 && (
-                            <div className="mt-2 space-y-1">
-                              <p className="text-xs font-bold text-red-600">Requirements:</p>
-                              <ul className="list-disc list-inside text-xs text-gray-700 space-y-0.5">
-                                {passwordValidation.errors.map((error, index) => (
-                                  <li key={index} className="text-red-600">{error}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
-                          {passwordValidation.isValid && (
-                            <p className="text-xs text-green-600 font-semibold mt-2">✓ Password meets all requirements</p>
-                          )}
+                  {/* Password Validation Display - Full Width */}
+                  {formData.password && passwordValidation && (
+                    <div className="mt-3 p-3 bg-white rounded-lg" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-black uppercase">Password Strength</span>
+                        <span className={`text-xs font-bold px-2 py-1 rounded ${getPasswordStrengthTextColor(passwordValidation.strength.level)}`}>
+                          {getPasswordStrengthLabel(passwordValidation.strength.level)}
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                        <div
+                          className={`h-2 rounded-full transition-all ${getPasswordStrengthColor(passwordValidation.strength.level)}`}
+                          style={{ width: `${passwordValidation.strength.score}%` }}
+                        />
+                      </div>
+                      {passwordValidation.errors.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          <p className="text-xs font-bold text-red-600">Requirements:</p>
+                          <ul className="list-disc list-inside text-xs text-gray-700 space-y-0.5">
+                            {passwordValidation.errors.map((error, index) => (
+                              <li key={index} className="text-red-600">{error}</li>
+                            ))}
+                          </ul>
                         </div>
                       )}
+                      {passwordValidation.isValid && (
+                        <p className="text-xs text-green-600 font-semibold mt-2">✓ Password meets all requirements</p>
+                      )}
                     </div>
-                  </div>
+                  )}
                   {/* Username Validation Display */}
                   {formData.username && (
                     <div className="mt-3 p-3 bg-white rounded-lg border-2 border-lime-500" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}>
@@ -1846,30 +1727,9 @@ const FarmerRegistration = ({
             if (setFormData) {
               const addressValue = location.address || `Lat: ${location.lat.toFixed(6)}, Lng: ${location.lng.toFixed(6)}`;
               
-              // Extract lot number from address if available, or generate one from coordinates
-              let lotNumber = '';
-              if (location.address) {
-                // Try to extract lot number from address (e.g., "Lot 123" or "Lot-456")
-                const lotMatch = location.address.match(/\bLot\s*[-\s]?\s*(\d+[A-Za-z]?)\b/i);
-                if (lotMatch) {
-                  lotNumber = `Lot ${lotMatch[1]}`;
-                } else {
-                  // Generate lot number from coordinates (last 4 digits of lat and lng)
-                  const latStr = location.lat.toFixed(6).replace('.', '').slice(-4);
-                  const lngStr = location.lng.toFixed(6).replace('.', '').slice(-4);
-                  lotNumber = `Lot ${latStr}${lngStr}`;
-                }
-              } else {
-                // Generate lot number from coordinates if no address
-                const latStr = location.lat.toFixed(6).replace('.', '').slice(-4);
-                const lngStr = location.lng.toFixed(6).replace('.', '').slice(-4);
-                lotNumber = `Lot ${latStr}${lngStr}`;
-              }
-              
               setFormData((prev) => ({
                 ...prev,
-                address: addressValue,
-                lotNumber: lotNumber
+                address: addressValue
               }));
             }
             // Update selected location
@@ -2147,141 +2007,6 @@ const FarmerRegistration = ({
                   </button>
                 )}
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* CSV Import Modal */}
-      {showImportModal && (
-        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border-2 border-black">
-            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
-              <h2 className="text-2xl font-bold text-black">📥 Import Farmers from CSV</h2>
-              <button
-                onClick={() => {
-                  setShowImportModal(false)
-                  setCsvFile(null)
-                  setImportResults(null)
-                }}
-                className="text-black hover:bg-lime-200 rounded-full p-1"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className="p-6 md:p-8 bg-white">
-              {!importResults ? (
-                <>
-                  <div className="mb-6">
-                    <label className="block text-sm font-bold text-black mb-2 uppercase">
-                      Select CSV File
-                    </label>
-                    <input
-                      type="file"
-                      accept=".csv"
-                      onChange={(e) => setCsvFile(e.target.files[0])}
-                      className="w-full border-2 border-black p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400"
-                    />
-                  </div>
-
-                  <div className="mb-6 p-4 bg-lime-50 border-2 border-lime-500 rounded-lg">
-                    <p className="text-sm font-bold text-black mb-2">CSV Format Required (Farmer Data Only):</p>
-                    <div className="text-xs text-gray-700 font-mono bg-white p-3 rounded border border-black">
-                      firstName, middleName, lastName, birthday, gender, contactNum, address,<br/>
-                      username, password, rsbsaRegistered, isCertified, agency,<br/>
-                      cropType, cropArea, lotNumber, lotArea, periodFrom, periodTo
-                    </div>
-                    <p className="text-xs text-gray-600 mt-2">
-                      <strong>Note:</strong> Insurance records should be created separately through Crop Insurance Management. 
-                      Farmers will be auto-verified when insurance records are created.
-                    </p>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => {
-                        setShowImportModal(false)
-                        setCsvFile(null)
-                      }}
-                      className="flex-1 bg-white border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-gray-100 font-bold"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={handleCsvImport}
-                      disabled={!csvFile || isImporting}
-                      className="flex-1 bg-lime-400 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-500 font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                    >
-                      {isImporting ? (
-                        <>Importing...</>
-                      ) : (
-                        <>
-                          <Upload className="mr-2 h-5 w-5" />
-                          Import CSV
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div>
-                  <div className="mb-4 p-4 bg-green-50 border-2 border-green-500 rounded-lg">
-                    <h3 className="text-lg font-bold text-black mb-2">✅ Import Complete</h3>
-                    <p className="text-sm text-gray-700">
-                      Successfully imported: <strong>{importResults.imported}</strong> farmers
-                    </p>
-                    {importResults.errors > 0 && (
-                      <p className="text-sm text-red-600 mt-1">
-                        ⚠️ Errors: <strong>{importResults.errors}</strong> rows failed
-                      </p>
-                    )}
-                  </div>
-
-                  {importResults.results && importResults.results.length > 0 && (
-                    <div className="mb-4 max-h-60 overflow-y-auto">
-                      <h4 className="text-sm font-bold mb-2">Imported Farmers:</h4>
-                      <div className="space-y-2">
-                        {importResults.results.map((result, index) => (
-                          <div key={index} className="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded">
-                            <CheckCircle size={16} className="text-green-600" />
-                            <span className="font-medium">{result.farmerName}</span>
-                            <span className="text-xs text-gray-500">({result.username})</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {importResults.errorDetails && importResults.errorDetails.length > 0 && (
-                    <div className="mb-4 max-h-60 overflow-y-auto">
-                      <h4 className="text-sm font-bold mb-2 text-red-600">Errors:</h4>
-                      <div className="space-y-2">
-                        {importResults.errorDetails.map((error, index) => (
-                          <div key={index} className="flex items-start gap-2 text-sm p-2 bg-red-50 rounded">
-                            <AlertTriangle size={16} className="text-red-600 mt-0.5" />
-                            <div>
-                              <span className="font-semibold">{error.row}:</span>
-                              <span className="text-gray-700 ml-2">{error.error}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <button
-                    onClick={() => {
-                      setShowImportModal(false)
-                      setCsvFile(null)
-                      setImportResults(null)
-                    }}
-                    className="w-full bg-lime-400 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-500 font-bold"
-                  >
-                    Close
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>
