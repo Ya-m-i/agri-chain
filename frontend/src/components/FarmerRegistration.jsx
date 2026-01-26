@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import {
   UserPlus,
   Users,
@@ -17,6 +17,7 @@ import {
   Shield,
   Key,
   Eye,
+  Download,
 } from "lucide-react"
 // Image assets removed - no longer used in this component
 import {
@@ -38,6 +39,8 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { getCropTypeDistributionFromInsurance } from '../utils/cropTypeDistribution'
 import SimpleMapPicker from './SimpleMapPicker'
 import { validatePassword, getPasswordStrengthColor, getPasswordStrengthTextColor, getPasswordStrengthLabel } from '../utils/passwordValidator'
+import { generateFarmerRegistrationReportPDF } from '../utils/farmerReportPdfGenerator'
+import { toast } from 'react-hot-toast'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
@@ -103,6 +106,11 @@ const FarmerRegistration = ({
   
   // Report state
   const [showReport, setShowReport] = useState(false)
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
+  
+  // Chart refs for PDF generation
+  const areaChartRef = useRef(null)
+  const doughnutChartRef = useRef(null)
   
   // Password visibility state
   const [showPassword, setShowPassword] = useState(false)
@@ -295,6 +303,41 @@ const FarmerRegistration = ({
       return quarterlyData;
     }
   };
+
+  // Generate PDF Report
+  const handleGeneratePDF = async () => {
+    if (!showReport) {
+      toast.error('Please generate the report first to view charts')
+      return
+    }
+    
+    setIsGeneratingPDF(true)
+    try {
+      // Wait a bit for charts to fully render
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      const timeBasedData = generateTimeBasedData()
+      
+      await generateFarmerRegistrationReportPDF({
+        totalFarmers: farmers.length,
+        timeBasedData,
+        cropTypeDistribution: insuranceCropTypeDistribution,
+        selectedYear,
+        timePeriod,
+        chartRefs: {
+          areaChartRef,
+          doughnutChartRef
+        }
+      })
+      
+      toast.success('PDF report generated successfully!')
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      toast.error(error.message || 'Failed to generate PDF report. Please try again.')
+    } finally {
+      setIsGeneratingPDF(false)
+    }
+  }
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -513,8 +556,30 @@ const FarmerRegistration = ({
             onClick={() => setShowReport(!showReport)}
           >
             <FileText className="mr-2 h-5 w-5" />
-            Generate Report
+            {showReport ? 'Hide Report' : 'Generate Report'}
           </button>
+          {showReport && (
+            <button
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center shadow-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleGeneratePDF}
+              disabled={isGeneratingPDF}
+            >
+              {isGeneratingPDF ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Download className="mr-2 h-5 w-5" />
+                  Download PDF Report
+                </>
+              )}
+            </button>
+          )}
         </div>
       </div>
 
@@ -550,7 +615,7 @@ const FarmerRegistration = ({
                 </select>
               </div>
             </div>
-            <div className="h-64">
+            <div className="h-64" ref={areaChartRef}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={generateTimeBasedData()}
@@ -612,7 +677,7 @@ const FarmerRegistration = ({
             <h3 className="text-lg font-semibold mb-4 text-black flex items-center gap-2">
               <Layers className="h-5 w-5 text-black" /> Crop Type Distribution
             </h3>
-            <div className="h-64 flex items-center justify-center">
+            <div className="h-64 flex items-center justify-center" ref={doughnutChartRef}>
               <Doughnut
                 data={{
                   labels: Object.keys(insuranceCropTypeDistribution),
