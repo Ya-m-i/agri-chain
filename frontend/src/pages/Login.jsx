@@ -10,12 +10,14 @@ import adminLogoImage from "../assets/Images/DALOGO.png" // Admin logo
 import loginBackgroundImage from "../assets/Images/LoginBG.png" // Login background image
 import { loginFarmer, loginUser } from '../api';
 import LoadingOverlay from '../components/LoadingOverlay';
+import { Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
   const [form, setForm] = useState({ username: "", password: "" })
   const [isAdminMode, setIsAdminMode] = useState(false)
   const [errorMsg, setErrorMsg] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     console.log("Current mode:", isAdminMode ? "Admin" : "Farmer")
@@ -267,14 +269,26 @@ const Login = () => {
               </div>
               <input
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="Enter your password"
                 value={form.password}
                 onChange={handleChange}
-                className="w-full pl-8 sm:pl-10 pr-3 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent"
+                className="w-full pl-8 sm:pl-10 pr-10 sm:pr-12 py-2 sm:py-3 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-500 focus:border-transparent"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                tabIndex={-1}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" />
+                ) : (
+                  <Eye className="h-4 w-4 sm:h-5 sm:w-5" />
+                )}
+              </button>
             </div>
           </div>
 
