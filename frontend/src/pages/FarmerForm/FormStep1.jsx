@@ -18,21 +18,14 @@ const FormStep1 = () => {
   useEffect(() => {
     if (user) {
       updateForm("name", user.name || "")
+      // Use address from user object (from farmer registration)
       updateForm("address", user.address || "")
       updateForm("phone", user.phone || "")
       updateForm("crop", user.cropType || "")
       updateForm("areaInsured", user.cropArea || "")
       
-      // Get farmer registration data from localStorage
-      const storedFarmers = JSON.parse(localStorage.getItem("farmers") || "[]")
-      const currentFarmer = storedFarmers.find(farmer => 
-        farmer.farmerName === user.name || 
-        farmer.id === user.id ||
-        `${farmer.firstName} ${farmer.middleName} ${farmer.lastName}`.trim() === user.name
-      )
-      
       // Auto-check RSBA program if farmer is RSBSA registered
-      if (currentFarmer && currentFarmer.rsbsaRegistered) {
+      if (user.rsbsaRegistered) {
         const currentPrograms = formData.program || []
         if (!currentPrograms.includes("RSBA")) {
           updateForm("program", [...currentPrograms, "RSBA"])
@@ -84,22 +77,6 @@ const FormStep1 = () => {
     updateForm(field, value)
   }
 
-  const handleSketchUpload = (e) => {
-    const file = e.target.files?.[0]
-    if (file) handleChange("sketchFile", file)
-  }
-
-  const handleDocumentUpload = (e) => {
-    const files = e.target.files ? Array.from(e.target.files) : []
-    const currentDocs = formData.documents || []
-    updateForm("documents", [...currentDocs, ...files])
-  }
-
-  const removeDocument = (index) => {
-    const updatedDocs = [...formData.documents]
-    updatedDocs.splice(index, 1)
-    updateForm("documents", updatedDocs)
-  }
 
 
 
@@ -253,47 +230,6 @@ const FormStep1 = () => {
           {formData.errors?.program && <p className="text-red-500 text-sm mt-1">{formData.errors.program}</p>}
         </div>
 
-        {/* File uploads */}
-        <div className="mb-6">
-          <label className="block text-gray-700 font-semibold mb-2">Sketch File</label>
-          <input
-            type="file"
-            className="border p-4 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400"
-            onChange={handleSketchUpload}
-          />
-          {formData.sketchFile && (
-            <p className="mt-2 text-sm text-green-600">File selected: {formData.sketchFile.name}</p>
-          )}
-        </div>
-
-        <div className="mb-6">
-          <label className="block text-gray-700 font-semibold mb-2">Supporting Documents</label>
-          <input
-            type="file"
-            multiple
-            className="border p-4 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400"
-            onChange={handleDocumentUpload}
-          />
-          {formData.documents && formData.documents.length > 0 && (
-            <div className="mt-2">
-              <p className="text-sm font-medium text-gray-700">Selected files:</p>
-              <ul className="list-disc pl-5">
-                {formData.documents.map((doc, index) => (
-                  <li key={index} className="text-sm text-gray-600 flex justify-between items-center">
-                    <span>{doc.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeDocument(index)}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      Remove
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
       </div>
     </section>
   )

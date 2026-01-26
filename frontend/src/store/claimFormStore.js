@@ -22,8 +22,6 @@ export const useClaimFormStore = create(
         underwriter: "",
         program: [],
         otherProgramText: "",
-        sketchFile: null,
-        documents: [],
         damageType: "",
         lossDate: "",
         ageStage: "",
@@ -71,22 +69,6 @@ export const useClaimFormStore = create(
           },
         })),
 
-      addDocument: (files) =>
-        set((state) => ({
-          formData: {
-            ...state.formData,
-            documents: [...state.formData.documents, ...files],
-          },
-        })),
-
-      removeDocument: (index) =>
-        set((state) => ({
-          formData: {
-            ...state.formData,
-            documents: state.formData.documents.filter((_, i) => i !== index),
-          },
-        })),
-
       addDamagePhoto: (files) =>
         set((state) => ({
           formData: {
@@ -120,8 +102,6 @@ export const useClaimFormStore = create(
             underwriter: "",
             program: [],
             otherProgramText: "",
-            sketchFile: null,
-            documents: [],
             damageType: "",
             lossDate: "",
             ageStage: "",
@@ -381,8 +361,6 @@ export const useClaimFormStore = create(
           submittedClaims,
           formData: {
             ...formData,
-            sketchFile: null,
-            documents: [],
             damagePhotos: [],
             errors: {},
             touched: {},

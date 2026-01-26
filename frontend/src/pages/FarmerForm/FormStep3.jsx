@@ -117,38 +117,6 @@ const FormStep3 = () => {
         </button>
       </div>
 
-      <div className="mt-8 bg-blue-50 rounded-lg p-6 border border-blue-200">
-        <h3 className="text-lg font-semibold text-blue-800 mb-4">Visual Farm Sketch</h3>
-
-        <div className="relative">
-          {formData.sketchFile ? (
-            <div className="text-center">
-              <p className="text-green-700 mb-2">✓ Sketch file uploaded: {formData.sketchFile.name}</p>
-              <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-4 h-48 flex items-center justify-center">
-                <p className="text-gray-500">Sketch preview would appear here in a real application</p>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center">
-              <p className="text-amber-700 mb-2">No sketch file uploaded yet</p>
-              <div className="bg-white border-2 border-dashed border-gray-300 rounded-lg p-8 flex flex-col items-center justify-center">
-                <p className="text-gray-500 mb-3">Please return to Step 1 to upload a sketch of your farm</p>
-                <button
-                  onClick={() => setStep(1)}
-                  className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-200 transition-colors"
-                >
-                  Go to Step 1
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <p className="text-sm text-gray-600 mt-4">
-          Note: The sketch should clearly show the layout of your farm, including all lots, boundaries, and damaged
-          areas.
-        </p>
-      </div>
     </section>
   )
 }

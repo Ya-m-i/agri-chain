@@ -74,7 +74,7 @@ const loginFarmer = async (req, res) => {
         // Optimize: Only fetch essential fields for login check
         // Use lean() for faster query (returns plain JS object, no Mongoose overhead)
         const farmer = await Farmer.findOne({ username })
-            .select('_id username password firstName lastName middleName contactNum cropType cropArea')
+            .select('_id username password firstName lastName middleName contactNum cropType cropArea address rsbsaRegistered')
             .lean();
         
         if (farmer && await bcrypt.compare(password, farmer.password)) {
@@ -99,6 +99,8 @@ const loginFarmer = async (req, res) => {
                 contactNum: farmer.contactNum,
                 cropType: farmer.cropType,
                 cropArea: farmer.cropArea,
+                address: farmer.address,
+                rsbsaRegistered: farmer.rsbsaRegistered || false,
                 lastLogin: now,
                 isOnline: true,
                 token: generateToken(farmer._id)

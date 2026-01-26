@@ -1421,11 +1421,9 @@ const FarmerRegistration = ({
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <div><span className="text-gray-500 text-xs uppercase font-bold">Crop Type</span><p className="font-medium text-black">{selectedFarmer.cropType || "Not provided"}</p></div>
                     <div><span className="text-gray-500 text-xs uppercase font-bold">Crop Area</span><p className="font-medium text-black">{selectedFarmer.cropArea ? `${selectedFarmer.cropArea} hectares` : "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-xs uppercase font-bold">Lot Number</span><p className="font-medium text-black">{selectedFarmer.lotNumber || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-xs uppercase font-bold">Lot Area</span><p className="font-medium text-black">{selectedFarmer.lotArea || "Not provided"}</p></div>
                     <div><span className="text-gray-500 text-xs uppercase font-bold">Certified</span><p className="font-medium">{selectedFarmer.isCertified ? (<span className="text-green-600 flex items-center"><CheckCircle size={16} className="mr-1" /> Yes</span>) : (<span className="text-gray-600">No</span>)}</p></div>
+                    <div><span className="text-gray-500 text-xs uppercase font-bold">RSBSA Registered</span><p className="font-medium">{selectedFarmer.rsbsaRegistered ? (<span className="text-green-600 flex items-center"><CheckCircle size={16} className="mr-1" /> Yes</span>) : (<span className="text-red-600 flex items-center"><AlertTriangle size={16} className="mr-1" /> No</span>)}</p></div>
                   </div>
                 </div>
               </div>
@@ -1460,11 +1458,7 @@ const FarmerRegistration = ({
                   <div>
                     <span className="text-gray-500 text-xs uppercase font-bold">Insured Crops</span>
                     <p className="font-medium text-black">{getInsuredCrops(selectedFarmer)}</p>
-                </div>
-                  <div>
-                    <span className="text-gray-500 text-xs uppercase font-bold">Agency</span>
-                    <p className="font-medium text-black">{selectedFarmer.agency || "Not provided"}</p>
-              </div>
+                  </div>
                 </div>
               </div>
               <div className="flex justify-end">

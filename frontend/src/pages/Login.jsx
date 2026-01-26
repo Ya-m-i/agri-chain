@@ -126,6 +126,8 @@ const Login = () => {
           id: farmer._id || farmer.id,
           name: `${farmer.firstName || ''} ${farmer.middleName || ''} ${farmer.lastName || ''}`.replace(/  +/g, ' ').trim(),
           phone: farmer.contactNum,
+          address: farmer.address || '',
+          rsbsaRegistered: farmer.rsbsaRegistered || false,
         };
         
         console.log("Farmer login successful");
