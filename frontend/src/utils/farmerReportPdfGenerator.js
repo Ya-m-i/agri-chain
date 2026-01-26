@@ -13,9 +13,24 @@ export const generateFarmerRegistrationReportPDF = async ({
   chartRefs = {}
 }) => {
   try {
-    // Use dynamic imports to avoid build issues
+    // Use dynamic imports to avoid build issues - match AdminDashboard pattern exactly
     const jsPDFModule = await import('jspdf')
-    const autoTable = (await import('jspdf-autotable')).default
+    const autoTableModule = await import('jspdf-autotable')
+    
+    // For jspdf-autotable v5, the default export should be the function
+    const autoTable = autoTableModule.default
+    
+    // Verify we got a function
+    if (typeof autoTable !== 'function') {
+      console.error('autoTable import debug:', {
+        hasDefault: !!autoTableModule.default,
+        defaultType: typeof autoTableModule.default,
+        moduleKeys: Object.keys(autoTableModule),
+        moduleType: typeof autoTableModule
+      })
+      throw new Error(`autoTable is not a function. Type: ${typeof autoTable}, Module keys: ${Object.keys(autoTableModule).join(', ')}`)
+    }
+    
     const doc = new jsPDFModule.jsPDF('landscape', 'mm', 'a4') // Landscape orientation for better chart display
     
     let yPosition = 15
@@ -65,7 +80,7 @@ export const generateFarmerRegistrationReportPDF = async ({
       ['Total Insured Crop Records', totalInsuredCrops.toString()],
     ]
     
-    doc.autoTable({
+    autoTable(doc, {
       startY: yPosition,
       head: [['Metric', 'Value']],
       body: summaryData,
@@ -95,7 +110,7 @@ export const generateFarmerRegistrationReportPDF = async ({
     ]) || []
     
     if (timeTableData.length > 0) {
-      doc.autoTable({
+      autoTable(doc, {
         startY: yPosition,
         head: [['Period', 'New Registrations', 'Cumulative Total']],
         body: timeTableData,
@@ -152,7 +167,7 @@ export const generateFarmerRegistrationReportPDF = async ({
     })
     
     if (cropTableData.length > 0) {
-      doc.autoTable({
+      autoTable(doc, {
         startY: yPosition,
         head: [['Crop Type', 'Number of Records', 'Percentage']],
         body: cropTableData,
@@ -270,7 +285,12 @@ export const generateFarmerRegistrationReportPDF = async ({
     return true
   } catch (error) {
     console.error('Error generating PDF report:', error)
-    throw new Error('Failed to generate PDF report. Please try again.')
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    })
+    throw new Error(`Failed to generate PDF report: ${error.message || 'Unknown error'}`)
   }
 }
 
