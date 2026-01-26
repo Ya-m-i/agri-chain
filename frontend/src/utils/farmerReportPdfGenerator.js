@@ -1,5 +1,3 @@
-import jsPDF from 'jspdf'
-import 'jspdf-autotable'
 import { Canvg } from 'canvg'
 
 /**
@@ -15,7 +13,10 @@ export const generateFarmerRegistrationReportPDF = async ({
   chartRefs = {}
 }) => {
   try {
-    const doc = new jsPDF('landscape', 'mm', 'a4') // Landscape orientation for better chart display
+    // Use dynamic imports to avoid build issues
+    const jsPDFModule = await import('jspdf')
+    const autoTable = (await import('jspdf-autotable')).default
+    const doc = new jsPDFModule.jsPDF('landscape', 'mm', 'a4') // Landscape orientation for better chart display
     
     let yPosition = 15
     
