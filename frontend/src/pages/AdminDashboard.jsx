@@ -3311,10 +3311,6 @@ const AdminDashboard = () => {
         eventForm={eventForm}
         handleEventChange={handleEventChange}
         handleEventSubmit={handleEventSubmit}
-        showClaimDetails={showClaimDetails}
-        setShowClaimDetails={setShowClaimDetails}
-        selectedClaim={selectedClaim}
-        initiateStatusUpdate={initiateStatusUpdate}
         showConfirmationModal={showConfirmationModal}
         setShowConfirmationModal={setShowConfirmationModal}
         confirmationAction={confirmationAction}
