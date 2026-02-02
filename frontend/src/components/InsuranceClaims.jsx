@@ -25,7 +25,6 @@ import {
 // Image icons removed - no longer used in this component
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js'
 import { Doughnut, Bar } from 'react-chartjs-2'
-import { calculateCompensation, getPaymentStatus, getExpectedPaymentDate, getDamageSeverity, getCoverageDetails } from "../utils/insuranceUtils"
 import { generateClaimPDF } from "../utils/claimPdfGenerator"
 import { generateCashAssistanceReportPDF } from "../utils/cashAssistanceReportPdfGenerator"
 import { toast } from 'react-hot-toast'
@@ -606,91 +605,126 @@ const InsuranceClaims = ({
         )}
       </div>
 
-      {/* Claim Details Modal - PCIC CLAIM FOR INDEMNITY template */}
-      {showClaimDetails && selectedClaim && (
+      {/* Claim Details Modal - PCIC CLAIM FOR INDEMNITY form template (matches official form) */}
+      {showClaimDetails && selectedClaim && (() => {
+        const c = selectedClaim
+        const isPalay = /palay|rice/i.test(c.crop || '')
+        const isCorn = /corn|maize/i.test(c.crop || '')
+        const programList = c.program && Array.isArray(c.program) ? c.program : []
+        const programLabels = ['Regular', 'Sikat Sal', 'RSBSA', 'APCP-CAP-PBD', 'Punla', 'Cooperative Rice Farm']
+        const isProgramChecked = (label) => programList.some(p => String(p).toLowerCase().replace(/\s/g, '').includes(label.toLowerCase().replace(/\s/g, '')))
+        return (
         <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar border-2 border-black">
-            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
-              <h2 className="text-xl font-bold text-black">CLAIM FOR INDEMNITY (PAGHAHABOL BAYAD)</h2>
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-semibold text-gray-600">
-                  {selectedClaim.claimNumber || selectedClaim._id} · {selectedClaim.status?.toUpperCase()}
-                </span>
-                <button
-                  onClick={() => setShowClaimDetails(false)}
-                  className="text-black hover:bg-lime-200 rounded-full p-1 focus:outline-none transition-all"
-                >
-                  <XCircle size={24} />
-                </button>
+            <div className="sticky top-0 bg-white border-b-2 border-black p-4 flex justify-between items-center z-20">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500 font-medium">Claim No. {c.claimNumber || c._id}</span>
+                <span className="text-xs font-semibold text-gray-700 uppercase">({c.status})</span>
               </div>
+              <button
+                onClick={() => setShowClaimDetails(false)}
+                className="text-black hover:bg-gray-100 rounded-full p-1 focus:outline-none transition-all"
+                aria-label="Close"
+              >
+                <XCircle size={24} />
+              </button>
             </div>
 
-            <div className="p-6 md:p-8 bg-white">
-              {/* PCIC header */}
-              <div className="text-center border-b border-gray-300 pb-3 mb-4">
-                <p className="text-sm text-gray-700">TO: The Chief CAD PCIC-RO XI</p>
-                <p className="text-sm font-semibold text-black mt-1">PHILIPPINE CROP INSURANCE CORPORATION · Regional Office No. X</p>
-                <p className="text-xs text-gray-600 mt-2 italic">Please send your team of Adjusters to assess damage of my insured crop. (Mangyaring magpadala kayo ng tagapag-imbistige upang tasahin ang naging pinsala ng aking pananim)</p>
-                <p className="text-xs text-gray-600 mt-1">Hereunder are the basic information needed by your office. (Narito ang mga kinakailangang tala ng inyong tanggapon)</p>
+            <div className="p-6 md:p-8 bg-white text-black">
+              {/* Header - same as image */}
+              <div className="text-center mb-6">
+                <p className="text-sm font-normal">TO: The Chief CAD, PCIC-RO XI</p>
+                <p className="text-sm font-semibold mt-2">PHILIPPINE CROP INSURANCE CORPORATION</p>
+                <p className="text-sm font-semibold">Regional Office No. XI</p>
+                <p className="text-base font-bold mt-3">CLAIM FOR INDEMNITY (PAGHAHABOL BAYAD)</p>
+                <p className="text-xs text-gray-700 mt-3 leading-relaxed">Please send your team of Adjusters to assess damage of my insured crop.<br />(Mangyaring magpadala kayo ng tagapag-imbistige upang tasahin ang naging pinsala ng aking pananim)</p>
+                <p className="text-xs text-gray-700 mt-1">Hereunder are the basic information needed by your office. (Narito ang mga kinakailangang tala ng inyong tanggapon)</p>
               </div>
 
-              {/* I. BASIC INFORMATION (MGA PANGUNAHING IMPORMASYON) */}
-              <div className="bg-white rounded-lg p-5 border-2 border-black mb-4">
-                <h3 className="text-sm font-black text-black uppercase tracking-wider mb-4 pb-2 border-b-2 border-black">I. Basic Information (Mga Pangunahing Impormasyon)</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div><span className="text-gray-600 font-semibold">1. Name of Farmer-Assured (Pangalan ng Magsasaka):</span><p className="font-medium text-black mt-0.5">{selectedClaim.name || "—"}</p></div>
-                  <div><span className="text-gray-600 font-semibold">2. Address (Tirahan):</span><p className="font-medium text-black mt-0.5">{selectedClaim.address || "—"}</p></div>
-                  <div><span className="text-gray-600 font-semibold">3. Cell Phone Number (Numero ng Telepono):</span><p className="font-medium text-black mt-0.5">{selectedClaim.phone || "—"}</p></div>
-                  <div><span className="text-gray-600 font-semibold">4. Location of Farm (Lugar ng Saka):</span><p className="font-medium text-black mt-0.5">{selectedClaim.farmerLocation || selectedClaim.address || "—"}</p></div>
-                  <div className="sm:col-span-2"><span className="text-gray-600 font-semibold">5. Insured Crops (Pananim na ipinaseguro):</span><p className="font-medium text-black mt-0.5">{selectedClaim.crop || "—"}</p></div>
-                  <div><span className="text-gray-600 font-semibold">6. Area Insured (Luwang/Sukat ng Bukid) ha.:</span><p className="font-medium text-black mt-0.5">{selectedClaim.areaInsured != null ? `${selectedClaim.areaInsured} ha.` : "—"}</p></div>
-                  <div><span className="text-gray-600 font-semibold">7. Variety Planted (Binhing Itinanim):</span><p className="font-medium text-black mt-0.5">{selectedClaim.varietyPlanted || "—"}</p></div>
-                  <div><span className="text-gray-600 font-semibold">8. Actual Date of Planting (Aktwal na Petsa ng Pagkakatanim):</span><p className="font-medium text-black mt-0.5">{selectedClaim.plantingDate ? new Date(selectedClaim.plantingDate).toLocaleDateString() : "—"}</p></div>
-                  <div><span className="text-gray-600 font-semibold">9. CIC Number (Numero ng CIC):</span><p className="font-medium text-black mt-0.5">{selectedClaim.cicNumber || "—"}</p></div>
-                  <div><span className="text-gray-600 font-semibold">10. Underwriter/Cooperative (Pangalan ng Ahente o Kooperatiba):</span><p className="font-medium text-black mt-0.5">{selectedClaim.underwriter || "—"}</p></div>
-                  <div className="sm:col-span-2"><span className="text-gray-600 font-semibold">11. Program (Programa):</span><p className="font-medium text-black mt-0.5">{selectedClaim.program?.length ? [...(selectedClaim.program || []), selectedClaim.otherProgramText].filter(Boolean).join(", ") : (selectedClaim.otherProgramText || "—")}</p></div>
-                </div>
-              </div>
-
-              {/* II. DAMAGE INDICATORS (MGA IMPORMASYON TUNGKOL SA PINSALA) */}
-              <div className="bg-white rounded-lg p-5 border-2 border-black mb-4">
-                <h3 className="text-sm font-black text-black uppercase tracking-wider mb-4 pb-2 border-b-2 border-black">II. Damage Indicators (Mga Impormasyon Tungkol sa Pinsala)</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div><span className="text-gray-600 font-semibold">1. Cause of Loss (Sanhi ng Pinsala):</span><p className="font-medium text-black mt-0.5">{selectedClaim.damageType || "—"}</p></div>
-                  <div><span className="text-gray-600 font-semibold">2. Date of Loss Occurrence (Petsa ng Pinsala):</span><p className="font-medium text-black mt-0.5">{selectedClaim.lossDate ? new Date(selectedClaim.lossDate).toLocaleDateString() : "—"}</p></div>
-                  <div><span className="text-gray-600 font-semibold">3. Age/Stage of cultivation at time of loss (Edad ng Pananim ng Mapinsala):</span><p className="font-medium text-black mt-0.5">{selectedClaim.ageStage || "—"}</p></div>
-                  <div><span className="text-gray-600 font-semibold">4. Area Damaged (Luwang o sukat ng Napinsalang Bahagi) ha.:</span><p className="font-medium text-black mt-0.5">{selectedClaim.areaDamaged != null ? `${selectedClaim.areaDamaged} ha.` : "—"}</p></div>
-                  <div><span className="text-gray-600 font-semibold">5. Extent/Degree of Damage (Tindi o Porsyento ng Pinsala) %:</span><p className="font-medium text-black mt-0.5">{selectedClaim.degreeOfDamage != null ? `${selectedClaim.degreeOfDamage}%` : "—"}</p></div>
-                  <div><span className="text-gray-600 font-semibold">6. Expected Date of Harvest (Tinatayang Petsa ng Pagpapagapas o Pag-ani):</span><p className="font-medium text-black mt-0.5">{selectedClaim.expectedHarvest || "—"}</p></div>
-                </div>
-              </div>
-
-              {/* III. LOCATION SKETCH PLAN (LSP) */}
-              {selectedClaim.lotBoundaries && Object.keys(selectedClaim.lotBoundaries).length > 0 && (
-                <div className="bg-white rounded-lg p-5 border-2 border-black mb-4">
-                  <h3 className="text-sm font-black text-black uppercase tracking-wider mb-2 pb-2 border-b-2 border-black">III. Location Sketch Plan of Damaged Crops (LSP) (Krokis ng Bukid ng mga Nasalantang Nakasegurong Pananim)</h3>
-                  <p className="text-xs text-gray-600 mb-3 italic">Isulat ang pangalan ng may-ari/nagsasaka sa karatig na sakahan</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                    {[1, 2, 3, 4].map((lot) => {
-                      const lb = selectedClaim.lotBoundaries[lot]
-                      if (!lb) return null
-                      return (
-                        <div key={lot} className="border border-gray-200 rounded p-3">
-                          <span className="font-semibold text-gray-700">Lot {lot}</span>
-                          <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-                            <div><span className="text-gray-500">North (Hilaga):</span> <span className="font-medium">{lb.north || "—"}</span></div>
-                            <div><span className="text-gray-500">South (Timog):</span> <span className="font-medium">{lb.south || "—"}</span></div>
-                            <div><span className="text-gray-500">East (Silangan):</span> <span className="font-medium">{lb.east || "—"}</span></div>
-                            <div><span className="text-gray-500">West (Kanluran):</span> <span className="font-medium">{lb.west || "—"}</span></div>
-                          </div>
-                        </div>
-                      )
-                    })}
+              {/* I. BASIC INFORMATION - form layout with underlined value lines */}
+              <div className="mb-6">
+                <h3 className="text-sm font-bold uppercase border-b border-black pb-1 mb-4">I. BASIC INFORMATION (MGA PANGUNAHING IMPORMASYON)</h3>
+                <div className="space-y-4 text-sm">
+                  <div><p className="text-gray-700 font-medium">1. Name of Farmer-Assured (Pangalan ng Magsasaka):</p><p className="border-b border-black pt-0.5 font-medium">{c.name || ""}</p></div>
+                  <div><p className="text-gray-700 font-medium">2. Address (Tirahan):</p><p className="border-b border-black pt-0.5 font-medium">{c.address || ""}</p></div>
+                  <div><p className="text-gray-700 font-medium">3. Cell Phone Number (Numero ng Telepono):</p><p className="border-b border-black pt-0.5 font-medium">{c.phone || ""}</p></div>
+                  <div><p className="text-gray-700 font-medium">4. Location of Farm (Lugar ng Saka):</p><p className="border-b border-black pt-0.5 font-medium">{c.farmerLocation || c.address || ""}</p></div>
+                  <div>
+                    <p className="text-gray-700 font-medium">5. Insured Crops (Pananim na ipinaseguro):</p>
+                    <div className="flex flex-wrap items-center gap-4 pt-1">
+                      <span className="inline-flex items-center gap-1"><span className="inline-flex items-center justify-center w-4 h-4 border border-black rounded-sm flex-shrink-0 text-xs font-bold">{isPalay ? "✓" : ""}</span> Palay</span>
+                      <span className="inline-flex items-center gap-1"><span className="inline-flex items-center justify-center w-4 h-4 border border-black rounded-sm flex-shrink-0 text-xs font-bold">{isCorn ? "✓" : ""}</span> Corn</span>
+                      <span className="border-b border-black flex-1 min-w-[120px] font-medium">{!isPalay && !isCorn ? (c.crop || "") : ""}</span>
+                    </div>
+                  </div>
+                  <div><p className="text-gray-700 font-medium">6. Area Insured (Luwang/Sukat ng Bukid na Ipinaseguro):</p><p className="border-b border-black pt-0.5 font-medium inline">{c.areaInsured != null ? c.areaInsured : ""}</p><span className="ml-2 text-gray-600">ha. (ektorya)</span></div>
+                  <div><p className="text-gray-700 font-medium">7. Variety Planted (Binhing Itinanim):</p><p className="border-b border-black pt-0.5 font-medium">{c.varietyPlanted || ""}</p></div>
+                  <div>
+                    <p className="text-gray-700 font-medium">8. Actual Date of Planting (Aktwal na Petsa ng Pagkakatanim):</p>
+                    <div className="flex items-center gap-4 pt-1">
+                      <span className="flex items-center gap-1">DS <span className="border-b border-black min-w-[80px] font-medium">{c.plantingDate ? new Date(c.plantingDate).toLocaleDateString() : ""}</span></span>
+                      <span className="flex items-center gap-1">TP <span className="border-b border-black min-w-[80px] font-medium"></span></span>
+                    </div>
+                  </div>
+                  <div><p className="text-gray-700 font-medium">9. CIC Number (Numero ng CIC):</p><p className="border-b border-black pt-0.5 font-medium">{c.cicNumber || ""}</p></div>
+                  <div><p className="text-gray-700 font-medium">10. Underwriter/Cooperative (Pangalan ng Ahente o Kooperatiba):</p><p className="border-b border-black pt-0.5 font-medium">{c.underwriter || ""}</p></div>
+                  <div>
+                    <p className="text-gray-700 font-medium">11. Program (Programa):</p>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
+                      {programLabels.map((label) => (
+                        <span key={label} className="inline-flex items-center gap-1">
+                          <span className="inline-flex items-center justify-center w-4 h-4 border border-black rounded-sm flex-shrink-0 text-xs font-bold">{isProgramChecked(label) ? "✓" : ""}</span> {label}
+                        </span>
+                      ))}
+                      <span className="inline-flex items-center gap-1">( ) Others: <span className="border-b border-black min-w-[80px] font-medium">{c.otherProgramText || ""}</span></span>
+                    </div>
                   </div>
                 </div>
-              )}
+              </div>
 
-              <p className="text-xs text-gray-600 mb-4">Signature over Printed Name of Assured Farmer-Claimant (Lagda sa Ibabaw ng Pangalan ng Magsasakang Nakaseguro)</p>
+              {/* II. DAMAGE INDICATORS - form layout */}
+              <div className="mb-6">
+                <h3 className="text-sm font-bold uppercase border-b border-black pb-1 mb-4">II. DAMAGE INDICATORS (MGA IMPORMASYON TUNGKOL SA PINSALA)</h3>
+                <div className="space-y-4 text-sm">
+                  <div><p className="text-gray-700 font-medium">1. Cause of Loss (Sanhi ng Pinsala):</p><p className="border-b border-black pt-0.5 font-medium">{c.damageType || ""}</p></div>
+                  <div><p className="text-gray-700 font-medium">2. Date of Loss Occurrence (Petsa ng Pinsala):</p><p className="border-b border-black pt-0.5 font-medium">{c.lossDate ? new Date(c.lossDate).toLocaleDateString() : ""}</p></div>
+                  <div><p className="text-gray-700 font-medium">3. Age/Stage of cultivation at time of loss (Edad ng Pananim ng Mapinsala):</p><p className="border-b border-black pt-0.5 font-medium">{c.ageStage || ""}</p></div>
+                  <div><p className="text-gray-700 font-medium">4. Area Damaged (Luwang o sukat ng Napinsalang Bahagi):</p><p className="border-b border-black pt-0.5 font-medium inline">{c.areaDamaged != null ? c.areaDamaged : ""}</p><span className="ml-2 text-gray-600">ha. (ektaryo)</span></div>
+                  <div><p className="text-gray-700 font-medium">5. Extent/Degree of Damage (Tindi o Porsyento ng Pinsala):</p><p className="border-b border-black pt-0.5 font-medium inline">{c.degreeOfDamage != null ? c.degreeOfDamage : ""}</p><span className="ml-2 text-gray-600">% (porsyento)</span></div>
+                  <div><p className="text-gray-700 font-medium">6. Expected Date of Harvest (Tinatayang Petsa ng Pagpapagapas o Pag-ani):</p><p className="border-b border-black pt-0.5 font-medium">{c.expectedHarvest || ""}</p></div>
+                </div>
+              </div>
+
+              {/* III. LOCATION SKETCH PLAN - same structure as image, always show 4 lots */}
+              <div className="mb-6">
+                <h3 className="text-sm font-bold uppercase border-b border-black pb-1 mb-1">III. LOCATION SKETCH PLAN OF DAMAGED CROPS (LSP)</h3>
+                <p className="text-xs text-gray-600 mb-3">(KROKIS NG BUKID NG MGA NASALANTANG NAKASEGURONG PANANIM)</p>
+                <p className="text-xs text-gray-600 mb-3 italic">Isulat ang pangalan ng may-ari/nagsasaka sa karatig na sakahan</p>
+                <div className="space-y-4 text-sm">
+                  {[1, 2, 3, 4].map((lot) => {
+                    const lb = c.lotBoundaries && c.lotBoundaries[lot] ? c.lotBoundaries[lot] : {}
+                    return (
+                      <div key={lot} className="border border-gray-300 p-3 rounded">
+                        <p className="font-medium mb-2">Lot {lot} _____ ha.</p>
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                          <div><span className="text-gray-600">North (Hilaga):</span><p className="border-b border-black font-medium">{lb.north || ""}</p></div>
+                          <div><span className="text-gray-600">South (Timog):</span><p className="border-b border-black font-medium">{lb.south || ""}</p></div>
+                          <div><span className="text-gray-600">East (Silangan):</span><p className="border-b border-black font-medium">{lb.east || ""}</p></div>
+                          <div><span className="text-gray-600">West (Kanluran):</span><p className="border-b border-black font-medium">{lb.west || ""}</p></div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Footer - Thank You / Signature */}
+              <div className="mt-6 pt-4 border-t border-gray-300">
+                <p className="text-sm">Thank You.</p>
+                <p className="text-sm mt-1">Very truly yours,</p>
+                <p className="border-b-2 border-black pt-8 pb-1 mt-4 min-h-[2rem]"></p>
+                <p className="text-xs text-gray-600 mt-1">Signature over Printed Name of Assured Farmer-Claimant (Lagda sa Ibabaw ng Pangalan ng Magsasakang Nakaseguro)</p>
+              </div>
 
               {/* Damage Evidence Photos */}
               {selectedClaim.damagePhotos && selectedClaim.damagePhotos.length > 0 && (
@@ -770,114 +804,21 @@ const InsuranceClaims = ({
               )}
 
               {selectedClaim.status === "pending" && (
-                <>
-                  {/* Compensation Preview for Pending Claims */}
-                  <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200 mb-6">
-                    <h3 className="text-lg font-semibold text-yellow-800 mb-3 flex items-center gap-2">
-                      💰 Compensation Preview
-                    </h3>
-                    {(() => {
-                      const compensation = calculateCompensation(
-                        Number.parseFloat(selectedClaim?.areaDamaged || 0),
-                        Number.parseFloat(selectedClaim?.degreeOfDamage || 0),
-                        selectedClaim?.crop || 'Other',
-                        selectedClaim?.damageType || 'Other'
-                      );
-                      
-                      const damageSeverity = getDamageSeverity(Number.parseFloat(selectedClaim?.degreeOfDamage || 0));
-                      const coverageDetails = getCoverageDetails(selectedClaim?.crop || 'Other');
-                      
-                      return (
-                        <div className="space-y-3">
-                          <div className="bg-white p-3 rounded-lg border border-yellow-200">
-                            <div className="flex justify-between items-center">
-                              <span className="text-gray-600 font-medium">Estimated Compensation:</span>
-                              <span className="text-2xl font-bold text-green-700">
-                                ₱{compensation.finalCompensation.toLocaleString()}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div className="bg-white p-3 rounded-lg border border-yellow-200">
-                              <span className="text-gray-500 text-sm">Damage Severity</span>
-                              <div className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${damageSeverity.bgColor} ${damageSeverity.color}`}>
-                                {damageSeverity.level}
-                              </div>
-                            </div>
-                            <div className="bg-white p-3 rounded-lg border border-yellow-200">
-                              <span className="text-gray-500 text-sm">Coverage Type</span>
-                              <p className="font-medium text-sm">{coverageDetails.coverage}</p>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                  
-                  <div className="flex justify-between mt-6">
-                    <button
-                      onClick={() => initiateStatusUpdate(selectedClaim._id, "rejected", selectedClaim.farmerId)}
-                      className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition flex items-center"
-                    >
-                      <XCircle size={18} className="mr-2" />
-                      Reject Claim
-                    </button>
-                    <button
-                      onClick={() => initiateStatusUpdate(selectedClaim._id, "approved", selectedClaim.farmerId)}
-                      className="bg-lime-600 text-white px-6 py-2 rounded-lg hover:bg-lime-700 transition flex items-center"
-                    >
-                      <CheckCircle size={18} className="mr-2" />
-                      Approve Claim
-                    </button>
-                  </div>
-                </>
-              )}
-
-              {/* Compensation Details for Approved Claims */}
-              {selectedClaim.status === "approved" && (
-                <div className="bg-green-50 p-4 rounded-lg border border-green-200 mb-6">
-                  <h3 className="text-lg font-semibold text-green-800 mb-3">Insurance Compensation Details</h3>
-                  {(() => {
-                    const compensation = calculateCompensation(
-                      Number.parseFloat(selectedClaim?.areaDamaged || 0),
-                      Number.parseFloat(selectedClaim?.degreeOfDamage || 0),
-                      selectedClaim?.crop || 'Other',
-                      selectedClaim?.damageType || 'Other'
-                    );
-                    
-                    const paymentStatus = getPaymentStatus(selectedClaim?.completionDate);
-                    
-                    return (
-                      <div className="space-y-4">
-                        <div className="bg-white p-4 rounded-lg border border-green-200">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <span className="text-gray-500 text-sm">Final Compensation</span>
-                              <p className="font-bold text-2xl text-green-700">
-                                ₱{compensation.finalCompensation.toLocaleString()}
-                              </p>
-                            </div>
-                            <div className={`px-3 py-1 rounded-full text-sm font-medium ${paymentStatus.bgColor} ${paymentStatus.statusColor}`}>
-                              {paymentStatus.status}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="bg-white p-3 rounded-lg border border-green-200">
-                            <span className="text-gray-500 text-sm">Payment Status</span>
-                            <p className={`font-medium ${paymentStatus.statusColor}`}>{paymentStatus.status}</p>
-                            <p className="text-xs text-gray-500 mt-1">{paymentStatus.message}</p>
-                          </div>
-                          <div className="bg-white p-3 rounded-lg border border-green-200">
-                            <span className="text-gray-500 text-sm">Expected Payment Date</span>
-                            <p className="font-medium">{getExpectedPaymentDate(selectedClaim?.completionDate)}</p>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
+                <div className="flex justify-between mt-6">
+                  <button
+                    onClick={() => initiateStatusUpdate(selectedClaim._id, "rejected", selectedClaim.farmerId)}
+                    className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition flex items-center"
+                  >
+                    <XCircle size={18} className="mr-2" />
+                    Reject Claim
+                  </button>
+                  <button
+                    onClick={() => initiateStatusUpdate(selectedClaim._id, "approved", selectedClaim.farmerId)}
+                    className="bg-lime-600 text-white px-6 py-2 rounded-lg hover:bg-lime-700 transition flex items-center"
+                  >
+                    <CheckCircle size={18} className="mr-2" />
+                    Approve Claim
+                  </button>
                 </div>
               )}
 
@@ -893,7 +834,8 @@ const InsuranceClaims = ({
             </div>
           </div>
         </div>
-      )}
+        )
+      })()}
 
       {/* Confirmation Modal for Claim Status Update */}
       {showConfirmationModal && (
