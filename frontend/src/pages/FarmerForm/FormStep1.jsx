@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { FaUser, FaMapMarkerAlt, FaPhone, FaInfoCircle, FaSeedling } from "react-icons/fa"
 import { useClaimFormStore } from "../../store/claimFormStore"
 import { useAuthStore } from "../../store/authStore"
-import { MapPin } from "lucide-react"
+import { MapPin, Calendar } from "lucide-react"
 import { fetchCropInsurance } from "../../api"
 
 const FormStep1 = () => {
@@ -21,6 +21,7 @@ const FormStep1 = () => {
       // Use address from user object (from farmer registration)
       updateForm("address", user.address || "")
       updateForm("phone", user.phone || "")
+      updateForm("farmerLocation", user.address || formData.farmerLocation || "")
       updateForm("crop", user.cropType || "")
       updateForm("areaInsured", user.cropArea || "")
       
@@ -32,7 +33,7 @@ const FormStep1 = () => {
         }
       }
     }
-  }, [user, formData.program, updateForm])
+  }, [user, formData.program, formData.farmerLocation, updateForm])
 
   useEffect(() => {
     async function loadInsuredCrops() {
@@ -153,6 +154,22 @@ const FormStep1 = () => {
             <p className="text-red-500 text-sm mt-1">{formData.errors.phone}</p>
           )}
         </div>
+        <div className="relative">
+          <label className="block text-gray-700 font-semibold mb-2" htmlFor="farm-location">
+            Farm Location (Lugar ng Saka)
+          </label>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+            <input
+              id="farm-location"
+              placeholder="e.g. Barangay, Municipality, Province"
+              className="pl-12 border p-4 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400"
+              value={formData.farmerLocation}
+              onChange={(e) => handleChange("farmerLocation", e.target.value)}
+              onBlur={() => setFieldTouched("farmerLocation")}
+            />
+          </div>
+        </div>
         <div className="mb-6">
           <label className="block text-gray-700 font-semibold mb-2" htmlFor="crop-type">
             Insured Crops <span className="text-red-500">*</span>
@@ -202,6 +219,74 @@ const FormStep1 = () => {
           {formData.errors?.areaInsured && formData.touched?.areaInsured && (
             <p className="text-red-500 text-sm mt-1">{formData.errors.areaInsured}</p>
           )}
+        </div>
+
+        <div className="relative">
+          <label className="block text-gray-700 font-semibold mb-2" htmlFor="variety-planted">
+            Variety Planted (Binhing Itinanim)
+          </label>
+          <input
+            id="variety-planted"
+            placeholder="e.g. IR64, Hybrid Corn"
+            className="pl-4 border p-4 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400"
+            value={formData.varietyPlanted}
+            onChange={(e) => handleChange("varietyPlanted", e.target.value)}
+            onBlur={() => setFieldTouched("varietyPlanted")}
+          />
+        </div>
+
+        <div className="relative">
+          <label className="block text-gray-700 font-semibold mb-2" htmlFor="planting-date">
+            Actual Date of Planting (Aktwal na Petsa ng Pagkakatanim)
+          </label>
+          <div className="relative">
+            <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
+            <input
+              id="planting-date"
+              type="date"
+              className="pl-12 border p-4 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400"
+              value={formData.plantingDate ? (String(formData.plantingDate).includes('T') ? String(formData.plantingDate).split('T')[0] : String(formData.plantingDate).slice(0, 10)) : ''}
+              onChange={(e) => handleChange("plantingDate", e.target.value)}
+              onBlur={() => setFieldTouched("plantingDate")}
+            />
+          </div>
+        </div>
+
+        <div className="relative">
+          <label className="block text-gray-700 font-semibold mb-2" htmlFor="cic-number">
+            CIC Number (Numero ng CIC)
+          </label>
+          <input
+            id="cic-number"
+            placeholder="Enter CIC number"
+            className="pl-4 border p-4 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400"
+            value={formData.cicNumber}
+            onChange={(e) => handleChange("cicNumber", e.target.value)}
+            onBlur={() => setFieldTouched("cicNumber")}
+          />
+        </div>
+
+        <div className="relative">
+          <label className="block text-gray-700 font-semibold mb-2" htmlFor="underwriter">
+            Underwriter / Cooperative (Pangalan ng Ahente o Kooperatiba)
+          </label>
+          <select
+            id="underwriter"
+            className="pl-4 border p-4 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-green-400 bg-white"
+            value={formData.underwriter}
+            onChange={(e) => handleChange("underwriter", e.target.value)}
+            onBlur={() => setFieldTouched("underwriter")}
+          >
+            <option value="">Select underwriter or cooperative</option>
+            <option value="Kapalong Cooperative - 5.8M Infra Project">Kapalong Cooperative - 5.8M Infra Project</option>
+            <option value="Kapalong Agrarian Reform Beneficiaries Multi-Purpose Cooperative">Kapalong Agrarian Reform Beneficiaries Multi-Purpose Cooperative</option>
+            <option value="KST Multi-Purpose Cooperative">KST Multi-Purpose Cooperative</option>
+            <option value="KFI - Cacaopreneur Kapalong">KFI - Cacaopreneur Kapalong</option>
+            <option value="RACO">RACO</option>
+            <option value="PAFIMCO">PAFIMCO</option>
+            <option value="DRACO">DRACO</option>
+            <option value="CLIMBS Life and General Insurance Cooperative">CLIMBS Life and General Insurance Cooperative</option>
+          </select>
         </div>
 
         <div className="mb-6">
