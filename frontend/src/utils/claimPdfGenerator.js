@@ -2,418 +2,221 @@ import jsPDF from 'jspdf'
 import 'jspdf-autotable'
 
 /**
- * Generate PCIC Insurance Claim Form PDF
- * Matches the official PCIC Form No. 2007-003 format
+ * Generate PCIC CLAIM FOR INDEMNITY (PAGHAHABOL BAYAD) PDF
+ * Matches the official PCIC Regional Office form template
+ * All data comes from the claim (filed via farmer File New Claim / Claim for Indemnity form)
  */
 export const generateClaimPDF = (claim, farmerData = null) => {
   const doc = new jsPDF()
-  
-  // Helper function to draw checkbox
-  const drawCheckbox = (x, y, checked = false) => {
-    doc.rect(x, y, 3, 3)
-    if (checked) {
-      doc.text('✓', x + 0.5, y + 2.3)
-    }
-  }
-  
-  // Helper function to draw underlined field
-  const drawField = (x, y, value, width = 40) => {
-    // Convert value to string and handle null/undefined
+  doc.setFont('helvetica', 'normal')
+
+  const drawField = (x, y, value, width = 50) => {
     const displayValue = value !== null && value !== undefined ? String(value) : ''
     doc.text(displayValue, x, y)
     doc.line(x, y + 0.5, x + width, y + 0.5)
   }
-  
-  // Set font
-  doc.setFont('helvetica', 'normal')
-  
-  // HEADER
+
+  const drawCheckbox = (x, y, checked) => {
+    doc.rect(x, y, 3, 3)
+    if (checked) doc.text('x', x + 0.8, y + 2.2)
+  }
+
+  let y = 14
+
+  // TO / Header
   doc.setFontSize(10)
   doc.setFont('helvetica', 'bold')
-  doc.text('PHILIPPINE CROP INSURANCE CORPORATION', 105, 12, { align: 'center' })
+  doc.text('TO : The Chief CAD PCIC-RO XI', 105, y, { align: 'center' })
+  y += 5
   doc.setFontSize(9)
-  doc.text('HOME OFFICE, 9th Floor, PAIC Corporate Center, 116 Tordesillas St., Salcedo Village', 105, 17, { align: 'center' })
-  doc.text('Makati City, 1227 Metro Manila, Philippines', 105, 21, { align: 'center' })
-  
+  doc.text('PHILIPPINE CROP INSURANCE CORPORATION', 105, y, { align: 'center' })
+  y += 4
+  doc.text('Regional Office No. X', 105, y, { align: 'center' })
+  y += 6
   doc.setFontSize(11)
-  doc.setFont('helvetica', 'bold')
-  doc.text('NOTICE OF LOSS / INSURANCE CLAIM FORM', 105, 28, { align: 'center' })
-  
-  doc.setFontSize(7)
-  doc.setFont('helvetica', 'normal')
-  doc.text('PCIC Form No. 2007-003', 15, 35)
-  
-  // Main border
-  doc.rect(10, 10, 190, 277)
-  
-  let y = 40
-  
-  // SECTION 1: TYPE OF LOSS
-  doc.setFontSize(8)
-  doc.setFont('helvetica', 'bold')
-  doc.text('1. TYPE OF LOSS (Check as applicable)', 15, y)
-  y += 5
-  
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7)
-  
-  // Row 1 of checkboxes
-  const damageType = claim.damageType || claim.type || ''
-  drawCheckbox(15, y, damageType.toLowerCase().includes('drought'))
-  doc.text('Drought', 20, y + 2.2)
-  
-  drawCheckbox(45, y, damageType.toLowerCase().includes('flood'))
-  doc.text('Flood', 50, y + 2.2)
-  
-  drawCheckbox(75, y, damageType.toLowerCase().includes('typhoon'))
-  doc.text('Typhoon', 80, y + 2.2)
-  
-  drawCheckbox(105, y, damageType.toLowerCase().includes('pest'))
-  doc.text('Pest Infestation', 110, y + 2.2)
-  
-  drawCheckbox(145, y, damageType.toLowerCase().includes('disease'))
-  doc.text('Plant Disease', 150, y + 2.2)
-  
-  y += 5
-  
-  // Row 2 of checkboxes
-  drawCheckbox(15, y, damageType.toLowerCase().includes('fire'))
-  doc.text('Fire', 20, y + 2.2)
-  
-  drawCheckbox(45, y, damageType.toLowerCase().includes('earthquake'))
-  doc.text('Earthquake', 50, y + 2.2)
-  
-  drawCheckbox(75, y, damageType.toLowerCase().includes('volcanic'))
-  doc.text('Volcanic Eruption', 80, y + 2.2)
-  
-  drawCheckbox(105, y, false)
-  doc.text('Others (specify): ', 110, y + 2.2)
-  drawField(135, y + 2.2, damageType.toLowerCase().includes('other') ? damageType : '', 50)
-  
-  y += 8
-  
-  // SECTION 2: INSURED INFORMATION
-  doc.setFontSize(8)
-  doc.setFont('helvetica', 'bold')
-  doc.text('2. INSURED / CLAIMANT INFORMATION', 15, y)
-  y += 5
-  
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7)
-  
-  // Name
-  const claimantName = claim.name || 
-    (farmerData ? `${farmerData.firstName || ''} ${farmerData.middleName || ''} ${farmerData.lastName || ''}`.trim() : '')
-  
-  doc.text('Name of Insured/Claimant:', 15, y)
-  doc.text('(Last Name)', 65, y - 1)
-  doc.text('(First Name)', 105, y - 1)
-  doc.text('(Middle Name)', 145, y - 1)
-  drawField(15, y + 3, claimantName || '', 180)
-  y += 8
-  
-  // Address
-  doc.text('Address:', 15, y)
-  doc.text('(House No./Street/Barangay)', 30, y - 1)
-  drawField(15, y + 3, claim.address || farmerData?.address || '', 90)
-  
-  doc.text('Municipality/City:', 110, y)
-  drawField(110, y + 3, '', 40)
-  
-  doc.text('Province:', 155, y)
-  drawField(155, y + 3, '', 40)
-  y += 8
-  
-  // Contact Details
-  doc.text('Telephone/Mobile No.:', 15, y)
-  drawField(45, y, claim.contactNum || farmerData?.contactNum || '', 50)
-  
-  doc.text('Fax No.:', 100, y)
-  drawField(115, y, '', 35)
-  
-  doc.text('E-mail Address:', 155, y)
-  drawField(175, y, '', 25)
+  doc.text('CLAIM FOR INDEMNITY (PAGHAHABOL BAYAD)', 105, y, { align: 'center' })
   y += 6
-  
-  // SECTION 3: INSURANCE COVERAGE INFORMATION
-  doc.setFontSize(8)
-  doc.setFont('helvetica', 'bold')
-  doc.text('3. INSURANCE COVERAGE INFORMATION', 15, y)
-  y += 5
-  
-  doc.setFont('helvetica', 'normal')
   doc.setFontSize(7)
-  
-  // Policy Number
-  doc.text('Policy/Certificate No.:', 15, y)
-  drawField(45, y, claim.policyNumber || '', 50)
-  
-  doc.text('Crop Year/Season:', 100, y)
-  drawField(130, y, '', 35)
-  
-  doc.text('Crop Stage:', 170, y)
-  drawField(185, y, '', 15)
-  y += 6
-  
-  // Crop and Area
-  doc.text('Crop Insured:', 15, y)
-  drawField(35, y, claim.crop || claim.cropType || '', 50)
-  
-  doc.text('Variety:', 90, y)
-  drawField(105, y, claim.varietyPlanted || '', 40)
-  
-  doc.text('Area Insured (ha):', 150, y)
-  drawField(175, y, claim.areaInsured || farmerData?.cropArea || '', 25)
-  y += 6
-  
-  // Sum Insured
-  doc.text('Sum Insured (PHP):', 15, y)
-  drawField(45, y, claim.sumInsured || '', 40)
-  
-  doc.text('Premium Paid (PHP):', 90, y)
-  drawField(120, y, farmerData?.premiumAmount || '', 35)
-  
-  doc.text('Date:', 160, y)
-  drawField(175, y, '', 25)
-  y += 8
-  
-  // SECTION 4: FARM LOCATION
-  doc.setFontSize(8)
-  doc.setFont('helvetica', 'bold')
-  doc.text('4. FARM LOCATION', 15, y)
-  y += 5
-  
   doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7)
-  
-  doc.text('Barangay:', 15, y)
-  drawField(32, y, '', 50)
-  
-  doc.text('Municipality/City:', 85, y)
-  drawField(115, y, '', 40)
-  
-  doc.text('Province:', 160, y)
-  drawField(175, y, '', 25)
-  y += 6
-  
-  doc.text('Lot/Field No.:', 15, y)
-  drawField(35, y, farmerData?.lotNumber || '', 40)
-  
-  doc.text('Coordinates (if available):', 80, y)
-  doc.text('Latitude:', 125, y)
-  drawField(140, y, '', 25)
-  doc.text('Longitude:', 170, y)
-  drawField(185, y, '', 15)
-  y += 8
-  
-  // SECTION 5: LOSS/DAMAGE DETAILS
-  doc.setFontSize(8)
-  doc.setFont('helvetica', 'bold')
-  doc.text('5. LOSS/DAMAGE DETAILS', 15, y)
-  y += 5
-  
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7)
-  
-  // Date of Loss
-  const lossDate = claim.lossDate ? new Date(claim.lossDate).toLocaleDateString() : 
-                   new Date(claim.date).toLocaleDateString()
-  
-  doc.text('Date Loss Occurred:', 15, y)
-  drawField(45, y, lossDate, 40)
-  
-  doc.text('Date Discovered:', 90, y)
-  drawField(115, y, lossDate, 40)
-  
-  doc.text('Date Reported to PCIC:', 160, y)
-  drawField(185, y, '', 15)
-  y += 6
-  
-  // Area Affected
-  doc.text('Total Area Affected (ha):', 15, y)
-  drawField(50, y, claim.areaDamaged || claim.damageArea || '', 35)
-  
-  doc.text('% of Damage:', 90, y)
-  drawField(115, y, String(claim.degreeOfDamage || ''), 20)
-  doc.text('%', 137, y)
-  
-  doc.text('Estimated Yield Loss (bags/ha):', 145, y)
-  drawField(185, y, '', 15)
-  y += 8
-  
-  // Cause of Loss/Damage
-  doc.text('Cause of Loss/Damage:', 15, y)
+  doc.text('Please send your team of Adjusters to assess damage of my insured crop.', 105, y, { align: 'center' })
   y += 4
-  const causeText = String(claim.causeOfLoss || claim.damageType || '')
-  const causeLines = doc.splitTextToSize(causeText, 180)
-  doc.text(causeLines, 15, y)
-  y += Math.max(causeLines.length * 4, 8)
-  doc.line(15, y, 195, y)
-  y += 6
-  
-  // Description of Damage
-  doc.text('Detailed Description of Damage:', 15, y)
+  doc.text('(Mangyaring magpadala kayo ng tagapag-imbistige upang tasahin ang naging pinsala ng aking pananim)', 105, y, { align: 'center' })
   y += 4
-  const description = String(claim.description || claim.damageDescription || '')
-  const descLines = doc.splitTextToSize(description, 180)
-  doc.text(descLines, 15, y)
-  y += Math.max(descLines.length * 4, 12)
-  doc.line(15, y, 195, y)
-  doc.line(15, y + 4, 195, y + 4)
+  doc.text('Hereunder are the basic information needed by your office. (Narito ang mga kinakailangang tala ng inyong tanggapon)', 105, y, { align: 'center' })
   y += 10
-  
-  // SECTION 6: PREVIOUS CLAIMS
-  doc.setFontSize(8)
+
+  // I. BASIC INFORMATION (MGA PANGUNAHING IMPORMASYON)
+  doc.setFontSize(9)
   doc.setFont('helvetica', 'bold')
-  doc.text('6. PREVIOUS CLAIMS (if any)', 15, y)
-  y += 5
-  
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7)
-  
-  doc.text('Have you filed any previous claims for this crop year?', 15, y)
-  drawCheckbox(95, y - 1, false)
-  doc.text('Yes', 100, y)
-  drawCheckbox(115, y - 1, true)
-  doc.text('No', 120, y)
-  y += 5
-  
-  doc.text('If YES, provide details:', 15, y)
-  drawField(50, y, '', 145)
-  y += 8
-  
-  // SECTION 7: SUPPORTING DOCUMENTS
-  doc.setFontSize(8)
-  doc.setFont('helvetica', 'bold')
-  doc.text('7. SUPPORTING DOCUMENTS (Please check documents attached)', 15, y)
-  y += 5
-  
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7)
-  
-  const hasPhotos = claim.photos && claim.photos.length > 0
-  
-  drawCheckbox(15, y, hasPhotos)
-  doc.text('Photographs of damaged crop', 20, y + 2.2)
-  
-  drawCheckbox(80, y, claim.inspectionReport)
-  doc.text('Farm Inspection Report', 85, y + 2.2)
-  
-  drawCheckbox(140, y, false)
-  doc.text('Weather Report', 145, y + 2.2)
-  y += 5
-  
-  drawCheckbox(15, y, false)
-  doc.text('Barangay Certification', 20, y + 2.2)
-  
-  drawCheckbox(80, y, false)
-  doc.text('Police Report (if applicable)', 85, y + 2.2)
-  
-  drawCheckbox(140, y, false)
-  doc.text('Others: __________', 145, y + 2.2)
-  y += 10
-  
-  // SECTION 8: CLAIMANT'S DECLARATION
-  doc.setFontSize(8)
-  doc.setFont('helvetica', 'bold')
-  doc.text('8. CLAIMANT\'S DECLARATION', 15, y)
-  y += 5
-  
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(6)
-  
-  const declaration = String('I hereby declare that the foregoing information are true and correct to the best of my knowledge and belief. I understand that any false statement may result in the denial of this claim and/or cancellation of my insurance policy.')
-  const declLines = doc.splitTextToSize(declaration, 180)
-  doc.text(declLines, 15, y)
-  y += declLines.length * 3 + 8
-  
-  // Signature blocks
-  doc.setFontSize(7)
-  doc.text('________________________________', 15, y)
-  doc.text('Signature over Printed Name of Insured', 15, y + 3)
-  
-  doc.text('________________________________', 115, y)
-  doc.text('Date Signed', 115, y + 3)
-  y += 12
-  
-  // SECTION 9: FOR PCIC USE ONLY
-  doc.setFontSize(8)
-  doc.setFont('helvetica', 'bold')
-  doc.text('9. FOR PCIC USE ONLY', 15, y)
-  y += 5
-  
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7)
-  
-  doc.text('Date Claim Received:', 15, y)
-  drawField(45, y, new Date(claim.date || claim.createdAt).toLocaleDateString(), 40)
-  
-  doc.text('Received by:', 90, y)
-  drawField(110, y, String(claim.reviewedBy || ''), 45)
-  
-  doc.text('Claim No.:', 160, y)
-  drawField(175, y, String(claim.claimNumber || claim._id?.slice(-8) || ''), 25)
+  doc.text('I. BASIC INFORMATION (MGA PANGUNAHING IMPORMASYON)', 14, y)
   y += 6
-  
-  doc.text('Date Inspected:', 15, y)
-  drawField(45, y, '', 40)
-  
-  doc.text('Inspector:', 90, y)
-  drawField(110, y, '', 45)
-  
-  doc.text('Status:', 160, y)
-  drawField(175, y, String(claim.status || '').toUpperCase(), 25)
-  y += 8
-  
-  // Assessment
-  doc.text('Assessment/Remarks:', 15, y)
-  y += 4
-  const feedback = String(claim.adminFeedback || '')
-  if (feedback && feedback.trim()) {
-    const feedbackLines = doc.splitTextToSize(feedback, 180)
-    doc.text(feedbackLines, 15, y)
-    y += feedbackLines.length * 4 + 4
-  } else {
-    doc.line(15, y, 195, y)
-    y += 4
-    doc.line(15, y, 195, y)
-    y += 4
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8)
+
+  const name = claim.name || (farmerData ? `${farmerData.firstName || ''} ${farmerData.middleName || ''} ${farmerData.lastName || ''}`.trim() : '')
+  const address = claim.address || farmerData?.address || ''
+  const phone = claim.phone || farmerData?.contactNum || ''
+  const farmerLocation = claim.farmerLocation || claim.address || farmerData?.address || ''
+  const crop = claim.crop || ''
+  const areaInsured = claim.areaInsured != null ? String(claim.areaInsured) : ''
+  const varietyPlanted = claim.varietyPlanted || ''
+  const plantingDate = claim.plantingDate ? new Date(claim.plantingDate).toLocaleDateString() : ''
+  const cicNumber = claim.cicNumber || ''
+  const underwriter = claim.underwriter || ''
+  const programList = claim.program && claim.program.length ? claim.program : []
+  const otherProgram = claim.otherProgramText || ''
+
+  doc.text('1. Name of Farmer-Assured (Pangalan ng Magsasaka):', 14, y)
+  drawField(14, y + 3, name, 180)
+  y += 7
+  doc.text('2. Address (Tirahan):', 14, y)
+  drawField(14, y + 3, address, 180)
+  y += 7
+  doc.text('3. Cell Phone Number (Numero ng Telepono):', 14, y)
+  drawField(14, y + 3, phone, 80)
+  y += 7
+  doc.text('4. Location of Farm (Lugar ng Saka):', 14, y)
+  drawField(14, y + 3, farmerLocation, 180)
+  y += 7
+  doc.text('5. Insured Crops (Pananim na ipinaseguro):', 14, y)
+  const isPalay = /palay|rice/i.test(crop)
+  const isCorn = /corn|maize/i.test(crop)
+  drawCheckbox(14, y + 1.5, isPalay)
+  doc.text('Palay', 18, y + 3)
+  drawCheckbox(30, y + 1.5, isCorn)
+  doc.text('Corn', 34, y + 3)
+  drawField(50, y + 3, !isPalay && !isCorn ? crop : '', 140)
+  y += 7
+  doc.text('6. Area Insured (Luwang/Sukat ng Bukid na ipinaseguro):', 14, y)
+  drawField(75, y, areaInsured, 25)
+  doc.text('ha. (ektorya)', 102, y)
+  y += 6
+  doc.text('7. Variety Planted (Binhing Itinanim):', 14, y)
+  drawField(14, y + 3, varietyPlanted, 180)
+  y += 7
+  doc.text('8. Actual Date of Planting (Aktwal na Petsa ng Pagkakatanim):', 14, y)
+  drawField(14, y + 3, plantingDate, 60)
+  doc.text('DS', 78, y + 3)
+  doc.rect(82, y + 1, 5, 4)
+  doc.text('TP', 88, y + 3)
+  doc.rect(92, y + 1, 5, 4)
+  y += 7
+  doc.text('9. CIC Number (Numero ng CIC):', 14, y)
+  drawField(14, y + 3, cicNumber, 80)
+  y += 7
+  doc.text('10. Underwriter/Cooperative (Pangalan ng Ahente o Kooperatiba):', 14, y)
+  drawField(14, y + 3, underwriter, 180)
+  y += 7
+  doc.text('11. Program (Programa):', 14, y)
+  const programs = ['Regular', 'Sikat Sal', 'RSBSA', 'APCP-CAP-PBD', 'Punla', 'Cooperative Rice Farm']
+  let xProg = 14
+  programs.forEach((p) => {
+    const checked = programList.some(pr => String(pr).toLowerCase().includes(p.toLowerCase().replace(/\s/g, '')))
+    drawCheckbox(xProg, y + 1.5, checked)
+    doc.text(p, xProg + 4, y + 3)
+    xProg += 28
+  })
+  y += 5
+  doc.text('( ) Others:', 14, y)
+  drawField(32, y, otherProgram, 80)
+  y += 10
+
+  // II. DAMAGE INDICATORS (MGA IMPORMASYON TUNGKOL SA PINSALA)
+  doc.setFont('helvetica', 'bold')
+  doc.text('II. DAMAGE INDICATORS (MGA IMPORMASYON TUNGKOL SA PINSALA)', 14, y)
+  y += 6
+  doc.setFont('helvetica', 'normal')
+
+  const damageType = claim.damageType || ''
+  const lossDate = claim.lossDate ? new Date(claim.lossDate).toLocaleDateString() : ''
+  const ageStage = claim.ageStage || ''
+  const areaDamaged = claim.areaDamaged != null ? String(claim.areaDamaged) : ''
+  const degreeOfDamage = claim.degreeOfDamage != null ? String(claim.degreeOfDamage) : ''
+  const expectedHarvest = claim.expectedHarvest || ''
+
+  doc.text('1. Cause of Loss (Sanhi ng Pinsala):', 14, y)
+  drawField(14, y + 3, damageType, 180)
+  y += 7
+  doc.text('2. Date of Loss Occurrence (Petsa ng Pinsala):', 14, y)
+  drawField(14, y + 3, lossDate, 80)
+  y += 7
+  doc.text('3. Age/Stage of cultivation at time of loss (Edad ng Pananim ng Mapinsala):', 14, y)
+  drawField(14, y + 3, ageStage, 180)
+  y += 7
+  doc.text('4. Area Damaged (Luwang o sukat ng Napinsalang Bahagi):', 14, y)
+  drawField(75, y, areaDamaged, 25)
+  doc.text('ha. (ektorya)', 102, y)
+  y += 6
+  doc.text('5. Extent/Degree of Damage (Tindi o Porsyento ng Pinsala):', 14, y)
+  drawField(75, y, degreeOfDamage, 20)
+  doc.text('% (porsyento)', 98, y)
+  y += 6
+  doc.text('6. Expected Date of Harvest (Tinatayang Petsa ng Pagpapagapas o Pag-ani):', 14, y)
+  drawField(14, y + 3, expectedHarvest, 180)
+  y += 10
+
+  // III. LOCATION SKETCH PLAN (LSP)
+  doc.setFont('helvetica', 'bold')
+  doc.text('III. LOCATION SKETCH PLAN OF DAMAGED CROPS (LSP) (KROKIS NG BUKID NG MGA NASALANTANG NAKASEGURONG PANANIM)', 14, y)
+  y += 5
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(7)
+  doc.text('Isulat ang pangalan ng may-ari/nagsasaka sa karatig na sakahan', 14, y)
+  y += 6
+
+  const lotBoundaries = claim.lotBoundaries || {}
+  for (let lot = 1; lot <= 4; lot++) {
+    const lb = lotBoundaries[lot] || {}
+    doc.text(`Lot ${lot}`, 14, y)
+    doc.line(24, y - 2.5, 45, y - 2.5)
+    doc.text('ha.', 48, y)
+    doc.text('North (Hilaga):', 60, y)
+    drawField(78, y - 0.5, lb.north || '', 35)
+    doc.text('South (Timog):', 118, y)
+    drawField(136, y - 0.5, lb.south || '', 35)
+    doc.text('East (Silangan):', 176, y)
+    drawField(192, y - 0.5, lb.east || '', 15)
+    y += 5
+    doc.text('West (Kanluran):', 14, y)
+    drawField(38, y - 0.5, lb.west || '', 50)
+    y += 6
   }
-  y += 2
-  
-  // Compensation
-  doc.text('Approved Indemnity/Compensation:', 15, y)
-  doc.text('PHP', 60, y)
-  drawField(68, y, claim.compensation ? String(claim.compensation.toLocaleString()) : '', 40)
-  y += 8
-  
-  // Approval signatures
-  doc.text('Approved by:', 15, y)
   y += 4
-  doc.text('________________________________', 15, y)
-  doc.text('Claims Officer', 15, y + 3)
-  doc.text('Date: ___________', 15, y + 6)
-  
-  doc.text('________________________________', 115, y)
-  doc.text('Branch Manager', 115, y + 3)
-  doc.text('Date: ___________', 115, y + 6)
-  
-  // Footer
+
+  // Signature
+  doc.setFontSize(8)
+  doc.text('Thank You. Very truly yours,', 14, y)
+  y += 6
+  doc.line(14, y, 80, y)
+  y += 4
+  doc.setFontSize(7)
+  doc.text('Signature over Printed Name of Assured Farmer-Claimant (Lagda sa Ibabaw ng Pangalan ng Magsasakang Nakaseguro)', 14, y)
+  y += 10
+
+  // PCIC use / claim info
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(8)
+  doc.text('Claim No.:', 14, y)
+  doc.setFont('helvetica', 'normal')
+  doc.text(String(claim.claimNumber || claim._id?.toString().slice(-8) || ''), 28, y)
+  doc.text('Date Filed:', 80, y)
+  doc.text(claim.date ? new Date(claim.date).toLocaleDateString() : '', 95, y)
+  doc.text('Status:', 140, y)
+  doc.text(String(claim.status || 'pending').toUpperCase(), 155, y)
+  y += 6
+  if (claim.compensation != null) {
+    doc.text('Approved Indemnity/Compensation: PHP ' + Number(claim.compensation).toLocaleString(), 14, y)
+    y += 5
+  }
   doc.setFontSize(6)
   doc.setFont('helvetica', 'italic')
-  doc.text('This is a computer-generated document from the Department of Agriculture - AGRI-CHAIN System', 105, 283, { align: 'center' })
-  doc.text(`Generated on: ${new Date().toLocaleString()}`, 105, 286, { align: 'center' })
-  doc.text('Page 1 of 1', 195, 285, { align: 'right' })
-  
-  // Generate filename
-  const claimNum = String(claim.claimNumber || claim._id?.slice(-8) || 'Form')
-  const safeName = String(claimantName || 'Claimant').replace(/\s+/g, '_')
-  const filename = `PCIC_Claim_${claimNum}_${safeName}.pdf`
-  
-  // Save the PDF
-  doc.save(filename)
-  
-  return filename
+  doc.text('Computer-generated from AGRI-CHAIN. Generated: ' + new Date().toLocaleString(), 105, 288, { align: 'center' })
+
+  const claimNum = String(claim.claimNumber || claim._id?.toString().slice(-8) || 'Form')
+  const safeName = String(name || 'Claimant').replace(/\s+/g, '_').slice(0, 30)
+  const outFilename = `PCIC_Claim_Indemnity_${claimNum}_${safeName}.pdf`
+  doc.save(outFilename)
+  return outFilename
 }
 
 export default generateClaimPDF
