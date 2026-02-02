@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom"
 import {
   Menu,
   X,
+  XCircle,
   ChevronDown,
   User,
   LogOut,
@@ -21,6 +22,7 @@ import {
   Shield,
   TrendingUp,
   Copy,
+  Camera,
 } from "lucide-react"
 import { useAuthStore } from "../store/authStore"
 
@@ -2519,95 +2521,152 @@ const FarmerDashboard = () => {
         </main>
       </div>
 
-      {/* Claim Details Modal */}
-      {showClaimDetails && selectedClaim ? (
+      {/* Claim Details Modal - PCIC CLAIM FOR INDEMNITY form template */}
+      {showClaimDetails && selectedClaim ? (() => {
+        const c = selectedClaim
+        const isPalay = /palay|rice/i.test(c.crop || '')
+        const isCorn = /corn|maize/i.test(c.crop || '')
+        const programList = c.program && Array.isArray(c.program) ? c.program : []
+        const programLabels = ['Regular', 'Sikat Sal', 'RSBSA', 'APCP-CAP-PBD', 'Punla', 'Cooperative Rice Farmer']
+        // RSBSA checkbox: treat stored "RSBA" (typo from form) as RSBSA so it shows checked
+        const isProgramChecked = (label) => {
+          const norm = (s) => String(s).toLowerCase().replace(/\s/g, '')
+          if (label === 'RSBSA') {
+            return programList.some(p => {
+              const n = norm(p)
+              return n === 'rsbsa' || n === 'rsba'
+            })
+          }
+          return programList.some(p => norm(p).includes(norm(label)))
+        }
+
+        return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-lime-700 text-white p-4 rounded-t-xl flex justify-between items-center">
-              <h2 className="text-xl font-bold">Claim Details</h2>
+          <div className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto border-2 border-black">
+            <div className="sticky top-0 bg-white border-b-2 border-black p-4 flex justify-between items-center z-20">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500 font-medium">Claim No. {c.claimNumber || c._id}</span>
+                <span className="text-xs font-semibold text-gray-700 uppercase">({c.status})</span>
+              </div>
               <button
                 onClick={() => setShowClaimDetails(false)}
-                className="text-white hover:text-gray-200 focus:outline-none"
+                className="text-black hover:bg-gray-100 rounded-full p-1 focus:outline-none transition-all"
+                aria-label="Close"
               >
-                <X size={24} />
+                <XCircle size={24} />
               </button>
             </div>
 
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="bg-lime-50 p-4 rounded-lg border border-lime-200">
-                  <h3 className="text-lg font-semibold text-lime-800 mb-3 flex items-center gap-2">
-                    <Info size={20} />
-                    Basic Information
-                  </h3>
-                  <div className="space-y-3">
-                    <div>
-                      <span className="text-gray-500 text-sm">Claim ID</span>
-                      <p className="font-medium">{selectedClaim?.id || "N/A"}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-sm">Type of Damage</span>
-                      <p className="font-medium">{selectedClaim?.type || selectedClaim?.damageType || "N/A"}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-sm">Date Filed</span>
-                      <p className="font-medium">{selectedClaim?.date ? new Date(selectedClaim.date).toLocaleDateString() : "N/A"}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-sm">Status</span>
-                      <p
-                        className={`font-medium ${
-                          selectedClaim?.status === "approved"
-                            ? "text-green-600"
-                            : selectedClaim?.status === "pending"
-                              ? "text-yellow-600"
-                              : "text-red-600"
-                        }`}
-                      >
-                        {selectedClaim?.status ? selectedClaim.status.charAt(0).toUpperCase() + selectedClaim.status.slice(1) : "N/A"}
-                      </p>
+            <div className="p-6 md:p-8 bg-white text-black">
+              {/* Header - PCIC form */}
+              <div className="text-center mb-6">
+                <p className="text-sm font-normal">TO: The Chief CAD, PCIC-RO XI</p>
+                <p className="text-sm font-semibold mt-2">PHILIPPINE CROP INSURANCE CORPORATION</p>
+                <p className="text-sm font-semibold">Regional Office No. XI</p>
+                <p className="text-base font-bold mt-3">CLAIM FOR INDEMNITY (PAGHAHABOL BAYAD)</p>
+                <p className="text-xs text-gray-700 mt-3 leading-relaxed">Please send your team of Adjusters to assess damage of my insured crop.<br />(Mangyaring magpadala kayo ng tagapag-imbistige upang tasahin ang naging pinsala ng aking pananim)</p>
+                <p className="text-xs text-gray-700 mt-1">Hereunder are the basic information needed by your office. (Narito ang mga kinakailangang tala ng inyong tanggapon)</p>
+              </div>
+
+              {/* I. BASIC INFORMATION */}
+              <div className="mb-6">
+                <h3 className="text-sm font-bold uppercase border-b border-black pb-1 mb-4">I. BASIC INFORMATION (MGA PANGUNAHING IMPORMASYON)</h3>
+                <div className="space-y-4 text-sm">
+                  <div><p className="text-gray-700 font-medium">1. Name of Farmer-Assured (Pangalan ng Magsasaka):</p><p className="border-b border-black pt-0.5 font-medium">{c.name || ""}</p></div>
+                  <div><p className="text-gray-700 font-medium">2. Address (Tirahan):</p><p className="border-b border-black pt-0.5 font-medium">{c.address || ""}</p></div>
+                  <div><p className="text-gray-700 font-medium">3. Cell Phone Number (Numero ng Telepono):</p><p className="border-b border-black pt-0.5 font-medium">{c.phone || ""}</p></div>
+                  <div><p className="text-gray-700 font-medium">4. Location of Farm (Lugar ng Saka):</p><p className="border-b border-black pt-0.5 font-medium">{c.farmerLocation || c.address || ""}</p></div>
+                  <div>
+                    <p className="text-gray-700 font-medium">5. Insured Crops (Pananim na ipinaseguro):</p>
+                    <div className="flex flex-wrap items-center gap-4 pt-1">
+                      <span className="inline-flex items-center gap-1"><span className="inline-flex items-center justify-center w-4 h-4 border border-black rounded-sm flex-shrink-0 text-xs font-bold">{isPalay ? "✓" : ""}</span> Palay</span>
+                      <span className="inline-flex items-center gap-1"><span className="inline-flex items-center justify-center w-4 h-4 border border-black rounded-sm flex-shrink-0 text-xs font-bold">{isCorn ? "✓" : ""}</span> Corn</span>
+                      <span className="border-b border-black flex-1 min-w-[120px] font-medium">{!isPalay && !isCorn ? (c.crop || "") : ""}</span>
                     </div>
                   </div>
-                </div>
-
-                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                  <h3 className="text-lg font-semibold text-blue-800 mb-3">Crop Information</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <span className="text-gray-500 text-sm">Crop Type</span>
-                      <p className="font-medium">{selectedClaim?.crop || "N/A"}</p>
+                  <div><p className="text-gray-700 font-medium">6. Area Insured (Luwang/Sukat ng Bukid na Ipinaseguro):</p><p className="border-b border-black pt-0.5 font-medium inline">{c.areaInsured != null ? c.areaInsured : ""}</p><span className="ml-2 text-gray-600">ha. (ektorya)</span></div>
+                  <div><p className="text-gray-700 font-medium">7. Variety Planted (Binhing Itinanim):</p><p className="border-b border-black pt-0.5 font-medium">{c.varietyPlanted || ""}</p></div>
+                  <div>
+                    <p className="text-gray-700 font-medium">8. Actual Date of Planting (Aktwal na Petsa ng Pagkakatanim):</p>
+                    <div className="flex items-center gap-4 pt-1">
+                      <span className="flex items-center gap-1">DS <span className="border-b border-black min-w-[80px] font-medium">{c.plantingDate ? new Date(c.plantingDate).toLocaleDateString() : ""}</span></span>
+                      <span className="flex items-center gap-1">TP <span className="border-b border-black min-w-[80px] font-medium"></span></span>
                     </div>
-                    <div>
-                      <span className="text-gray-500 text-sm">Area Insured</span>
-                      <p className="font-medium">{selectedClaim?.areaInsured ? `${selectedClaim.areaInsured} hectares` : "N/A"}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-sm">Area Damaged</span>
-                      <p className="font-medium">{selectedClaim?.areaDamaged ? `${selectedClaim.areaDamaged} hectares` : "N/A"}</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500 text-sm">Degree of Damage</span>
-                      <p className="font-medium">{selectedClaim?.degreeOfDamage ? `${selectedClaim.degreeOfDamage}%` : "N/A"}</p>
+                  </div>
+                  <div><p className="text-gray-700 font-medium">9. CIC Number (Numero ng CIC):</p><p className="border-b border-black pt-0.5 font-medium">{c.cicNumber || ""}</p></div>
+                  <div><p className="text-gray-700 font-medium">10. Underwriter/Cooperative (Pangalan ng Ahente o Kooperatiba):</p><p className="border-b border-black pt-0.5 font-medium">{c.underwriter || ""}</p></div>
+                  <div>
+                    <p className="text-gray-700 font-medium">11. Program (Programa):</p>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
+                      {programLabels.map((label) => (
+                        <span key={label} className="inline-flex items-center gap-1">
+                          <span className="inline-flex items-center justify-center w-4 h-4 border border-black rounded-sm flex-shrink-0 text-xs font-bold">{isProgramChecked(label) ? "✓" : ""}</span> {label}
+                        </span>
+                      ))}
+                      <span className="inline-flex items-center gap-1">Others: <span className="border-b border-black min-w-[80px] font-medium">{c.otherProgramText || ""}</span></span>
                     </div>
                   </div>
                 </div>
               </div>
 
+              {/* II. DAMAGE INDICATORS */}
+              <div className="mb-6">
+                <h3 className="text-sm font-bold uppercase border-b border-black pb-1 mb-4">II. DAMAGE INDICATORS (MGA IMPORMASYON TUNGKOL SA PINSALA)</h3>
+                <div className="space-y-4 text-sm">
+                  <div><p className="text-gray-700 font-medium">1. Cause of Loss (Sanhi ng Pinsala):</p><p className="border-b border-black pt-0.5 font-medium">{c.damageType || ""}</p></div>
+                  <div><p className="text-gray-700 font-medium">2. Date of Loss Occurrence (Petsa ng Pinsala):</p><p className="border-b border-black pt-0.5 font-medium">{c.lossDate ? new Date(c.lossDate).toLocaleDateString() : ""}</p></div>
+                  <div><p className="text-gray-700 font-medium">3. Age/Stage of cultivation at time of loss (Edad ng Pananim ng Mapinsala):</p><p className="border-b border-black pt-0.5 font-medium">{c.ageStage || ""}</p></div>
+                  <div><p className="text-gray-700 font-medium">4. Area Damaged (Luwang o sukat ng Napinsalang Bahagi):</p><p className="border-b border-black pt-0.5 font-medium inline">{c.areaDamaged != null ? c.areaDamaged : ""}</p><span className="ml-2 text-gray-600">ha. (ektaryo)</span></div>
+                  <div><p className="text-gray-700 font-medium">5. Extent/Degree of Damage (Tindi o Porsyento ng Pinsala):</p><p className="border-b border-black pt-0.5 font-medium inline">{c.degreeOfDamage != null ? c.degreeOfDamage : ""}</p><span className="ml-2 text-gray-600">% (porsyento)</span></div>
+                  <div><p className="text-gray-700 font-medium">6. Expected Date of Harvest (Tinatayang Petsa ng Pagpapagapas o Pag-ani):</p><p className="border-b border-black pt-0.5 font-medium">{c.expectedHarvest || ""}</p></div>
+                </div>
+              </div>
+
+              {/* III. LOCATION SKETCH PLAN OF DAMAGED CROPS (LSP) */}
+              <div className="mb-6">
+                <h3 className="text-sm font-bold uppercase border-b border-black pb-1 mb-1">III. LOCATION SKETCH PLAN OF DAMAGED CROPS (LSP)</h3>
+                <p className="text-xs text-gray-600 mb-3">(KROKIS NG BUKID NG MGA NASALANTANG NAKASEGURONG PANANIM)</p>
+                <p className="text-xs text-gray-600 mb-3 italic">Isulat ang pangalan ng may-ari/nagsasaka sa karatig na sakahan</p>
+                <div className="space-y-4 text-sm">
+                  {[1, 2, 3, 4].map((lot) => {
+                    const lb = c.lotBoundaries && c.lotBoundaries[lot] ? c.lotBoundaries[lot] : {}
+                    return (
+                      <div key={lot} className="border border-gray-300 p-3 rounded">
+                        <p className="font-medium mb-2">Lot {lot} _____ ha.</p>
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                          <div><span className="text-gray-600">North (Hilaga):</span><p className="border-b border-black font-medium">{lb.north || ""}</p></div>
+                          <div><span className="text-gray-600">South (Timog):</span><p className="border-b border-black font-medium">{lb.south || ""}</p></div>
+                          <div><span className="text-gray-600">East (Silangan):</span><p className="border-b border-black font-medium">{lb.east || ""}</p></div>
+                          <div><span className="text-gray-600">West (Kanluran):</span><p className="border-b border-black font-medium">{lb.west || ""}</p></div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+              {/* Footer - Thank You / Signature */}
+              <div className="mt-6 pt-4 border-t border-gray-300">
+                <p className="text-sm">Thank You.</p>
+                <p className="text-sm mt-1">Very truly yours,</p>
+                <p className="border-b-2 border-black pt-8 pb-1 mt-4 min-h-[2rem]"></p>
+                <p className="text-xs text-gray-600 mt-1">Signature over Printed Name of Assured Farmer-Claimant (Lagda sa Ibabaw ng Pangalan ng Magsasakang Nakaseguro)</p>
+              </div>
+
               {/* Damage Evidence Photos */}
-              {selectedClaim?.damagePhotos && selectedClaim.damagePhotos.length > 0 && (
-                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200 mb-6">
-                  <h3 className="text-lg font-semibold text-orange-800 mb-3 flex items-center gap-2">
-                    📷 Damage Evidence Photos ({selectedClaim.damagePhotos.length})
-                  </h3>
+              {c.damagePhotos && c.damagePhotos.length > 0 && (
+                <div className="mt-4 pt-4 border-t-2 border-black">
+                  <h4 className="text-sm font-black text-black uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <Camera size={16} className="text-lime-500" />
+                    Damage Evidence Photos ({c.damagePhotos.length})
+                  </h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {selectedClaim.damagePhotos.map((photo, index) => {
-                      // Check if photo is a valid data URL
-                      const isValidDataUrl = typeof photo === 'string' && photo.startsWith('data:');
-                      
+                    {c.damagePhotos.map((photo, index) => {
+                      const isValidDataUrl = typeof photo === 'string' && photo.startsWith('data:')
                       if (!isValidDataUrl) {
                         return (
                           <div key={index} className="relative group">
-                            <div className="w-full h-32 bg-gray-200 rounded-lg border flex items-center justify-center">
+                            <div className="w-full h-32 bg-gray-200 rounded-lg border-2 border-black flex items-center justify-center">
                               <div className="text-center">
                                 <FileText className="h-8 w-8 text-gray-400 mx-auto mb-1" />
                                 <p className="text-xs text-gray-500">Photo {index + 1}</p>
@@ -2615,19 +2674,17 @@ const FarmerDashboard = () => {
                               </div>
                             </div>
                           </div>
-                        );
+                        )
                       }
-
                       return (
                         <div key={index} className="relative group">
                           <img
                             src={photo}
                             alt={`Damage evidence ${index + 1}`}
-                            className="w-full h-32 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition-opacity"
+                            className="w-full h-32 object-cover rounded-lg border-2 border-black cursor-pointer hover:opacity-90 transition-opacity"
                             onClick={() => {
-                              // Open photo in full screen modal
-                              const modal = document.createElement('div');
-                              modal.className = 'fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4';
+                              const modal = document.createElement('div')
+                              modal.className = 'fixed inset-0 z-[60] bg-black bg-opacity-75 flex items-center justify-center p-4'
                               modal.innerHTML = `
                                 <div class="relative max-w-4xl max-h-full">
                                   <img src="${photo}" alt="Damage evidence ${index + 1}" class="max-w-full max-h-full object-contain" />
@@ -2637,74 +2694,31 @@ const FarmerDashboard = () => {
                                     </svg>
                                   </button>
                                 </div>
-                              `;
-                              document.body.appendChild(modal);
-                              modal.addEventListener('click', (e) => {
-                                if (e.target === modal) modal.remove();
-                              });
+                              `
+                              document.body.appendChild(modal)
+                              modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove() })
                             }}
                           />
-                          <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
-                            Photo {index + 1}
-                          </div>
+                          <div className="absolute bottom-2 left-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded border border-white">Photo {index + 1}</div>
                         </div>
-                      );
+                      )
                     })}
                   </div>
-                  <p className="text-sm text-orange-700 mt-3">
-                    Click on any photo to view it in full size
-                  </p>
+                  <p className="text-xs text-gray-600 mt-3 font-semibold">Click on any photo to view it in full size</p>
                 </div>
               )}
 
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3">Claim Timeline</h3>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="bg-lime-100 p-2 rounded-full">
-                      <FileText size={16} className="text-lime-700" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Claim Submitted</p>
-                      <p className="text-sm text-gray-500">{selectedClaim?.date ? new Date(selectedClaim.date).toLocaleDateString() : "N/A"}</p>
-                    </div>
+              {c.adminFeedback && (
+                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 mt-4">
+                  <h3 className="text-lg font-semibold text-purple-800 mb-3 flex items-center gap-2">
+                    <Info size={20} />
+                    Admin Feedback
+                  </h3>
+                  <div className="bg-white p-3 rounded border border-purple-100">
+                    <p className="text-gray-700">{c.adminFeedback}</p>
                   </div>
-
-                  {selectedClaim?.reviewDate && (
-                    <div className="flex items-start gap-3">
-                      <div className="bg-yellow-100 p-2 rounded-full">
-                        <AlertTriangle size={16} className="text-yellow-700" />
-                      </div>
-                      <div>
-                        <p className="font-medium">Under Review</p>
-                        <p className="text-sm text-gray-500">
-                          {new Date(selectedClaim.reviewDate).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedClaim?.completionDate && (
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={`${selectedClaim?.status === "approved" ? "bg-green-100" : "bg-red-100"} p-2 rounded-full`}
-                      >
-                        {selectedClaim?.status === "approved" ? (
-                          <CheckCircle size={16} className="text-green-700" />
-                        ) : (
-                          <X size={16} className="text-red-700" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium">{selectedClaim?.status === "approved" ? "Approved" : "Rejected"}</p>
-                        <p className="text-sm text-gray-500">
-                          {selectedClaim?.completionDate ? new Date(selectedClaim.completionDate).toLocaleDateString() : "N/A"}
-                        </p>
-                      </div>
-                    </div>
-                  )}
                 </div>
-              </div>
+              )}
 
               {selectedClaim?.status === "approved" && (
                 <div className="bg-green-50 p-4 rounded-lg border border-green-200">
@@ -2842,7 +2856,8 @@ const FarmerDashboard = () => {
             </div>
           </div>
         </div>
-      ) : null}
+        )
+      })() : null}
 
       {/* Assistance Request Form Modal */}
       {showAssistanceForm && selectedAssistance && (

@@ -612,7 +612,14 @@ const InsuranceClaims = ({
         const isCorn = /corn|maize/i.test(c.crop || '')
         const programList = c.program && Array.isArray(c.program) ? c.program : []
         const programLabels = ['Regular', 'Sikat Sal', 'RSBSA', 'APCP-CAP-PBD', 'Punla', 'Cooperative Rice Farm']
-        const isProgramChecked = (label) => programList.some(p => String(p).toLowerCase().replace(/\s/g, '').includes(label.toLowerCase().replace(/\s/g, '')))
+        // RSBSA: treat stored "RSBA" (typo from farmer form) as RSBSA so checkbox shows checked
+        const isProgramChecked = (label) => {
+          const norm = (s) => String(s).toLowerCase().replace(/\s/g, '')
+          if (label === 'RSBSA') {
+            return programList.some(p => { const n = norm(p); return n === 'rsbsa' || n === 'rsba' })
+          }
+          return programList.some(p => norm(p).includes(norm(label)))
+        }
         return (
         <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar border-2 border-black">
