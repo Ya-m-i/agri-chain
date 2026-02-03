@@ -81,6 +81,83 @@ const cropInsuranceSchema = mongoose.Schema({
     },
     evidenceImage: {
         type: String // Base64 encoded image or URL
+    },
+    // PCIC Application Form data (optional - for full form structure)
+    pcicForm: {
+        applicationType: { type: String, enum: ['New Application', 'Renewal'], default: 'New Application' },
+        totalArea: { type: Number },
+        farmerCategory: { type: String, enum: ['Self-Financed', 'Borrowing'], default: 'Self-Financed' },
+        lender: { type: String },
+        dateOfApplication: { type: Date },
+        // Section A - Basic Farmer Information
+        applicantName: {
+            lastName: { type: String },
+            firstName: { type: String },
+            middleName: { type: String },
+            suffix: { type: String }
+        },
+        address: {
+            street: { type: String },
+            barangay: { type: String },
+            municipality: { type: String },
+            province: { type: String }
+        },
+        contactNumber: { type: String },
+        dateOfBirth: { type: Date },
+        sex: { type: String, enum: ['Male', 'Female'] },
+        specialSector: [{ type: String }],
+        tribe: { type: String },
+        civilStatus: { type: String, enum: ['Single', 'Married', 'Widowed', 'Separated'] },
+        spouseName: { type: String },
+        beneficiary: {
+            primary: {
+                lastName: { type: String },
+                firstName: { type: String },
+                middleName: { type: String },
+                suffix: { type: String },
+                relationship: { type: String },
+                birthdate: { type: Date }
+            },
+            guardian: {
+                lastName: { type: String },
+                firstName: { type: String },
+                middleName: { type: String },
+                suffix: { type: String },
+                relationship: { type: String },
+                birthdate: { type: Date }
+            }
+        },
+        indemnityPaymentOption: { type: String },
+        indemnityOther: { type: String },
+        // Section B - Farm Information (multiple lots)
+        lots: [{
+            farmLocation: {
+                street: { type: String },
+                barangay: { type: String },
+                municipality: { type: String },
+                province: { type: String }
+            },
+            boundaries: { north: { type: String }, east: { type: String }, south: { type: String }, west: { type: String } },
+            geoRefId: { type: String },
+            variety: { type: String },
+            plantingMethod: { type: String, enum: ['Direct Seeded', 'Transplanted'] },
+            dateOfSowing: { type: Date },
+            dateOfPlanting: { type: Date },
+            dateOfHarvest: { type: Date },
+            numberOfTreesHills: { type: String },
+            landCategory: { type: String, enum: ['Irrigated', 'Non-Irrigated'] },
+            tenurialStatus: { type: String, enum: ['Owner', 'Lessee'] },
+            desiredAmountOfCover: { type: Number },
+            lotArea: { type: Number }
+        }],
+        // Section C - Certification
+        certificationConsent: { type: Boolean, default: false },
+        deedOfAssignmentConsent: { type: Boolean, default: false },
+        signatureImage: { type: String },
+        certificationDate: { type: Date },
+        // Section D - Source of Premium (FOR PCIC USE ONLY)
+        sourceOfPremium: [{ type: String }],
+        sourceOfPremiumOther: { type: String }
     }
 }, {
     timestamps: true,

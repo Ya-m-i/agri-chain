@@ -71,20 +71,37 @@ const createCropInsurance = async (req, res) => {
             insuranceDayLimit,
             location,
             notes,
-            evidenceImage
+            evidenceImage,
+            pcicForm
         } = req.body
+
+        let finalCropType = cropType
+        let finalCropArea = cropArea
+        let finalLotNumber = lotNumber
+        let finalLotArea = lotArea
+        let finalPlantingDate = plantingDate
+        let finalExpectedHarvestDate = expectedHarvestDate
+        let finalInsuranceDayLimit = insuranceDayLimit
+        if (pcicForm && pcicForm.lots && pcicForm.lots.length > 0) {
+            const firstLot = pcicForm.lots[0]
+            finalCropArea = pcicForm.totalArea != null ? Number(pcicForm.totalArea) : (firstLot.lotArea != null ? Number(firstLot.lotArea) : cropArea)
+            finalLotNumber = finalLotNumber || 'Lot 1'
+            finalLotArea = firstLot.lotArea != null ? Number(firstLot.lotArea) : finalLotArea
+            finalPlantingDate = firstLot.dateOfPlanting || firstLot.dateOfSowing || plantingDate
+            finalExpectedHarvestDate = firstLot.dateOfHarvest || expectedHarvestDate
+        }
 
         console.log('Extracted data:', {
             farmerId,
-            cropType,
-            cropArea,
-            lotNumber,
-            lotArea,
-            plantingDate,
-            expectedHarvestDate,
-            insuranceDayLimit,
+            cropType: finalCropType,
+            lotNumber: finalLotNumber,
+            lotArea: finalLotArea,
+            plantingDate: finalPlantingDate,
+            expectedHarvestDate: finalExpectedHarvestDate,
+            insuranceDayLimit: finalInsuranceDayLimit,
             location,
-            notes
+            notes,
+            hasPcicForm: !!pcicForm
         })
 
         // Validate farmer exists
@@ -98,42 +115,32 @@ const createCropInsurance = async (req, res) => {
 
         // Verify farmer details match insurance data
         const verificationResult = verifyFarmerInsuranceMatch(farmer, {
-            lotNumber,
-            cropType,
-            lotArea
+            lotNumber: finalLotNumber,
+            cropType: finalCropType,
+            lotArea: finalLotArea
         })
 
         console.log('Verification result:', verificationResult)
 
-        // Create crop insurance record
-        console.log('About to create crop insurance with data:', {
+        const createPayload = {
             farmerId,
-            cropType,
-            cropArea,
-            lotNumber,
-            lotArea,
-            plantingDate,
-            expectedHarvestDate,
-            insuranceDayLimit,
-            location,
-            notes
-        })
-        
-        const cropInsurance = await CropInsurance.create({
-            farmerId,
-            cropType,
-            cropArea,
-            lotNumber,
-            lotArea,
-            plantingDate,
-            expectedHarvestDate,
-            insuranceDayLimit,
-            location,
-            notes,
+            cropType: finalCropType,
+            cropArea: finalCropArea,
+            lotNumber: finalLotNumber,
+            lotArea: finalLotArea,
+            plantingDate: finalPlantingDate,
+            expectedHarvestDate: finalExpectedHarvestDate,
+            insuranceDayLimit: finalInsuranceDayLimit,
+            location: location || undefined,
+            notes: notes || undefined,
             evidenceImage: evidenceImage || null,
             verificationStatus: verificationResult.status,
             verificationNotes: verificationResult.notes
-        })
+        }
+        if (pcicForm && typeof pcicForm === 'object') {
+            createPayload.pcicForm = pcicForm
+        }
+        const cropInsurance = await CropInsurance.create(createPayload)
 
         console.log('Crop insurance record created successfully:', cropInsurance._id)
 
@@ -176,7 +183,7 @@ const getFarmerCropInsurance = async (req, res) => {
     try {
         const { farmerId } = req.params
         const cropInsurance = await CropInsurance.find({ farmerId })
-            .populate('farmerId', 'firstName lastName')
+            .populate('farmerId', 'firstName lastName middleName address contactNum birthday gender')
             .sort({ createdAt: -1 })
 
         res.status(200).json(cropInsurance)
@@ -191,7 +198,7 @@ const getFarmerCropInsurance = async (req, res) => {
 const getAllCropInsurance = async (req, res) => {
     try {
         const cropInsurance = await CropInsurance.find()
-            .populate('farmerId', 'firstName lastName')
+            .populate('farmerId', 'firstName lastName middleName address contactNum birthday gender')
             .sort({ createdAt: -1 })
 
         res.status(200).json(cropInsurance)
