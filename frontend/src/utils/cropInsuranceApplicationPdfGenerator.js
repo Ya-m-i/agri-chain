@@ -21,12 +21,26 @@ function truncateToWidth(doc, text, maxWidthMm, fontSize = 8) {
   return '...'
 }
 
+const EMPTY_PLACEHOLDER = '—'
+const HEADER_GREEN = [220, 240, 220]
+
+function drawFieldWrapped(doc, x, y, value, width, fontSize = 7) {
+  const effectiveWidth = Math.min(Number(width) || 40, MARGIN_RIGHT - x - 1)
+  if (effectiveWidth <= 0) return y
+  const str = value != null && String(value).trim() !== '' ? String(value) : EMPTY_PLACEHOLDER
+  doc.setFontSize(fontSize)
+  const lastY = doc.text(str, x, y, { maxWidth: effectiveWidth })
+  const bottomY = Array.isArray(lastY) ? lastY[lastY.length - 1] : lastY
+  doc.line(x, (typeof bottomY === 'number' ? bottomY : y) + 1, x + effectiveWidth, (typeof bottomY === 'number' ? bottomY : y) + 1)
+  return typeof bottomY === 'number' && !Number.isNaN(bottomY) ? bottomY + 2 : y + 5
+}
+
 function drawField(doc, x, y, value, width, fontSize = 8) {
   const numWidth = Number(width)
   const safeWidth = Number.isNaN(numWidth) || numWidth <= 0 ? 40 : numWidth
   const effectiveWidth = Math.min(safeWidth, MARGIN_RIGHT - x - 1)
   if (effectiveWidth <= 0) return
-  const displayValue = value !== null && value !== undefined ? String(value) : ''
+  const displayValue = value !== null && value !== undefined && String(value).trim() !== '' ? String(value) : EMPTY_PLACEHOLDER
   const safe = truncateToWidth(doc, displayValue, effectiveWidth, fontSize)
   doc.setFontSize(fontSize)
   doc.text(safe, x, y)
@@ -49,6 +63,13 @@ function checkPageBreak(doc, currentY, neededSpace = LINE_HEIGHT * 3) {
   return currentY
 }
 
+function drawThickLine(doc, y, xStart = 14, xEnd = MARGIN_RIGHT) {
+  const prevWidth = doc.getLineWidth?.() ?? 0.1
+  doc.setLineWidth(0.4)
+  doc.line(xStart, y, xEnd, y)
+  doc.setLineWidth(prevWidth)
+}
+
 /**
  * Generate PCIC APPLICATION FOR CROP INSURANCE PDF.
  * Uses the same template and display data as the View modal (shared getCropInsuranceDetailsDisplayData).
@@ -62,7 +83,11 @@ export const generateCropInsuranceApplicationPDF = (record, farmerData = null) =
 
   let y = 10
 
-  // Header – compact to reduce whitespace
+  // Header – match image: Republic, PCIC, Regional Office, title; form ref top right
+  doc.setFontSize(9)
+  doc.setFont('helvetica', 'normal')
+  doc.text('PCIC Form No.', MARGIN_RIGHT - 42, y)
+  doc.text('Rev. Date (MM/YY)', MARGIN_RIGHT - 42, y + 4)
   doc.setFontSize(10)
   doc.setFont('helvetica', 'bold')
   doc.text('Republic of the Philippines', 105, y, { align: 'center' })
@@ -82,7 +107,9 @@ export const generateCropInsuranceApplicationPDF = (record, farmerData = null) =
   doc.text('(Individual Application)', 105, y, { align: 'center' })
   y += 4
   doc.text('Kindly fill out all entries and tick all boxes [√] as appropriate.', 105, y, { align: 'center' })
-  y += 6
+  y += 5
+  drawThickLine(doc, y)
+  y += 4
 
   // Top section: CROPP, Application Type, Total Area, Farmer Category, Date
   doc.setFontSize(8)
@@ -125,11 +152,13 @@ export const generateCropInsuranceApplicationPDF = (record, farmerData = null) =
   doc.text('DATE OF APPLICATION:', 14, y)
   drawField(doc, 55, y + 2, d.dateOfApplication, 35)
   doc.text('(mm/dd/yyyy)', 92, y + 3)
-  y += 6
+  y += 5
+  drawThickLine(doc, y)
+  y += 4
 
   y = checkPageBreak(doc, y, 85)
 
-  // Section A: BASIC FARMER INFORMATION (compact spacing to avoid extra page)
+  // Section A: BASIC FARMER INFORMATION
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(9)
   doc.text('A. BASIC FARMER INFORMATION', 14, y)
@@ -247,8 +276,10 @@ export const generateCropInsuranceApplicationPDF = (record, farmerData = null) =
   y += LINE_HEIGHT + 4
 
   y = checkPageBreak(doc, y, 85)
+  drawThickLine(doc, y)
+  y += 4
 
-  // Section B: FARM INFORMATION – table with Lot 1, Lot 2, Lot 3 columns (compact)
+  // Section B: FARM INFORMATION – table with Lot 1, Lot 2, Lot 3 columns; green header cells
   doc.setFont('helvetica', 'bold')
   doc.text('B. FARM INFORMATION (Use separate sheet if more than three (3) lots)', 14, y)
   y += 4
@@ -277,13 +308,28 @@ export const generateCropInsuranceApplicationPDF = (record, farmerData = null) =
   const xLot3 = xLot2 + colWidth
 
   y = checkPageBreak(doc, y, 75)
+  const headerRowH = 6
+  const headerY = y - 2
+  doc.setFillColor(...HEADER_GREEN)
+  doc.rect(xLot1, headerY, colWidth, headerRowH, 'F')
+  doc.rect(xLot2, headerY, colWidth, headerRowH, 'F')
+  doc.rect(xLot3, headerY, colWidth, headerRowH, 'F')
+  doc.setDrawColor(0, 0, 0)
   doc.text('B.1 Farm Location/ASP', 14, y)
-  doc.text('Lot 1', xLot1, y)
-  doc.text('Lot 2', xLot2, y)
-  doc.text('Lot 3', xLot3, y)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Lot 1', xLot1 + 2, y + 1)
+  doc.text('Lot 2', xLot2 + 2, y + 1)
+  doc.text('Lot 3', xLot3 + 2, y + 1)
+  doc.setFont('helvetica', 'normal')
   y += 3
-  ;['street', 'barangay', 'municipality', 'province'].forEach((key, i) => {
-    const label = key === 'street' ? 'a. No. & street/Sitio' : key === 'barangay' ? 'b. Barangay' : key === 'municipality' ? 'c. Municipality/City' : 'd. Province'
+  const labelA = 'a. No. & street/Sitio'
+  doc.text(labelA, 14, y + 1.5)
+  const y1 = drawFieldWrapped(doc, xLot1, y + 1.5, getLotLoc(0, 'street'), lotFieldWidth, 7)
+  const y2 = drawFieldWrapped(doc, xLot2, y + 1.5, getLotLoc(1, 'street'), lotFieldWidth, 7)
+  const y3 = drawFieldWrapped(doc, xLot3, y + 1.5, getLotLoc(2, 'street'), lotFieldWidth, 7)
+  y = Math.max(y1, y2, y3, y + rowH) + 1
+  ;['barangay', 'municipality', 'province'].forEach((key, i) => {
+    const label = key === 'barangay' ? 'b. Barangay' : key === 'municipality' ? 'c. Municipality/City' : 'd. Province'
     doc.text(label, 14, y + 1.5)
     drawField(doc, xLot1, y + 1.5, getLotLoc(0, key), lotFieldWidth, 7)
     drawField(doc, xLot2, y + 1.5, getLotLoc(1, key), lotFieldWidth, 7)
@@ -312,14 +358,16 @@ export const generateCropInsuranceApplicationPDF = (record, farmerData = null) =
   drawField(doc, xLot3, y + 1.5, lotsToRender[2]?.variety ?? '', lotFieldWidth, 7)
   y += rowH + 1.5
   doc.text('B.5 Planting Method:', 14, y)
+  doc.setFontSize(6)
   for (let i = 0; i < 3; i++) {
     const lot = lotsToRender[i] || {}
     const x = i === 0 ? xLot1 : i === 1 ? xLot2 : xLot3
     drawCheckbox(doc, x, y + 1, (lot.plantingMethod || '').toLowerCase().includes('direct'))
-    doc.text('DS', x + 4, y + 2.5)
-    drawCheckbox(doc, x + 12, y + 1, (lot.plantingMethod || '').toLowerCase().includes('transplant'))
-    doc.text('TP', x + 16, y + 2.5)
+    doc.text('Direct Seeded', x + 4, y + 2.5)
+    drawCheckbox(doc, x + 28, y + 1, (lot.plantingMethod || '').toLowerCase().includes('transplant'))
+    doc.text('Transplanted', x + 32, y + 2.5)
   }
+  doc.setFontSize(7)
   y += rowH + 1.5
   doc.text('B.6 Date of Sowing:', 14, y + 1.5)
   drawField(doc, xLot1, y + 1.5, lotDateStr(lotsToRender[0], 'dateOfSowing'), lotFieldWidth, 7)
@@ -369,6 +417,8 @@ export const generateCropInsuranceApplicationPDF = (record, farmerData = null) =
   doc.setFontSize(8)
 
   y = checkPageBreak(doc, y, 45)
+  drawThickLine(doc, y)
+  y += 4
 
   // Section C: CERTIFICATION AND DATA PRIVACY CONSENT – wrap text and advance y to avoid collision
   doc.setFont('helvetica', 'bold')
@@ -393,9 +443,11 @@ export const generateCropInsuranceApplicationPDF = (record, farmerData = null) =
   doc.text('Farmer - Applicant', 14, y + 4)
   doc.text('Date:', 128, y + 5)
   drawField(doc, 138, y + 4, d.certificationDate || '', 28)
-  y += LINE_HEIGHT + 6
+  y += LINE_HEIGHT + 5
+  drawThickLine(doc, y)
+  y += 4
 
-  // Section D: COVERAGE (FOR PCIC USE ONLY) – same labels as View
+  // Section D: COVERAGE (FOR PCIC USE ONLY)
   doc.setFont('helvetica', 'bold')
   doc.text('D. COVERAGE (FOR PCIC USE ONLY)', 14, y)
   y += LINE_HEIGHT + 1
@@ -416,7 +468,25 @@ export const generateCropInsuranceApplicationPDF = (record, farmerData = null) =
   drawCheckbox(doc, 105, y + 1.5, sources.some((s) => /other/i.test(s)))
   doc.text('Others', 109, y + 3)
   drawField(doc, 128, y + 2, d.sourceOfPremiumOther || '', 68)
-  y += LINE_HEIGHT + 4
+  y += LINE_HEIGHT + 5
+  drawThickLine(doc, y)
+  y += 4
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'normal')
+  const statusText = rec?.isInsured ? 'Insured' : (rec?.canInsure === false ? 'Expired' : 'Can Insure')
+  doc.text('Status:', 14, y)
+  if (rec?.isInsured) {
+    doc.setTextColor(0, 128, 0)
+    doc.text(statusText, 24, y)
+    doc.setTextColor(0, 0, 0)
+  } else {
+    doc.text(statusText, 24, y)
+  }
+  doc.text('Agency:', 70, y)
+  doc.text(rec?.agency || EMPTY_PLACEHOLDER, 85, y)
+  doc.text('Day Limit:', 130, y)
+  doc.text(rec?.insuranceDayLimit != null ? `${rec.insuranceDayLimit} days` : EMPTY_PLACEHOLDER, 155, y)
+  y += LINE_HEIGHT + 2
 
   doc.setFontSize(6)
   doc.setFont('helvetica', 'italic')
