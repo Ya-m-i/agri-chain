@@ -47,6 +47,15 @@ function drawField(doc, x, y, value, width, fontSize = 8) {
   doc.line(x, y + 0.5, x + effectiveWidth, y + 0.5)
 }
 
+function drawParagraph(doc, x, y, text, width, fontSize = 7) {
+  const effectiveWidth = Math.min(Number(width) || 80, MARGIN_RIGHT - x - 1)
+  if (effectiveWidth <= 0) return y
+  doc.setFontSize(fontSize)
+  const lastY = doc.text(text, x, y, { maxWidth: effectiveWidth })
+  const bottomY = Array.isArray(lastY) ? lastY[lastY.length - 1] : lastY
+  return typeof bottomY === 'number' && !Number.isNaN(bottomY) ? bottomY : y
+}
+
 function drawCheckbox(doc, x, y, checked) {
   const xx = Number(x)
   const yy = Number(y)
@@ -162,118 +171,132 @@ export const generateCropInsuranceApplicationPDF = (record, farmerData = null) =
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(9)
   doc.text('A. BASIC FARMER INFORMATION', 14, y)
-  y += 4
+  y += 5
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
 
   doc.text('A.1 Name:', 14, y)
-  doc.text('Last Name', 25, y + 3.5)
-  drawField(doc, 25, y + 4.5, name.lastName, 30)
-  doc.text('First Name', 57, y + 3.5)
-  drawField(doc, 57, y + 4.5, name.firstName, 30)
-  doc.text('Middle Name', 89, y + 3.5)
-  drawField(doc, 89, y + 4.5, name.middleName, 30)
-  doc.text('Suffix (Jr., Sr., II)', 121, y + 3.5)
-  drawField(doc, 121, y + 4.5, name.suffix, 75)
-  y += LINE_HEIGHT + 5
+  doc.setFontSize(7)
+  doc.text('Last Name', 25, y + 3)
+  doc.text('First Name', 60, y + 3)
+  doc.text('Middle Name', 95, y + 3)
+  doc.text('Suffix (Jr., Sr., II)', 130, y + 3)
+  doc.setFontSize(8)
+  drawField(doc, 25, y + 4.5, name.lastName, 32)
+  drawField(doc, 60, y + 4.5, name.firstName, 32)
+  drawField(doc, 95, y + 4.5, name.middleName, 32)
+  drawField(doc, 130, y + 4.5, name.suffix, 60)
+  y += 8
 
   doc.text('A.2 Contact Number:', 14, y)
-  drawField(doc, 50, y + 2, d.contactNumber, 48)
-  y += LINE_HEIGHT + 2
+  drawField(doc, 50, y + 2, d.contactNumber, 60)
+  y += 7
 
   doc.text('A.3 Address:', 14, y)
-  doc.text('No. & Street/Sitio', 25, y + 3.5)
-  drawField(doc, 25, y + 4.5, address.street, 48)
-  doc.text('Barangay', 75, y + 3.5)
-  drawField(doc, 75, y + 4.5, address.barangay, 32)
-  doc.text('Municipality/City', 109, y + 3.5)
-  drawField(doc, 109, y + 4.5, address.municipality, 32)
-  doc.text('Province', 143, y + 3.5)
-  drawField(doc, 143, y + 4.5, address.province, 53)
-  y += LINE_HEIGHT + 5
+  doc.setFontSize(7)
+  doc.text('No. & Street/Sitio', 25, y + 3)
+  doc.setFontSize(8)
+  drawField(doc, 25, y + 4.5, address.street, 120)
+  y += 7
+  doc.setFontSize(7)
+  doc.text('Barangay', 25, y + 3)
+  doc.text('Municipality/City', 75, y + 3)
+  doc.text('Province', 135, y + 3)
+  doc.setFontSize(8)
+  drawField(doc, 25, y + 4.5, address.barangay, 40)
+  drawField(doc, 75, y + 4.5, address.municipality, 50)
+  drawField(doc, 135, y + 4.5, address.province, 55)
+  y += 8
 
   doc.text('A.4 Date of Birth:', 14, y)
-  drawField(doc, 50, y + 2, d.dateOfBirth, 30)
-  doc.text('(mm/dd/yyyy)', 82, y + 2.5)
-  doc.text('A.5 Sex:', 104, y + 2.5)
-  drawCheckbox(doc, 118, y + 1, d.sex === 'male')
-  doc.text('Male', 122, y + 2.5)
-  drawCheckbox(doc, 133, y + 1, d.sex === 'female')
-  doc.text('Female', 137, y + 2.5)
-  y += LINE_HEIGHT + 2
+  drawField(doc, 50, y + 2, d.dateOfBirth, 35)
+  doc.text('(mm/dd/yyyy)', 88, y + 2.5)
+  y += 6
+  doc.text('A.5 Sex:', 14, y)
+  drawCheckbox(doc, 28, y - 1, d.sex === 'male')
+  doc.text('Male', 32, y + 1.5)
+  drawCheckbox(doc, 45, y - 1, d.sex === 'female')
+  doc.text('Female', 49, y + 1.5)
+  y += 6
 
   doc.setFontSize(7)
-  doc.text('A.6 Are you part of a special sector? Please tick [√] as many as necessary:', 14, y)
-  y += 4
+  const a6Bottom = drawParagraph(
+    doc,
+    14,
+    y,
+    'A.6 Are you part of a special sector? Please tick [√] as many as necessary:',
+    170,
+    7
+  )
+  y = a6Bottom + 3
   const special = d.specialSector || []
-  drawCheckbox(doc, 14, y + 1.5, special.some((s) => /senior/i.test(s)))
-  doc.text('Senior Citizens', 18, y + 2.5)
-  drawCheckbox(doc, 42, y + 1.5, special.some((s) => /youth/i.test(s)))
-  doc.text('Youth', 46, y + 2.5)
-  drawCheckbox(doc, 55, y + 1.5, special.some((s) => /pwd/i.test(s)))
-  doc.text('PWD', 59, y + 2.5)
-  drawCheckbox(doc, 68, y + 1.5, special.some((s) => /women/i.test(s)))
-  doc.text('Women', 72, y + 2.5)
-  drawCheckbox(doc, 82, y + 1.5, special.some((s) => /indigenous/i.test(s)))
-  doc.text('Indigenous People (please indicate tribe)', 86, y + 2.5)
-  drawField(doc, 155, y + 2, d.tribe, 40, 7)
-  y += LINE_HEIGHT + 3
+  drawCheckbox(doc, 14, y - 1, special.some((s) => /senior/i.test(s)))
+  doc.text('Senior Citizens', 18, y + 1.5)
+  drawCheckbox(doc, 50, y - 1, special.some((s) => /youth/i.test(s)))
+  doc.text('Youth', 54, y + 1.5)
+  drawCheckbox(doc, 70, y - 1, special.some((s) => /pwd/i.test(s)))
+  doc.text('PWD', 74, y + 1.5)
+  drawCheckbox(doc, 88, y - 1, special.some((s) => /women/i.test(s)))
+  doc.text('Women', 92, y + 1.5)
+  y += 6
+  drawCheckbox(doc, 14, y - 1, special.some((s) => /indigenous/i.test(s)))
+  doc.text('Indigenous People (please indicate tribe)', 18, y + 1.5)
+  drawField(doc, 125, y + 1, d.tribe, 65, 7)
+  y += 6
   doc.setFontSize(8)
 
   doc.text('A.7 Civil Status:', 14, y)
   const civilLabels = ['Single', 'Married', 'Widow/er', 'Separated', 'Annulled']
   civilLabels.forEach((s, i) => {
-    const x = 14 + i * 22
+    const x = 14 + i * 26
     const match = d.civilStatus && d.civilStatus.toLowerCase().includes(s.toLowerCase().split('/')[0])
-    drawCheckbox(doc, x, y + 1.5, !!match)
-    doc.text(truncateToWidth(doc, s, 18, 8), x + 4, y + 2.5)
+    drawCheckbox(doc, x, y - 1, !!match)
+    doc.text(truncateToWidth(doc, s, 20, 8), x + 4, y + 1.5)
   })
   if (d.spouseName) {
-    y += LINE_HEIGHT
-    doc.text('Name of Spouse:', 14, y + 2)
+    y += 5
+    doc.text('Name of Spouse:', 14, y)
     drawField(doc, 45, y + 2, d.spouseName, 150)
-    y += LINE_HEIGHT
+    y += 5
   }
-  y += LINE_HEIGHT
+  y += 5
 
   doc.setFontSize(7)
   doc.text('A.8 Name of Legal Beneficiary (in case of death benefit, as applicable):', 14, y)
-  y += 4
-  doc.text('Primary Beneficiary', 14, y + 2.5)
+  y += 5
+  doc.text('Primary Beneficiary', 14, y + 2)
   const prim = beneficiary.primary || {}
-  drawField(doc, 45, y + 2, prim.lastName || '', 21, 7)
-  drawField(doc, 67, y + 2, prim.firstName || '', 21, 7)
-  drawField(doc, 89, y + 2, prim.middleName || '', 21, 7)
-  drawField(doc, 111, y + 2, prim.suffix || '', 12, 7)
-  drawField(doc, 124, y + 2, prim.relationship || '', 21, 7)
-  drawField(doc, 146, y + 2, prim.birthdate ? new Date(prim.birthdate).toLocaleDateString() : '', 21, 7)
-  y += LINE_HEIGHT + 1.5
-  doc.text('Guardian', 14, y + 2.5)
+  drawField(doc, 45, y + 2, prim.lastName || '', 24, 7)
+  drawField(doc, 70, y + 2, prim.firstName || '', 24, 7)
+  drawField(doc, 95, y + 2, prim.middleName || '', 24, 7)
+  drawField(doc, 120, y + 2, prim.relationship || '', 28, 7)
+  drawField(doc, 150, y + 2, prim.birthdate ? new Date(prim.birthdate).toLocaleDateString() : '', 38, 7)
+  y += 6
+  doc.text('Guardian', 14, y + 2)
   const guard = beneficiary.guardian || {}
-  drawField(doc, 45, y + 2, guard.lastName || '', 21, 7)
-  drawField(doc, 67, y + 2, guard.firstName || '', 21, 7)
-  drawField(doc, 89, y + 2, guard.middleName || '', 21, 7)
-  drawField(doc, 111, y + 2, guard.suffix || '', 12, 7)
-  drawField(doc, 124, y + 2, guard.relationship || '', 21, 7)
-  drawField(doc, 146, y + 2, guard.birthdate ? new Date(guard.birthdate).toLocaleDateString() : '', 21, 7)
-  y += LINE_HEIGHT + 3
+  drawField(doc, 45, y + 2, guard.lastName || '', 24, 7)
+  drawField(doc, 70, y + 2, guard.firstName || '', 24, 7)
+  drawField(doc, 95, y + 2, guard.middleName || '', 24, 7)
+  drawField(doc, 120, y + 2, guard.relationship || '', 28, 7)
+  drawField(doc, 150, y + 2, guard.birthdate ? new Date(guard.birthdate).toLocaleDateString() : '', 38, 7)
+  y += 7
   doc.setFontSize(8)
 
   doc.setFontSize(7)
   doc.text('A.9 In the event of claim, what is your preferred method of receiving indemnity payment?', 14, y)
-  y += 4
+  y += 5
   doc.setFontSize(8)
   const ind = d.indemnityOption || ''
-  drawCheckbox(doc, 14, y + 1.5, /landbank|dbp/i.test(ind))
-  doc.text('Landbank or DBP', 18, y + 2.5)
-  drawCheckbox(doc, 48, y + 1.5, /pabahay|express/i.test(ind))
-  doc.text('Pabahay Express', 52, y + 2.5)
-  drawCheckbox(doc, 78, y + 1.5, /cash/i.test(ind))
-  doc.text('Cash', 82, y + 2.5)
-  drawCheckbox(doc, 95, y + 1.5, /other/i.test(ind))
-  doc.text('Others (Please specify)', 99, y + 2.5)
+  drawCheckbox(doc, 14, y, /landbank|dbp/i.test(ind))
+  doc.text('Landbank or DBP', 18, y + 1.5)
+  drawCheckbox(doc, 48, y, /pabahay|express/i.test(ind))
+  doc.text('Pabahay Express', 52, y + 1.5)
+  drawCheckbox(doc, 82, y, /cash/i.test(ind))
+  doc.text('Cash', 86, y + 1.5)
+  drawCheckbox(doc, 98, y, /other/i.test(ind))
+  doc.text('Others (Please specify)', 102, y + 1.5)
   drawField(doc, 152, y + 2, d.indemnityOther || '', 44)
-  y += LINE_HEIGHT + 4
+  y += 7
 
   y = checkPageBreak(doc, y, 85)
   drawThickLine(doc, y)
