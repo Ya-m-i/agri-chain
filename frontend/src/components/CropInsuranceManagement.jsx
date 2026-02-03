@@ -1057,7 +1057,7 @@ const CropInsuranceManagement = () => {
           </span>
         )
         return (
-          <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
             <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border-2 border-black">
               <div className="sticky top-0 bg-white border-b-2 border-black px-5 py-4 flex justify-between items-start z-20">
                 <div className="text-center flex-1">
@@ -1072,13 +1072,13 @@ const CropInsuranceManagement = () => {
                   <p>PCIC-F-001</p>
                   <p>Rev. 001/01-18</p>
                 </div>
-                <button
-                  onClick={() => setShowDetailsModal(false)}
+              <button
+                onClick={() => setShowDetailsModal(false)}
                   className="text-black hover:bg-lime-200 rounded-full p-1 shrink-0"
-                >
-                  <X size={24} />
-                </button>
-              </div>
+              >
+                <X size={24} />
+              </button>
+            </div>
               <div className="p-5 space-y-6 text-sm">
                 {/* Top section: CROPP, Application Type, Total Area, Farmer Category, Date */}
                 <div className="space-y-2 border-b border-black pb-3">
@@ -1088,12 +1088,12 @@ const CropInsuranceManagement = () => {
                     <label className="inline-flex items-center gap-1"><CheckBox checked={d.crop.isRice} /> Rice</label>
                     <label className="inline-flex items-center gap-1"><CheckBox checked={d.crop.isHighValue} /> High-Value (Please Specify)</label>
                     {d.crop.isHighValue && <span className="underline ml-1">{d.crop.highValueSpec}</span>}
-                  </div>
+                </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                     <span className="font-bold">APPLICATION TYPE:</span>
                     <label className="inline-flex items-center gap-1"><CheckBox checked={/new/i.test(d.applicationType)} /> New Application</label>
                     <label className="inline-flex items-center gap-1"><CheckBox checked={/renewal/i.test(d.applicationType)} /> Renewal</label>
-                  </div>
+                </div>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                     <span className="font-bold">TOTAL AREA (in Hectares):</span>
                     <span className="border-b border-black px-2 min-w-[4rem]">{d.totalArea}</span>
@@ -1102,7 +1102,7 @@ const CropInsuranceManagement = () => {
                     <label className="inline-flex items-center gap-1"><CheckBox checked={/borrow/i.test(d.farmerCategory)} /> Borrowing</label>
                     <label className="inline-flex items-center gap-1"><CheckBox checked={/lend/i.test(d.farmerCategory)} /> Lender</label>
                     {d.lender && <span className="ml-1">({d.lender})</span>}
-                  </div>
+                </div>
                   <div className="flex flex-wrap items-center gap-x-2">
                     <span className="font-bold">DATE OF APPLICATION:</span>
                     <span className="border-b border-black px-2">{d.dateOfApplication}</span>
@@ -1324,17 +1324,17 @@ const CropInsuranceManagement = () => {
                     <span><span className="font-semibold">Status:</span> <span className={getStatusColor(selectedRecord)}>{getStatusText(selectedRecord)}</span></span>
                     {selectedRecord.isInsured && <span><span className="font-semibold">Agency:</span> {selectedRecord.agency}</span>}
                     <span><span className="font-semibold">Day Limit:</span> {selectedRecord.insuranceDayLimit} days</span>
-                  </div>
-                  {selectedRecord.evidenceImage && (
+                </div>
+                {selectedRecord.evidenceImage && (
                     <div className="flex-shrink-0">
                       <p className="font-semibold text-xs mb-1">Evidence Image</p>
                       <img src={selectedRecord.evidenceImage} alt="Evidence" className="max-h-24 object-contain border border-black rounded" />
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
+        </div>
         )
       })()}
 
