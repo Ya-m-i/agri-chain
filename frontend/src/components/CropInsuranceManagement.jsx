@@ -24,6 +24,7 @@ import {
   ChevronRight,
   RefreshCw,
   Download,
+  Check,
 } from "lucide-react"
 
 // Import custom KPI icons
@@ -376,6 +377,72 @@ const CropInsuranceManagement = () => {
     const remainingDays = getRemainingDays(record)
     if (remainingDays === 0 || !record.canInsure) return 'Expired'
     return 'Can Insure'
+  }
+
+  // Single source for details modal: merge record + farmer + pcicForm (no duplication)
+  const getDetailsDisplayData = (record) => {
+    const farmer = typeof record?.farmerId === 'object' ? record.farmerId : farmers.find(f => f._id === record?.farmerId)
+    const pf = record?.pcicForm || {}
+    const cropType = record?.cropType || ''
+    const isRice = /rice/i.test(cropType)
+    const isCorn = /corn/i.test(cropType)
+    const isHighValue = !isRice && !isCorn && cropType
+    const lots = (pf.lots && pf.lots.length > 0) ? pf.lots : [{
+      farmLocation: {},
+      boundaries: {},
+      geoRefId: '',
+      variety: '',
+      plantingMethod: '',
+      dateOfSowing: record?.plantingDate,
+      dateOfPlanting: record?.plantingDate,
+      dateOfHarvest: record?.expectedHarvestDate,
+      numberOfTreesHills: '',
+      landCategory: '',
+      tenurialStatus: '',
+      desiredAmountOfCover: null,
+      lotArea: record?.lotArea
+    }]
+    const toDateStr = (v) => (v && (v instanceof Date || typeof v === 'string')) ? new Date(v).toLocaleDateString() : (v || '')
+    return {
+      crop: { isRice, isCorn, isHighValue, highValueSpec: isHighValue ? cropType : '' },
+      applicationType: pf.applicationType || 'New Application',
+      totalArea: record?.cropArea ?? pf.totalArea ?? '',
+      farmerCategory: pf.farmerCategory || 'Self-Financed',
+      lender: pf.lender || '',
+      dateOfApplication: toDateStr(pf.dateOfApplication || record?.createdAt),
+      name: {
+        lastName: pf.applicantName?.lastName ?? farmer?.lastName ?? '',
+        firstName: pf.applicantName?.firstName ?? farmer?.firstName ?? '',
+        middleName: pf.applicantName?.middleName ?? farmer?.middleName ?? '',
+        suffix: pf.applicantName?.suffix ?? ''
+      },
+      contactNumber: pf.contactNumber ?? farmer?.contactNum ?? '',
+      address: {
+        street: pf.address?.street ?? farmer?.address ?? '',
+        barangay: pf.address?.barangay ?? '',
+        municipality: pf.address?.municipality ?? '',
+        province: pf.address?.province ?? ''
+      },
+      dateOfBirth: toDateStr(pf.dateOfBirth || farmer?.birthday) || (farmer?.birthday || ''),
+      sex: (pf.sex || farmer?.gender || '').toLowerCase(),
+      specialSector: Array.isArray(pf.specialSector) ? pf.specialSector : [],
+      tribe: pf.tribe || '',
+      civilStatus: pf.civilStatus || '',
+      spouseName: pf.spouseName || '',
+      beneficiary: {
+        primary: pf.beneficiary?.primary || {},
+        guardian: pf.beneficiary?.guardian || {}
+      },
+      indemnityOption: (pf.indemnityPaymentOption || '').toLowerCase(),
+      indemnityOther: pf.indemnityOther || '',
+      certificationConsent: !!pf.certificationConsent,
+      deedOfAssignmentConsent: !!pf.deedOfAssignmentConsent,
+      certificationDate: toDateStr(pf.certificationDate),
+      sourceOfPremium: Array.isArray(pf.sourceOfPremium) ? pf.sourceOfPremium : [],
+      sourceOfPremiumOther: pf.sourceOfPremiumOther || '',
+      lots,
+      record
+    }
   }
 
   const filteredRecords = cropInsuranceRecords.filter(record => {
@@ -1046,71 +1113,295 @@ const CropInsuranceManagement = () => {
         </div>
       )}
 
-      {/* Details Modal */}
-      {showDetailsModal && selectedRecord && (
-        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border-2 border-black">
-            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
-              <h2 className="text-2xl font-bold text-black">📋 Crop Insurance Details</h2>
-              <button
-                onClick={() => setShowDetailsModal(false)}
-                className="text-black hover:bg-lime-200 rounded-full p-1"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="p-6 bg-white">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-lime-50 border-2 border-black rounded-lg">
-                  <h4 className="font-bold text-black mb-2 uppercase text-sm">Farmer Information</h4>
-                  <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Name:</span> {getFarmerName(selectedRecord.farmerId)}</p>
-                  <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Crop:</span> {selectedRecord.cropType}</p>
-                  <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Area:</span> {selectedRecord.cropArea} hectares</p>
-                  <p className="text-sm text-gray-700"><span className="font-semibold">Lot:</span> {selectedRecord.lotNumber}</p>
+      {/* Details Modal – PCIC APPLICATION FOR CROP INSURANCE template (read-only) */}
+      {showDetailsModal && selectedRecord && (() => {
+        const d = getDetailsDisplayData(selectedRecord)
+        const CheckBox = ({ checked }) => (
+          <span className="inline-flex items-center justify-center w-5 h-5 border-2 border-black rounded">
+            {checked ? <Check size={14} className="text-black" /> : null}
+          </span>
+        )
+        return (
+          <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border-2 border-black">
+              <div className="sticky top-0 bg-white border-b-2 border-black px-5 py-4 flex justify-between items-start z-20">
+                <div className="text-center flex-1">
+                  <p className="text-xs font-semibold text-black">Republic of the Philippines</p>
+                  <p className="text-sm font-bold text-black uppercase tracking-wide">Philippine Crop Insurance Corporation</p>
+                  <p className="text-xs text-gray-600 mt-1">Regional Office No. _______________</p>
+                  <h2 className="text-lg font-bold text-black mt-2">APPLICATION FOR CROP INSURANCE</h2>
+                  <p className="text-xs text-gray-600">(Individual Application)</p>
+                  <p className="text-xs text-gray-700 mt-1">Kindly fill out all entries and tick all boxes [√] as appropriate.</p>
                 </div>
-                <div className="p-4 bg-lime-50 border-2 border-black rounded-lg">
-                  <h4 className="font-bold text-black mb-2 uppercase text-sm">Timeline</h4>
-                  <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Planting:</span> {formatDate(selectedRecord.plantingDate)}</p>
-                  <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Expected Harvest:</span> {formatDate(selectedRecord.expectedHarvestDate)}</p>
-                  <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Insurance Deadline:</span> {formatDate(selectedRecord.insuranceDeadline)}</p>
-                  <p className="text-sm text-gray-700"><span className="font-semibold">Day Limit:</span> {selectedRecord.insuranceDayLimit} days</p>
+                <div className="text-right text-xs text-gray-600 shrink-0 ml-2">
+                  <p>PCIC-F-001</p>
+                  <p>Rev. 001/01-18</p>
                 </div>
-                <div className="p-4 bg-lime-50 border-2 border-black rounded-lg">
-                  <h4 className="font-bold text-black mb-2 uppercase text-sm">Insurance Status</h4>
-                  <p className="text-sm text-gray-700 mb-1">
-                    <span className="font-semibold">Status:</span> <span className={getStatusColor(selectedRecord)}>{getStatusText(selectedRecord)}</span>
-                  </p>
-                  {selectedRecord.isInsured && (
-                    <>
-                      <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Insurance Date:</span> {formatDate(selectedRecord.insuranceDate)}</p>
-                      <p className="text-sm text-gray-700"><span className="font-semibold">Agency:</span> {selectedRecord.agency}</p>
-                    </>
-                  )}
-                  {!selectedRecord.isInsured && getRemainingDays(selectedRecord) > 0 && (
-                    <p className="text-sm text-yellow-600">
-                      {getRemainingDays(selectedRecord)} days remaining to apply insurance
-                    </p>
-                  )}
-                </div>
-                <div className="p-4 bg-lime-50 border-2 border-black rounded-lg">
-                  <h4 className="font-bold text-black mb-2 uppercase text-sm">Additional Information</h4>
-                  <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Created:</span> {formatDate(selectedRecord.createdAt)}</p>
-                  <p className="text-sm text-gray-700 mb-1"><span className="font-semibold">Updated:</span> {formatDate(selectedRecord.updatedAt)}</p>
-                  {selectedRecord.notes && (
-                    <p className="text-sm text-gray-700"><span className="font-semibold">Notes:</span> {selectedRecord.notes}</p>
-                  )}
-                </div>
-                {selectedRecord.evidenceImage && (
-                  <div className="md:col-span-2 p-4 bg-lime-50 border-2 border-black rounded-lg">
-                    <h4 className="font-bold text-black mb-2 uppercase text-sm">Evidence Image</h4>
-                    <img src={selectedRecord.evidenceImage} alt="Evidence" className="max-w-full h-64 object-contain border-2 border-black rounded-lg" />
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className="text-black hover:bg-lime-200 rounded-full p-1 shrink-0"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="p-5 space-y-6 text-sm">
+                {/* Top section: CROPP, Application Type, Total Area, Farmer Category, Date */}
+                <div className="space-y-2 border-b border-black pb-3">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <span className="font-bold">CROP (Choose only one):</span>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={d.crop.isCorn} /> Corn</label>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={d.crop.isRice} /> Rice</label>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={d.crop.isHighValue} /> High-Value (Please Specify)</label>
+                    {d.crop.isHighValue && <span className="underline ml-1">{d.crop.highValueSpec}</span>}
                   </div>
-                )}
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <span className="font-bold">APPLICATION TYPE:</span>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={/new/i.test(d.applicationType)} /> New Application</label>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={/renewal/i.test(d.applicationType)} /> Renewal</label>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <span className="font-bold">TOTAL AREA (in Hectares):</span>
+                    <span className="border-b border-black px-2 min-w-[4rem]">{d.totalArea}</span>
+                    <span className="font-bold">FARMER CATEGORY:</span>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={/self/i.test(d.farmerCategory)} /> Self-financed</label>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={/borrow/i.test(d.farmerCategory)} /> Borrowing</label>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={/lend/i.test(d.farmerCategory)} /> Lender</label>
+                    {d.lender && <span className="ml-1">({d.lender})</span>}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-2">
+                    <span className="font-bold">DATE OF APPLICATION:</span>
+                    <span className="border-b border-black px-2">{d.dateOfApplication}</span>
+                    <span className="text-gray-500">(mm/dd/yyyy)</span>
+                  </div>
+                </div>
+
+                {/* Section A: BASIC FARMER INFORMATION */}
+                <div className="space-y-3 border-b border-black pb-4">
+                  <h3 className="font-bold text-black uppercase">A. Basic Farmer Information</h3>
+                  <div>
+                    <p className="font-semibold mb-1">A.1 Name:</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div><span className="text-gray-600 block text-xs">Last Name</span><span className="border-b border-black block px-1">{d.name.lastName}</span></div>
+                      <div><span className="text-gray-600 block text-xs">First Name</span><span className="border-b border-black block px-1">{d.name.firstName}</span></div>
+                      <div><span className="text-gray-600 block text-xs">Middle Name</span><span className="border-b border-black block px-1">{d.name.middleName}</span></div>
+                      <div><span className="text-gray-600 block text-xs">Suffix (Jr., Sr., II)</span><span className="border-b border-black block px-1">{d.name.suffix}</span></div>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-1">A.2 Contact Number:</p>
+                    <span className="border-b border-black px-2 inline-block min-w-[8rem]">{d.contactNumber}</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-1">A.3 Address:</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div><span className="text-gray-600 block text-xs">No. & Street/Sitio</span><span className="border-b border-black block px-1">{d.address.street}</span></div>
+                      <div><span className="text-gray-600 block text-xs">Barangay</span><span className="border-b border-black block px-1">{d.address.barangay}</span></div>
+                      <div><span className="text-gray-600 block text-xs">Municipality/City</span><span className="border-b border-black block px-1">{d.address.municipality}</span></div>
+                      <div><span className="text-gray-600 block text-xs">Province</span><span className="border-b border-black block px-1">{d.address.province}</span></div>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-4">
+                    <div>
+                      <p className="font-semibold mb-1">A.4 Date of Birth:</p>
+                      <span className="border-b border-black px-2">{d.dateOfBirth}</span> <span className="text-gray-500 text-xs">(mm/dd/yyyy)</span>
+                    </div>
+                    <div>
+                      <p className="font-semibold mb-1">A.5 Sex:</p>
+                      <label className="inline-flex items-center gap-1 mr-3"><CheckBox checked={d.sex === 'male'} /> Male</label>
+                      <label className="inline-flex items-center gap-1"><CheckBox checked={d.sex === 'female'} /> Female</label>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-1">A.6 Are you part of a special sector? Please tick [√] as many as necessary:</p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1">
+                      {['Senior Citizens', 'Youth', 'PWD', 'Women'].map(s => (
+                        <label key={s} className="inline-flex items-center gap-1">
+                          <CheckBox checked={d.specialSector.some(ss => new RegExp(s.split(' ')[0], 'i').test(ss))} /> {s}
+                        </label>
+                      ))}
+                      <label className="inline-flex items-center gap-1">Indigenous People (please indicate tribe)</label>
+                      <span className="border-b border-black px-2 inline-block min-w-[6rem]">{d.tribe}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-1">A.7 Civil Status:</p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1">
+                      {['Single', 'Married', 'Widow/er', 'Separated', 'Annulled'].map(s => (
+                        <label key={s} className="inline-flex items-center gap-1">
+                          <CheckBox checked={d.civilStatus.toLowerCase().includes(s.toLowerCase().split('/')[0])} /> {s}
+                        </label>
+                      ))}
+                      {d.spouseName && <span className="ml-2">Name of Spouse: {d.spouseName}</span>}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-1">A.8 Name of Legal Beneficiary (in case of death benefit, as applicable):</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 ml-2">
+                      <div>
+                        <p className="text-xs font-semibold text-gray-700 mb-1">Primary Beneficiary:</p>
+                        <div className="grid grid-cols-2 gap-1 text-xs">
+                          <span className="border-b border-gray-400 px-1">{d.beneficiary.primary.lastName || '—'}</span>
+                          <span className="border-b border-gray-400 px-1">{d.beneficiary.primary.firstName || '—'}</span>
+                          <span className="border-b border-gray-400 px-1 col-span-2">{d.beneficiary.primary.middleName || '—'}</span>
+                          <span className="border-b border-gray-400 px-1">Relationship: {d.beneficiary.primary.relationship || '—'}</span>
+                          <span className="border-b border-gray-400 px-1">Birthdate: {d.beneficiary.primary.birthdate ? new Date(d.beneficiary.primary.birthdate).toLocaleDateString() : '—'}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-700 mb-1">Guardian:</p>
+                        <div className="grid grid-cols-2 gap-1 text-xs">
+                          <span className="border-b border-gray-400 px-1">{d.beneficiary.guardian.lastName || '—'}</span>
+                          <span className="border-b border-gray-400 px-1">{d.beneficiary.guardian.firstName || '—'}</span>
+                          <span className="border-b border-gray-400 px-1 col-span-2">{d.beneficiary.guardian.relationship || '—'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-1">A.9 Preferred method of receiving indemnity payment:</p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1">
+                      <label className="inline-flex items-center gap-1"><CheckBox checked={/landbank|dbp/i.test(d.indemnityOption)} /> Landbank or DBP</label>
+                      <label className="inline-flex items-center gap-1"><CheckBox checked={/pabahay|express/i.test(d.indemnityOption)} /> Pabahay Express</label>
+                      <label className="inline-flex items-center gap-1"><CheckBox checked={/cash/i.test(d.indemnityOption)} /> Cash</label>
+                      <label className="inline-flex items-center gap-1"><CheckBox checked={/other/i.test(d.indemnityOption)} /> Others (Please specify)</label>
+                      {d.indemnityOther && <span className="border-b border-black px-2">{d.indemnityOther}</span>}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section B: FARM INFORMATION (up to 3 lots) */}
+                <div className="space-y-3 border-b border-black pb-4">
+                  <h3 className="font-bold text-black uppercase">B. Farm Information (Use separate sheet if more than three (3) lots)</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border border-black text-xs">
+                      <thead>
+                        <tr className="bg-lime-50">
+                          <th className="border border-black p-1 text-left w-40">Field</th>
+                          {[1, 2, 3].map(i => <th key={i} className="border border-black p-1 text-center">Lot {i}</th>)}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><td className="border border-black p-1 font-semibold">B.1 Farm Location/ASP</td><td colSpan={3} className="border border-black p-1 text-gray-600">a. No. & street/Sitio, b. Barangay, c. Municipality/City, d. Province</td></tr>
+                        {['street', 'barangay', 'municipality', 'province'].map((key, i) => {
+                          const label = key === 'street' ? 'No. & street/Sitio' : key === 'barangay' ? 'Barangay' : key === 'municipality' ? 'Municipality/City' : 'Province'
+                          const getLotVal = (lotIdx) => {
+                            const loc = d.lots[lotIdx]?.farmLocation
+                            if (loc && (loc[key] != null && loc[key] !== '')) return loc[key]
+                            if (lotIdx === 0) return d.address[key] || '—'
+                            return '—'
+                          }
+                          return (
+                            <tr key={key}>
+                              <td className="border border-black p-1 pl-4">{String.fromCharCode(97 + i)}. {label}</td>
+                              {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{getLotVal(lotIdx)}</td>)}
+                            </tr>
+                          )
+                        })}
+                        <tr><td className="border border-black p-1 font-semibold">B.2 Boundaries</td><td colSpan={3} className="border border-black p-1 text-gray-600">North, East, South, West</td></tr>
+                        {['north', 'east', 'south', 'west'].map(dir => (
+                          <tr key={dir}><td className="border border-black p-1 pl-4 capitalize">{dir}</td>
+                            {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{d.lots[lotIdx]?.boundaries?.[dir] ?? '—'}</td>)}
+                          </tr>
+                        ))}
+                        <tr><td className="border border-black p-1 font-semibold">B.3 GeoRef ID (DA-RBEIA) or Farm ID (PCIC)</td>
+                          {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{d.lots[lotIdx]?.geoRefId ?? '—'}</td>)}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.4 Variety</td>
+                          {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{d.lots[lotIdx]?.variety ?? '—'}</td>)}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.5 Planting Method</td>
+                          {[0, 1, 2].map(lotIdx => (
+                            <td key={lotIdx} className="border border-black p-1">
+                              <CheckBox checked={(d.lots[lotIdx]?.plantingMethod || '').toLowerCase().includes('direct')} /> Direct Seeded
+                              <span className="mx-1" /><CheckBox checked={(d.lots[lotIdx]?.plantingMethod || '').toLowerCase().includes('transplant')} /> Transplanted
+                            </td>
+                          ))}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.6 Date of Sowing</td>
+                          {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{d.lots[lotIdx]?.dateOfSowing ? new Date(d.lots[lotIdx].dateOfSowing).toLocaleDateString() : '—'}</td>)}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.7 Date of Planting</td>
+                          {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{d.lots[lotIdx]?.dateOfPlanting ? new Date(d.lots[lotIdx].dateOfPlanting).toLocaleDateString() : (lotIdx === 0 ? formatDate(selectedRecord.plantingDate) : '—')}</td>)}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.8 Date of Harvest</td>
+                          {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{d.lots[lotIdx]?.dateOfHarvest ? new Date(d.lots[lotIdx].dateOfHarvest).toLocaleDateString() : (lotIdx === 0 ? formatDate(selectedRecord.expectedHarvestDate) : '—')}</td>)}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.9 Number of Trees/Hills (for HVC only)</td>
+                          {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{d.lots[lotIdx]?.numberOfTreesHills ?? '—'}</td>)}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.10 Land Category</td>
+                          {[0, 1, 2].map(lotIdx => (
+                            <td key={lotIdx} className="border border-black p-1">
+                              <CheckBox checked={(d.lots[lotIdx]?.landCategory || '').toLowerCase().includes('irrigat')} /> Irrigated
+                              <span className="mx-1" /><CheckBox checked={(d.lots[lotIdx]?.landCategory || '').toLowerCase().includes('non')} /> Non-Irrigated
+                            </td>
+                          ))}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.11 Tenurial Status</td>
+                          {[0, 1, 2].map(lotIdx => (
+                            <td key={lotIdx} className="border border-black p-1">
+                              <CheckBox checked={(d.lots[lotIdx]?.tenurialStatus || '').toLowerCase().includes('owner')} /> Owner
+                              <span className="mx-1" /><CheckBox checked={(d.lots[lotIdx]?.tenurialStatus || '').toLowerCase().includes('lessee')} /> Lessee
+                            </td>
+                          ))}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.12 Desired Amount of Cover (Php)</td>
+                          {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{d.lots[lotIdx]?.desiredAmountOfCover != null ? d.lots[lotIdx].desiredAmountOfCover : '—'}</td>)}
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Section C: CERTIFICATION AND DATA PRIVACY CONSENT */}
+                <div className="space-y-2 border-b border-black pb-4">
+                  <h3 className="font-bold text-black uppercase">C. Certification and Data Privacy Consent Statement</h3>
+                  <div className="flex gap-2">
+                    <CheckBox checked={d.certificationConsent} />
+                    <p className="text-xs flex-1">I hereby certify that the foregoing answers and statements are complete, true and correct. If the application is approved, the insurance shall be deemed based upon the statements contained herein. I further agree that PCIC reserves the right to reject and/or void the insurance if found that there is fraud/misrepresentation on this statement material to the risk. I am hereby consent to the collection, use, processing, and disclosure of my sensitive personal data in accordance with the Data Privacy Act of 2012.</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <CheckBox checked={d.deedOfAssignmentConsent} />
+                    <p className="text-xs flex-1">Deed of Assignment for borrowing farmers (if applicable): I hereby assign all or part of my rights, title, and interest in this insurance coverage to the Assignee (Lender) stated above.</p>
+                  </div>
+                  <div className="flex justify-end gap-4 text-xs">
+                    <span>Signature or Thumb Mark over Printed Name: _______________________</span>
+                    <span>Date: {d.certificationDate || '—'} (mm/dd/yyyy)</span>
+                  </div>
+                </div>
+
+                {/* Section D: COVERAGE (FOR PCIC USE ONLY) */}
+                <div className="space-y-2">
+                  <h3 className="font-bold text-black uppercase">D. Coverage (FOR PCIC USE ONLY)</h3>
+                  <p className="font-semibold">D.1 Source of Premium:</p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1">
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={d.sourceOfPremium.some(s => /non-subsidized|regular/i.test(s))} /> Non-Subsidized/Regular</label>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={d.sourceOfPremium.some(s => /ncfp/i.test(s))} /> Subsidized/NCFP - NCFPo No.</label>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={d.sourceOfPremium.some(s => /rsbsa/i.test(s))} /> Subsidized/RSBSA - Ref. No.</label>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={d.sourceOfPremium.some(s => /other/i.test(s))} /> Others</label>
+                    {d.sourceOfPremiumOther && <span className="border-b border-black px-2">{d.sourceOfPremiumOther}</span>}
+                  </div>
+                </div>
+
+                {/* Status & evidence (kept for admin context) */}
+                <div className="pt-3 border-t-2 border-black flex flex-wrap justify-between items-center gap-2">
+                  <div className="flex flex-wrap gap-4">
+                    <span><span className="font-semibold">Status:</span> <span className={getStatusColor(selectedRecord)}>{getStatusText(selectedRecord)}</span></span>
+                    {selectedRecord.isInsured && <span><span className="font-semibold">Agency:</span> {selectedRecord.agency}</span>}
+                    <span><span className="font-semibold">Day Limit:</span> {selectedRecord.insuranceDayLimit} days</span>
+                  </div>
+                  {selectedRecord.evidenceImage && (
+                    <div className="flex-shrink-0">
+                      <p className="font-semibold text-xs mb-1">Evidence Image</p>
+                      <img src={selectedRecord.evidenceImage} alt="Evidence" className="max-h-24 object-contain border border-black rounded" />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
