@@ -22,7 +22,10 @@ function truncateToWidth(doc, text, maxWidthMm, fontSize = 8) {
 }
 
 function drawField(doc, x, y, value, width, fontSize = 8) {
-  const effectiveWidth = Math.min(width, MARGIN_RIGHT - x - 1)
+  const numWidth = Number(width)
+  const safeWidth = Number.isNaN(numWidth) || numWidth <= 0 ? 40 : numWidth
+  const effectiveWidth = Math.min(safeWidth, MARGIN_RIGHT - x - 1)
+  if (effectiveWidth <= 0) return
   const displayValue = value !== null && value !== undefined ? String(value) : ''
   const safe = truncateToWidth(doc, displayValue, effectiveWidth, fontSize)
   doc.setFontSize(fontSize)
@@ -31,8 +34,11 @@ function drawField(doc, x, y, value, width, fontSize = 8) {
 }
 
 function drawCheckbox(doc, x, y, checked) {
-  doc.rect(x, y, 3, 3)
-  if (checked) doc.text('x', x + 0.8, y + 2.2)
+  const xx = Number(x)
+  const yy = Number(y)
+  if (Number.isNaN(xx) || Number.isNaN(yy) || xx < 0 || yy < 0) return
+  doc.rect(xx, yy, 3, 3)
+  if (checked) doc.text('x', xx + 0.8, yy + 2.2)
 }
 
 function checkPageBreak(doc, currentY, neededSpace = LINE_HEIGHT * 3) {
@@ -375,12 +381,14 @@ export const generateCropInsuranceApplicationPDF = (record, farmerData = null) =
   const certText =
     'I hereby certify that the foregoing answers and statements are complete, true and correct. If the application is approved, the insurance shall be deemed based upon the statements contained herein. I further agree that PCIC reserves the right to reject and/or void the insurance if found that there is fraud/misrepresentation on this statement material to the risk. I am hereby consent to the collection, use, processing, and disclosure of my sensitive personal data in accordance with the Data Privacy Act of 2012.'
   const certLastY = doc.text(certText, 18, y + 3, { maxWidth: MARGIN_RIGHT - 18 })
-  y = (Array.isArray(certLastY) ? certLastY[certLastY.length - 1] : certLastY) + 4
+  const certBottom = Array.isArray(certLastY) ? certLastY[certLastY.length - 1] : certLastY
+  y = (typeof certBottom === 'number' && !Number.isNaN(certBottom) ? certBottom : y + 12) + 4
   drawCheckbox(doc, 14, y + 1.5, d.deedOfAssignmentConsent)
   const deedText =
     'Deed of Assignment for borrowing farmers (if applicable): I hereby assign all or part of my rights, title, and interest in this insurance coverage to the Assignee (Lender) stated above.'
   const deedLastY = doc.text(deedText, 18, y + 3, { maxWidth: MARGIN_RIGHT - 18 })
-  y = (Array.isArray(deedLastY) ? deedLastY[deedLastY.length - 1] : deedLastY) + 5
+  const deedBottom = Array.isArray(deedLastY) ? deedLastY[deedLastY.length - 1] : deedLastY
+  y = (typeof deedBottom === 'number' && !Number.isNaN(deedBottom) ? deedBottom : y + 8) + 5
   doc.text('Signature or Thumb Mark over Printed Name: _______________________', 14, y)
   doc.text('Farmer - Applicant', 14, y + 4)
   doc.text('Date:', 128, y + 5)
