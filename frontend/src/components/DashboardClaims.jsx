@@ -2,37 +2,31 @@ import { ClipboardCheck, FileText } from "lucide-react"
 import insuranceImage from "../assets/Images/insurance.png"
 import recentImage from "../assets/Images/recent.png"
 
-const DashboardClaims = ({ claims, recentClaims }) => {
-  const pendingClaims = claims.filter((c) => c.status === "pending")
+const DashboardClaims = ({ claims = [] }) => {
+  const claimsList = Array.isArray(claims) ? claims : []
+  const pendingClaims = claimsList.filter((c) => c && c.status === "pending")
+
   const getClaimTime = (claim) => {
+    if (!claim) return 0
     const timeValue =
       claim.updatedAt ||
       claim.reviewDate ||
       claim.completionDate ||
-      claim.distributionDate ||
-      claim.applicationDate ||
       claim.date ||
       claim.createdAt
     const parsed = timeValue ? new Date(timeValue).getTime() : 0
     return Number.isNaN(parsed) ? 0 : parsed
   }
 
-  const recentSource = Array.isArray(recentClaims) ? recentClaims : claims
-  const recentItems = Array.from(
-    recentSource.reduce((map, claim) => {
-      if (!claim) return map
-      const key = claim._recentKey || claim._id || claim.claimNumber || claim.id
-      if (!key) return map
-
-      const existing = map.get(key)
-      if (!existing || getClaimTime(claim) >= getClaimTime(existing)) {
-        map.set(key, claim)
-      }
-      return map
-    }, new Map())
-  )
-    .sort((a, b) => getClaimTime(b) - getClaimTime(a))
-    .slice(0, 5)
+  // Recent Claims: same data as Cash Assistance Claims tab — sort by most recent, dedupe by id, top 5
+  const sortedByTime = [...claimsList].filter(Boolean).sort((a, b) => getClaimTime(b) - getClaimTime(a))
+  const seenIds = new Set()
+  const recentItems = sortedByTime.filter((c) => {
+    const id = c._id || c.claimNumber || c.id
+    if (!id || seenIds.has(id)) return false
+    seenIds.add(id)
+    return true
+  }).slice(0, 5)
   
   return (
     <>
@@ -118,65 +112,59 @@ const DashboardClaims = ({ claims, recentClaims }) => {
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {recentItems.map((claim) => (
-                <div
-                  key={claim._recentKey || claim._id || claim.claimNumber || claim.id}
-                  className="p-3 hover:bg-gray-50 transition-colors duration-200"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-2 h-8 rounded-full flex-shrink-0 ${
-                          claim.status === 'approved' ? 'bg-green-400' :
-                          claim.status === 'rejected' ? 'bg-[rgb(26,61,59)]' :
-                          claim.status === 'pending' ? 'bg-amber-400' :
-                          'bg-gray-400'
-                        }`}></div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
-                            {claim.name ||
-                              claim.farmerName ||
-                              (claim.farmerId
-                                ? `${claim.farmerId.firstName || ""} ${claim.farmerId.lastName || ""}`.trim()
-                                : "") ||
-                              "Unknown Farmer"}
-                          </p>
-                          <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
-                            <span className="flex items-center">
-                              <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
-                              {claim.crop ||
-                                claim.cropType ||
-                                claim.assistanceId?.cropType ||
-                                claim.farmerId?.cropType ||
-                                "Unknown Crop"}
-                            </span>
-                            <span className="flex items-center">
-                              <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
-                              {getClaimTime(claim)
-                                ? new Date(getClaimTime(claim)).toLocaleDateString()
-                                : "N/A"}
-                            </span>
-                            <span className="flex items-center font-mono">
-                              <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
-                              ID: {(claim.claimNumber || claim._id)?.slice(-6)}
-                            </span>
+              {recentItems.map((claim) => {
+                const key = claim._id || claim.claimNumber || claim.id
+                const displayName = claim.name || claim.farmerName || "Unknown"
+                const displayCrop = claim.crop || claim.cropType || "Unknown Crop"
+                const displayStatus = claim.status ? String(claim.status).charAt(0).toUpperCase() + String(claim.status).slice(1) : "Unknown"
+                const timeMs = getClaimTime(claim)
+                return (
+                  <div
+                    key={key}
+                    className="p-3 hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-2 h-8 rounded-full flex-shrink-0 ${
+                            claim.status === "approved" ? "bg-green-400" :
+                            claim.status === "rejected" ? "bg-[rgb(26,61,59)]" :
+                            claim.status === "pending" ? "bg-amber-400" :
+                            "bg-gray-400"
+                          }`} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
+                            <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
+                              <span className="flex items-center">
+                                <span className="w-1 h-1 bg-gray-400 rounded-full mr-1" />
+                                {displayCrop}
+                              </span>
+                              <span className="flex items-center">
+                                <span className="w-1 h-1 bg-gray-400 rounded-full mr-1" />
+                                {timeMs ? new Date(timeMs).toLocaleDateString() : "N/A"}
+                              </span>
+                              <span className="flex items-center font-mono">
+                                <span className="w-1 h-1 bg-gray-400 rounded-full mr-1" />
+                                ID: {String(claim.claimNumber || claim._id || "").slice(-6)}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-2 ml-4">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        claim.status === 'approved' ? 'bg-green-100 text-green-800' :
-                        claim.status === 'rejected' ? 'bg-[rgb(26,61,59)] text-white' :
-                        claim.status === 'pending' ? 'bg-amber-100 text-amber-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {claim.status ? claim.status.charAt(0).toUpperCase() + claim.status.slice(1) : 'Unknown'}
-                      </span>
+                      <div className="flex items-center space-x-2 ml-4 flex-shrink-0">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          claim.status === "approved" ? "bg-green-100 text-green-800" :
+                          claim.status === "rejected" ? "bg-[rgb(26,61,59)] text-white" :
+                          claim.status === "pending" ? "bg-amber-100 text-amber-800" :
+                          "bg-gray-100 text-gray-800"
+                        }`}>
+                          {displayStatus}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
