@@ -49,26 +49,21 @@ const LoadingOverlay = ({ isVisible, message }) => {
   
   return (
     <div className="fixed inset-0 bg-white bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-2xl p-8 border-2 border-lime-500 max-w-sm w-full mx-4">
-        {/* Blockchain-style animated loading */}
+      {/* No border, no shadow - only spinning and text validation/verification */}
+      <div className="flex flex-col items-center justify-center max-w-sm w-full mx-4">
+        {/* Spinning indicator only (no border on container, no shadow on inner circle) */}
         <div className="relative mb-6">
           {/* Outer rotating ring */}
           <div className="w-16 h-16 border-2 border-lime-500/20 rounded-full animate-spin mx-auto">
             <div className="w-full h-full border-2 border-transparent border-t-lime-500 rounded-full animate-spin"></div>
           </div>
-          
-          {/* Inner pulsing circle */}
+          {/* Inner pulsing circle - shadow removed */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-6 h-6 bg-lime-500 rounded-full animate-pulse shadow-lg shadow-lime-500/50"></div>
+            <div className="w-6 h-6 bg-lime-500 rounded-full animate-pulse"></div>
           </div>
-          
-          {/* Blockchain nodes animation */}
-          <div className="absolute -top-2 -right-2 w-3 h-3 bg-lime-400 rounded-full animate-bounce"></div>
-          <div className="absolute -bottom-2 -left-2 w-2 h-2 bg-lime-300 rounded-full animate-bounce delay-300"></div>
-          <div className="absolute -top-1 -left-1 w-2 h-2 bg-lime-600 rounded-full animate-bounce delay-150"></div>
         </div>
-        
-        {/* Progress message */}
+
+        {/* Validation / verification text */}
         <div className="text-center">
           <p className="text-lg font-semibold text-gray-800 mb-2">
             {progressMessage}
