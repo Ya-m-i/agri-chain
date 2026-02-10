@@ -2,23 +2,26 @@ import { ClipboardCheck, FileText } from "lucide-react"
 import insuranceImage from "../assets/Images/insurance.png"
 import recentImage from "../assets/Images/recent.png"
 
-const DashboardClaims = ({ claims }) => {
+const DashboardClaims = ({ claims, recentClaims }) => {
   const pendingClaims = claims.filter((c) => c.status === "pending")
   const getClaimTime = (claim) => {
     const timeValue =
       claim.updatedAt ||
       claim.reviewDate ||
       claim.completionDate ||
+      claim.distributionDate ||
+      claim.applicationDate ||
       claim.date ||
       claim.createdAt
     const parsed = timeValue ? new Date(timeValue).getTime() : 0
     return Number.isNaN(parsed) ? 0 : parsed
   }
 
-  const recentClaims = Array.from(
-    claims.reduce((map, claim) => {
+  const recentSource = Array.isArray(recentClaims) ? recentClaims : claims
+  const recentItems = Array.from(
+    recentSource.reduce((map, claim) => {
       if (!claim) return map
-      const key = claim._id || claim.claimNumber || claim.id
+      const key = claim._recentKey || claim._id || claim.claimNumber || claim.id
       if (!key) return map
 
       const existing = map.get(key)
@@ -102,11 +105,11 @@ const DashboardClaims = ({ claims }) => {
           <img src={recentImage} alt="Recent Claims" className="h-12 w-12 mr-3" />
           <h2 className="text-lg font-semibold text-gray-800">Recent Claims</h2>
           <span className="ml-2 px-2 py-1 bg-lime-100 text-lime-700 text-xs font-medium rounded-full">
-            {recentClaims.length}
+            {recentItems.length}
           </span>
         </div>
         <div className="bg-white/70 backdrop-blur-sm rounded-lg border border-gray-200 overflow-hidden shadow-sm">
-          {recentClaims.length === 0 ? (
+          {recentItems.length === 0 ? (
             <div className="text-center py-8">
               <div className="w-12 h-12 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
                 <FileText size={24} className="text-gray-400" />
@@ -115,8 +118,11 @@ const DashboardClaims = ({ claims }) => {
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {recentClaims.map((claim) => (
-                <div key={claim._id} className="p-3 hover:bg-gray-50 transition-colors duration-200">
+              {recentItems.map((claim) => (
+                <div
+                  key={claim._recentKey || claim._id || claim.claimNumber || claim.id}
+                  className="p-3 hover:bg-gray-50 transition-colors duration-200"
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-3">
@@ -127,21 +133,26 @@ const DashboardClaims = ({ claims }) => {
                           'bg-gray-400'
                         }`}></div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{claim.name}</p>
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {claim.name ||
+                              claim.farmerName ||
+                              (claim.farmerId
+                                ? `${claim.farmerId.firstName || ""} ${claim.farmerId.lastName || ""}`.trim()
+                                : "") ||
+                              "Unknown Farmer"}
+                          </p>
                           <div className="flex items-center space-x-4 text-xs text-gray-500 mt-1">
                             <span className="flex items-center">
                               <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
-                              {claim.crop || claim.cropType || "Unknown Crop"}
+                              {claim.crop ||
+                                claim.cropType ||
+                                claim.assistanceId?.cropType ||
+                                claim.farmerId?.cropType ||
+                                "Unknown Crop"}
                             </span>
                             <span className="flex items-center">
                               <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
-                              {new Date(
-                                claim.updatedAt ||
-                                  claim.reviewDate ||
-                                  claim.completionDate ||
-                                  claim.date ||
-                                  claim.createdAt
-                              ).toLocaleDateString()}
+                              {new Date(getClaimTime(claim) || Date.now()).toLocaleDateString()}
                             </span>
                             <span className="flex items-center font-mono">
                               <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>

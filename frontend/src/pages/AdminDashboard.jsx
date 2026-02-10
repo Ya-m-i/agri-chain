@@ -965,6 +965,36 @@ const AdminDashboard = () => {
   // Derived data
   const totalFarmers = farmers.length
   const pendingClaims = claims.filter((c) => c.status === "pending").length
+  const recentClaims = useMemo(() => {
+    const normalizedClaims = (claims || []).map((claim) => ({
+      ...claim,
+      _recentKey: `claim:${claim._id || claim.claimNumber || claim.id}`,
+    }))
+
+    const normalizedApplications = (allApplications || []).map((app) => {
+      const farmerName = app.farmerId
+        ? `${app.farmerId.firstName || ""} ${app.farmerId.lastName || ""}`.trim()
+        : ""
+
+      return {
+        _recentKey: `assistance:${app._id || app.id}`,
+        _id: app._id,
+        status: app.status,
+        name: farmerName || app.farmerName,
+        crop: app.assistanceId?.cropType || app.farmerId?.cropType,
+        cropType: app.assistanceId?.cropType || app.farmerId?.cropType,
+        date: app.applicationDate,
+        applicationDate: app.applicationDate,
+        reviewDate: app.reviewDate,
+        completionDate: app.distributionDate,
+        updatedAt: app.updatedAt,
+        createdAt: app.createdAt,
+        claimNumber: app.applicationNumber,
+      }
+    })
+
+    return [...normalizedClaims, ...normalizedApplications].filter(Boolean)
+  }, [claims, allApplications])
 
   // Event handlers
 
@@ -2572,7 +2602,7 @@ const AdminDashboard = () => {
               />
 
               {/* Pending and Recent Insurance Claims Sections */}
-              <DashboardClaims claims={claims} />
+              <DashboardClaims claims={claims} recentClaims={recentClaims} />
             </>
           )}
 
