@@ -152,7 +152,9 @@ const DashboardClaims = ({ claims, recentClaims }) => {
                             </span>
                             <span className="flex items-center">
                               <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>
-                              {new Date(getClaimTime(claim) || Date.now()).toLocaleDateString()}
+                              {getClaimTime(claim)
+                                ? new Date(getClaimTime(claim)).toLocaleDateString()
+                                : "N/A"}
                             </span>
                             <span className="flex items-center font-mono">
                               <span className="w-1 h-1 bg-gray-400 rounded-full mr-1"></span>

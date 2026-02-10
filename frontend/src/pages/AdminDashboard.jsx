@@ -966,23 +966,43 @@ const AdminDashboard = () => {
   const totalFarmers = farmers.length
   const pendingClaims = claims.filter((c) => c.status === "pending").length
   const recentClaims = useMemo(() => {
-    const normalizedClaims = (claims || []).map((claim) => ({
-      ...claim,
-      _recentKey: `claim:${claim._id || claim.claimNumber || claim.id}`,
-    }))
+    const normalizedClaims = (claims || []).map((claim) => {
+      const farmerName = claim.farmerId
+        ? `${claim.farmerId.firstName || ""} ${claim.farmerId.lastName || ""}`.trim()
+        : ""
+      const cropValue =
+        claim.crop ||
+        claim.cropType ||
+        claim.farmerId?.cropType ||
+        claim.farmerId?.crop
+
+      return {
+        ...claim,
+        name: claim.name || farmerName || claim.farmerName,
+        crop: cropValue,
+        cropType: claim.cropType || cropValue,
+        _recentKey: `claim:${claim._id || claim.claimNumber || claim.id}`,
+      }
+    })
 
     const normalizedApplications = (allApplications || []).map((app) => {
       const farmerName = app.farmerId
         ? `${app.farmerId.firstName || ""} ${app.farmerId.lastName || ""}`.trim()
         : ""
+      const cropValue =
+        app.assistanceId?.cropType ||
+        app.farmerId?.cropType ||
+        app.farmerId?.crop
 
       return {
         _recentKey: `assistance:${app._id || app.id}`,
         _id: app._id,
         status: app.status,
         name: farmerName || app.farmerName,
-        crop: app.assistanceId?.cropType || app.farmerId?.cropType,
-        cropType: app.assistanceId?.cropType || app.farmerId?.cropType,
+        crop: cropValue || app.assistanceId?.assistanceType,
+        cropType: cropValue || app.assistanceId?.assistanceType,
+        farmerId: app.farmerId,
+        assistanceId: app.assistanceId,
         date: app.applicationDate,
         applicationDate: app.applicationDate,
         reviewDate: app.reviewDate,
