@@ -280,9 +280,9 @@ const getClaims = async (req, res) => {
     const { farmerId } = req.query
     let claims
     if (farmerId) {
-      claims = await Claim.find({ farmerId })
+      claims = await Claim.find({ farmerId }).populate('farmerId', 'firstName lastName middleName cropType')
     } else {
-      claims = await Claim.find()
+      claims = await Claim.find().populate('farmerId', 'firstName lastName middleName cropType')
     }
     res.status(200).json(claims)
   } catch (error) {

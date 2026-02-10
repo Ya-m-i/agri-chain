@@ -18,11 +18,17 @@ const DashboardClaims = ({ claims = [] }) => {
     return Number.isNaN(parsed) ? 0 : parsed
   }
 
+  // Normalize claim id to string (API may return _id as object or string)
+  const getClaimId = (c) => {
+    const raw = c._id ?? c.claimNumber ?? c.id
+    if (raw == null) return ""
+    return typeof raw === "string" ? raw : (typeof raw.toString === "function" ? raw.toString() : String(raw))
+  }
   // Recent Claims: same data as Cash Assistance Claims tab — sort by most recent, dedupe by id, top 5
   const sortedByTime = [...claimsList].filter(Boolean).sort((a, b) => getClaimTime(b) - getClaimTime(a))
   const seenIds = new Set()
   const recentItems = sortedByTime.filter((c) => {
-    const id = c._id || c.claimNumber || c.id
+    const id = getClaimId(c)
     if (!id || seenIds.has(id)) return false
     seenIds.add(id)
     return true
@@ -113,11 +119,22 @@ const DashboardClaims = ({ claims = [] }) => {
           ) : (
             <div className="divide-y divide-gray-100">
               {recentItems.map((claim) => {
-                const key = claim._id || claim.claimNumber || claim.id
-                const displayName = claim.name || claim.farmerName || "Unknown"
-                const displayCrop = claim.crop || claim.cropType || "Unknown Crop"
-                const displayStatus = claim.status ? String(claim.status).charAt(0).toUpperCase() + String(claim.status).slice(1) : "Unknown"
+                const key = getClaimId(claim) || `claim-${claim.claimNumber || getClaimTime(claim)}`
+                const farmer = claim.farmerId && typeof claim.farmerId === "object"
+                const displayName =
+                  claim.name ||
+                  claim.farmerName ||
+                  (farmer ? [claim.farmerId.firstName, claim.farmerId.middleName, claim.farmerId.lastName].filter(Boolean).join(" ").trim() : null) ||
+                  "Unknown Farmer"
+                const displayCrop =
+                  claim.crop ||
+                  claim.cropType ||
+                  (farmer && claim.farmerId.cropType) ||
+                  "Unknown Crop"
+                const statusStr = claim.status != null ? String(claim.status) : ""
+                const displayStatus = statusStr ? statusStr.charAt(0).toUpperCase() + statusStr.slice(1) : "Unknown"
                 const timeMs = getClaimTime(claim)
+                const idDisplay = (claim.claimNumber || getClaimId(claim)).slice(-6)
                 return (
                   <div
                     key={key}
@@ -145,7 +162,7 @@ const DashboardClaims = ({ claims = [] }) => {
                               </span>
                               <span className="flex items-center font-mono">
                                 <span className="w-1 h-1 bg-gray-400 rounded-full mr-1" />
-                                ID: {String(claim.claimNumber || claim._id || "").slice(-6)}
+                                ID: {idDisplay || "—"}
                               </span>
                             </div>
                           </div>
