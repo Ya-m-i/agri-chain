@@ -48,9 +48,9 @@ const LoadingOverlay = ({ isVisible, message }) => {
   );
   
   return (
-    <div className="fixed inset-0 bg-white bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-white bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50 !border-0 !shadow-none">
       {/* No border, no shadow - only spinning and text validation/verification */}
-      <div className="flex flex-col items-center justify-center max-w-sm w-full mx-4">
+      <div className="flex flex-col items-center justify-center max-w-sm w-full mx-4 !border-0 !shadow-none bg-transparent">
         {/* Spinning indicator only (no border on container, no shadow on inner circle) */}
         <div className="relative mb-6">
           {/* Outer rotating ring */}
@@ -59,12 +59,12 @@ const LoadingOverlay = ({ isVisible, message }) => {
           </div>
           {/* Inner pulsing circle - shadow removed */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-6 h-6 bg-lime-500 rounded-full animate-pulse"></div>
+            <div className="w-6 h-6 bg-lime-500 rounded-full animate-pulse !shadow-none"></div>
           </div>
         </div>
 
-        {/* Validation / verification text */}
-        <div className="text-center">
+        {/* Validation / verification text - no box, no border, no shadow */}
+        <div className="text-center !border-0 !shadow-none bg-transparent">
           <p className="text-lg font-semibold text-gray-800 mb-2">
             {progressMessage}
           </p>
