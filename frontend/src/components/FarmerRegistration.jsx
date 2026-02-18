@@ -18,6 +18,8 @@ import {
   Key,
   Eye,
   Download,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react"
 // Image assets removed - no longer used in this component
 import {
@@ -79,6 +81,7 @@ const FarmerRegistration = ({
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [toolbarExpanded, setToolbarExpanded] = useState(false) // collapsed on small screens until user opens
   const [timePeriod, setTimePeriod] = useState("monthly") // monthly or quarterly
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   
@@ -650,99 +653,117 @@ const FarmerRegistration = ({
         </div>
       )}
 
-      {/* Single row: Farm List first | Search | Total | Buttons | Filters | Refresh */}
-      <div className="flex items-center flex-wrap gap-3 mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">Farm List</h2>
-        <input
-          type="text"
-          placeholder="Search by name"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="bg-transparent text-gray-800 border-2 border-lime-800 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 text-sm w-40 placeholder-gray-500"
-        />
-        <span className="text-sm text-gray-500">Total: <span className="font-semibold">{farmers.length}</span> farmers</span>
-        <button
-          className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center font-bold uppercase tracking-wide border-0"
-          onClick={() => setShowRegisterForm(true)}
-          style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}
-        >
-          <UserPlus className="mr-2 h-5 w-5 text-black" />
-          Register New Farmer
-        </button>
-        <button
-          className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center font-semibold border-0"
-          onClick={() => onTabSwitch && onTabSwitch('crop-insurance')}
-        >
-          <Shield className="mr-2 h-5 w-5 text-black" />
-          Crop Insurance
-        </button>
-        <button
-          className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center font-semibold border-0"
-          onClick={() => setShowReport(!showReport)}
-        >
-          <FileText className="mr-2 h-5 w-5 text-black" />
-          {showReport ? 'Hide Report' : 'Generate Report'}
-        </button>
-        {showReport && (
+      {/* Toolbar: Farm List | [Tools toggle on small] | Search | Buttons | Filters | Refresh | Total (last). Collapses on small screens. */}
+      <div className="flex flex-col md:flex-row md:flex-wrap md:items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 flex-wrap">
+          <h2 className="text-xl font-semibold text-gray-800">Farm List</h2>
           <button
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center shadow-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={handleGeneratePDF}
-            disabled={isGeneratingPDF}
+            type="button"
+            onClick={() => setToolbarExpanded((v) => !v)}
+            className="md:hidden flex items-center gap-2 px-3 py-2 rounded-lg bg-lime-400 text-black font-semibold text-sm border-0"
+            aria-expanded={toolbarExpanded}
           >
-            {isGeneratingPDF ? (
-              <span className="flex items-center"><svg className="animate-spin mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Generating...</span>
+            {toolbarExpanded ? (
+              <>Hide tools <ChevronUp className="h-4 w-4" /></>
             ) : (
-              <><Download className="mr-2 h-5 w-5" />Download PDF Report</>
+              <>Tools & search <ChevronDown className="h-4 w-4" /></>
             )}
           </button>
-        )}
-        <div className="flex items-center gap-2 bg-lime-400 text-black px-3 py-2 rounded-lg border-0">
-          <div className="relative">
-            <button
-              onClick={() => setShowCropFilter(!showCropFilter)}
-              className="flex items-center text-black font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-black/30 rounded px-2 py-1"
-            >
-              <span className="text-black">{formData.cropType || "All Crops"}</span>
-              <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            {showCropFilter && (
-              <div className="absolute z-10 left-0 mt-1 w-48 bg-white border border-black rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                <div className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer" onClick={() => { setFormData(prev => ({ ...prev, cropType: "" })); setShowCropFilter(false); }}>All Crops</div>
-                {getAllCropTypes().map((crop, i) => (
-                  <div key={i} className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer" onClick={() => { setFormData(prev => ({ ...prev, cropType: crop })); setShowCropFilter(false); }}>{crop}</div>
-                ))}
-              </div>
-            )}
-          </div>
-          <span className="text-black/60">|</span>
-          <div className="relative">
-            <button
-              onClick={() => setShowBarangayFilter(!showBarangayFilter)}
-              className="flex items-center text-black font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-black/30 rounded px-2 py-1"
-            >
-              <span className="text-black">{formData.barangay || "All Barangays"}</span>
-              <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-            </button>
-            {showBarangayFilter && (
-              <div className="absolute z-10 left-0 mt-1 w-48 bg-white border border-black rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                <div className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer" onClick={() => { setFormData(prev => ({ ...prev, barangay: "" })); setShowBarangayFilter(false); }}>All Barangays</div>
-                {[...new Set(farmers.map((f) => f.address?.split(",")[0]?.trim()).filter(Boolean))].map((barangay, i) => (
-                  <div key={i} className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer" onClick={() => { setFormData(prev => ({ ...prev, barangay: barangay })); setShowBarangayFilter(false); }}>{barangay}</div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
-        <button
-          className="text-lime-600 px-4 py-2 rounded-lg hover:bg-lime-50 transition-colors flex items-center justify-center font-semibold"
-          onClick={() => refetchFarmers()}
-          disabled={farmersLoading || cropInsuranceLoading}
+        <div
+          className={`flex flex-wrap items-center gap-3 ${toolbarExpanded ? 'flex' : 'hidden'} md:!flex`}
         >
-          <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          {farmersLoading || cropInsuranceLoading ? 'Refreshing...' : 'Refresh Data'}
-        </button>
+          <input
+            type="text"
+            placeholder="Search by name"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="bg-transparent text-gray-800 border-2 border-lime-800 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 text-sm w-52 min-w-[10rem] placeholder-gray-500"
+          />
+          <button
+            className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center font-bold uppercase tracking-wide border-0"
+            onClick={() => setShowRegisterForm(true)}
+            style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}
+          >
+            <UserPlus className="mr-2 h-5 w-5 text-black" />
+            Register New Farmer
+          </button>
+          <button
+            className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center font-semibold border-0"
+            onClick={() => onTabSwitch && onTabSwitch('crop-insurance')}
+          >
+            <Shield className="mr-2 h-5 w-5 text-black" />
+            Crop Insurance
+          </button>
+          <button
+            className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center font-semibold border-0"
+            onClick={() => setShowReport(!showReport)}
+          >
+            <FileText className="mr-2 h-5 w-5 text-black" />
+            {showReport ? 'Hide Report' : 'Generate Report'}
+          </button>
+          {showReport && (
+            <button
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center shadow-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleGeneratePDF}
+              disabled={isGeneratingPDF}
+            >
+              {isGeneratingPDF ? (
+                <span className="flex items-center"><svg className="animate-spin mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Generating...</span>
+              ) : (
+                <><Download className="mr-2 h-5 w-5" />Download PDF Report</>
+              )}
+            </button>
+          )}
+          <div className="flex items-center gap-2 bg-lime-400 text-black px-3 py-2 rounded-lg border-0">
+            <div className="relative">
+              <button
+                onClick={() => setShowCropFilter(!showCropFilter)}
+                className="flex items-center text-black font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-black/30 rounded px-2 py-1"
+              >
+                <span className="text-black">{formData.cropType || "All Crops"}</span>
+                <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              {showCropFilter && (
+                <div className="absolute z-10 left-0 mt-1 w-48 bg-white border border-black rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  <div className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer" onClick={() => { setFormData(prev => ({ ...prev, cropType: "" })); setShowCropFilter(false); }}>All Crops</div>
+                  {getAllCropTypes().map((crop, i) => (
+                    <div key={i} className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer" onClick={() => { setFormData(prev => ({ ...prev, cropType: crop })); setShowCropFilter(false); }}>{crop}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <span className="text-black/60">|</span>
+            <div className="relative">
+              <button
+                onClick={() => setShowBarangayFilter(!showBarangayFilter)}
+                className="flex items-center text-black font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-black/30 rounded px-2 py-1"
+              >
+                <span className="text-black">{formData.barangay || "All Barangays"}</span>
+                <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              {showBarangayFilter && (
+                <div className="absolute z-10 left-0 mt-1 w-48 bg-white border border-black rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  <div className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer" onClick={() => { setFormData(prev => ({ ...prev, barangay: "" })); setShowBarangayFilter(false); }}>All Barangays</div>
+                  {[...new Set(farmers.map((f) => f.address?.split(",")[0]?.trim()).filter(Boolean))].map((barangay, i) => (
+                    <div key={i} className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer" onClick={() => { setFormData(prev => ({ ...prev, barangay: barangay })); setShowBarangayFilter(false); }}>{barangay}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          <button
+            className="text-lime-600 px-4 py-2 rounded-lg hover:bg-lime-50 transition-colors flex items-center justify-center font-semibold"
+            onClick={() => refetchFarmers()}
+            disabled={farmersLoading || cropInsuranceLoading}
+          >
+            <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            {farmersLoading || cropInsuranceLoading ? 'Refreshing...' : 'Refresh Data'}
+          </button>
+          <span className="text-sm text-gray-500">Total: <span className="font-semibold">{farmers.length}</span> farmers</span>
+        </div>
       </div>
 
       {/* Farm List Table - scrollable body, no pagination */}
