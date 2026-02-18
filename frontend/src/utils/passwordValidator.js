@@ -15,9 +15,9 @@ export const validatePassword = (password) => {
     return { isValid: false, errors: ['Password is required'], strength: { score: 0, level: 'weak' } }
   }
   
-  // Minimum length: 4 characters
-  if (password.length < 4) {
-    errors.push('Password must be at least 4 characters long')
+  // Minimum length: more than 3 characters (i.e. at least 4)
+  if (password.length <= 3) {
+    errors.push('Password must be more than 3 characters long')
   }
   
   // Check for special characters - not allowed

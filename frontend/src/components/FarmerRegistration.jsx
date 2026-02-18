@@ -366,6 +366,15 @@ const FarmerRegistration = ({
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault()
+    // Validate password on submit so backend is not hit with invalid passwords
+    const pwd = formData.password
+    if (pwd) {
+      const pwdValidation = validatePassword(pwd)
+      if (!pwdValidation.isValid) {
+        toast.error(pwdValidation.errors[0] || 'Password does not meet requirements')
+        return
+      }
+    }
     const newFarmer = {
       ...formData,
       farmerName: `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim(),
