@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useRef } from "react"
 import {
   Plus,
   Search,
@@ -27,11 +27,6 @@ import {
   Check,
 } from "lucide-react"
 
-// Import custom KPI icons
-import totalCropsIcon from '../assets/Images/totalcrops.png'
-import insuredIcon from '../assets/Images/insured.png'
-import uninsuredIcon from '../assets/Images/uninsured.png'
-import rateIcon from '../assets/Images/rate.png'
 import {
   useFarmers,
   useCropInsurance,
@@ -48,7 +43,7 @@ const CropInsuranceManagement = () => {
   // React Query hooks
   const { data: cropInsuranceRecords = [], isLoading: insuranceLoading, refetch: refetchInsurance } = useCropInsurance()
   const { data: farmers = [], isLoading: farmersLoading, refetch: refetchFarmers } = useFarmers()
-  const { data: stats = {}, isLoading: statsLoading, refetch: refetchStats } = useCropInsuranceStats()
+  const { isLoading: statsLoading, refetch: refetchStats } = useCropInsuranceStats()
   const createInsuranceMutation = useCreateCropInsurance()
   const updateInsuranceMutation = useUpdateCropInsurance()
   const deleteInsuranceMutation = useDeleteCropInsurance()
@@ -78,8 +73,6 @@ const CropInsuranceManagement = () => {
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [selectedRecord, setSelectedRecord] = useState(null)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage] = useState(5)
   const [formData, setFormData] = useState({
     farmerId: "",
     cropType: "",
@@ -387,121 +380,71 @@ const CropInsuranceManagement = () => {
     return farmerName.includes(searchLower) || cropType.includes(searchLower)
   })
 
-  // Pagination logic
-  const totalPages = Math.ceil(filteredRecords.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const paginatedRecords = filteredRecords.slice(startIndex, endIndex)
-
-  // Reset to first page when search query changes
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchQuery])
+  const tableScrollRef = useRef(null)
+  const scrollTable = (direction) => {
+    if (!tableScrollRef.current) return
+    const step = 120
+    tableScrollRef.current.scrollBy({ top: direction === 'up' ? -step : step, behavior: 'smooth' })
+  }
 
   return (
     <div className="space-y-6 bg-white rounded-lg p-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
+      {/* Header: title + Refresh + Add New Crop + Search in one line */}
+      <div className="flex flex-wrap items-center gap-3">
         <div>
           <h2 className="text-2xl font-bold text-gray-800">Crop Insurance Management</h2>
-          <p className="text-gray-600">Manage crop insurance records with day limits</p>
+          <p className="text-sm text-gray-600">Manage crop insurance records with day limits</p>
         </div>
-        <div className="flex gap-2">
-          <button
-            onClick={async () => {
-              try {
-                await Promise.all([
-                  refetchInsurance(),
-                  refetchFarmers(),
-                  refetchStats()
-                ]);
-              } catch (error) {
-                console.error('Error refreshing data:', error);
-              }
-            }}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
-            title="Refresh data"
-          >
-            <RefreshCw size={20} />
-            Refresh
+        <button
+          onClick={async () => {
+            try {
+              await Promise.all([refetchInsurance(), refetchFarmers(), refetchStats()])
+            } catch (error) {
+              console.error('Error refreshing data:', error)
+            }
+          }}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
+          title="Refresh data"
+        >
+          <RefreshCw size={20} />
+          Refresh
+        </button>
+        <button
+          onClick={() => {
+            setPcicForm(getEmptyPcicForm())
+            setShowAddModal(true)
+          }}
+          className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700"
+        >
+          <Plus size={20} />
+          Add New Crop
+        </button>
+        <div className="relative flex-1 min-w-[200px] max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <input
+            type="text"
+            placeholder="Search by farmer name or crop type..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      {/* Records Table - Scrollable, no pagination */}
+      <div className="bg-white rounded-lg shadow overflow-hidden border-2 border-black flex flex-col">
+        <div className="flex items-center justify-end gap-2 p-2 border-b border-gray-200">
+          <button type="button" onClick={() => scrollTable('up')} className="p-2 rounded-lg bg-lime-100 text-lime-800 hover:bg-lime-200 transition-colors" aria-label="Scroll up">
+            <ChevronLeft className="h-5 w-5 rotate-90" />
           </button>
-          <button
-            onClick={() => {
-              setPcicForm(getEmptyPcicForm())
-              setShowAddModal(true)
-            }}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700"
-          >
-            <Plus size={20} />
-            Add New Crop
+          <button type="button" onClick={() => scrollTable('down')} className="p-2 rounded-lg bg-lime-100 text-lime-800 hover:bg-lime-200 transition-colors" aria-label="Scroll down">
+            <ChevronRight className="h-5 w-5 rotate-90" />
           </button>
         </div>
-      </div>
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Total Crops</p>
-              <p className="text-2xl font-bold text-gray-800">{stats.totalCrops || 0}</p>
-            </div>
-            <img src={totalCropsIcon} alt="Total Crops" className="h-12 w-12" />
-          </div>
-        </div>
-        <div className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Insured Crops</p>
-              <p className="text-2xl font-bold text-green-600">{stats.insuredCrops || 0}</p>
-            </div>
-            <img src={insuredIcon} alt="Insured Crops" className="h-12 w-12" />
-          </div>
-        </div>
-        <div className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Uninsured Crops</p>
-              <p className="text-2xl font-bold text-yellow-600">{stats.uninsuredCrops || 0}</p>
-            </div>
-            <img src={uninsuredIcon} alt="Uninsured Crops" className="h-12 w-12" />
-          </div>
-        </div>
-        <div className="p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">Insurance Rate</p>
-              <p className="text-2xl font-bold text-blue-600">{stats.insuranceRate || 0}%</p>
-            </div>
-            <img src={rateIcon} alt="Insurance Rate" className="h-12 w-12" />
-          </div>
-        </div>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="p-4">
-        <div className="flex items-center gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder="Search by farmer name or crop type..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Records Table - Responsive */}
-      <div className="bg-white rounded-lg shadow overflow-hidden border-2 border-black">
-        {/* Desktop Table View */}
-        <div className="hidden lg:block overflow-x-auto scrollbar-hide">
-          <table className="w-full">
-            <thead className="bg-gray-50">
+        <div ref={tableScrollRef} className="overflow-x-auto overflow-y-auto max-h-[420px] scroll-smooth crop-insurance-table-scroll hidden lg:block" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <style>{`.crop-insurance-table-scroll::-webkit-scrollbar { display: none; }`}</style>
+          <table className="w-full min-w-full">
+            <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Farmer
@@ -527,7 +470,7 @@ const CropInsuranceManagement = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {paginatedRecords.map((record) => (
+              {filteredRecords.map((record) => (
                 <tr key={record._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900">
@@ -621,7 +564,7 @@ const CropInsuranceManagement = () => {
 
         {/* Mobile Card View */}
         <div className="lg:hidden p-4 space-y-4">
-          {paginatedRecords.map((record) => (
+          {filteredRecords.map((record) => (
             <div key={record._id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
               <div className="flex justify-between items-start mb-3">
                 <div>
@@ -709,79 +652,12 @@ const CropInsuranceManagement = () => {
             </div>
           ))}
         </div>
-        
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-            <div className="flex-1 flex justify-between sm:hidden">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </div>
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-gray-700">
-                  Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
-                  <span className="font-medium">{Math.min(endIndex, filteredRecords.length)}</span> of{' '}
-                  <span className="font-medium">{filteredRecords.length}</span> results
-                </p>
-              </div>
-              <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <span className="sr-only">Previous</span>
-                    <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-                  </button>
-                  
-                  {/* Page numbers */}
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                        page === currentPage
-                          ? 'z-10 bg-green-50 border-green-500 text-green-600'
-                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
-                  
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <span className="sr-only">Next</span>
-                    <ChevronRight className="h-5 w-5" aria-hidden="true" />
-                  </button>
-                </nav>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Add New Crop Modal - Full-screen PCIC Application Form (same structure as image) */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center overflow-y-auto p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl my-4 border-2 border-black">
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-[80vw] h-[80vh] overflow-y-auto flex flex-col border-2 border-black">
             <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-4 flex justify-between items-center z-20 rounded-t-xl">
               <h2 className="text-xl font-bold text-black">PHILIPPINE CROP INSURANCE CORPORATION — APPLICATION FOR CROP INSURANCE</h2>
               <button type="button" className="text-black hover:bg-lime-200 rounded-full p-1" onClick={() => setShowAddModal(false)}><X size={24} /></button>
