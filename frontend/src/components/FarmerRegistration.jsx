@@ -439,25 +439,18 @@ const FarmerRegistration = ({
     }
   }, [selectedLocation])
 
-  // 1. Compute filteredFarmers so that by default, all farmers are shown unless a filter is explicitly set
+  // Filter farmers by crop, barangay, and search only (certification filter was removed from UI)
   const filteredFarmers = farmers.filter((farmer) => {
-    // Certification
-    if (formData.isCertified !== "" && formData.isCertified !== undefined && formData.isCertified !== null) {
-      if (farmer.isCertified !== formData.isCertified) return false;
-    }
-    // Crop Type
     if (formData.cropType && formData.cropType !== "") {
       if ((farmer.cropType || "") !== formData.cropType) return false;
     }
-    // Barangay
     if (formData.barangay && formData.barangay !== "") {
       const farmerBarangay = (farmer.address || '').split(",")[0]?.trim();
       if (farmerBarangay !== formData.barangay) return false;
     }
-    // Search
-    if (searchQuery && searchQuery !== "") {
+    if (searchQuery && searchQuery.trim() !== "") {
       const farmerName = farmer.farmerName || `${farmer.firstName || ''} ${farmer.middleName || ''} ${farmer.lastName || ''}`.replace(/  +/g, ' ').trim();
-      if (!farmerName.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      if (!farmerName.toLowerCase().includes(searchQuery.trim().toLowerCase())) return false;
     }
     return true;
   });
@@ -657,8 +650,9 @@ const FarmerRegistration = ({
         </div>
       )}
 
-      {/* Single row: Search | Farm List | Total | Buttons | Filters | Refresh */}
+      {/* Single row: Farm List first | Search | Total | Buttons | Filters | Refresh */}
       <div className="flex items-center flex-wrap gap-3 mb-4">
+        <h2 className="text-xl font-semibold text-gray-800">Farm List</h2>
         <input
           type="text"
           placeholder="Search by name"
@@ -666,28 +660,27 @@ const FarmerRegistration = ({
           onChange={(e) => setSearchQuery(e.target.value)}
           className="bg-transparent text-gray-800 border-2 border-lime-800 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 text-sm w-40 placeholder-gray-500"
         />
-        <h2 className="text-xl font-semibold text-gray-800">Farm List</h2>
         <span className="text-sm text-gray-500">Total: <span className="font-semibold">{farmers.length}</span> farmers</span>
         <button
-          className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center font-bold uppercase tracking-wide"
+          className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center font-bold uppercase tracking-wide border-0"
           onClick={() => setShowRegisterForm(true)}
           style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}
         >
-          <UserPlus className="mr-2 h-5 w-5" />
+          <UserPlus className="mr-2 h-5 w-5 text-black" />
           Register New Farmer
         </button>
         <button
-          className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-sm font-semibold"
+          className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center font-semibold border-0"
           onClick={() => onTabSwitch && onTabSwitch('crop-insurance')}
         >
-          <Shield className="mr-2 h-5 w-5" />
+          <Shield className="mr-2 h-5 w-5 text-black" />
           Crop Insurance
         </button>
         <button
-          className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-sm font-semibold"
+          className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center font-semibold border-0"
           onClick={() => setShowReport(!showReport)}
         >
-          <FileText className="mr-2 h-5 w-5" />
+          <FileText className="mr-2 h-5 w-5 text-black" />
           {showReport ? 'Hide Report' : 'Generate Report'}
         </button>
         {showReport && (
@@ -703,13 +696,13 @@ const FarmerRegistration = ({
             )}
           </button>
         )}
-        <div className="flex items-center gap-2 bg-lime-400 text-black px-3 py-1.5 rounded-lg">
+        <div className="flex items-center gap-2 bg-lime-400 text-black px-3 py-2 rounded-lg border-0">
           <div className="relative">
             <button
               onClick={() => setShowCropFilter(!showCropFilter)}
               className="flex items-center text-black font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-black/30 rounded px-2 py-1"
             >
-              {formData.cropType || "All Crops"}
+              <span className="text-black">{formData.cropType || "All Crops"}</span>
               <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </button>
             {showCropFilter && (
@@ -727,7 +720,7 @@ const FarmerRegistration = ({
               onClick={() => setShowBarangayFilter(!showBarangayFilter)}
               className="flex items-center text-black font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-black/30 rounded px-2 py-1"
             >
-              {formData.barangay || "All Barangays"}
+              <span className="text-black">{formData.barangay || "All Barangays"}</span>
               <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </button>
             {showBarangayFilter && (
@@ -850,7 +843,7 @@ const FarmerRegistration = ({
         <div className="p-10 text-center mb-6">
           <UserPlus size={48} className="mx-auto text-gray-300 mb-3" />
           <p className="text-gray-500 italic">No farmers match the current filters.</p>
-          <button className="mt-4 bg-lime-600 text-white px-4 py-2 rounded-lg hover:bg-lime-700 transition-colors" onClick={() => { setFormData({ ...formData, cropType: "", barangay: "" }); setSearchQuery(""); }}>Reset Filters</button>
+          <button className="mt-4 bg-lime-600 text-white px-4 py-2 rounded-lg hover:bg-lime-700 transition-colors" onClick={() => { setFormData((prev) => ({ ...prev, cropType: "", barangay: "" })); setSearchQuery(""); }}>Reset Filters</button>
         </div>
       )}
 
