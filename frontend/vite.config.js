@@ -66,7 +66,11 @@ export default defineConfig({
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
-        manualChunks: undefined
+        manualChunks(id) {
+          if (id.includes('node_modules/leaflet') || id.includes('node_modules/leaflet-draw')) return 'leaflet'
+          if (id.includes('node_modules/chart.js') || id.includes('node_modules/react-chartjs-2')) return 'chartjs'
+          if (id.includes('node_modules/recharts')) return 'recharts'
+        }
       },
       onwarn(warning, warn) {
         // Suppress certain warnings

@@ -1,19 +1,22 @@
 import { QueryClient } from '@tanstack/react-query'
 
-// Create QueryClient with configuration optimized for weak WiFi and no caching
+// QueryClient: cache enabled for faster navigation and fewer requests
+const STALE_TIME_MS = 60 * 1000       // 1 min – data fresh, no refetch
+const GC_TIME_MS = 5 * 60 * 1000      // 5 min – keep unused data in cache
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 0, // Data becomes stale immediately
-      cacheTime: 0, // No caching of data
-      refetchOnWindowFocus: false, // Don't refetch when window gains focus
-      refetchOnReconnect: false, // Don't refetch when reconnecting to internet
-      retry: 1, // Only retry failed requests once
-      retryDelay: 2000, // Wait 2 seconds between retries
+      staleTime: STALE_TIME_MS,
+      gcTime: GC_TIME_MS, // v5: was cacheTime – keep cache for 5 min after unmount
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: true, // Refetch when back online
+      retry: 1,
+      retryDelay: 2000,
     },
     mutations: {
-      retry: 1, // Only retry failed mutations once
-      retryDelay: 2000, // Wait 2 seconds between retries
+      retry: 1,
+      retryDelay: 2000,
     },
   },
 })

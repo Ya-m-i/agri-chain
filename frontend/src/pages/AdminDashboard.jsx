@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react"
+import { useState, useEffect, useRef, useMemo, useCallback, lazy, Suspense } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   Menu,
@@ -48,6 +48,7 @@ import { useSocketQuery } from "../hooks/useSocketQuery"
 import { getWeatherForMultipleLocations, getWeatherMarkerColor, getWeatherMarkerIcon, getFarmingRecommendation } from "../utils/weatherUtils"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
+if (typeof window !== "undefined") window.L = L
 // Use a relative path that matches your project structure
 // If you're unsure about the exact path, you can use a placeholder or comment it out temporarily
 // import adminLogoImage from "../assets/images/AgriLogo.png"
@@ -57,13 +58,14 @@ import "leaflet/dist/leaflet.css"
 // Image imports (location, insurance, recent) now used in DashboardMapOverview and DashboardClaims components
 
 // Import sidebar navigation icons (now used in AdminSidebar component)
-import DistributionRecords from "../components/DistributionRecords"
-import FarmerRegistration from "../components/FarmerRegistration"
-import AdminSettings from "../components/AdminSettings"
-import AdminProfile from "../components/AdminProfile"
-import InsuranceClaims from "../components/InsuranceClaims"
+// Tab panels lazy-loaded so first paint only loads home tab
+const DistributionRecords = lazy(() => import("../components/DistributionRecords"))
+const FarmerRegistration = lazy(() => import("../components/FarmerRegistration"))
+const AdminSettings = lazy(() => import("../components/AdminSettings"))
+const AdminProfile = lazy(() => import("../components/AdminProfile"))
+const InsuranceClaims = lazy(() => import("../components/InsuranceClaims"))
 import AdminModals from "../components/AdminModals"
-import CropInsuranceManagement from "../components/CropInsuranceManagement"
+const CropInsuranceManagement = lazy(() => import("../components/CropInsuranceManagement"))
 import AdminClaimFilingEnhanced from "../components/AdminClaimFilingEnhanced"
 import AdminAssistanceFiling from "../components/AdminAssistanceFiling"
 import CropPriceManagement from "../components/CropPriceManagement"
@@ -206,27 +208,19 @@ const AdminDashboard = () => {
     };
   }, []);
 
-  // Handle initial loading when component mounts
+  // Hide initial loading on next frame (React Query drives per-section loading)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsInitialLoading(false);
-    }, 1200); // 1.2 seconds for initial dashboard loading
-
-    return () => clearTimeout(timer);
+    const rafId = requestAnimationFrame(() => setIsInitialLoading(false));
+    return () => cancelAnimationFrame(rafId);
   }, []);
 
-  // Function to handle tab switching with loading
+  // Tab switch: brief loading state, clear on next frame (no 800ms delay)
   const handleTabSwitch = (newTab) => {
     if (newTab === activeTab) return;
-    
     setIsTabLoading(true);
     setActiveTab(newTab);
     setSidebarOpen(false);
-    
-    // Simulate loading time (you can adjust this duration)
-    setTimeout(() => {
-      setIsTabLoading(false);
-    }, 800);
+    requestAnimationFrame(() => setIsTabLoading(false));
   };
 
   // React Query hooks for data management
@@ -2490,6 +2484,7 @@ const AdminDashboard = () => {
 
         {/* Main Content */}
         <main className={`flex-1 p-4 ${darkMode ? 'bg-gray-900' : 'bg-white'} transition-all duration-300 ease-in-out ${sidebarExpanded ? 'md:ml-64' : 'md:ml-16'}`}>
+          <Suspense fallback={<div className="flex items-center justify-center min-h-[200px]"><div className="animate-spin rounded-full h-10 w-10 border-2 border-lime-500 border-t-transparent" /></div>}>
           {activeTab === "home" && (
             <>
               {/* --- Analytics Filters --- */}
@@ -3268,6 +3263,7 @@ const AdminDashboard = () => {
 
           {activeTab === "settings" && <AdminSettings />}
           {activeTab === "profile" && <AdminProfile />}
+          </Suspense>
         </main>
       </div>
 

@@ -180,11 +180,10 @@ function App() {
     // Preload critical routes for faster navigation
     preloadRoutes()
 
-    // Simulate loading only if auth is not already initialized
+    // Minimal delay: allow auth init to run, then show app (no artificial 1s wait)
     const loadingTimeout = setTimeout(() => {
-      console.log('App loading complete');
       setLoading(false);
-    }, isInitialized ? 100 : 1000); // Faster loading if already initialized
+    }, isInitialized ? 0 : 80);
     
     return () => {
       clearTimeout(loadingTimeout)
