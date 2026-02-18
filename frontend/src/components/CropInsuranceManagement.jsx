@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import {
   Plus,
   Search,
@@ -38,8 +38,14 @@ import {
 import { generateCropInsuranceApplicationPDF } from '../utils/cropInsuranceApplicationPdfGenerator'
 import { getCropInsuranceDetailsDisplayData } from '../utils/cropInsuranceDetailsDisplayData'
 import { toast } from 'react-hot-toast'
+import { wakeUpBackend } from '../api'
 
 const CropInsuranceManagement = () => {
+  // Wake backend once on mount (e.g. Render cold start) so Create is fast
+  useEffect(() => {
+    wakeUpBackend()
+  }, [])
+
   // React Query hooks
   const { data: cropInsuranceRecords = [], isLoading: insuranceLoading, refetch: refetchInsurance } = useCropInsurance()
   const { data: farmers = [], isLoading: farmersLoading, refetch: refetchFarmers } = useFarmers()
@@ -292,8 +298,9 @@ const CropInsuranceManagement = () => {
       delayedRefresh()
     } catch (error) {
       console.error('Error creating crop insurance record:', error)
-      const msg = error?.message?.includes('Failed to fetch')
-        ? 'Network error. Check your connection and that the backend is reachable.'
+      const isNetworkError = !error?.message || error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Network request failed')
+      const msg = isNetworkError
+        ? 'Cannot reach server. Check: (1) Backend is running, (2) Correct API URL in .env (VITE_API_URL), (3) CORS allows this site.'
         : (error?.message || 'Could not create record.')
       toast.error(msg)
     }

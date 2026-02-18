@@ -9,9 +9,14 @@ export const API_BASE_URL = import.meta.env.VITE_API_URL ||
 // Helper function to build full API URLs
 export const apiUrl = (endpoint) => `${API_BASE_URL}${endpoint}`;
 
+/** Fire-and-forget request to wake backend (e.g. Render cold start). Call when Crop Insurance tab opens so Create is fast. */
+export const wakeUpBackend = () => {
+  fetch(apiUrl('/api/health'), { method: 'GET', mode: 'cors' }).catch(() => {});
+};
+
 // Legacy fetch functions (keeping for backward compatibility)
 export const fetchMessage = async () => {
-  return await fetchWithRetry(apiUrl('/api/hello'));
+  return await fetchWithRetry(apiUrl('/api/health'));
 };
 
 // API functions without caching
@@ -262,9 +267,15 @@ export const deleteAssistance = async (assistanceId) => {
 };
 
 // Crop insurance operations without caching
+// Max size for base64 evidence to avoid timeouts/proxy drops (e.g. 800KB)
+const MAX_EVIDENCE_LENGTH = 800 * 1024;
+
 export const createCropInsurance = async (cropInsuranceData) => {
   const sanitized = { ...cropInsuranceData };
   if (sanitized.evidenceImage != null && typeof sanitized.evidenceImage === 'object') {
+    sanitized.evidenceImage = null;
+  }
+  if (typeof sanitized.evidenceImage === 'string' && sanitized.evidenceImage.length > MAX_EVIDENCE_LENGTH) {
     sanitized.evidenceImage = null;
   }
   let body;
@@ -286,17 +297,21 @@ export const createCropInsurance = async (cropInsuranceData) => {
       pcicForm: undefined
     });
   }
+  const url = apiUrl('/api/crop-insurance');
+  if (import.meta.env.DEV) {
+    console.log('[createCropInsurance] POST', url, 'body length:', body?.length ?? 0);
+  }
   return await fetchWithRetry(
-    apiUrl('/api/crop-insurance'),
+    url,
     {
       method: 'POST',
       mode: 'cors',
       headers: { 'Content-Type': 'application/json' },
       body,
     },
-    2,   // retries (faster feedback)
-    15000, // 15s timeout
-    800   // backoff
+    2,
+    15000,
+    800
   );
 };
 
