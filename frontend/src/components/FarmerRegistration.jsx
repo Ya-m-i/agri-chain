@@ -83,8 +83,6 @@ const FarmerRegistration = ({
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   
   // Pagination state
-  const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage] = useState(5)
   
   // Profile image state
   const [profileImages, setProfileImages] = useState({})
@@ -102,7 +100,7 @@ const FarmerRegistration = ({
   // Filter dropdown state
   const [showCropFilter, setShowCropFilter] = useState(false)
   const [showBarangayFilter, setShowBarangayFilter] = useState(false)
-  const [showCertFilter, setShowCertFilter] = useState(false)
+  const tableScrollRef = useRef(null)
   
   // Report state
   const [showReport, setShowReport] = useState(false)
@@ -464,20 +462,17 @@ const FarmerRegistration = ({
     return true;
   });
 
-  // Pagination logic
-  const totalPages = Math.ceil(filteredFarmers.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const paginatedFarmers = filteredFarmers.slice(startIndex, endIndex)
   const selectedProfileId = selectedFarmerForProfile?._id || selectedFarmerForProfile?.id
   const selectedProfileImageSrc = selectedProfileId
     ? (profileImagePreviews[selectedProfileId] || profileImages[selectedProfileId])
     : null
 
-  // Reset to first page when filters change
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [formData.cropType, formData.barangay, formData.isCertified, searchQuery])
+  // Scroll table body (for scroll up/down buttons)
+  const scrollTable = (direction) => {
+    if (!tableScrollRef.current) return
+    const step = 120
+    tableScrollRef.current.scrollBy({ top: direction === 'up' ? -step : step, behavior: 'smooth' })
+  }
 
   // Load profile images from MongoDB on component mount
   useEffect(() => {
@@ -510,7 +505,6 @@ const FarmerRegistration = ({
       if (!event.target.closest('.relative')) {
         setShowCropFilter(false);
         setShowBarangayFilter(false);
-        setShowCertFilter(false);
       }
     };
 
@@ -522,74 +516,8 @@ const FarmerRegistration = ({
 
   return (
     <div className="mt-6 bg-white rounded-lg p-6">
-      {/* Register Farmer Button */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center">
-          <h2 className="text-2xl font-bold text-gray-800">Farmer Registration</h2>
-        </div>
-        <div className="flex gap-4 flex-wrap justify-end">
-          <button
-            className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center font-bold uppercase tracking-wide"
-            onClick={() => setShowRegisterForm(true)}
-            style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}
-          >
-            <UserPlus className="mr-2 h-5 w-5" />
-            Register New Farmer
-          </button>
-          <button
-            className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-sm font-semibold"
-            onClick={() => {
-              if (onTabSwitch) {
-                onTabSwitch('crop-insurance')
-              }
-            }}
-          >
-            <Shield className="mr-2 h-5 w-5" />
-            Crop Insurance
-          </button>
-          <button
-            className="text-lime-600 px-4 py-2 rounded-lg hover:bg-lime-50 transition-colors flex items-center justify-center border border-lime-600"
-            onClick={() => {
-              console.log('Manual refresh triggered')
-              refetchFarmers()
-            }}
-            disabled={farmersLoading || cropInsuranceLoading}
-          >
-            <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            {farmersLoading || cropInsuranceLoading ? 'Refreshing...' : 'Refresh Data'}
-          </button>
-          <button
-            className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-sm font-semibold"
-            onClick={() => setShowReport(!showReport)}
-          >
-            <FileText className="mr-2 h-5 w-5" />
-            {showReport ? 'Hide Report' : 'Generate Report'}
-          </button>
-          {showReport && (
-            <button
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center shadow-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={handleGeneratePDF}
-              disabled={isGeneratingPDF}
-            >
-              {isGeneratingPDF ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Download className="mr-2 h-5 w-5" />
-                  Download PDF Report
-                </>
-              )}
-            </button>
-          )}
-        </div>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">Farmer Registration</h2>
       </div>
 
 
@@ -729,343 +657,200 @@ const FarmerRegistration = ({
         </div>
       )}
 
-      {/* Farm List Title */}
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
-        <div className="flex items-center">
-          <h2 className="text-xl font-semibold text-gray-800">Farm List</h2>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="text-sm text-gray-500">
-            Total: <span className="font-semibold">{farmers.length}</span> farmers
-          </div>
-          {/* Crop Type Filter */}
+      {/* Single row: Search | Farm List | Total | Buttons | Filters | Refresh */}
+      <div className="flex items-center flex-wrap gap-3 mb-4">
+        <input
+          type="text"
+          placeholder="Search by name"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="bg-transparent text-gray-800 border-2 border-lime-800 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 text-sm w-40 placeholder-gray-500"
+        />
+        <h2 className="text-xl font-semibold text-gray-800">Farm List</h2>
+        <span className="text-sm text-gray-500">Total: <span className="font-semibold">{farmers.length}</span> farmers</span>
+        <button
+          className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center font-bold uppercase tracking-wide"
+          onClick={() => setShowRegisterForm(true)}
+          style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}
+        >
+          <UserPlus className="mr-2 h-5 w-5" />
+          Register New Farmer
+        </button>
+        <button
+          className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-sm font-semibold"
+          onClick={() => onTabSwitch && onTabSwitch('crop-insurance')}
+        >
+          <Shield className="mr-2 h-5 w-5" />
+          Crop Insurance
+        </button>
+        <button
+          className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-sm font-semibold"
+          onClick={() => setShowReport(!showReport)}
+        >
+          <FileText className="mr-2 h-5 w-5" />
+          {showReport ? 'Hide Report' : 'Generate Report'}
+        </button>
+        {showReport && (
+          <button
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center shadow-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleGeneratePDF}
+            disabled={isGeneratingPDF}
+          >
+            {isGeneratingPDF ? (
+              <span className="flex items-center"><svg className="animate-spin mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Generating...</span>
+            ) : (
+              <><Download className="mr-2 h-5 w-5" />Download PDF Report</>
+            )}
+          </button>
+        )}
+        <div className="flex items-center gap-2 bg-lime-400 text-black px-3 py-1.5 rounded-lg">
           <div className="relative">
             <button
               onClick={() => setShowCropFilter(!showCropFilter)}
-              className="bg-black text-lime-300 px-3 py-2 rounded-lg border border-lime-400 hover:bg-lime-300 hover:text-black transition-colors focus:outline-none focus:ring-2 focus:ring-lime-300 text-sm font-semibold"
+              className="flex items-center text-black font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-black/30 rounded px-2 py-1"
             >
-              <span className="text-sm font-medium">
-                {formData.cropType || "All Crops"}
-              </span>
-              <svg className="ml-2 h-4 w-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              {formData.cropType || "All Crops"}
+              <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </button>
-            
             {showCropFilter && (
-              <div className="absolute z-10 right-0 mt-1 w-48 bg-white border border-black rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                <div
-                  className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    setFormData(prev => ({ ...prev, cropType: "" }));
-                    setShowCropFilter(false);
-                  }}
-                >
-                  All Crops
-                </div>
+              <div className="absolute z-10 left-0 mt-1 w-48 bg-white border border-black rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                <div className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer" onClick={() => { setFormData(prev => ({ ...prev, cropType: "" })); setShowCropFilter(false); }}>All Crops</div>
                 {getAllCropTypes().map((crop, i) => (
-                  <div
-                    key={i}
-                    className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => {
-                      setFormData(prev => ({ ...prev, cropType: crop }));
-                      setShowCropFilter(false);
-                    }}
-                  >
-                    {crop}
-                  </div>
+                  <div key={i} className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer" onClick={() => { setFormData(prev => ({ ...prev, cropType: crop })); setShowCropFilter(false); }}>{crop}</div>
                 ))}
               </div>
             )}
           </div>
-          
-          {/* Barangay Filter */}
+          <span className="text-black/60">|</span>
           <div className="relative">
             <button
               onClick={() => setShowBarangayFilter(!showBarangayFilter)}
-              className="bg-black text-lime-300 px-3 py-2 rounded-lg border border-lime-400 hover:bg-lime-300 hover:text-black transition-colors focus:outline-none focus:ring-2 focus:ring-lime-300 text-sm font-semibold"
+              className="flex items-center text-black font-semibold text-sm focus:outline-none focus:ring-2 focus:ring-black/30 rounded px-2 py-1"
             >
-              <span className="text-sm font-medium">
-                {formData.barangay || "All Barangays"}
-              </span>
-              <svg className="ml-2 h-4 w-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              {formData.barangay || "All Barangays"}
+              <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
             </button>
-            
             {showBarangayFilter && (
-              <div className="absolute z-10 right-0 mt-1 w-48 bg-white border border-black rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                <div
-                  className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    setFormData(prev => ({ ...prev, barangay: "" }));
-                    setShowBarangayFilter(false);
-                  }}
-                >
-                  All Barangays
-                </div>
-              {[...new Set(farmers.map((f) => f.address?.split(",")[0]?.trim()).filter(Boolean))].map((barangay, i) => (
-                  <div
-                    key={i}
-                    className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => {
-                      setFormData(prev => ({ ...prev, barangay: barangay }));
-                      setShowBarangayFilter(false);
-                    }}
-                  >
-                    {barangay}
-                  </div>
+              <div className="absolute z-10 left-0 mt-1 w-48 bg-white border border-black rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                <div className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer" onClick={() => { setFormData(prev => ({ ...prev, barangay: "" })); setShowBarangayFilter(false); }}>All Barangays</div>
+                {[...new Set(farmers.map((f) => f.address?.split(",")[0]?.trim()).filter(Boolean))].map((barangay, i) => (
+                  <div key={i} className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer" onClick={() => { setFormData(prev => ({ ...prev, barangay: barangay })); setShowBarangayFilter(false); }}>{barangay}</div>
                 ))}
               </div>
             )}
           </div>
-          
-          {/* Certification Filter */}
-          <div className="relative">
-            <button
-              onClick={() => setShowCertFilter(!showCertFilter)}
-              className="bg-black text-lime-300 px-3 py-2 rounded-lg border border-lime-400 hover:bg-lime-300 hover:text-black transition-colors focus:outline-none focus:ring-2 focus:ring-lime-300 text-sm font-semibold"
-            >
-              <span className="text-sm font-medium">
-                {formData.isCertified === true ? "Certified" : formData.isCertified === false ? "Not Certified" : "All Certifications"}
-              </span>
-              <svg className="ml-2 h-4 w-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            
-            {showCertFilter && (
-              <div className="absolute z-10 right-0 mt-1 w-48 bg-white border border-black rounded-lg shadow-lg">
-                <div
-                  className="px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    setFormData(prev => ({ ...prev, isCertified: "" }));
-                    setShowCertFilter(false);
-                  }}
-                >
-                  All Certifications
-                </div>
-                <div
-                  className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    setFormData(prev => ({ ...prev, isCertified: true }));
-                    setShowCertFilter(false);
-                  }}
-                >
-                  Certified
-                </div>
-                <div
-                  className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    setFormData(prev => ({ ...prev, isCertified: false }));
-                    setShowCertFilter(false);
-                  }}
-                >
-                  Not Certified
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {/* Search Filter - Regular Input */}
-          <div className="relative">
-            <input
-              type="text"
-              className="bg-black text-lime-300 border border-lime-400 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-300 text-sm font-semibold placeholder-lime-500 placeholder-opacity-80 w-40"
-              placeholder="Search by name"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
         </div>
+        <button
+          className="text-lime-600 px-4 py-2 rounded-lg hover:bg-lime-50 transition-colors flex items-center justify-center font-semibold"
+          onClick={() => refetchFarmers()}
+          disabled={farmersLoading || cropInsuranceLoading}
+        >
+          <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          {farmersLoading || cropInsuranceLoading ? 'Refreshing...' : 'Refresh Data'}
+        </button>
       </div>
 
-      {/* Farm List Table */}
-      {/* 2. Render the table with full responsiveness and no overflow */}
+      {/* Farm List Table - scrollable body, no pagination */}
       {filteredFarmers.length > 0 ? (
-        <div className="w-full overflow-x-auto bg-white rounded-xl shadow-md border-2 border-lime-200">
-          <table className="min-w-full divide-y divide-gray-200 table-auto bg-white">
-            <thead className="bg-gradient-to-r from-lime-50 to-lime-100">
-              <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider rounded-tl-lg whitespace-normal break-words">Profile</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Address</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Crop</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Lot No.</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Lot Area</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Certified</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Location</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider rounded-tr-lg whitespace-normal break-words">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {paginatedFarmers.map((farmer, index) => (
-                <tr key={index} className="hover:bg-gray-50">
-                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">
-                    {profileImages[farmer._id || farmer.id] ? (
-                      <img 
-                        src={profileImages[farmer._id || farmer.id]} 
-                        alt="Profile" 
-                        className="h-12 w-12 rounded-full object-cover border-2 border-gray-200"
-                      />
-                    ) : (
-                      <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
-                        <User className="h-6 w-6 text-gray-400" />
-                      </div>
-                    )}
-                  </td>
-                  <td className="px-4 py-4 whitespace-normal break-words text-sm font-medium text-gray-900">{
-                    farmer.farmerName || `${farmer.firstName || ''} ${farmer.middleName || ''} ${farmer.lastName || ''}`.replace(/  +/g, ' ').trim()
-                  }</td>
-                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.address}</td>
-                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">
-                    {cropInsuranceLoading ? (
-                      <span className="text-gray-400">Loading...</span>
-                    ) : (
-                      <span className="font-medium text-green-600">
-                        {getInsuredCrops(farmer)}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.lotNumber}</td>
-                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.lotArea}</td>
-                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.isCertified ? (<span className="px-2 py-1 bg-green-100 text-lime-800 rounded-full text-xs font-medium"><CheckCircle size={12} className="inline mr-1" /> Yes</span>) : (<span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">No</span>)}</td>
-                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">
-                    {farmer.location ? (
-                      <button 
-                        onClick={() => handleLocationView(farmer)} 
-                        className="text-gray-600 hover:text-black hover:font-bold hover:cursor-pointer transition-all"
-                        style={{ textShadow: '0 0 0 transparent' }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.textShadow = '0 1px 2px rgba(0,0,0,0.2)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.textShadow = '0 0 0 transparent';
-                        }}
-                      >
-                        View
-                      </button>
-                    ) : (
-                      <button 
-                        className="text-gray-600 hover:text-black hover:font-bold hover:cursor-pointer transition-all"
-                        style={{ textShadow: '0 0 0 transparent' }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.textShadow = '0 1px 2px rgba(0,0,0,0.2)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.textShadow = '0 0 0 transparent';
-                        }}
-                      >
-                        Add
-                      </button>
-                    )}
-                  </td>
-                  <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">
-                    <div className="flex space-x-2">
-                      <button 
-                        onClick={() => { setSelectedFarmer(farmer); setShowFarmerDetails(true); }} 
-                        className="text-lime-500 hover:text-lime-600 font-semibold hover:font-bold transition-all"
-                      >
-                        View
-                      </button>
-                      <button 
-                        onClick={() => { 
-                          setSelectedFarmerForProfile(farmer); 
-                          setShowProfileModal(true); 
-                        }} 
-                        className="text-lime-500 hover:text-lime-600 font-semibold hover:font-bold transition-all"
-                      >
-                        Profile
-                      </button>
-                      <button 
-                        onClick={() => { 
-                          setSelectedFarmerForPassword(farmer);
-                          setPasswordForm({
-                            username: farmer.username || '',
-                            password: '',
-                            confirmPassword: ''
-                          });
-                          setShowChangePasswordModal(true);
-                        }} 
-                        className="text-lime-500 hover:text-lime-600 font-semibold hover:font-bold transition-all"
-                      >
-                        Password
-                      </button>
-                      <button 
-                        onClick={() => { 
-                          console.log('Delete button clicked for farmer:', farmer); 
-                          setFarmerToDelete(farmer); 
-                          setShowDeleteConfirmation(true); 
-                          console.log('Modal should be open now'); 
-                        }} 
+        <div className="w-full bg-white rounded-xl shadow-md border-2 border-lime-200 flex flex-col">
+          <div className="flex items-center gap-2 p-2 border-b border-lime-200">
+            <button
+              type="button"
+              onClick={() => scrollTable('up')}
+              className="p-2 rounded-lg bg-lime-100 text-lime-800 hover:bg-lime-200 transition-colors"
+              aria-label="Scroll up"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollTable('down')}
+              className="p-2 rounded-lg bg-lime-100 text-lime-800 hover:bg-lime-200 transition-colors"
+              aria-label="Scroll down"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l7-7-7-7" /></svg>
+            </button>
+          </div>
+          <div
+            ref={tableScrollRef}
+            className="overflow-x-auto overflow-y-auto max-h-[420px] scroll-smooth farmer-table-scroll"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            <style>{`.farmer-table-scroll::-webkit-scrollbar { display: none; }`}</style>
+            <table className="min-w-full divide-y divide-gray-200 table-auto bg-white">
+              <thead className="bg-gradient-to-r from-lime-50 to-lime-100 sticky top-0 z-10">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider rounded-tl-lg whitespace-normal break-words">Profile</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Address</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Crop</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Lot No.</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Lot Area</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Certified</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Location</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider rounded-tr-lg whitespace-normal break-words">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {filteredFarmers.map((farmer, index) => (
+                  <tr
+                    key={farmer._id || farmer.id || index}
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={(e) => {
+                      if (e.target.closest('td:first-child') || e.target.closest('button')) return
+                      setSelectedFarmer(farmer)
+                      setShowFarmerDetails(true)
+                    }}
+                  >
+                    <td
+                      className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500"
+                      onClick={(e) => { e.stopPropagation(); setSelectedFarmerForProfile(farmer); setSelectedFarmerForPassword(farmer); setPasswordForm({ username: farmer.username || '', password: '', confirmPassword: '' }); setShowProfileModal(true); }}
+                    >
+                      {profileImages[farmer._id || farmer.id] ? (
+                        <img src={profileImages[farmer._id || farmer.id]} alt="Profile" className="h-12 w-12 rounded-full object-cover border-2 border-gray-200 cursor-pointer" />
+                      ) : (
+                        <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center cursor-pointer">
+                          <User className="h-6 w-6 text-gray-400" />
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-4 whitespace-normal break-words text-sm font-medium text-gray-900">{farmer.farmerName || `${farmer.firstName || ''} ${farmer.middleName || ''} ${farmer.lastName || ''}`.replace(/  +/g, ' ').trim()}</td>
+                    <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.address}</td>
+                    <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">
+                      {cropInsuranceLoading ? <span className="text-gray-400">Loading...</span> : <span className="font-medium text-green-600">{getInsuredCrops(farmer)}</span>}
+                    </td>
+                    <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.lotNumber}</td>
+                    <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.lotArea}</td>
+                    <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">{farmer.isCertified ? (<span className="px-2 py-1 bg-green-100 text-lime-800 rounded-full text-xs font-medium"><CheckCircle size={12} className="inline mr-1" /> Yes</span>) : (<span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">No</span>)}</td>
+                    <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500">
+                      {farmer.location ? (
+                        <button type="button" onClick={(e) => { e.stopPropagation(); handleLocationView(farmer); }} className="text-gray-600 hover:text-black hover:font-bold transition-all">View</button>
+                      ) : (
+                        <span className="text-gray-400">Add</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        onClick={() => { setFarmerToDelete(farmer); setShowDeleteConfirmation(true); }}
                         className="text-black hover:text-gray-800 font-semibold hover:font-bold transition-all"
                       >
                         Delete
                       </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
         <div className="p-10 text-center mb-6">
           <UserPlus size={48} className="mx-auto text-gray-300 mb-3" />
           <p className="text-gray-500 italic">No farmers match the current filters.</p>
-          <button className="mt-4 bg-lime-600 text-white px-4 py-2 rounded-lg hover:bg-lime-700 transition-colors" onClick={() => { setFormData({ ...formData, isCertified: "", cropType: "", barangay: "" }); setSearchQuery(""); }}>Reset Filters</button>
-        </div>
-      )}
-
-      {/* Scrollable Pagination - Hidden Scrollbar */}
-      {filteredFarmers.length > itemsPerPage && (
-        <div className="mt-6 bg-white rounded-xl shadow-md border-2 border-lime-200 p-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="text-sm text-gray-700 font-medium">
-              Showing {startIndex + 1} to {Math.min(endIndex, filteredFarmers.length)} of {filteredFarmers.length} results
-          </div>
-          </div>
-          <div className="overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            <style>{`
-              .scrollbar-hide::-webkit-scrollbar {
-                display: none;
-              }
-            `}</style>
-            <div className="flex items-center space-x-2 min-w-max">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-                className="px-4 py-2 text-sm font-semibold bg-lime-100 text-lime-700 rounded-lg hover:bg-lime-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
-            >
-              Previous
-            </button>
-            
-              {/* Page Numbers - Scrollable */}
-              <div className="flex space-x-2">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                    className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors whitespace-nowrap ${
-                    currentPage === page
-                        ? 'bg-lime-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-700 hover:bg-lime-100 hover:text-lime-700'
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-            </div>
-            
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-                className="px-4 py-2 text-sm font-semibold bg-lime-100 text-lime-700 rounded-lg hover:bg-lime-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
-            >
-              Next
-            </button>
-            </div>
-          </div>
+          <button className="mt-4 bg-lime-600 text-white px-4 py-2 rounded-lg hover:bg-lime-700 transition-colors" onClick={() => { setFormData({ ...formData, cropType: "", barangay: "" }); setSearchQuery(""); }}>Reset Filters</button>
         </div>
       )}
 
@@ -1445,10 +1230,10 @@ const FarmerRegistration = ({
         </div>
       )}
 
-      {/* Farmer Details Modal - Design Vibe */}
+      {/* Farmer Details Modal - 80% width and height */}
       {showFarmerDetails && selectedFarmer && (
-        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar border-2 border-black">
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-[80vw] h-[80vh] overflow-y-auto border-2 border-black flex flex-col">
             <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
               <h2 className="text-2xl font-bold text-black">🌾 Farmer Details</h2>
               <button
@@ -1615,25 +1400,25 @@ const FarmerRegistration = ({
         </div>
       )}
 
-      {/* Set Profile Modal */}
+      {/* Set Profile Modal - 80% width/height, includes Profile Picture + Change Password */}
       {showProfileModal && selectedFarmerForProfile && (
-        <div className="fixed inset-0 z-50 bg-transparent flex items-center justify-center p-4">
-          <div className="bg-white rounded-[5px] shadow-xl max-w-md w-full">
-            <div className="sticky top-0 bg-lime-700 text-white p-4 rounded-t-xl flex justify-between items-center">
-              <h2 className="text-xl font-bold">Set Profile Picture</h2>
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-[80vw] h-[80vh] overflow-y-auto flex flex-col border-2 border-black">
+            <div className="sticky top-0 bg-lime-600 text-black p-4 rounded-t-xl flex justify-between items-center z-10 border-b-2 border-black">
+              <h2 className="text-xl font-bold">Set Profile Picture &amp; Password</h2>
               <button
                 onClick={() => {
-                  if (selectedProfileId) {
-                    clearProfileImageDraft(selectedProfileId)
-                  }
+                  if (selectedProfileId) clearProfileImageDraft(selectedProfileId)
                   setShowProfileModal(false)
+                  setSelectedFarmerForPassword(null)
+                  setPasswordForm({ username: '', password: '', confirmPassword: '' })
                 }}
-                className="text-white hover:text-gray-200 focus:outline-none"
+                className="text-black hover:bg-lime-200 rounded-full p-1 focus:outline-none"
               >
                 <X size={24} />
               </button>
             </div>
-            <div className="p-6">
+            <div className="p-6 flex-1 overflow-y-auto">
               <div className="text-center mb-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
                   {selectedFarmerForProfile.farmerName || 
@@ -1782,6 +1567,102 @@ const FarmerRegistration = ({
                   </button>
                 </div>
               </div>
+
+              {/* Change Password section - inside Profile modal */}
+              {selectedFarmerForPassword && (selectedFarmerForPassword._id || selectedFarmerForPassword.id) === (selectedFarmerForProfile._id || selectedFarmerForProfile.id) && (
+                <div className="mt-8 pt-8 border-t-2 border-gray-200">
+                  <h3 className="text-lg font-bold text-black mb-4">Change Password</h3>
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault()
+                      if (passwordForm.password !== passwordForm.confirmPassword) {
+                        setPasswordConfirmationData({ type: 'error', message: 'Passwords do not match!', onConfirm: null })
+                        setShowPasswordConfirmation(true)
+                        return
+                      }
+                      const pwdValidation = validatePassword(passwordForm.password)
+                      if (!pwdValidation.isValid) {
+                        setPasswordConfirmationData({ type: 'error', message: pwdValidation.errors[0] || 'Password does not meet requirements.', onConfirm: null })
+                        setShowPasswordConfirmation(true)
+                        return
+                      }
+                      const updateData = {}
+                      if (passwordForm.username && passwordForm.username.trim() !== '') updateData.username = passwordForm.username.trim()
+                      if (passwordForm.password && passwordForm.password.trim() !== '') updateData.password = passwordForm.password.trim()
+                      if (Object.keys(updateData).length === 0) {
+                        setPasswordConfirmationData({ type: 'error', message: 'Please enter at least a new username or password!', onConfirm: null })
+                        setShowPasswordConfirmation(true)
+                        return
+                      }
+                      setPasswordConfirmationData({
+                        type: 'confirm',
+                        message: 'Update password and/or username for this farmer?',
+                        onConfirm: async () => {
+                          try {
+                            await updateFarmerMutation.mutateAsync({
+                              farmerId: selectedFarmerForProfile._id || selectedFarmerForProfile.id,
+                              updateData
+                            })
+                            setPasswordForm({ username: '', password: '', confirmPassword: '' })
+                            setShowPasswordConfirmation(false)
+                            setPasswordConfirmationData({ type: 'success', message: 'Password/username updated successfully!', onConfirm: null })
+                            setShowPasswordConfirmation(true)
+                          } catch (error) {
+                            setPasswordConfirmationData({ type: 'error', message: error?.message || 'Failed to update. Please try again.', onConfirm: null })
+                            setShowPasswordConfirmation(true)
+                          }
+                        }
+                      })
+                      setShowPasswordConfirmation(true)
+                    }}
+                    className="space-y-4 max-w-md"
+                  >
+                    <div>
+                      <label className="block text-xs font-bold text-black mb-1 uppercase">Username</label>
+                      <input
+                        type="text"
+                        value={passwordForm.username}
+                        onChange={(e) => setPasswordForm({ ...passwordForm, username: e.target.value })}
+                        className="w-full bg-white border-2 border-black p-3 rounded-lg text-black"
+                        placeholder="New username (optional)"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-black mb-1 uppercase">New Password</label>
+                      <div className="relative">
+                        <input
+                          type={showNewPassword ? 'text' : 'password'}
+                          value={passwordForm.password}
+                          onChange={(e) => setPasswordForm({ ...passwordForm, password: e.target.value })}
+                          className="w-full bg-white border-2 border-black p-3 rounded-lg text-black pr-10"
+                          placeholder="New password"
+                        />
+                        <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"><Eye size={20} /></button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-black mb-1 uppercase">Confirm Password</label>
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          value={passwordForm.confirmPassword}
+                          onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                          className="w-full bg-white border-2 border-black p-3 rounded-lg text-black pr-10"
+                          placeholder="Confirm new password"
+                        />
+                        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"><Eye size={20} /></button>
+                      </div>
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={updateFarmerMutation.isPending}
+                      className="px-4 py-2 bg-lime-400 text-black border-2 border-black rounded-lg hover:bg-lime-500 font-bold disabled:opacity-50"
+                    >
+                      {updateFarmerMutation.isPending ? 'Updating...' : 'Update Password'}
+                    </button>
+                  </form>
+                </div>
+              )}
             </div>
           </div>
         </div>
