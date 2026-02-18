@@ -263,21 +263,40 @@ export const deleteAssistance = async (assistanceId) => {
 
 // Crop insurance operations without caching
 export const createCropInsurance = async (cropInsuranceData) => {
-  // Ensure payload is JSON-serializable: do not send File/Blob (send null for evidenceImage if object)
   const sanitized = { ...cropInsuranceData };
   if (sanitized.evidenceImage != null && typeof sanitized.evidenceImage === 'object') {
     sanitized.evidenceImage = null;
+  }
+  let body;
+  try {
+    body = JSON.stringify(sanitized);
+  } catch {
+    // Fallback: send minimal payload if pcicForm has circular ref or non-serializable data
+    body = JSON.stringify({
+      farmerId: sanitized.farmerId,
+      cropType: sanitized.cropType,
+      cropArea: sanitized.cropArea,
+      lotNumber: sanitized.lotNumber || 'Lot 1',
+      lotArea: sanitized.lotArea,
+      plantingDate: sanitized.plantingDate,
+      expectedHarvestDate: sanitized.expectedHarvestDate,
+      insuranceDayLimit: sanitized.insuranceDayLimit,
+      notes: sanitized.notes,
+      evidenceImage: null,
+      pcicForm: undefined
+    });
   }
   return await fetchWithRetry(
     apiUrl('/api/crop-insurance'),
     {
       method: 'POST',
+      mode: 'cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(sanitized),
+      body,
     },
-    4,   // retries
-    30000, // 30s timeout for large payloads
-    1500  // backoff
+    2,   // retries (faster feedback)
+    15000, // 15s timeout
+    800   // backoff
   );
 };
 

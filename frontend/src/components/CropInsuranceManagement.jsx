@@ -37,7 +37,7 @@ import {
 } from '../hooks/useAPI'
 import { generateCropInsuranceApplicationPDF } from '../utils/cropInsuranceApplicationPdfGenerator'
 import { getCropInsuranceDetailsDisplayData } from '../utils/cropInsuranceDetailsDisplayData'
-// Note: Notifications are now handled by backend API or parent component
+import { toast } from 'react-hot-toast'
 
 const CropInsuranceManagement = () => {
   // React Query hooks
@@ -292,6 +292,10 @@ const CropInsuranceManagement = () => {
       delayedRefresh()
     } catch (error) {
       console.error('Error creating crop insurance record:', error)
+      const msg = error?.message?.includes('Failed to fetch')
+        ? 'Network error. Check your connection and that the backend is reachable.'
+        : (error?.message || 'Could not create record.')
+      toast.error(msg)
     }
   }
 
@@ -687,7 +691,7 @@ const CropInsuranceManagement = () => {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-black mb-1 uppercase">Total Area (ha)</label>
-                  <input type="number" step="0.01" value={pcicForm.totalArea || formData.cropArea} onChange={(e) => { handlePcicFormChange("totalArea", e.target.value); setFormData(p => ({ ...p, cropArea: e.target.value })) }} className="w-full border-2 border-black p-2 rounded-lg text-sm" />
+                  <input type="number" step="0.01" value={pcicForm.totalArea || formData.cropArea} onChange={(e) => { handlePcicFormChange("totalArea", e.target.value); setFormData(p => ({ ...p, cropArea: e.target.value })) }} className="w-full border-2 border-black p-2 rounded-lg text-sm" placeholder="e.g. 1.5" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-black mb-1 uppercase">Farmer Category</label>
@@ -695,11 +699,11 @@ const CropInsuranceManagement = () => {
                     <option value="Self-Financed">Self-Financed</option>
                     <option value="Borrowing">Borrowing</option>
                   </select>
-                  {pcicForm.farmerCategory === "Borrowing" && <input type="text" placeholder="Lender" value={pcicForm.lender} onChange={(e) => handlePcicFormChange("lender", e.target.value)} className="mt-1 w-full border border-black p-1 rounded text-sm" />}
+                  {pcicForm.farmerCategory === "Borrowing" && <input type="text" placeholder="Enter lender name" value={pcicForm.lender} onChange={(e) => handlePcicFormChange("lender", e.target.value)} className="mt-1 w-full border border-black p-1 rounded text-sm" />}
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-black mb-1 uppercase">Date of Application</label>
-                  <input type="date" value={pcicForm.dateOfApplication ? (typeof pcicForm.dateOfApplication === "string" && pcicForm.dateOfApplication.length <= 10 ? pcicForm.dateOfApplication : new Date(pcicForm.dateOfApplication).toISOString().slice(0, 10)) : ""} onChange={(e) => handlePcicFormChange("dateOfApplication", e.target.value)} className="w-full border-2 border-black p-2 rounded-lg text-sm" />
+                  <input type="date" placeholder="YYYY-MM-DD" value={pcicForm.dateOfApplication ? (typeof pcicForm.dateOfApplication === "string" && pcicForm.dateOfApplication.length <= 10 ? pcicForm.dateOfApplication : new Date(pcicForm.dateOfApplication).toISOString().slice(0, 10)) : ""} onChange={(e) => handlePcicFormChange("dateOfApplication", e.target.value)} className="w-full border-2 border-black p-2 rounded-lg text-sm" />
                 </div>
               </div>
               <div className="border-b-2 border-black pb-4">
@@ -714,19 +718,19 @@ const CropInsuranceManagement = () => {
               <div className="border-2 border-black rounded-lg p-4 space-y-4">
                 <h3 className="text-sm font-bold text-black uppercase">A. BASIC FARMER INFORMATION</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div><label className="block text-xs font-bold mb-1">Last Name</label><input type="text" value={pcicForm.applicantName?.lastName || ""} onChange={(e) => setPcicForm(p => ({ ...p, applicantName: { ...p.applicantName, lastName: e.target.value } }))} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
-                  <div><label className="block text-xs font-bold mb-1">First Name</label><input type="text" value={pcicForm.applicantName?.firstName || ""} onChange={(e) => setPcicForm(p => ({ ...p, applicantName: { ...p.applicantName, firstName: e.target.value } }))} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
-                  <div><label className="block text-xs font-bold mb-1">Middle Name</label><input type="text" value={pcicForm.applicantName?.middleName || ""} onChange={(e) => setPcicForm(p => ({ ...p, applicantName: { ...p.applicantName, middleName: e.target.value } }))} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
-                  <div><label className="block text-xs font-bold mb-1">Suffix (Jr., Sr., III)</label><input type="text" value={pcicForm.applicantName?.suffix || ""} onChange={(e) => setPcicForm(p => ({ ...p, applicantName: { ...p.applicantName, suffix: e.target.value } }))} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
+                  <div><label className="block text-xs font-bold mb-1">Last Name</label><input type="text" placeholder="e.g. Dela Cruz" value={pcicForm.applicantName?.lastName || ""} onChange={(e) => setPcicForm(p => ({ ...p, applicantName: { ...p.applicantName, lastName: e.target.value } }))} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
+                  <div><label className="block text-xs font-bold mb-1">First Name</label><input type="text" placeholder="e.g. Juan" value={pcicForm.applicantName?.firstName || ""} onChange={(e) => setPcicForm(p => ({ ...p, applicantName: { ...p.applicantName, firstName: e.target.value } }))} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
+                  <div><label className="block text-xs font-bold mb-1">Middle Name</label><input type="text" placeholder="Optional" value={pcicForm.applicantName?.middleName || ""} onChange={(e) => setPcicForm(p => ({ ...p, applicantName: { ...p.applicantName, middleName: e.target.value } }))} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
+                  <div><label className="block text-xs font-bold mb-1">Suffix (Jr., Sr., III)</label><input type="text" placeholder="Optional" value={pcicForm.applicantName?.suffix || ""} onChange={(e) => setPcicForm(p => ({ ...p, applicantName: { ...p.applicantName, suffix: e.target.value } }))} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                  <div><label className="block text-xs font-bold mb-1">No. & Street/Sitio</label><input type="text" value={pcicForm.address?.street || ""} onChange={(e) => setPcicForm(p => ({ ...p, address: { ...p.address, street: e.target.value } }))} className="w-full border-2 border-black p-2 rounded text-sm" placeholder="From farmer registration" /></div>
-                  <div><label className="block text-xs font-bold mb-1">Barangay</label><input type="text" value={pcicForm.address?.barangay || ""} onChange={(e) => setPcicForm(p => ({ ...p, address: { ...p.address, barangay: e.target.value } }))} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
-                  <div><label className="block text-xs font-bold mb-1">Municipality/City</label><input type="text" value={pcicForm.address?.municipality || ""} onChange={(e) => setPcicForm(p => ({ ...p, address: { ...p.address, municipality: e.target.value } }))} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
-                  <div><label className="block text-xs font-bold mb-1">Province</label><input type="text" value={pcicForm.address?.province || ""} onChange={(e) => setPcicForm(p => ({ ...p, address: { ...p.address, province: e.target.value } }))} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
+                  <div><label className="block text-xs font-bold mb-1">No. & Street/Sitio</label><input type="text" placeholder="e.g. 123 Purok 10-A" value={pcicForm.address?.street || ""} onChange={(e) => setPcicForm(p => ({ ...p, address: { ...p.address, street: e.target.value } }))} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
+                  <div><label className="block text-xs font-bold mb-1">Barangay</label><input type="text" placeholder="e.g. Maniki" value={pcicForm.address?.barangay || ""} onChange={(e) => setPcicForm(p => ({ ...p, address: { ...p.address, barangay: e.target.value } }))} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
+                  <div><label className="block text-xs font-bold mb-1">Municipality/City</label><input type="text" placeholder="e.g. Kapalong" value={pcicForm.address?.municipality || ""} onChange={(e) => setPcicForm(p => ({ ...p, address: { ...p.address, municipality: e.target.value } }))} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
+                  <div><label className="block text-xs font-bold mb-1">Province</label><input type="text" placeholder="e.g. Davao del Norte" value={pcicForm.address?.province || ""} onChange={(e) => setPcicForm(p => ({ ...p, address: { ...p.address, province: e.target.value } }))} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                  <div><label className="block text-xs font-bold mb-1">Contact Number</label><input type="text" value={pcicForm.contactNumber || ""} onChange={(e) => handlePcicFormChange("contactNumber", e.target.value)} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
+                  <div><label className="block text-xs font-bold mb-1">Contact Number</label><input type="text" placeholder="e.g. 09123456789" value={pcicForm.contactNumber || ""} onChange={(e) => handlePcicFormChange("contactNumber", e.target.value)} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
                   <div><label className="block text-xs font-bold mb-1">Date of Birth</label><input type="date" value={pcicForm.dateOfBirth ? (typeof pcicForm.dateOfBirth === "string" && pcicForm.dateOfBirth.length <= 10 ? pcicForm.dateOfBirth : new Date(pcicForm.dateOfBirth).toISOString().slice(0, 10)) : ""} onChange={(e) => handlePcicFormChange("dateOfBirth", e.target.value)} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
                   <div><label className="block text-xs font-bold mb-1">Sex</label><select value={pcicForm.sex || ""} onChange={(e) => handlePcicFormChange("sex", e.target.value)} className="w-full border-2 border-black p-2 rounded text-sm"><option value="">Select</option><option value="Male">Male</option><option value="Female">Female</option></select></div>
                 </div>
@@ -740,12 +744,12 @@ const CropInsuranceManagement = () => {
                       </label>
                     ))}
                     <span className="text-sm">Indicate tribe:</span>
-                    <input type="text" value={pcicForm.tribe || ""} onChange={(e) => handlePcicFormChange("tribe", e.target.value)} className="border border-black p-1 rounded w-40 text-sm" />
+                    <input type="text" placeholder="If Indigenous People" value={pcicForm.tribe || ""} onChange={(e) => handlePcicFormChange("tribe", e.target.value)} className="border border-black p-1 rounded w-40 text-sm" />
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div><label className="block text-xs font-bold mb-1">Civil Status</label><select value={pcicForm.civilStatus || ""} onChange={(e) => handlePcicFormChange("civilStatus", e.target.value)} className="w-full border-2 border-black p-2 rounded text-sm"><option value="">Select</option><option value="Single">Single</option><option value="Married">Married</option><option value="Widowed">Widowed</option><option value="Separated">Separated</option></select></div>
-                  {pcicForm.civilStatus === "Married" && <div><label className="block text-xs font-bold mb-1">Name of Spouse</label><input type="text" value={pcicForm.spouseName || ""} onChange={(e) => handlePcicFormChange("spouseName", e.target.value)} className="w-full border-2 border-black p-2 rounded text-sm" /></div>}
+                  {pcicForm.civilStatus === "Married" && <div><label className="block text-xs font-bold mb-1">Name of Spouse</label><input type="text" placeholder="Full name of spouse" value={pcicForm.spouseName || ""} onChange={(e) => handlePcicFormChange("spouseName", e.target.value)} className="w-full border-2 border-black p-2 rounded text-sm" /></div>}
                 </div>
                 <div className="border border-black rounded p-3 space-y-2">
                   <label className="block text-xs font-bold">Name of Legal Beneficiary</label>
@@ -788,7 +792,7 @@ const CropInsuranceManagement = () => {
                   <div key={idx} className="border border-black rounded p-4 space-y-3 bg-gray-50">
                     <div className="flex justify-between"><span className="font-semibold text-sm">Lot {idx + 1}</span>{(pcicForm.lots || []).length > 1 && <button type="button" onClick={() => handleRemoveLot(idx)} className="text-red-600 text-sm">Remove</button>}</div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                      <div><label className="text-xs font-bold">Barangay</label><input type="text" value={lot.farmLocation?.barangay || ""} onChange={(e) => handlePcicLotChange(idx, "farmLocation.barangay", e.target.value)} className="w-full border border-black p-1 rounded text-sm" /></div>
+                      <div><label className="text-xs font-bold">Barangay</label><input type="text" placeholder="e.g. Maniki" value={lot.farmLocation?.barangay || ""} onChange={(e) => handlePcicLotChange(idx, "farmLocation.barangay", e.target.value)} className="w-full border border-black p-1 rounded text-sm" /></div>
                       <div><label className="text-xs font-bold">Municipality/City</label><input type="text" value={lot.farmLocation?.municipality || ""} onChange={(e) => handlePcicLotChange(idx, "farmLocation.municipality", e.target.value)} className="w-full border border-black p-1 rounded text-sm" /></div>
                       <div><label className="text-xs font-bold">Province</label><input type="text" value={lot.farmLocation?.province || ""} onChange={(e) => handlePcicLotChange(idx, "farmLocation.province", e.target.value)} className="w-full border border-black p-1 rounded text-sm" /></div>
                     </div>
@@ -799,8 +803,8 @@ const CropInsuranceManagement = () => {
                       <div><label className="text-xs font-bold">West</label><input type="text" value={lot.boundaries?.west || ""} onChange={(e) => handlePcicLotChange(idx, "boundaries.west", e.target.value)} className="w-full border border-black p-1 rounded text-sm" /></div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                      <div><label className="text-xs font-bold">Geo Ref ID (DA-RSBSA) or Farm ID (PCIC)</label><input type="text" value={lot.geoRefId || ""} onChange={(e) => handlePcicLotChange(idx, "geoRefId", e.target.value)} className="w-full border border-black p-1 rounded text-sm" /></div>
-                      <div><label className="text-xs font-bold">Variety</label><input type="text" value={lot.variety || ""} onChange={(e) => handlePcicLotChange(idx, "variety", e.target.value)} className="w-full border border-black p-1 rounded text-sm" /></div>
+                      <div><label className="text-xs font-bold">Geo Ref ID (DA-RSBSA) or Farm ID (PCIC)</label><input type="text" placeholder="Optional ID" value={lot.geoRefId || ""} onChange={(e) => handlePcicLotChange(idx, "geoRefId", e.target.value)} className="w-full border border-black p-1 rounded text-sm" /></div>
+                      <div><label className="text-xs font-bold">Variety</label><input type="text" placeholder="e.g. IR64" value={lot.variety || ""} onChange={(e) => handlePcicLotChange(idx, "variety", e.target.value)} className="w-full border border-black p-1 rounded text-sm" /></div>
                       <div><label className="text-xs font-bold">Planting Method</label><select value={lot.plantingMethod || ""} onChange={(e) => handlePcicLotChange(idx, "plantingMethod", e.target.value)} className="w-full border border-black p-1 rounded text-sm"><option value="">Select</option><option value="Direct Seeded">Direct Seeded</option><option value="Transplanted">Transplanted</option></select></div>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -812,8 +816,8 @@ const CropInsuranceManagement = () => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                       <div><label className="text-xs font-bold">Land Category</label><select value={lot.landCategory || ""} onChange={(e) => handlePcicLotChange(idx, "landCategory", e.target.value)} className="w-full border border-black p-1 rounded text-sm"><option value="">Select</option><option value="Irrigated">Irrigated</option><option value="Non-Irrigated">Non-Irrigated</option></select></div>
                       <div><label className="text-xs font-bold">Tenurial Status</label><select value={lot.tenurialStatus || ""} onChange={(e) => handlePcicLotChange(idx, "tenurialStatus", e.target.value)} className="w-full border border-black p-1 rounded text-sm"><option value="">Select</option><option value="Owner">Owner</option><option value="Lessee">Lessee</option></select></div>
-                      <div><label className="text-xs font-bold">Desired Amount of Cover (PHP)</label><input type="number" value={lot.desiredAmountOfCover ?? ""} onChange={(e) => handlePcicLotChange(idx, "desiredAmountOfCover", e.target.value)} className="w-full border border-black p-1 rounded text-sm" /></div>
-                      <div><label className="text-xs font-bold">Lot Area (ha)</label><input type="number" step="0.01" value={lot.lotArea ?? ""} onChange={(e) => handlePcicLotChange(idx, "lotArea", e.target.value)} className="w-full border border-black p-1 rounded text-sm" /></div>
+                      <div><label className="text-xs font-bold">Desired Amount of Cover (PHP)</label><input type="number" placeholder="e.g. 50000" value={lot.desiredAmountOfCover ?? ""} onChange={(e) => handlePcicLotChange(idx, "desiredAmountOfCover", e.target.value)} className="w-full border border-black p-1 rounded text-sm" /></div>
+                      <div><label className="text-xs font-bold">Lot Area (ha)</label><input type="number" step="0.01" placeholder="e.g. 1.0" value={lot.lotArea ?? ""} onChange={(e) => handlePcicLotChange(idx, "lotArea", e.target.value)} className="w-full border border-black p-1 rounded text-sm" /></div>
                     </div>
                   </div>
                 ))}
