@@ -263,13 +263,22 @@ export const deleteAssistance = async (assistanceId) => {
 
 // Crop insurance operations without caching
 export const createCropInsurance = async (cropInsuranceData) => {
-  return await fetchWithRetry(apiUrl('/api/crop-insurance'), {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  // Ensure payload is JSON-serializable: do not send File/Blob (send null for evidenceImage if object)
+  const sanitized = { ...cropInsuranceData };
+  if (sanitized.evidenceImage != null && typeof sanitized.evidenceImage === 'object') {
+    sanitized.evidenceImage = null;
+  }
+  return await fetchWithRetry(
+    apiUrl('/api/crop-insurance'),
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(sanitized),
     },
-    body: JSON.stringify(cropInsuranceData),
-  });
+    4,   // retries
+    30000, // 30s timeout for large payloads
+    1500  // backoff
+  );
 };
 
 export const fetchCropInsurance = async (farmerId = null) => {

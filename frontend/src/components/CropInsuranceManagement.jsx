@@ -267,6 +267,9 @@ const CropInsuranceManagement = () => {
     }
 
     const effectiveCropType = formData.cropType === "Other" ? (formData.otherCrop || "Other") : formData.cropType
+    // Use string evidence only (e.g. base64 data URL); never send File/Blob so request is JSON-serializable
+    const evidenceValue = formData.evidenceImage ?? pcicForm.signatureImage ?? null
+    const evidenceImageSafe = evidenceValue != null && typeof evidenceValue === 'string' ? evidenceValue : null
     const submissionData = {
       farmerId: formData.farmerId,
       cropType: effectiveCropType,
@@ -277,7 +280,7 @@ const CropInsuranceManagement = () => {
       expectedHarvestDate: harvestDateVal ? new Date(harvestDateVal).toISOString() : new Date().toISOString(),
       insuranceDayLimit: parseInt(formData.insuranceDayLimit) || cropConfigurations[effectiveCropType]?.dayLimit || cropConfigurations[formData.cropType]?.dayLimit || 30,
       notes: formData.notes,
-      evidenceImage: formData.evidenceImage || pcicForm.signatureImage || null,
+      evidenceImage: evidenceImageSafe,
       pcicForm: pcicPayload
     }
 
@@ -403,7 +406,7 @@ const CropInsuranceManagement = () => {
               console.error('Error refreshing data:', error)
             }
           }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors"
+          className="bg-lime-400 text-black px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-lime-500 transition-colors"
           title="Refresh data"
         >
           <RefreshCw size={20} />
@@ -414,7 +417,7 @@ const CropInsuranceManagement = () => {
             setPcicForm(getEmptyPcicForm())
             setShowAddModal(true)
           }}
-          className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700"
+          className="bg-lime-400 text-black px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-lime-500 transition-colors"
         >
           <Plus size={20} />
           Add New Crop
