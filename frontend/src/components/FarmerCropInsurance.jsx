@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import {
   Plus,
   Search,
@@ -19,20 +19,27 @@ import {
   Timer,
   Info,
   RefreshCw,
+  ChevronUp,
+  ChevronDown,
+  Check,
+  Trash2,
 } from "lucide-react"
 import {
   useCropInsurance,
-  useCreateCropInsurance
+  useCreateCropInsurance,
+  useDeleteCropInsurance,
 } from '../hooks/useAPI'
 import { useAuthStore } from '../store/authStore'
 import { toast } from 'react-hot-toast'
 import PcicFormContent from './PcicFormContent'
+import { getCropInsuranceDetailsDisplayData } from '../utils/cropInsuranceDetailsDisplayData'
 
 const FarmerCropInsurance = () => {
   const { user } = useAuthStore()
   
   const { data: cropInsuranceRecords = [], isLoading: loading, refetch: refetchInsurance } = useCropInsurance(user?._id)
   const createInsuranceMutation = useCreateCropInsurance()
+  const deleteInsuranceMutation = useDeleteCropInsurance()
 
   const delayedRefresh = () => {
     const delay = Math.random() * 5000 + 5000
@@ -50,6 +57,8 @@ const FarmerCropInsurance = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [selectedRecord, setSelectedRecord] = useState(null)
   const [submitError, setSubmitError] = useState(null)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [recordToCancel, setRecordToCancel] = useState(null)
   const [formData, setFormData] = useState({
     cropType: "",
     otherCrop: "",
@@ -261,6 +270,25 @@ const FarmerCropInsurance = () => {
     }
   }
 
+  const handleCancelClick = (recordId) => {
+    setRecordToCancel(recordId)
+    setShowCancelConfirm(true)
+  }
+
+  const handleConfirmCancel = async () => {
+    if (!recordToCancel) return
+    try {
+      await deleteInsuranceMutation.mutateAsync(recordToCancel)
+      toast.success('Crop insurance application cancelled.')
+      setShowCancelConfirm(false)
+      setRecordToCancel(null)
+      delayedRefresh()
+    } catch (error) {
+      const message = error?.message || 'Something went wrong. Please try again.'
+      toast.error(message)
+    }
+  }
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString()
   }
@@ -303,11 +331,18 @@ const FarmerCropInsurance = () => {
       return cropType.includes(searchLower)
     })
     .sort((a, b) => {
-      // Sort by updatedAt first, then createdAt, then _id (latest first)
       const dateA = new Date(a.updatedAt || a.createdAt || 0).getTime()
       const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime()
-      return dateB - dateA // Descending order (newest first)
+      return dateB - dateA
     })
+
+  const tableScrollRef = useRef(null)
+  const scrollTable = (direction) => {
+    const el = tableScrollRef.current
+    if (!el) return
+    const step = 120
+    el.scrollBy({ top: direction === 'up' ? -step : step, behavior: 'smooth' })
+  }
 
   return (
     <div className="space-y-6">
@@ -364,49 +399,74 @@ const FarmerCropInsurance = () => {
         </button>
       </div>
 
-      {/* Records Table */}
+      {/* Records Table — scrollable, no pagination; scroll up/down buttons */}
       <div className="bg-lime-50 rounded-xl shadow-md overflow-hidden text-black">
         <style>{`
-          .crop-insurance-table-scroll::-webkit-scrollbar {
-            display: none;
-          }
-          .crop-insurance-table-scroll {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-          }
+          .crop-insurance-table-scroll::-webkit-scrollbar { width: 8px; }
+          .crop-insurance-table-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+          .crop-insurance-table-scroll::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+          .crop-insurance-table-scroll::-webkit-scrollbar-thumb:hover { background: #64748b; }
         `}</style>
         {/* Desktop Table View */}
         <div className="hidden md:block">
+          <div className="flex items-center justify-end gap-1 px-4 py-2 border-b border-gray-200 bg-gray-50/80">
+            <span className="text-xs text-gray-500 mr-2">Scroll table:</span>
+            <button
+              type="button"
+              onClick={() => scrollTable('up')}
+              className="p-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-green-500"
+              aria-label="Scroll table up"
+            >
+              <ChevronUp size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollTable('down')}
+              className="p-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 focus:ring-2 focus:ring-green-500"
+              aria-label="Scroll table down"
+            >
+              <ChevronDown size={18} />
+            </button>
+          </div>
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                    Crop Type
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                    Planting Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                    Expected Harvest
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                    Day Limit
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-            </table>
-            <div className="overflow-y-auto crop-insurance-table-scroll" style={{ maxHeight: '350px' }}>
-              <table className="w-full">
+            <div
+              ref={tableScrollRef}
+              className="crop-insurance-table-scroll overflow-y-auto overflow-x-auto"
+              style={{ maxHeight: 'min(400px, 60vh)' }}
+            >
+              <table className="w-full min-w-[600px]">
+                <thead className="sticky top-0 z-10 bg-gray-50 shadow-sm">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                      Crop Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                      Planting Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                      Expected Harvest
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                      Day Limit
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredRecords.map((record) => (
-                    <tr key={record._id} className="hover:bg-gray-50">
+                    <tr
+                      key={record._id}
+                      className="hover:bg-gray-50 cursor-pointer"
+                      onClick={() => {
+                        setSelectedRecord(record)
+                        setShowDetailsModal(true)
+                      }}
+                    >
                       <td className="px-6 py-4 whitespace-nowrap w-1/6">
                         <div className="text-sm font-medium text-gray-900">{record.cropType}</div>
                         <div className="text-sm text-gray-500">
@@ -444,16 +504,25 @@ const FarmerCropInsurance = () => {
                           {getStatusText(record)}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium w-1/6">
+                      <td className="px-6 py-4 text-sm font-medium w-1/6" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation()
                               setSelectedRecord(record)
                               setShowDetailsModal(true)
                             }}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="bg-blue-600 border-2 border-black text-white px-3 py-1 rounded-lg hover:bg-blue-700 font-bold text-sm flex items-center gap-1"
                           >
                             <Eye size={16} />
+                            <span>View</span>
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleCancelClick(record._id); }}
+                            className="bg-red-500 border-2 border-black text-white px-3 py-1 rounded-lg hover:bg-red-600 font-bold text-sm flex items-center gap-1"
+                          >
+                            <Trash2 size={16} />
+                            <span>Cancel</span>
                           </button>
                         </div>
                       </td>
@@ -469,7 +538,14 @@ const FarmerCropInsurance = () => {
         <div className="md:hidden">
           <div className="space-y-4">
             {filteredRecords.map((record) => (
-              <div key={record._id} className="bg-white rounded-xl p-4 shadow-md">
+              <div
+                key={record._id}
+                className="bg-white rounded-xl p-4 shadow-md cursor-pointer"
+                onClick={() => {
+                  setSelectedRecord(record)
+                  setShowDetailsModal(true)
+                }}
+              >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
@@ -500,16 +576,24 @@ const FarmerCropInsurance = () => {
                       <p className="text-xs text-red-600 mt-1">Expired</p>
                     )}
                   </div>
-                  <div className="pt-2">
+                  <div className="pt-2 flex gap-2" onClick={(e) => e.stopPropagation()}>
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation()
                         setSelectedRecord(record)
                         setShowDetailsModal(true)
                       }}
-                      className="w-full flex items-center justify-center gap-2 text-blue-600 hover:text-blue-900 font-medium py-2 border border-blue-300 rounded-lg hover:bg-blue-50 transition"
+                      className="flex-1 bg-blue-600 border-2 border-black text-white px-3 py-2 rounded-lg hover:bg-blue-700 font-bold text-sm flex items-center justify-center gap-1"
                     >
                       <Eye size={16} />
-                      View Details
+                      View
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleCancelClick(record._id); }}
+                      className="flex-1 bg-red-500 border-2 border-black text-white px-3 py-2 rounded-lg hover:bg-red-600 font-bold text-sm flex items-center justify-center gap-1"
+                    >
+                      <Trash2 size={16} />
+                      Cancel
                     </button>
                   </div>
                 </div>
@@ -560,71 +644,313 @@ const FarmerCropInsurance = () => {
         </div>
       )}
 
-      {/* Details Modal */}
-      {showDetailsModal && selectedRecord && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Crop Insurance Details</h3>
+      {/* Details Modal – same PCIC APPLICATION view as admin */}
+      {showDetailsModal && selectedRecord && (() => {
+        const farmersForDisplay = user ? [user] : []
+        const d = getCropInsuranceDetailsDisplayData(selectedRecord, farmersForDisplay)
+        const CheckBox = ({ checked }) => (
+          <span className="inline-flex items-center justify-center w-5 h-5 border-2 border-black rounded">
+            {checked ? <Check size={14} className="text-black" /> : null}
+          </span>
+        )
+        return (
+          <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border-2 border-black">
+              <div className="sticky top-0 bg-white border-b-2 border-black px-5 py-4 flex justify-between items-start z-20">
+                <div className="text-center flex-1">
+                  <p className="text-xs font-semibold text-black">Republic of the Philippines</p>
+                  <p className="text-sm font-bold text-black uppercase tracking-wide">Philippine Crop Insurance Corporation</p>
+                  <p className="text-xs text-gray-600 mt-1">Regional Office No. _______________</p>
+                  <h2 className="text-lg font-bold text-black mt-2">APPLICATION FOR CROP INSURANCE</h2>
+                  <p className="text-xs text-gray-600">(Individual Application)</p>
+                  <p className="text-xs text-gray-700 mt-1">Kindly fill out all entries and tick all boxes [√] as appropriate.</p>
+                </div>
+                <div className="text-right text-xs text-gray-600 shrink-0 ml-2">
+                  <p>PCIC-F-001</p>
+                  <p>Rev. 001/01-18</p>
+                </div>
+                <button onClick={() => setShowDetailsModal(false)} className="text-black hover:bg-lime-200 rounded-full p-1 shrink-0">
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="p-5 space-y-6 text-sm">
+                <div className="space-y-2 border-b border-black pb-3">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <span className="font-bold">CROP (Choose only one):</span>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={d.crop.isCorn} /> Corn</label>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={d.crop.isRice} /> Rice</label>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={d.crop.isHighValue} /> High-Value (Please Specify)</label>
+                    {d.crop.isHighValue && <span className="underline ml-1">{d.crop.highValueSpec}</span>}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <span className="font-bold">APPLICATION TYPE:</span>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={/new/i.test(d.applicationType)} /> New Application</label>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={/renewal/i.test(d.applicationType)} /> Renewal</label>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                    <span className="font-bold">TOTAL AREA (in Hectares):</span>
+                    <span className="border-b border-black px-2 min-w-[4rem]">{d.totalArea}</span>
+                    <span className="font-bold">FARMER CATEGORY:</span>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={/self/i.test(d.farmerCategory)} /> Self-financed</label>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={/borrow/i.test(d.farmerCategory)} /> Borrowing</label>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={/lend/i.test(d.farmerCategory)} /> Lender</label>
+                    {d.lender && <span className="ml-1">({d.lender})</span>}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-x-2">
+                    <span className="font-bold">DATE OF APPLICATION:</span>
+                    <span className="border-b border-black px-2">{d.dateOfApplication}</span>
+                    <span className="text-gray-500">(mm/dd/yyyy)</span>
+                  </div>
+                </div>
+                <div className="space-y-3 border-b border-black pb-4">
+                  <h3 className="font-bold text-black uppercase">A. Basic Farmer Information</h3>
+                  <div>
+                    <p className="font-semibold mb-1">A.1 Name:</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div><span className="text-gray-600 block text-xs">Last Name</span><span className="border-b border-black block px-1">{d.name.lastName}</span></div>
+                      <div><span className="text-gray-600 block text-xs">First Name</span><span className="border-b border-black block px-1">{d.name.firstName}</span></div>
+                      <div><span className="text-gray-600 block text-xs">Middle Name</span><span className="border-b border-black block px-1">{d.name.middleName}</span></div>
+                      <div><span className="text-gray-600 block text-xs">Suffix (Jr., Sr., II)</span><span className="border-b border-black block px-1">{d.name.suffix}</span></div>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-1">A.2 Contact Number:</p>
+                    <span className="border-b border-black px-2 inline-block min-w-[8rem]">{d.contactNumber}</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-1">A.3 Address:</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div><span className="text-gray-600 block text-xs">No. & Street/Sitio</span><span className="border-b border-black block px-1">{d.address.street}</span></div>
+                      <div><span className="text-gray-600 block text-xs">Barangay</span><span className="border-b border-black block px-1">{d.address.barangay}</span></div>
+                      <div><span className="text-gray-600 block text-xs">Municipality/City</span><span className="border-b border-black block px-1">{d.address.municipality}</span></div>
+                      <div><span className="text-gray-600 block text-xs">Province</span><span className="border-b border-black block px-1">{d.address.province}</span></div>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-4">
+                    <div>
+                      <p className="font-semibold mb-1">A.4 Date of Birth:</p>
+                      <span className="border-b border-black px-2">{d.dateOfBirth}</span> <span className="text-gray-500 text-xs">(mm/dd/yyyy)</span>
+                    </div>
+                    <div>
+                      <p className="font-semibold mb-1">A.5 Sex:</p>
+                      <label className="inline-flex items-center gap-1 mr-3"><CheckBox checked={d.sex === 'male'} /> Male</label>
+                      <label className="inline-flex items-center gap-1"><CheckBox checked={d.sex === 'female'} /> Female</label>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-1">A.6 Are you part of a special sector? Please tick [√] as many as necessary:</p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1">
+                      {['Senior Citizens', 'Youth', 'PWD', 'Women'].map(s => (
+                        <label key={s} className="inline-flex items-center gap-1">
+                          <CheckBox checked={d.specialSector.some(ss => new RegExp(s.split(' ')[0], 'i').test(ss))} /> {s}
+                        </label>
+                      ))}
+                      <label className="inline-flex items-center gap-1">Indigenous People (please indicate tribe)</label>
+                      <span className="border-b border-black px-2 inline-block min-w-[6rem]">{d.tribe}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-1">A.7 Civil Status:</p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1">
+                      {['Single', 'Married', 'Widow/er', 'Separated', 'Annulled'].map(s => (
+                        <label key={s} className="inline-flex items-center gap-1">
+                          <CheckBox checked={d.civilStatus.toLowerCase().includes(s.toLowerCase().split('/')[0])} /> {s}
+                        </label>
+                      ))}
+                      {d.spouseName && <span className="ml-2">Name of Spouse: {d.spouseName}</span>}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-1">A.8 Name of Legal Beneficiary (in case of death benefit, as applicable):</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 ml-2">
+                      <div>
+                        <p className="text-xs font-semibold text-gray-700 mb-1">Primary Beneficiary:</p>
+                        <div className="grid grid-cols-2 gap-1 text-xs">
+                          <span className="border-b border-gray-400 px-1">{d.beneficiary.primary.lastName || '—'}</span>
+                          <span className="border-b border-gray-400 px-1">{d.beneficiary.primary.firstName || '—'}</span>
+                          <span className="border-b border-gray-400 px-1 col-span-2">{d.beneficiary.primary.middleName || '—'}</span>
+                          <span className="border-b border-gray-400 px-1">Relationship: {d.beneficiary.primary.relationship || '—'}</span>
+                          <span className="border-b border-gray-400 px-1">Birthdate: {d.beneficiary.primary.birthdate ? new Date(d.beneficiary.primary.birthdate).toLocaleDateString() : '—'}</span>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-gray-700 mb-1">Guardian:</p>
+                        <div className="grid grid-cols-2 gap-1 text-xs">
+                          <span className="border-b border-gray-400 px-1">{d.beneficiary.guardian.lastName || '—'}</span>
+                          <span className="border-b border-gray-400 px-1">{d.beneficiary.guardian.firstName || '—'}</span>
+                          <span className="border-b border-gray-400 px-1 col-span-2">{d.beneficiary.guardian.relationship || '—'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-semibold mb-1">A.9 Preferred method of receiving indemnity payment:</p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1">
+                      <label className="inline-flex items-center gap-1"><CheckBox checked={/landbank|dbp/i.test(d.indemnityOption)} /> Landbank or DBP</label>
+                      <label className="inline-flex items-center gap-1"><CheckBox checked={/pabahay|express/i.test(d.indemnityOption)} /> Pabahay Express</label>
+                      <label className="inline-flex items-center gap-1"><CheckBox checked={/cash/i.test(d.indemnityOption)} /> Cash</label>
+                      <label className="inline-flex items-center gap-1"><CheckBox checked={/other/i.test(d.indemnityOption)} /> Others (Please specify)</label>
+                      {d.indemnityOther && <span className="border-b border-black px-2">{d.indemnityOther}</span>}
+                    </div>
+                  </div>
+                </div>
+                <div className="space-y-3 border-b border-black pb-4">
+                  <h3 className="font-bold text-black uppercase">B. Farm Information (Use separate sheet if more than three (3) lots)</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border border-black text-xs">
+                      <thead>
+                        <tr className="bg-lime-50">
+                          <th className="border border-black p-1 text-left w-40">Field</th>
+                          {[1, 2, 3].map(i => <th key={i} className="border border-black p-1 text-center">Lot {i}</th>)}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><td className="border border-black p-1 font-semibold">B.1 Farm Location/ASP</td><td colSpan={3} className="border border-black p-1 text-gray-600">a. No. & street/Sitio, b. Barangay, c. Municipality/City, d. Province</td></tr>
+                        {['street', 'barangay', 'municipality', 'province'].map((key, i) => {
+                          const label = key === 'street' ? 'No. & street/Sitio' : key === 'barangay' ? 'Barangay' : key === 'municipality' ? 'Municipality/City' : 'Province'
+                          const getLotVal = (lotIdx) => {
+                            const loc = d.lots[lotIdx]?.farmLocation
+                            if (loc && (loc[key] != null && loc[key] !== '')) return loc[key]
+                            if (lotIdx === 0) return d.address[key] || '—'
+                            return '—'
+                          }
+                          return (
+                            <tr key={key}>
+                              <td className="border border-black p-1 pl-4">{String.fromCharCode(97 + i)}. {label}</td>
+                              {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{getLotVal(lotIdx)}</td>)}
+                            </tr>
+                          )
+                        })}
+                        <tr><td className="border border-black p-1 font-semibold">B.2 Boundaries</td><td colSpan={3} className="border border-black p-1 text-gray-600">North, East, South, West</td></tr>
+                        {['north', 'east', 'south', 'west'].map(dir => (
+                          <tr key={dir}><td className="border border-black p-1 pl-4 capitalize">{dir}</td>
+                            {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{d.lots[lotIdx]?.boundaries?.[dir] ?? '—'}</td>)}
+                          </tr>
+                        ))}
+                        <tr><td className="border border-black p-1 font-semibold">B.3 GeoRef ID (DA-RBEIA) or Farm ID (PCIC)</td>
+                          {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{d.lots[lotIdx]?.geoRefId ?? '—'}</td>)}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.4 Variety</td>
+                          {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{d.lots[lotIdx]?.variety ?? '—'}</td>)}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.5 Planting Method</td>
+                          {[0, 1, 2].map(lotIdx => (
+                            <td key={lotIdx} className="border border-black p-1">
+                              <CheckBox checked={(d.lots[lotIdx]?.plantingMethod || '').toLowerCase().includes('direct')} /> Direct Seeded
+                              <span className="mx-1" /><CheckBox checked={(d.lots[lotIdx]?.plantingMethod || '').toLowerCase().includes('transplant')} /> Transplanted
+                            </td>
+                          ))}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.6 Date of Sowing</td>
+                          {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{d.lots[lotIdx]?.dateOfSowing ? new Date(d.lots[lotIdx].dateOfSowing).toLocaleDateString() : '—'}</td>)}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.7 Date of Planting</td>
+                          {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{d.lots[lotIdx]?.dateOfPlanting ? new Date(d.lots[lotIdx].dateOfPlanting).toLocaleDateString() : (lotIdx === 0 ? formatDate(selectedRecord.plantingDate) : '—')}</td>)}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.8 Date of Harvest</td>
+                          {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{d.lots[lotIdx]?.dateOfHarvest ? new Date(d.lots[lotIdx].dateOfHarvest).toLocaleDateString() : (lotIdx === 0 ? formatDate(selectedRecord.expectedHarvestDate) : '—')}</td>)}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.9 Number of Trees/Hills (for HVC only)</td>
+                          {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{d.lots[lotIdx]?.numberOfTreesHills ?? '—'}</td>)}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.10 Land Category</td>
+                          {[0, 1, 2].map(lotIdx => (
+                            <td key={lotIdx} className="border border-black p-1">
+                              <CheckBox checked={(d.lots[lotIdx]?.landCategory || '').toLowerCase().includes('irrigat')} /> Irrigated
+                              <span className="mx-1" /><CheckBox checked={(d.lots[lotIdx]?.landCategory || '').toLowerCase().includes('non')} /> Non-Irrigated
+                            </td>
+                          ))}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.11 Tenurial Status</td>
+                          {[0, 1, 2].map(lotIdx => (
+                            <td key={lotIdx} className="border border-black p-1">
+                              <CheckBox checked={(d.lots[lotIdx]?.tenurialStatus || '').toLowerCase().includes('owner')} /> Owner
+                              <span className="mx-1" /><CheckBox checked={(d.lots[lotIdx]?.tenurialStatus || '').toLowerCase().includes('lessee')} /> Lessee
+                            </td>
+                          ))}
+                        </tr>
+                        <tr><td className="border border-black p-1 font-semibold">B.12 Desired Amount of Cover (Php)</td>
+                          {[0, 1, 2].map(lotIdx => <td key={lotIdx} className="border border-black p-1">{d.lots[lotIdx]?.desiredAmountOfCover != null ? d.lots[lotIdx].desiredAmountOfCover : '—'}</td>)}
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div className="space-y-2 border-b border-black pb-4">
+                  <h3 className="font-bold text-black uppercase">C. Certification and Data Privacy Consent Statement</h3>
+                  <div className="flex gap-2">
+                    <CheckBox checked={d.certificationConsent} />
+                    <p className="text-xs flex-1">I hereby certify that the foregoing answers and statements are complete, true and correct. If the application is approved, the insurance shall be deemed based upon the statements contained herein. I further agree that PCIC reserves the right to reject and/or void the insurance if found that there is fraud/misrepresentation on this statement material to the risk. I am hereby consent to the collection, use, processing, and disclosure of my sensitive personal data in accordance with the Data Privacy Act of 2012.</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <CheckBox checked={d.deedOfAssignmentConsent} />
+                    <p className="text-xs flex-1">Deed of Assignment for borrowing farmers (if applicable): I hereby assign all or part of my rights, title, and interest in this insurance coverage to the Assignee (Lender) stated above.</p>
+                  </div>
+                  <div className="flex justify-end gap-4 text-xs">
+                    <span>Signature or Thumb Mark over Printed Name: _______________________</span>
+                    <span>Date: {d.certificationDate || '—'} (mm/dd/yyyy)</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-bold text-black uppercase">D. Coverage (FOR PCIC USE ONLY)</h3>
+                  <p className="font-semibold">D.1 Source of Premium:</p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1">
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={d.sourceOfPremium.some(s => /non-subsidized|regular/i.test(s))} /> Non-Subsidized/Regular</label>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={d.sourceOfPremium.some(s => /ncfp/i.test(s))} /> Subsidized/NCFP - NCFPo No.</label>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={d.sourceOfPremium.some(s => /rsbsa/i.test(s))} /> Subsidized/RSBSA - Ref. No.</label>
+                    <label className="inline-flex items-center gap-1"><CheckBox checked={d.sourceOfPremium.some(s => /other/i.test(s))} /> Others</label>
+                    {d.sourceOfPremiumOther && <span className="border-b border-black px-2">{d.sourceOfPremiumOther}</span>}
+                  </div>
+                </div>
+                <div className="pt-3 border-t-2 border-black flex flex-wrap justify-between items-center gap-2">
+                  <div className="flex flex-wrap gap-4">
+                    <span><span className="font-semibold">Status:</span> <span className={getStatusColor(selectedRecord)}>{getStatusText(selectedRecord)}</span></span>
+                    {selectedRecord.isInsured && <span><span className="font-semibold">Agency:</span> {selectedRecord.agency}</span>}
+                    <span><span className="font-semibold">Day Limit:</span> {selectedRecord.insuranceDayLimit} days</span>
+                  </div>
+                  {selectedRecord.evidenceImage && (
+                    <div className="flex-shrink-0">
+                      <p className="font-semibold text-xs mb-1">Evidence Image</p>
+                      <img src={selectedRecord.evidenceImage} alt="Evidence" className="max-h-24 object-contain border border-black rounded" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Cancel (delete) confirmation modal */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full border-2 border-black">
+            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
+              <h2 className="text-2xl font-bold text-black">Cancel insurance</h2>
               <button
-                onClick={() => setShowDetailsModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                onClick={() => { setShowCancelConfirm(false); setRecordToCancel(null); }}
+                className="text-black hover:bg-lime-200 rounded-full p-1"
               >
                 <X size={24} />
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Crop Information</h4>
-                <p className="text-sm text-gray-600">Crop: {selectedRecord.cropType}</p>
-                <p className="text-sm text-gray-600">Area: {selectedRecord.cropArea} hectares</p>
-                <p className="text-sm text-gray-600">Lot: {selectedRecord.lotNumber}</p>
-                <p className="text-sm text-gray-600">Lot Area: {selectedRecord.lotArea} hectares</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Timeline</h4>
-                <p className="text-sm text-gray-600">Planting: {formatDate(selectedRecord.plantingDate)}</p>
-                <p className="text-sm text-gray-600">Expected Harvest: {formatDate(selectedRecord.expectedHarvestDate)}</p>
-                <p className="text-sm text-gray-600">Insurance Deadline: {formatDate(selectedRecord.insuranceDeadline)}</p>
-                <p className="text-sm text-gray-600">Day Limit: {selectedRecord.insuranceDayLimit} days</p>
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Insurance Status</h4>
-                <p className="text-sm text-gray-600">
-                  Status: <span className={getStatusColor(selectedRecord)}>{getStatusText(selectedRecord)}</span>
-                </p>
-                {selectedRecord.isInsured && (
-                  <>
-                    <p className="text-sm text-gray-600">Insurance Date: {formatDate(selectedRecord.insuranceDate)}</p>
-                    <p className="text-sm text-gray-600">Insurance Type: {selectedRecord.insuranceType}</p>
-                    <p className="text-sm text-gray-600">Premium: ₱{selectedRecord.premiumAmount}</p>
-                    <p className="text-sm text-gray-600">Agency: {selectedRecord.agency}</p>
-                  </>
-                )}
-                {!selectedRecord.isInsured && !isActuallyExpired(selectedRecord) && (
-                  <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
-                    <p className="text-sm text-yellow-800">
-                      <Info className="inline w-4 h-4 mr-1" />
-                      {getRemainingDays(selectedRecord)} days remaining to apply insurance
-                    </p>
-                  </div>
-                )}
-                {!selectedRecord.isInsured && isActuallyExpired(selectedRecord) && (
-                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
-                    <p className="text-sm text-red-800">
-                      <AlertTriangle className="inline w-4 h-4 mr-1" />
-                      Insurance deadline has passed. This crop cannot be insured anymore.
-                    </p>
-                  </div>
-                )}
-              </div>
-              <div>
-                <h4 className="font-medium text-gray-900 mb-2">Additional Information</h4>
-                <p className="text-sm text-gray-600">Created: {formatDate(selectedRecord.createdAt)}</p>
-                <p className="text-sm text-gray-600">Updated: {formatDate(selectedRecord.updatedAt)}</p>
-                {selectedRecord.notes && (
-                  <p className="text-sm text-gray-600">Notes: {selectedRecord.notes}</p>
-                )}
+            <div className="p-6 bg-white">
+              <p className="text-black mb-6 text-center">
+                Are you sure you want to cancel this crop insurance application? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setShowCancelConfirm(false); setRecordToCancel(null); }}
+                  className="flex-1 bg-white border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-gray-100 font-bold"
+                >
+                  Keep
+                </button>
+                <button
+                  onClick={handleConfirmCancel}
+                  className="flex-1 bg-red-500 border-2 border-black text-white px-4 py-3 rounded-lg hover:bg-red-600 font-bold"
+                >
+                  Cancel application
+                </button>
               </div>
             </div>
           </div>

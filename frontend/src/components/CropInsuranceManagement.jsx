@@ -514,7 +514,14 @@ const CropInsuranceManagement = () => {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredRecords.map((record) => (
-                <tr key={record._id} className="hover:bg-gray-50">
+                <tr
+                  key={record._id}
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() => {
+                    setSelectedRecord(record)
+                    setShowDetailsModal(true)
+                  }}
+                >
                   <td className="px-6 py-4">
                     <div className="text-sm font-medium text-gray-900">
                       {getFarmerName(record.farmerId)}
@@ -558,10 +565,10 @@ const CropInsuranceManagement = () => {
                       {getStatusText(record)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium">
+                  <td className="px-6 py-4 text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => handleDownloadPdf(record)}
+                        onClick={(e) => { e.stopPropagation(); handleDownloadPdf(record); }}
                         className="bg-gray-600 border-2 border-black text-white px-3 py-1 rounded-lg hover:bg-gray-700 font-bold text-sm flex items-center gap-1"
                         title="Download PDF"
                       >
@@ -569,7 +576,8 @@ const CropInsuranceManagement = () => {
                         <span>PDF</span>
                       </button>
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation()
                           setSelectedRecord(record)
                           setShowDetailsModal(true)
                         }}
@@ -580,7 +588,8 @@ const CropInsuranceManagement = () => {
                       </button>
                       {!record.isInsured && record.canInsure && getRemainingDays(record) > 0 && (
                         <button
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation()
                             setSelectedRecord(record)
                             setShowEditModal(true)
                           }}
@@ -591,7 +600,7 @@ const CropInsuranceManagement = () => {
                         </button>
                       )}
                       <button
-                        onClick={() => handleDeleteClick(record._id)}
+                        onClick={(e) => { e.stopPropagation(); handleDeleteClick(record._id); }}
                         className="bg-red-500 border-2 border-black text-white px-3 py-1 rounded-lg hover:bg-red-600 font-bold text-sm flex items-center gap-1"
                       >
                         <Trash2 size={16} />
@@ -608,7 +617,14 @@ const CropInsuranceManagement = () => {
         {/* Mobile Card View */}
         <div className="lg:hidden p-4 space-y-4">
           {filteredRecords.map((record) => (
-            <div key={record._id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div
+              key={record._id}
+              className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm cursor-pointer"
+              onClick={() => {
+                setSelectedRecord(record)
+                setShowDetailsModal(true)
+              }}
+            >
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <h3 className="text-sm font-semibold text-gray-900">{getFarmerName(record.farmerId)}</h3>
@@ -653,9 +669,9 @@ const CropInsuranceManagement = () => {
                   </div>
                 )}
               </div>
-              <div className="flex gap-2 pt-3 border-t border-gray-200">
+              <div className="flex gap-2 pt-3 border-t border-gray-200" onClick={(e) => e.stopPropagation()}>
                 <button
-                  onClick={() => handleDownloadPdf(record)}
+                  onClick={(e) => { e.stopPropagation(); handleDownloadPdf(record); }}
                   className="bg-gray-600 border-2 border-black text-white px-3 py-2 rounded-lg hover:bg-gray-700 font-bold text-sm flex items-center justify-center gap-1"
                   title="Download PDF"
                 >
@@ -663,7 +679,8 @@ const CropInsuranceManagement = () => {
                   <span>PDF</span>
                 </button>
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation()
                     setSelectedRecord(record)
                     setShowDetailsModal(true)
                   }}
@@ -674,7 +691,8 @@ const CropInsuranceManagement = () => {
                 </button>
                 {!record.isInsured && record.canInsure && getRemainingDays(record) > 0 && (
                   <button
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation()
                       setSelectedRecord(record)
                       setShowEditModal(true)
                     }}
@@ -685,7 +703,7 @@ const CropInsuranceManagement = () => {
                   </button>
                 )}
                 <button
-                  onClick={() => handleDeleteClick(record._id)}
+                  onClick={(e) => { e.stopPropagation(); handleDeleteClick(record._id); }}
                   className="bg-red-500 border-2 border-black text-white px-3 py-2 rounded-lg hover:bg-red-600 font-bold text-sm transition-colors flex items-center justify-center gap-1"
                 >
                   <Trash2 size={16} />
