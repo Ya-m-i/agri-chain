@@ -10,6 +10,7 @@ import { initAssetOptimization } from "./utils/assetOptimization"
 import { useSocketQuery } from "./hooks/useSocketQuery"
 import { useSocketAuth } from "./hooks/useSocketAuth"
 import { initUpdateChecker, onUpdateAvailable } from "./utils/updateChecker"
+import { wakeUpBackend } from "./api"
 
 // Lazy load page components for better performance
 const Login = lazy(() => import("./pages/Login"))
@@ -197,6 +198,14 @@ function App() {
     }
   }, [isInitialized, initializeAuth, isAuthenticated])
   
+  // Keep backend warm (e.g. Render free tier): ping /api/health every 14 minutes while app is open
+  const KEEP_ALIVE_MINUTES = 14
+  useEffect(() => {
+    wakeUpBackend()
+    const intervalId = setInterval(wakeUpBackend, KEEP_ALIVE_MINUTES * 60 * 1000)
+    return () => clearInterval(intervalId)
+  }, [])
+
   // Additional effect to log socket status changes
   useEffect(() => {
     console.log('Socket.IO connection status:', isConnected ? 'Connected' : 'Disconnected')

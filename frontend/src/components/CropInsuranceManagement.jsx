@@ -244,6 +244,27 @@ const CropInsuranceManagement = () => {
 
   const toIsoDate = (v) => (v && (v instanceof Date || typeof v === "string")) ? new Date(v).toISOString() : (v || null)
 
+  /** Recursively set empty string / null / undefined to "N/A" for PCIC payload (skip binary and numeric fields). */
+  const withNaDefaults = (obj, skipKeys = new Set(['signatureImage', 'evidenceImage', 'lotArea', 'desiredAmountOfCover', 'numberOfTreesHills', 'cropArea', 'totalArea'])) => {
+    if (obj === null || obj === undefined) return 'N/A'
+    if (typeof obj === 'number' || typeof obj === 'boolean') return obj
+    if (Array.isArray(obj)) return obj.map(item => (typeof item === 'object' && item !== null && !Array.isArray(item)) ? withNaDefaults(item, skipKeys) : (item === '' || item === null || item === undefined ? 'N/A' : item))
+    if (typeof obj === 'string') return (obj === '' ? 'N/A' : obj)
+    if (typeof obj === 'object') {
+      const out = {}
+      for (const [k, v] of Object.entries(obj)) {
+        if (skipKeys.has(k)) { out[k] = v; continue }
+        if (v === null || v === undefined || v === '') { out[k] = 'N/A'; continue }
+        if (typeof v === 'number' || typeof v === 'boolean') { out[k] = v; continue }
+        if (typeof v === 'string') { out[k] = v === '' ? 'N/A' : v; continue }
+        if (Array.isArray(v)) { out[k] = v.map(el => (typeof el === 'object' && el !== null && !Array.isArray(el)) ? withNaDefaults(el, skipKeys) : (el === '' || el === null || el === undefined ? 'N/A' : el)); continue }
+        out[k] = withNaDefaults(v, skipKeys)
+      }
+      return out
+    }
+    return obj
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -253,7 +274,7 @@ const CropInsuranceManagement = () => {
     const totalAreaVal = pcicForm.totalArea != null && pcicForm.totalArea !== "" ? parseFloat(pcicForm.totalArea) : parseFloat(formData.cropArea)
     const lotAreaVal = firstLot?.lotArea != null && firstLot?.lotArea !== "" ? parseFloat(firstLot.lotArea) : parseFloat(formData.lotArea)
 
-    const pcicPayload = {
+    const pcicPayloadRaw = {
       ...pcicForm,
       dateOfApplication: toIsoDate(pcicForm.dateOfApplication) || new Date().toISOString(),
       dateOfBirth: toIsoDate(pcicForm.dateOfBirth),
@@ -271,6 +292,7 @@ const CropInsuranceManagement = () => {
         desiredAmountOfCover: lot.desiredAmountOfCover != null && lot.desiredAmountOfCover !== "" ? parseFloat(lot.desiredAmountOfCover) : undefined
       }))
     }
+    const pcicPayload = withNaDefaults(pcicPayloadRaw)
 
     const effectiveCropType = formData.cropType === "Other" ? (formData.otherCrop || "Other") : formData.cropType
     // Use string evidence only (e.g. base64 data URL); never send File/Blob so request is JSON-serializable
@@ -285,24 +307,36 @@ const CropInsuranceManagement = () => {
       plantingDate: plantingDateVal ? new Date(plantingDateVal).toISOString() : new Date().toISOString(),
       expectedHarvestDate: harvestDateVal ? new Date(harvestDateVal).toISOString() : new Date().toISOString(),
       insuranceDayLimit: parseInt(formData.insuranceDayLimit) || cropConfigurations[effectiveCropType]?.dayLimit || cropConfigurations[formData.cropType]?.dayLimit || 30,
-      notes: formData.notes,
+      notes: formData.notes != null && formData.notes !== "" ? formData.notes : "N/A",
       evidenceImage: evidenceImageSafe,
       pcicForm: pcicPayload
     }
 
+    const runCreate = () => createInsuranceMutation.mutateAsync(submissionData)
     try {
-      await createInsuranceMutation.mutateAsync(submissionData)
+      await runCreate()
       setShowAddModal(false)
       setFormData({ farmerId: "", cropType: "", otherCrop: "", cropArea: "", lotNumber: "", lotArea: "", plantingDate: "", expectedHarvestDate: "", insuranceDayLimit: "", notes: "", evidenceImage: null, location: { lat: null, lng: null } })
       setPcicForm(getEmptyPcicForm())
       delayedRefresh()
     } catch (error) {
-      console.error('Error creating crop insurance record:', error)
       const isNetworkError = !error?.message || error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Network request failed')
-      const msg = isNetworkError
-        ? 'Cannot reach server. Check: (1) Backend is running, (2) Correct API URL in .env (VITE_API_URL), (3) CORS allows this site.'
-        : (error?.message || 'Could not create record.')
-      toast.error(msg)
+      if (isNetworkError) {
+        try {
+          await runCreate()
+          setShowAddModal(false)
+          setFormData({ farmerId: "", cropType: "", otherCrop: "", cropArea: "", lotNumber: "", lotArea: "", plantingDate: "", expectedHarvestDate: "", insuranceDayLimit: "", notes: "", evidenceImage: null, location: { lat: null, lng: null } })
+          setPcicForm(getEmptyPcicForm())
+          delayedRefresh()
+          return
+        } catch (retryErr) {
+          console.error('Error creating crop insurance record (retry):', retryErr)
+          toast.error('Cannot reach server. Check connection and that the backend is reachable.')
+          return
+        }
+      }
+      console.error('Error creating crop insurance record:', error)
+      toast.error(error?.message || 'Could not create record.')
     }
   }
 
