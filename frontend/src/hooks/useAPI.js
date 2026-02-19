@@ -73,9 +73,42 @@ export const useLoginFarmer = () => {
   })
 }
 
+const ADMIN_USERS_KEY = 'adminUsers'
+
 export const useCreateAdminUser = () => {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: ({ username, password }) => api.createAdminUser(username, password),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [ADMIN_USERS_KEY] })
+    },
+  })
+}
+
+export const useAdminUsers = () => {
+  return useQuery({
+    queryKey: [ADMIN_USERS_KEY],
+    queryFn: api.fetchAdminUsers,
+  })
+}
+
+export const useDeleteAdminUser = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (userId) => api.deleteAdminUser(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [ADMIN_USERS_KEY] })
+    },
+  })
+}
+
+export const useSaveAdminProfileImage = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ userId, file }) => api.saveAdminProfileImage(userId, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [ADMIN_USERS_KEY] })
+    },
   })
 }
 

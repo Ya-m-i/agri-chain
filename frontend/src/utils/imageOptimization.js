@@ -285,6 +285,48 @@ export const compressImageFileToDataUrl = (file, maxWidth = 600, quality = 0.6) 
   });
 };
 
+/** Compress image for profile uploads (small file, fast upload). Returns a File. */
+export const compressImageForProfile = (file, maxWidth = 400, quality = 0.75) => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      let { width, height } = img;
+      if (width > maxWidth || height > maxWidth) {
+        if (width > height) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        } else {
+          width = Math.round((width * maxWidth) / height);
+          height = maxWidth;
+        }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          const out = new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg') || 'profile.jpg', {
+            type: 'image/jpeg',
+            lastModified: Date.now(),
+          });
+          resolve(out);
+        },
+        'image/jpeg',
+        quality
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    img.src = url;
+  });
+};
+
 // Image compression utility for user uploads
 export const compressImageFile = (file, quality = IMAGE_CONFIG.quality.medium) => {
   return new Promise((resolve) => {

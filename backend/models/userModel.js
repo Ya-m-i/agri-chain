@@ -16,7 +16,11 @@ const userSchema = mongoose.Schema({
     },
     name: {
         type: String
-    }
+    },
+    profileImageData: { type: Buffer },
+    profileImageType: { type: String },
+    profileImageSize: { type: Number },
+    profileImageVersion: { type: Number, default: 0 },
 },{
     timestamps: true,
 })

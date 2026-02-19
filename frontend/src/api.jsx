@@ -186,6 +186,51 @@ export const createAdminUser = async (username, password) => {
   return response;
 };
 
+/** Fetch admin users list (admin only). */
+export const fetchAdminUsers = async () => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  if (!token) throw new Error('Not authenticated. Please log in again.');
+  return await fetchWithRetry(apiUrl('/api/users/admins'), {
+    method: 'GET',
+    headers: { 'Authorization': `Bearer ${token}` },
+  }, 3, 15000);
+};
+
+/** Delete user (admin only). */
+export const deleteAdminUser = async (userId) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  if (!token) throw new Error('Not authenticated. Please log in again.');
+  return await fetchWithRetry(apiUrl(`/api/users/${userId}`), {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}` },
+  }, 3, 15000);
+};
+
+/** Save admin profile image (admin only). Pass compressed file. */
+export const saveAdminProfileImage = async (userId, file) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  if (!token) throw new Error('Not authenticated. Please log in again.');
+  const formData = new FormData();
+  formData.append('userId', userId);
+  formData.append('profileImage', file);
+  const res = await fetch(apiUrl('/api/users/profile-image'), {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}` },
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Failed to save profile image');
+  }
+  return res.json();
+};
+
+/** URL for admin profile image (use in img src; cache-bust with version). */
+export const getAdminProfileImageUrl = (userId, version) => {
+  const v = version != null ? `?v=${version}` : '';
+  return `${API_BASE_URL}/api/users/profile-image/${userId}${v}`;
+};
+
 // Claim operations without caching
 export const createClaim = async (claimData) => {
   try {
