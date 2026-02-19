@@ -313,27 +313,35 @@ const CropInsuranceManagement = () => {
     }
 
     const runCreate = () => createInsuranceMutation.mutateAsync(submissionData)
-    try {
-      await runCreate()
+    const onSuccess = () => {
       setShowAddModal(false)
       setFormData({ farmerId: "", cropType: "", otherCrop: "", cropArea: "", lotNumber: "", lotArea: "", plantingDate: "", expectedHarvestDate: "", insuranceDayLimit: "", notes: "", evidenceImage: null, location: { lat: null, lng: null } })
       setPcicForm(getEmptyPcicForm())
       delayedRefresh()
+    }
+    try {
+      await runCreate()
+      onSuccess()
     } catch (error) {
       const isNetworkError = !error?.message || error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Network request failed')
       if (isNetworkError) {
-        try {
-          await runCreate()
-          setShowAddModal(false)
-          setFormData({ farmerId: "", cropType: "", otherCrop: "", cropArea: "", lotNumber: "", lotArea: "", plantingDate: "", expectedHarvestDate: "", insuranceDayLimit: "", notes: "", evidenceImage: null, location: { lat: null, lng: null } })
-          setPcicForm(getEmptyPcicForm())
-          delayedRefresh()
-          return
-        } catch (retryErr) {
-          console.error('Error creating crop insurance record (retry):', retryErr)
-          toast.error('Cannot reach server. Check connection and that the backend is reachable.')
-          return
+        const delayMs = 8000
+        for (let attempt = 0; attempt < 2; attempt++) {
+          toast.loading('Server may be waking up. Retrying in a few seconds...', { id: 'create-retry', duration: delayMs })
+          await new Promise(r => setTimeout(r, delayMs))
+          toast.dismiss('create-retry')
+          try {
+            await runCreate()
+            onSuccess()
+            return
+          } catch (retryErr) {
+            if (attempt === 1) {
+              console.error('Error creating crop insurance record (retry):', retryErr)
+              toast.error('Cannot reach server. Check connection and that the backend is reachable.')
+            }
+          }
         }
+        return
       }
       console.error('Error creating crop insurance record:', error)
       toast.error(error?.message || 'Could not create record.')
@@ -459,6 +467,7 @@ const CropInsuranceManagement = () => {
         </button>
         <button
           onClick={() => {
+            wakeUpBackend()
             setPcicForm(getEmptyPcicForm())
             setShowAddModal(true)
           }}
