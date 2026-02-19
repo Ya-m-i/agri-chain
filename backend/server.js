@@ -85,9 +85,12 @@ const corsOptions = {
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true)
     
-    // Check if origin is allowed
-    if (allowedOrigins.includes(origin) || 
-        (process.env.NODE_ENV === 'production' && (origin.includes('ya-m-i.github.io') || origin.includes('kapalongagrichain.site')))) {
+    const isAllowedPattern = process.env.NODE_ENV === 'production' && (
+      origin.includes('ya-m-i.github.io') ||
+      origin.includes('kapalongagrichain.site') ||
+      origin.endsWith('.onrender.com')
+    )
+    if (allowedOrigins.includes(origin) || isAllowedPattern) {
       console.log('✅ CORS: Origin allowed -', origin)
       return callback(null, true)
     }
@@ -149,13 +152,16 @@ app.use((req, res, next) => {
         nodeEnv: process.env.NODE_ENV 
     })
     
-    // Always set CORS headers for production GitHub Pages and custom domain
-    if (allowedOrigins.includes(origin) || 
-        (process.env.NODE_ENV === 'production' && origin && (origin.includes('ya-m-i.github.io') || origin.includes('kapalongagrichain.site')))) {
+    // Allow: exact list, or production origins (GitHub Pages, custom domain, any Render frontend)
+    const isAllowedProductionOrigin = process.env.NODE_ENV === 'production' && origin && (
+      origin.includes('ya-m-i.github.io') ||
+      origin.includes('kapalongagrichain.site') ||
+      origin.endsWith('.onrender.com')
+    )
+    if (allowedOrigins.includes(origin) || isAllowedProductionOrigin) {
         res.setHeader('Access-Control-Allow-Origin', origin)
         console.log('✅ CORS allowed for origin:', origin)
     } else if (process.env.NODE_ENV === 'development') {
-        // More permissive for development
         res.setHeader('Access-Control-Allow-Origin', origin || '*')
     }
     

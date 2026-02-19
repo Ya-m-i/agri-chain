@@ -38,7 +38,7 @@ import {
 import { generateCropInsuranceApplicationPDF } from '../utils/cropInsuranceApplicationPdfGenerator'
 import { getCropInsuranceDetailsDisplayData } from '../utils/cropInsuranceDetailsDisplayData'
 import { toast } from 'react-hot-toast'
-import { wakeUpBackend } from '../api'
+import { wakeUpBackend, API_BASE_URL } from '../api'
 
 const CropInsuranceManagement = () => {
   // Wake backend once on mount (e.g. Render cold start) so Create is fast
@@ -337,7 +337,8 @@ const CropInsuranceManagement = () => {
           } catch (retryErr) {
             if (attempt === 1) {
               console.error('Error creating crop insurance record (retry):', retryErr)
-              toast.error('Cannot reach server. Check connection and that the backend is reachable.')
+              console.error('Backend URL:', API_BASE_URL, '– open', `${API_BASE_URL}/api/health`, 'in a new tab to verify it loads. If it does, redeploy the backend (CORS was updated to allow .onrender.com and kapalongagrichain.site).')
+              toast.error('Cannot reach server. Open DevTools Console for backend URL and CORS tips.')
             }
           }
         }
