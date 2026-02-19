@@ -37,8 +37,9 @@ import {
 } from '../hooks/useAPI'
 import { generateCropInsuranceApplicationPDF } from '../utils/cropInsuranceApplicationPdfGenerator'
 import { getCropInsuranceDetailsDisplayData } from '../utils/cropInsuranceDetailsDisplayData'
+import { compressImageFileToDataUrl } from '../utils/imageOptimization'
 import { toast } from 'react-hot-toast'
-import { wakeUpBackend, API_BASE_URL } from '../api'
+import { wakeUpBackend } from '../api'
 
 const CropInsuranceManagement = () => {
   // Wake backend once on mount (e.g. Render cold start) so Create is fast
@@ -126,6 +127,15 @@ const CropInsuranceManagement = () => {
   const [pcicForm, setPcicForm] = useState(getEmptyPcicForm())
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [recordToDelete, setRecordToDelete] = useState(null)
+  const [submitError, setSubmitError] = useState(null)
+
+  /** User-facing message for API/network errors (no console-only errors). */
+  const getErrorMessage = (error) => {
+    if (!error?.message) return 'Something went wrong. Please try again.'
+    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Network request failed')) return 'Cannot reach server. Check your connection and that the backend is running.'
+    if (error.message.includes('timeout') || error.message.includes('AbortError')) return 'Request timed out. Please try again.'
+    return error.message
+  }
 
   // Crop type configurations with day limits
   const cropConfigurations = {
@@ -314,25 +324,20 @@ const CropInsuranceManagement = () => {
 
     const runCreate = () => createInsuranceMutation.mutateAsync(submissionData)
     const onSuccess = () => {
+      setSubmitError(null)
       setShowAddModal(false)
       setFormData({ farmerId: "", cropType: "", otherCrop: "", cropArea: "", lotNumber: "", lotArea: "", plantingDate: "", expectedHarvestDate: "", insuranceDayLimit: "", notes: "", evidenceImage: null, location: { lat: null, lng: null } })
       setPcicForm(getEmptyPcicForm())
       delayedRefresh()
     }
+    setSubmitError(null)
     try {
       await runCreate()
       onSuccess()
     } catch (error) {
-      const isNetworkError = !error?.message || error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Network request failed')
-      if (isNetworkError) {
-        toast.error('Cannot reach server. Check backend is up and CORS allows this site.')
-        if (typeof console !== 'undefined' && console.error) {
-          console.error('Create failed. Backend:', API_BASE_URL)
-        }
-        return
-      }
-      console.error('Error creating crop insurance record:', error)
-      toast.error(error?.message || 'Could not create record.')
+      const message = getErrorMessage(error)
+      setSubmitError(message)
+      toast.error(message)
     }
   }
 
@@ -347,11 +352,11 @@ const CropInsuranceManagement = () => {
         }
       })
 
-      console.log('Insurance applied successfully');
-      // Trigger delayed auto-refresh (5-10 seconds)
+      toast.success('Insurance applied successfully.')
       delayedRefresh();
     } catch (error) {
-      console.error('Error applying insurance:', error)
+      const message = getErrorMessage(error)
+      toast.error(message)
     }
   }
 
@@ -365,13 +370,13 @@ const CropInsuranceManagement = () => {
 
     try {
       await deleteInsuranceMutation.mutateAsync(recordToDelete)
-      console.log('Insurance record deleted successfully');
+      toast.success('Insurance record deleted.')
       setShowDeleteConfirm(false)
       setRecordToDelete(null)
-      // Trigger delayed auto-refresh (5-10 seconds)
       delayedRefresh();
     } catch (error) {
-      console.error('Error deleting insurance record:', error)
+      const message = getErrorMessage(error)
+      toast.error(message)
     }
   }
 
@@ -447,6 +452,7 @@ const CropInsuranceManagement = () => {
         </button>
         <button
           onClick={() => {
+            setSubmitError(null)
             wakeUpBackend()
             setPcicForm(getEmptyPcicForm())
             setShowAddModal(true)
@@ -700,6 +706,16 @@ const CropInsuranceManagement = () => {
               <button type="button" className="text-black hover:bg-lime-200 rounded-full p-1" onClick={() => setShowAddModal(false)}><X size={24} /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              {submitError && (
+                <div className="rounded-lg border-2 border-red-500 bg-red-50 p-4 flex items-start gap-3" role="alert">
+                  <AlertTriangle className="flex-shrink-0 h-6 w-6 text-red-600" aria-hidden />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-red-800">Create failed</p>
+                    <p className="text-sm text-red-700 mt-1">{submitError}</p>
+                  </div>
+                  <button type="button" onClick={() => setSubmitError(null)} className="text-red-600 hover:text-red-800 p-1" aria-label="Dismiss"> <X size={18} /> </button>
+                </div>
+              )}
               {/* Top section: Crop, Application Type, Total Area, Farmer Category, Date of Application */}
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4 border-b-2 border-black pb-4">
                 <div>
@@ -865,7 +881,7 @@ const CropInsuranceManagement = () => {
                   <span className="text-sm">Deed of Assignment for borrowing farmers (If applicable)</span>
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div><label className="block text-xs font-bold mb-1">Signature / Thumb Mark (upload image)</label><input type="file" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) { const r = new FileReader(); r.onload = () => handlePcicFormChange("signatureImage", r.result); r.readAsDataURL(f) } }} className="w-full border-2 border-black p-2 rounded text-sm" />{pcicForm.signatureImage && <img src={pcicForm.signatureImage} alt="Signature" className="mt-2 h-16 object-contain border border-black rounded" />}</div>
+                  <div><label className="block text-xs font-bold mb-1">Signature / Thumb Mark (upload image)</label><input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { const dataUrl = await compressImageFileToDataUrl(f, 600, 0.6); handlePcicFormChange("signatureImage", dataUrl); } catch { const r = new FileReader(); r.onload = () => handlePcicFormChange("signatureImage", r.result); r.readAsDataURL(f); } } }} className="w-full border-2 border-black p-2 rounded text-sm" />{pcicForm.signatureImage && <img src={pcicForm.signatureImage} alt="Signature" className="mt-2 h-16 object-contain border border-black rounded" />}</div>
                   <div><label className="block text-xs font-bold mb-1">Date</label><input type="date" value={pcicForm.certificationDate ? (typeof pcicForm.certificationDate === "string" && pcicForm.certificationDate.length <= 10 ? pcicForm.certificationDate : new Date(pcicForm.certificationDate).toISOString().slice(0, 10)) : ""} onChange={(e) => handlePcicFormChange("certificationDate", e.target.value)} className="w-full border-2 border-black p-2 rounded text-sm" /></div>
                 </div>
               </div>

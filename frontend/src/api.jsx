@@ -267,8 +267,8 @@ export const deleteAssistance = async (assistanceId) => {
 };
 
 // Crop insurance operations without caching
-// Max size for base64 evidence to avoid timeouts/proxy drops (e.g. 800KB)
-const MAX_EVIDENCE_LENGTH = 800 * 1024;
+// Keep images small so request succeeds (proxy/timeout limits). Frontend compresses before send.
+const MAX_EVIDENCE_LENGTH = 300 * 1024; // 300KB
 
 export const createCropInsurance = async (cropInsuranceData) => {
   const sanitized = { ...cropInsuranceData };
@@ -277,6 +277,10 @@ export const createCropInsurance = async (cropInsuranceData) => {
   }
   if (typeof sanitized.evidenceImage === 'string' && sanitized.evidenceImage.length > MAX_EVIDENCE_LENGTH) {
     sanitized.evidenceImage = null;
+  }
+  // Cap signature image inside pcicForm (same size limit)
+  if (sanitized.pcicForm?.signatureImage && typeof sanitized.pcicForm.signatureImage === 'string' && sanitized.pcicForm.signatureImage.length > MAX_EVIDENCE_LENGTH) {
+    sanitized.pcicForm = { ...sanitized.pcicForm, signatureImage: null };
   }
   let body;
   try {

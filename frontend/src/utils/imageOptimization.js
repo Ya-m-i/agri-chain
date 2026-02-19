@@ -250,6 +250,41 @@ export const preloadCriticalImages = (imageUrls) => {
   });
 };
 
+/** Compress image file to a data URL for JSON payloads (e.g. crop insurance). Keeps request small. */
+export const compressImageFileToDataUrl = (file, maxWidth = 600, quality = 0.6) => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      let { width, height } = img;
+      if (width > maxWidth || height > maxWidth) {
+        if (width > height) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        } else {
+          width = Math.round((width * maxWidth) / height);
+          height = maxWidth;
+        }
+      }
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+      resolve(dataUrl);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(file);
+    };
+    img.src = url;
+  });
+};
+
 // Image compression utility for user uploads
 export const compressImageFile = (file, quality = IMAGE_CONFIG.quality.medium) => {
   return new Promise((resolve) => {
