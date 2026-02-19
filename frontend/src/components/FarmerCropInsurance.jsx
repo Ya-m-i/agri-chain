@@ -18,41 +18,41 @@ import {
   Crop,
   Timer,
   Info,
+  RefreshCw,
 } from "lucide-react"
 import {
   useCropInsurance,
   useCreateCropInsurance
 } from '../hooks/useAPI'
-// Note: Notifications are now handled by backend API
 import { useAuthStore } from '../store/authStore'
+import { toast } from 'react-hot-toast'
+import PcicFormContent from './PcicFormContent'
 
 const FarmerCropInsurance = () => {
   const { user } = useAuthStore()
   
-  // React Query hooks
   const { data: cropInsuranceRecords = [], isLoading: loading, refetch: refetchInsurance } = useCropInsurance(user?._id)
   const createInsuranceMutation = useCreateCropInsurance()
 
-  // Delayed auto-refresh function (5-10 seconds after action)
   const delayedRefresh = () => {
-    const delay = Math.random() * 5000 + 5000 // Random delay between 5-10 seconds
+    const delay = Math.random() * 5000 + 5000
     setTimeout(async () => {
       try {
-        await refetchInsurance();
-        console.log('Table data refreshed after action');
-      } catch (error) {
-        console.error('Error refreshing data:', error);
+        await refetchInsurance()
+      } catch {
+        // ignore
       }
-    }, delay);
+    }, delay)
   }
   
-  // Local state
   const [searchQuery, setSearchQuery] = useState("")
   const [showAddModal, setShowAddModal] = useState(false)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [selectedRecord, setSelectedRecord] = useState(null)
+  const [submitError, setSubmitError] = useState(null)
   const [formData, setFormData] = useState({
     cropType: "",
+    otherCrop: "",
     cropArea: "",
     lotNumber: "",
     lotArea: "",
@@ -60,11 +60,40 @@ const FarmerCropInsurance = () => {
     expectedHarvestDate: "",
     insuranceDayLimit: "",
     notes: "",
-    location: {
-      lat: null,
-      lng: null
-    }
+    evidenceImage: null,
+    location: { lat: null, lng: null }
   })
+
+  const getEmptyPcicForm = () => ({
+    applicationType: "New Application",
+    totalArea: "",
+    farmerCategory: "Self-Financed",
+    lender: "",
+    dateOfApplication: "",
+    applicantName: { lastName: "", firstName: "", middleName: "", suffix: "" },
+    address: { street: "", barangay: "", municipality: "", province: "" },
+    contactNumber: "",
+    dateOfBirth: "",
+    sex: "",
+    specialSector: [],
+    tribe: "",
+    civilStatus: "",
+    spouseName: "",
+    beneficiary: {
+      primary: { lastName: "", firstName: "", middleName: "", suffix: "", relationship: "", birthdate: "" },
+      guardian: { lastName: "", firstName: "", middleName: "", suffix: "", relationship: "", birthdate: "" }
+    },
+    indemnityPaymentOption: "",
+    indemnityOther: "",
+    lots: [{ farmLocation: { street: "", barangay: "", municipality: "", province: "" }, boundaries: { north: "", east: "", south: "", west: "" }, geoRefId: "", variety: "", plantingMethod: "", dateOfSowing: "", dateOfPlanting: "", dateOfHarvest: "", numberOfTreesHills: "", landCategory: "", tenurialStatus: "", desiredAmountOfCover: "", lotArea: "" }],
+    certificationConsent: false,
+    deedOfAssignmentConsent: false,
+    signatureImage: null,
+    certificationDate: "",
+    sourceOfPremium: [],
+    sourceOfPremiumOther: ""
+  })
+  const [pcicForm, setPcicForm] = useState(getEmptyPcicForm())
 
   // Crop type configurations with day limits
   const cropConfigurations = {
@@ -83,58 +112,152 @@ const FarmerCropInsurance = () => {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
   }
 
+  const getErrorMessage = (error) => {
+    if (!error?.message) return 'Something went wrong. Please try again.'
+    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Network request failed')) return 'Cannot reach server. Check your connection and that the backend is running.'
+    if (error.message.includes('timeout') || error.message.includes('AbortError')) return 'Request timed out. Please try again.'
+    return error.message
+  }
+
+  const toIsoDate = (v) => (v && (v instanceof Date || typeof v === "string")) ? new Date(v).toISOString() : (v || null)
+
+  const withNaDefaults = (obj, skipKeys = new Set(['signatureImage', 'evidenceImage', 'lotArea', 'desiredAmountOfCover', 'numberOfTreesHills', 'cropArea', 'totalArea'])) => {
+    if (obj === null || obj === undefined) return 'N/A'
+    if (typeof obj === 'number' || typeof obj === 'boolean') return obj
+    if (Array.isArray(obj)) return obj.map(item => (typeof item === 'object' && item !== null && !Array.isArray(item)) ? withNaDefaults(item, skipKeys) : (item === '' || item === null || item === undefined ? 'N/A' : item))
+    if (typeof obj === 'string') return (obj === '' ? 'N/A' : obj)
+    if (typeof obj === 'object') {
+      const out = {}
+      for (const [k, v] of Object.entries(obj)) {
+        if (skipKeys.has(k)) { out[k] = v; continue }
+        if (v === null || v === undefined || v === '') { out[k] = 'N/A'; continue }
+        if (typeof v === 'number' || typeof v === 'boolean') { out[k] = v; continue }
+        if (typeof v === 'string') { out[k] = v === '' ? 'N/A' : v; continue }
+        if (Array.isArray(v)) { out[k] = v.map(el => (typeof el === 'object' && el !== null && !Array.isArray(el)) ? withNaDefaults(el, skipKeys) : (el === '' || el === null || el === undefined ? 'N/A' : el)); continue }
+        out[k] = withNaDefaults(v, skipKeys)
+      }
+      return out
+    }
+    return obj
+  }
+
   const handleFormChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+    setFormData(prev => {
+      const next = { ...prev, [name]: value }
+      if (name === 'cropType' && cropConfigurations[value]) {
+        next.insuranceDayLimit = cropConfigurations[value].dayLimit.toString()
+      }
+      return next
+    })
+  }
 
-    // Auto-set day limit when crop type changes
-    if (name === 'cropType' && cropConfigurations[value]) {
-      setFormData(prev => ({
-        ...prev,
-        cropType: value,
-        insuranceDayLimit: cropConfigurations[value].dayLimit.toString()
-      }))
-    }
+  const handlePcicFormChange = (path, value) => {
+    const parts = path.split(".")
+    setPcicForm(prev => {
+      const next = { ...prev }
+      let cur = next
+      for (let i = 0; i < parts.length - 1; i++) {
+        const key = parts[i]
+        const isArray = key === "lots" || key === "specialSector" || key === "sourceOfPremium"
+        if (isArray && !Array.isArray(cur[key])) cur[key] = [...(cur[key] || [])]
+        else if (typeof cur[key] !== "object" || cur[key] === null) cur[key] = {}
+        cur = cur[key]
+      }
+      cur[parts[parts.length - 1]] = value
+      return next
+    })
+  }
+
+  const handlePcicLotChange = (lotIndex, field, value) => {
+    setPcicForm(prev => {
+      const lots = [...(prev.lots || [])]
+      if (!lots[lotIndex]) lots[lotIndex] = { farmLocation: {}, boundaries: { north: "", east: "", south: "", west: "" }, geoRefId: "", variety: "", plantingMethod: "", dateOfSowing: "", dateOfPlanting: "", dateOfHarvest: "", numberOfTreesHills: "", landCategory: "", tenurialStatus: "", desiredAmountOfCover: "", lotArea: "" }
+      const lot = { ...lots[lotIndex] }
+      if (field.startsWith("farmLocation.")) {
+        lot.farmLocation = { ...lot.farmLocation, [field.split(".")[1]]: value }
+      } else if (field.startsWith("boundaries.")) {
+        lot.boundaries = { ...lot.boundaries, [field.split(".")[1]]: value }
+      } else {
+        lot[field] = value
+      }
+      lots[lotIndex] = lot
+      return { ...prev, lots }
+    })
+  }
+
+  const handleAddLot = () => {
+    setPcicForm(prev => ({
+      ...prev,
+      lots: [...(prev.lots || []), { farmLocation: { street: "", barangay: "", municipality: "", province: "" }, boundaries: { north: "", east: "", south: "", west: "" }, geoRefId: "", variety: "", plantingMethod: "", dateOfSowing: "", dateOfPlanting: "", dateOfHarvest: "", numberOfTreesHills: "", landCategory: "", tenurialStatus: "", desiredAmountOfCover: "", lotArea: "" }]
+    }))
+  }
+
+  const handleRemoveLot = (index) => {
+    if ((pcicForm.lots || []).length <= 1) return
+    setPcicForm(prev => ({ ...prev, lots: prev.lots.filter((_, i) => i !== index) }))
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!user?._id) return
-    
+
+    const firstLot = pcicForm.lots && pcicForm.lots[0] ? pcicForm.lots[0] : null
+    const plantingDateVal = firstLot?.dateOfPlanting || firstLot?.dateOfSowing || formData.plantingDate
+    const harvestDateVal = firstLot?.dateOfHarvest || formData.expectedHarvestDate
+    const totalAreaVal = pcicForm.totalArea != null && pcicForm.totalArea !== "" ? parseFloat(pcicForm.totalArea) : parseFloat(formData.cropArea)
+    const lotAreaVal = firstLot?.lotArea != null && firstLot?.lotArea !== "" ? parseFloat(firstLot.lotArea) : parseFloat(formData.lotArea)
+
+    const pcicPayloadRaw = {
+      ...pcicForm,
+      dateOfApplication: toIsoDate(pcicForm.dateOfApplication) || new Date().toISOString(),
+      dateOfBirth: toIsoDate(pcicForm.dateOfBirth),
+      certificationDate: toIsoDate(pcicForm.certificationDate),
+      beneficiary: pcicForm.beneficiary ? {
+        primary: { ...pcicForm.beneficiary.primary, birthdate: toIsoDate(pcicForm.beneficiary.primary?.birthdate) },
+        guardian: { ...pcicForm.beneficiary.guardian, birthdate: toIsoDate(pcicForm.beneficiary.guardian?.birthdate) }
+      } : undefined,
+      lots: (pcicForm.lots || []).map(lot => ({
+        ...lot,
+        dateOfSowing: toIsoDate(lot.dateOfSowing),
+        dateOfPlanting: toIsoDate(lot.dateOfPlanting),
+        dateOfHarvest: toIsoDate(lot.dateOfHarvest),
+        lotArea: lot.lotArea != null && lot.lotArea !== "" ? parseFloat(lot.lotArea) : undefined,
+        desiredAmountOfCover: lot.desiredAmountOfCover != null && lot.desiredAmountOfCover !== "" ? parseFloat(lot.desiredAmountOfCover) : undefined
+      }))
+    }
+    const pcicPayload = withNaDefaults(pcicPayloadRaw)
+
+    const effectiveCropType = formData.cropType === "Other" ? (formData.otherCrop || "Other") : formData.cropType
+    const evidenceValue = formData.evidenceImage ?? pcicForm.signatureImage ?? null
+    const evidenceImageSafe = evidenceValue != null && typeof evidenceValue === 'string' ? evidenceValue : null
+    const submissionData = {
+      farmerId: user._id,
+      cropType: effectiveCropType,
+      cropArea: totalAreaVal,
+      lotNumber: formData.lotNumber || "Lot 1",
+      lotArea: lotAreaVal,
+      plantingDate: plantingDateVal ? new Date(plantingDateVal).toISOString() : new Date().toISOString(),
+      expectedHarvestDate: harvestDateVal ? new Date(harvestDateVal).toISOString() : new Date().toISOString(),
+      insuranceDayLimit: parseInt(formData.insuranceDayLimit) || cropConfigurations[effectiveCropType]?.dayLimit || cropConfigurations[formData.cropType]?.dayLimit || 30,
+      notes: formData.notes != null && formData.notes !== "" ? formData.notes : "N/A",
+      evidenceImage: evidenceImageSafe,
+      pcicForm: pcicPayload
+    }
+
+    setSubmitError(null)
     try {
-      await createInsuranceMutation.mutateAsync({
-        ...formData,
-        farmerId: user._id,
-        cropArea: parseFloat(formData.cropArea),
-        lotArea: parseFloat(formData.lotArea),
-        insuranceDayLimit: parseInt(formData.insuranceDayLimit),
-        plantingDate: new Date(formData.plantingDate).toISOString(),
-        expectedHarvestDate: new Date(formData.expectedHarvestDate).toISOString()
-      })
-
+      await createInsuranceMutation.mutateAsync(submissionData)
+      setSubmitError(null)
       setShowAddModal(false)
-      setFormData({
-        cropType: "",
-        cropArea: "",
-        lotNumber: "",
-        lotArea: "",
-        plantingDate: "",
-        expectedHarvestDate: "",
-        insuranceDayLimit: "",
-        notes: "",
-        location: { lat: null, lng: null }
-      })
-
-      console.log('Crop insurance application submitted');
-      // Note: Notifications are now created by backend API automatically
-      // Trigger delayed auto-refresh (5-10 seconds)
-      delayedRefresh();
+      setFormData({ cropType: "", otherCrop: "", cropArea: "", lotNumber: "", lotArea: "", plantingDate: "", expectedHarvestDate: "", insuranceDayLimit: "", notes: "", evidenceImage: null, location: { lat: null, lng: null } })
+      setPcicForm(getEmptyPcicForm())
+      delayedRefresh()
+      toast.success('Crop insurance application submitted.')
     } catch (error) {
-      console.error('Error submitting crop insurance:', error);
-      // Note: Notifications are now created by backend API automatically
+      const message = getErrorMessage(error)
+      setSubmitError(message)
+      toast.error(message)
     }
   }
 
@@ -186,84 +309,59 @@ const FarmerCropInsurance = () => {
       return dateB - dateA // Descending order (newest first)
     })
 
-  const stats = {
-    totalCrops: cropInsuranceRecords.length,
-    insuredCrops: cropInsuranceRecords.filter(r => r.isInsured).length,
-    uninsuredCrops: cropInsuranceRecords.filter(r => !r.isInsured).length,
-    expiredCrops: cropInsuranceRecords.filter(r => !r.canInsure && !r.isInsured).length
-  }
-
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">My Crop Insurance</h2>
-          <p className="text-gray-600">Manage your crop insurance records with day limits</p>
+      {/* Single toolbar: My crop insurance, search, Add New Crop, Refresh */}
+      <div className="flex flex-wrap items-center gap-3">
+        <h2 className="text-xl font-bold text-gray-800">My crop insurance</h2>
+        <div className="relative flex-1 min-w-[180px] max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <input
+            type="text"
+            placeholder="Search by crop type..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          />
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
-          className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700"
+          onClick={() => {
+            setSubmitError(null)
+            if (user) {
+              setPcicForm(prev => ({
+                ...prev,
+                applicantName: {
+                  lastName: user.lastName || "",
+                  firstName: user.firstName || "",
+                  middleName: user.middleName || "",
+                  suffix: ""
+                },
+                address: {
+                  street: user.address || "",
+                  barangay: prev.address?.barangay || "",
+                  municipality: prev.address?.municipality || "",
+                  province: prev.address?.province || ""
+                },
+                contactNumber: user.contactNum || "",
+                dateOfBirth: user.birthday || "",
+                sex: user.gender === "Male" || user.gender === "Female" ? user.gender : ""
+              }))
+            }
+            setShowAddModal(true)
+          }}
+          className="bg-lime-400 text-black px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-lime-500 transition-colors"
         >
           <Plus size={20} />
           Add New Crop
         </button>
-      </div>
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-lime-50 p-4 rounded-xl shadow-md text-black">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-black">Total Crops</p>
-              <p className="text-2xl font-bold text-black">{stats.totalCrops}</p>
-            </div>
-            <Crop className="text-green-600" size={24} />
-          </div>
-        </div>
-        <div className="bg-lime-50 p-4 rounded-xl shadow-md text-black">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-black">Insured Crops</p>
-              <p className="text-2xl font-bold text-green-600">{stats.insuredCrops}</p>
-            </div>
-            <Shield className="text-green-600" size={24} />
-          </div>
-        </div>
-        <div className="bg-lime-50 p-4 rounded-xl shadow-md text-black">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-black">Uninsured Crops</p>
-              <p className="text-2xl font-bold text-yellow-600">{stats.uninsuredCrops}</p>
-            </div>
-            <AlertTriangle className="text-yellow-600" size={24} />
-          </div>
-        </div>
-        <div className="bg-lime-50 p-4 rounded-xl shadow-md text-black">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-black">Expired Insurance</p>
-              <p className="text-2xl font-bold text-red-600">{stats.expiredCrops}</p>
-            </div>
-            <X className="text-red-600" size={24} />
-          </div>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="flex items-center gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Search by crop type..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-          </div>
-        </div>
+        <button
+          onClick={() => refetchInsurance()}
+          className="bg-lime-400 text-black px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-lime-500 transition-colors"
+          aria-label="Refresh data"
+        >
+          <RefreshCw size={20} />
+          Refresh
+        </button>
       </div>
 
       {/* Records Table */}
@@ -421,152 +519,41 @@ const FarmerCropInsurance = () => {
         </div>
       </div>
 
-      {/* Add New Crop Modal */}
+      {/* Add New Crop Modal — PCIC application form (same as admin) */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-5 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-lime-50 rounded-xl shadow-md text-black p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-black">Add New Crop Insurance Record</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl text-black w-[80vw] max-w-5xl h-[80vh] flex flex-col overflow-hidden">
+            <div className="flex justify-between items-center px-6 py-3 border-b border-gray-200 bg-lime-50 shrink-0">
+              <h3 className="text-lg font-semibold text-black">PHILIPPINE CROP INSURANCE CORPORATION — APPLICATION FOR CROP INSURANCE</h3>
               <button
-                onClick={() => setShowAddModal(false)}
-                className="text-black hover:text-gray-700"
+                type="button"
+                onClick={() => { setShowAddModal(false); setSubmitError(null); }}
+                className="text-black hover:text-gray-700 p-1"
+                aria-label="Close"
               >
                 <X size={24} />
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-black mb-1">
-                    Crop Type
-                  </label>
-                  <select
-                    name="cropType"
-                    value={formData.cropType}
-                    onChange={handleFormChange}
-                    required
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="">Select Crop Type</option>
-                    {Object.keys(cropConfigurations).map((crop) => (
-                      <option key={crop} value={crop}>
-                        {crop} ({cropConfigurations[crop].dayLimit} days)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black mb-1">
-                    Crop Area (hectares)
-                  </label>
-                  <input
-                    type="number"
-                    name="cropArea"
-                    value={formData.cropArea}
-                    onChange={handleFormChange}
-                    required
-                    step="0.01"
-                    placeholder="e.g., 5.0"
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black mb-1">
-                    Lot Number
-                  </label>
-                  <input
-                    type="text"
-                    name="lotNumber"
-                    value={formData.lotNumber}
-                    onChange={handleFormChange}
-                    required
-                    placeholder="e.g., Lot 1 or A-1"
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black mb-1">
-                    Lot Area (hectares)
-                  </label>
-                  <input
-                    type="number"
-                    name="lotArea"
-                    value={formData.lotArea}
-                    onChange={handleFormChange}
-                    required
-                    step="0.01"
-                    placeholder="e.g., 2.5"
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black mb-1">
-                    Insurance Day Limit
-                  </label>
-                  <input
-                    type="number"
-                    name="insuranceDayLimit"
-                    value={formData.insuranceDayLimit}
-                    onChange={handleFormChange}
-                    required
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black mb-1">
-                    Planting Date
-                  </label>
-                  <input
-                    type="date"
-                    name="plantingDate"
-                    value={formData.plantingDate}
-                    onChange={handleFormChange}
-                    required
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-black mb-1">
-                    Expected Harvest Date
-                  </label>
-                  <input
-                    type="date"
-                    name="expectedHarvestDate"
-                    value={formData.expectedHarvestDate}
-                    onChange={handleFormChange}
-                    required
-                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-              </div>
-              <div>
-                  <label className="block text-sm font-medium text-black mb-1">
-                    Notes
-                  </label>
-                <textarea
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleFormChange}
-                  rows="3"
-                  placeholder="Add any additional notes or remarks about this crop insurance record..."
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-6">
+                <PcicFormContent
+                  formData={formData}
+                  setFormData={setFormData}
+                  pcicForm={pcicForm}
+                  setPcicForm={setPcicForm}
+                  handleFormChange={handleFormChange}
+                  handlePcicFormChange={handlePcicFormChange}
+                  handlePcicLotChange={handlePcicLotChange}
+                  handleAddLot={handleAddLot}
+                  handleRemoveLot={handleRemoveLot}
+                  cropConfigurations={cropConfigurations}
+                  farmers={[]}
+                  showFarmerSelector={false}
+                  submitError={submitError}
+                  setSubmitError={setSubmitError}
+                  loading={createInsuranceMutation.isPending}
+                  onCancel={() => { setShowAddModal(false); setSubmitError(null); }}
                 />
-              </div>
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
-                >
-                  {loading ? 'Creating...' : 'Create Record'}
-                </button>
               </div>
             </form>
           </div>
