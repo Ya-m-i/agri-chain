@@ -14,9 +14,14 @@ const {
 } = require('../controller/userController')
 const { protect } = require('../middleware/authMiddleware')
 
+const ALLOWED_MIMES = ['image/jpeg', 'image/jpg', 'image/png']
 const imageUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 3 * 1024 * 1024 }, // 3MB (frontend compresses before upload)
+  fileFilter: (req, file, cb) => {
+    if (ALLOWED_MIMES.includes(file.mimetype)) return cb(null, true)
+    cb(new Error('Profile image must be PNG or JPG/JPEG'))
+  },
 })
 
 router.post('/', registerUser)

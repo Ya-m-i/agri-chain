@@ -1,11 +1,13 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { User, Key, Save, Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react"
+import { User, Key, Save, Eye, EyeOff, AlertCircle, CheckCircle, UserCircle } from "lucide-react"
 import { useAuthStore } from "../store/authStore"
-import { getUserProfile, updateUserProfile } from "../api"
+import { getUserProfile, updateUserProfile, getAdminProfileImageUrl, saveAdminProfileImage } from "../api"
 import { validatePassword } from "../utils/passwordValidator"
 import PasswordStrengthMeter from "./PasswordStrengthMeter"
+import { compressImageForProfile } from "../utils/imageOptimization"
+import { toast } from "react-hot-toast"
 
 const AdminProfile = () => {
   const { user } = useAuthStore()
@@ -13,7 +15,12 @@ const AdminProfile = () => {
     username: "",
     name: "",
     role: "",
+    profileImageVersion: 0,
   })
+  const [profileImageFile, setProfileImageFile] = useState(null)
+  const [profileImagePreview, setProfileImagePreview] = useState(null)
+  const [profileSavingImage, setProfileSavingImage] = useState(false)
+  const [profileImageLoadFailed, setProfileImageLoadFailed] = useState(false)
   const [formData, setFormData] = useState({
     username: "",
     name: "",
@@ -34,11 +41,12 @@ const AdminProfile = () => {
       const token = localStorage.getItem("token") || ""
       
       // If we have user data from auth store, use it
-      if (user && user.id) {
+      if (user && (user.id || user._id)) {
         setProfile({
           username: user.username || "",
           name: user.name || user.username || "",
           role: user.role || "admin",
+          profileImageVersion: user.profileImageVersion ?? 0,
         })
         setFormData({
           username: user.username || "",
@@ -57,6 +65,7 @@ const AdminProfile = () => {
           username: profileData.username || "",
           name: profileData.name || profileData.username || "",
           role: profileData.role || "admin",
+          profileImageVersion: profileData.profileImageVersion ?? 0,
         })
         setFormData({
           username: profileData.username || "",
@@ -73,6 +82,7 @@ const AdminProfile = () => {
           username: user.username || "",
           name: user.name || user.username || "",
           role: user.role || "admin",
+          profileImageVersion: user.profileImageVersion ?? 0,
         })
         setFormData({
           username: user.username || "",
@@ -98,6 +108,47 @@ const AdminProfile = () => {
     }))
     setError("")
     setSuccess("")
+  }
+
+  const currentUserId = user?.id ?? user?._id
+
+  const handleProfileImageSelect = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5MB.")
+      return
+    }
+    try {
+      const compressed = await compressImageForProfile(file, 400, 0.75)
+      setProfileImageFile(compressed)
+      const url = URL.createObjectURL(compressed)
+      if (profileImagePreview && profileImagePreview.startsWith("blob:")) URL.revokeObjectURL(profileImagePreview)
+      setProfileImagePreview(url)
+    } catch {
+      setProfileImageFile(file)
+      setProfileImagePreview(URL.createObjectURL(file))
+    }
+  }
+
+  const saveProfileImageToServer = async () => {
+    if (!currentUserId || !profileImageFile) return
+    setProfileSavingImage(true)
+    try {
+      const res = await saveAdminProfileImage(currentUserId, profileImageFile)
+      const newVersion = res?.version ?? (profile.profileImageVersion || 0) + 1
+      setProfile((prev) => ({ ...prev, profileImageVersion: newVersion }))
+      useAuthStore.getState().updateUser({ profileImageVersion: newVersion })
+      setProfileImageFile(null)
+      if (profileImagePreview && profileImagePreview.startsWith("blob:")) URL.revokeObjectURL(profileImagePreview)
+      setProfileImagePreview(null)
+      setProfileImageLoadFailed(false)
+      toast.success("Profile picture saved.")
+    } catch (err) {
+      toast.error(err?.message || "Failed to save profile image")
+    } finally {
+      setProfileSavingImage(false)
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -239,6 +290,42 @@ const AdminProfile = () => {
               <p className="text-lg font-semibold text-gray-800">{profile.name}</p>
             </div>
           )}
+        </div>
+
+        {/* Profile picture */}
+        <div className="mb-6 p-4 bg-gray-50 border-2 border-gray-200 rounded-lg">
+          <h4 className="text-sm font-semibold text-gray-800 mb-3">Profile picture</h4>
+          <div className="flex flex-col items-center gap-3">
+            {(profileImagePreview || (profile.profileImageVersion > 0 && !profileImageLoadFailed && currentUserId)) ? (
+              <img
+                src={profileImagePreview || getAdminProfileImageUrl(currentUserId, profile.profileImageVersion)}
+                alt="Profile"
+                className="h-24 w-24 rounded-full object-cover border-2 border-gray-300"
+                onError={() => setProfileImageLoadFailed(true)}
+              />
+            ) : (
+              <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300">
+                <UserCircle className="h-12 w-12 text-gray-500" />
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/jpg"
+              onChange={handleProfileImageSelect}
+              className="w-full text-sm border-2 border-gray-300 p-2 rounded-lg"
+            />
+            <p className="text-xs text-gray-500">PNG or JPG, max 5MB.</p>
+            {profileImageFile && (
+              <button
+                type="button"
+                onClick={saveProfileImageToServer}
+                disabled={profileSavingImage}
+                className="w-full bg-lime-600 text-white py-2 rounded-lg font-semibold hover:bg-lime-700 disabled:opacity-50"
+              >
+                {profileSavingImage ? "Saving…" : "Save profile picture"}
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Update Form */}

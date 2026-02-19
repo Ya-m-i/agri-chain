@@ -45,6 +45,9 @@ const AdminUserCreation = () => {
   // Delete modal state
   const [deleteModalAdmin, setDeleteModalAdmin] = useState(null)
 
+  // Track which profile images failed to load (show placeholder instead of broken img)
+  const [profileImageLoadFailed, setProfileImageLoadFailed] = useState(new Set())
+
   const createAdminMutation = useCreateAdminUser()
   const { data: adminUsers = [], isLoading: adminUsersLoading, refetch: refetchAdmins } = useAdminUsers()
   const deleteAdminMutation = useDeleteAdminUser()
@@ -103,6 +106,11 @@ const AdminUserCreation = () => {
     setProfileConfirmPassword("")
     setProfilePasswordError(null)
     setProfileConfirmError(null)
+    setProfileImageLoadFailed((prev) => {
+      const next = new Set(prev)
+      next.delete(admin._id)
+      return next
+    })
   }
 
   const closeProfileModal = () => {
@@ -143,7 +151,16 @@ const AdminUserCreation = () => {
       setProfileImageFile(null)
       if (profileImagePreview && profileImagePreview.startsWith("blob:")) URL.revokeObjectURL(profileImagePreview)
       setProfileImagePreview(null)
-      refetchAdmins()
+      const { data: updatedList } = await refetchAdmins()
+      if (updatedList && profileModalAdmin) {
+        const updated = updatedList.find((a) => a._id === profileModalAdmin._id)
+        if (updated) setProfileModalAdmin(updated)
+        setProfileImageLoadFailed((prev) => {
+          const next = new Set(prev)
+          next.delete(profileModalAdmin._id)
+          return next
+        })
+      }
     } catch (err) {
       toast.error(err?.message || "Failed to save profile image")
     } finally {
@@ -322,11 +339,12 @@ const AdminUserCreation = () => {
                           onClick={() => openProfileModal(admin)}
                           className="flex items-center gap-2 focus:outline-none"
                         >
-                          {admin.profileImageVersion != null && admin.profileImageVersion > 0 ? (
+                          {admin.profileImageVersion != null && admin.profileImageVersion > 0 && !profileImageLoadFailed.has(admin._id) ? (
                             <img
                               src={getAdminProfileImageUrl(admin._id, admin.profileImageVersion)}
                               alt=""
                               className="h-12 w-12 rounded-full object-cover border-2 border-black"
+                              onError={() => setProfileImageLoadFailed((prev) => new Set(prev).add(admin._id))}
                             />
                           ) : (
                             <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center border-2 border-black">
@@ -388,11 +406,12 @@ const AdminUserCreation = () => {
                   <h4 className="text-sm font-black text-black uppercase">Profile picture</h4>
                 </div>
                 <div className="flex flex-col items-center gap-3">
-                  {(profileImagePreview || (profileModalAdmin.profileImageVersion != null && profileModalAdmin.profileImageVersion > 0)) ? (
+                  {(profileImagePreview || (profileModalAdmin.profileImageVersion != null && profileModalAdmin.profileImageVersion > 0 && !profileImageLoadFailed.has(profileModalAdmin._id))) ? (
                     <img
                       src={profileImagePreview || getAdminProfileImageUrl(profileModalAdmin._id, profileModalAdmin.profileImageVersion)}
                       alt="Profile"
                       className="h-24 w-24 rounded-full object-cover border-2 border-black"
+                      onError={() => setProfileImageLoadFailed((prev) => new Set(prev).add(profileModalAdmin._id))}
                     />
                   ) : (
                     <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center border-2 border-black">
@@ -401,11 +420,11 @@ const AdminUserCreation = () => {
                   )}
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/png,image/jpeg,image/jpg"
                     onChange={handleProfileImageSelect}
                     className="w-full text-sm border-2 border-black p-2 rounded-lg"
                   />
-                  <p className="text-xs text-gray-500">Image is compressed for faster upload (max 400px, JPEG).</p>
+                  <p className="text-xs text-gray-500">PNG or JPG, max 5MB. Image is compressed for faster upload.</p>
                   {profileImageFile && (
                     <button
                       type="button"

@@ -87,9 +87,11 @@ const Login = () => {
         // Map backend user data to auth store structure
         const userData = {
           id: user._id || user.id,
+          _id: user._id || user.id,
           name: user.name || user.username,
           username: user.username,
           role: user.role,
+          profileImageVersion: user.profileImageVersion ?? 0,
         };
         
         console.log('Login: Admin credentials validated, logging in...');

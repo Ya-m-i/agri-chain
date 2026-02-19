@@ -61,7 +61,7 @@ const loginUser = asyncHandler(async (req, res) => {
     // Optimize: Only fetch essential fields for login
     // Use lean() for faster query (returns plain JS object, no Mongoose overhead)
     const user = await User.findOne({ username })
-        .select('_id username password role name')
+        .select('_id username password role name profileImageVersion')
         .lean()
 
     if(user && (await bcrypt.compare(password, user.password))) {
@@ -72,6 +72,7 @@ const loginUser = asyncHandler(async (req, res) => {
             username: user.username,
             role: user.role || 'user',
             name: user.name || user.username,
+            profileImageVersion: user.profileImageVersion ?? 0,
             token: generateToken(user._id)
         })
     }else{
@@ -84,7 +85,7 @@ const loginUser = asyncHandler(async (req, res) => {
 // @route GET /api/users/me
 // @access private
 const getMe = asyncHandler(async (req, res) => {
-    const user = await User.findById(req.user.id).select('-password')
+    const user = await User.findById(req.user.id).select('-password').lean()
 
     res.status(200).json({
         _id: user._id,
@@ -92,6 +93,7 @@ const getMe = asyncHandler(async (req, res) => {
         username: user.username,
         role: user.role || 'user',
         name: user.name || user.username,
+        profileImageVersion: user.profileImageVersion ?? 0,
     })
 })
 
