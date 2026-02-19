@@ -1569,12 +1569,6 @@ const AdminDashboard = () => {
     currentPage * itemsPerPage
   )
 
-  // Debug logging for current items
-  useEffect(() => {
-    console.log('AdminDashboard: Current items for page', currentPage, ':', currentItems.length);
-    console.log('AdminDashboard: Total pages:', totalPages);
-  }, [currentItems, currentPage, totalPages]);
-
   // Helper function to fix Leaflet icon paths
   const fixLeafletIconPaths = () => {
     if (typeof L !== 'undefined' && L.Icon && L.Icon.Default) {

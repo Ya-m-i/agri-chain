@@ -325,22 +325,9 @@ const CropInsuranceManagement = () => {
     } catch (error) {
       const isNetworkError = !error?.message || error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Network request failed')
       if (isNetworkError) {
-        const delayMs = 8000
-        for (let attempt = 0; attempt < 2; attempt++) {
-          toast.loading('Server may be waking up. Retrying in a few seconds...', { id: 'create-retry', duration: delayMs })
-          await new Promise(r => setTimeout(r, delayMs))
-          toast.dismiss('create-retry')
-          try {
-            await runCreate()
-            onSuccess()
-            return
-          } catch (retryErr) {
-            if (attempt === 1) {
-              console.error('Error creating crop insurance record (retry):', retryErr)
-              console.error('Backend URL:', API_BASE_URL, '– open', `${API_BASE_URL}/api/health`, 'in a new tab to verify it loads. If it does, redeploy the backend (CORS was updated to allow .onrender.com and kapalongagrichain.site).')
-              toast.error('Cannot reach server. Open DevTools Console for backend URL and CORS tips.')
-            }
-          }
+        toast.error('Cannot reach server. Check backend is up and CORS allows this site.')
+        if (typeof console !== 'undefined' && console.error) {
+          console.error('Create failed. Backend:', API_BASE_URL)
         }
         return
       }
@@ -389,19 +376,11 @@ const CropInsuranceManagement = () => {
   }
 
   const getFarmerName = (farmerId) => {
-    console.log('getFarmerName called with:', farmerId, 'Type:', typeof farmerId)
-    
-    // Check if farmerId is an object (populated data) or string (ID)
     if (typeof farmerId === 'object' && farmerId !== null) {
-      // This is populated farmer data
-      console.log('Using populated farmer data:', farmerId)
-      return `${farmerId.firstName} ${farmerId.lastName}`
-    } else {
-      // This is just an ID, try to find in farmers list
-      const farmer = farmers.find(f => f._id === farmerId)
-      console.log('Found farmer in list:', farmer)
-      return farmer ? `${farmer.firstName} ${farmer.lastName}` : 'Unknown Farmer'
+      return `${farmerId.firstName || ''} ${farmerId.lastName || ''}`.trim() || 'Unknown Farmer'
     }
+    const farmer = farmers.find(f => f._id === farmerId)
+    return farmer ? `${farmer.firstName} ${farmer.lastName}` : 'Unknown Farmer'
   }
 
   const formatDate = (dateString) => {

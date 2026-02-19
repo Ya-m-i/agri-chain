@@ -100,7 +100,9 @@ export async function fetchWithRetry(url, options = {}, retries = 3, timeout = 1
       const maxWaitTime = 10000; // Cap at 10 seconds
       const finalWaitTime = Math.min(waitTime, maxWaitTime);
       
-      console.log(`Request failed (attempt ${i + 1}/${retries}), retrying in ${finalWaitTime}ms...`, err.message);
+      if (typeof import.meta !== 'undefined' && import.meta.env?.DEV) {
+        console.warn(`Request failed (attempt ${i + 1}/${retries}), retrying in ${finalWaitTime}ms...`, err.message);
+      }
       await new Promise(r => setTimeout(r, finalWaitTime));
     }
   }

@@ -301,7 +301,7 @@ export const createCropInsurance = async (cropInsuranceData) => {
   if (import.meta.env.DEV) {
     console.log('[createCropInsurance] POST', url, 'body length:', body?.length ?? 0);
   }
-  // Render cold start can take 30–60s: allow 40s per attempt, 4 attempts, 6s between attempts
+  // Fail fast: 12s timeout, 3 attempts, 2s backoff (max ~40s total)
   return await fetchWithRetry(
     url,
     {
@@ -310,9 +310,9 @@ export const createCropInsurance = async (cropInsuranceData) => {
       headers: { 'Content-Type': 'application/json' },
       body,
     },
-    4,
-    40000,
-    6000
+    3,
+    12000,
+    2000
   );
 };
 
