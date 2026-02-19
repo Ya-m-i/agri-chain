@@ -66,6 +66,7 @@ const AdminProfile = lazy(() => import("../components/AdminProfile"))
 const InsuranceClaims = lazy(() => import("../components/InsuranceClaims"))
 import AdminModals from "../components/AdminModals"
 const CropInsuranceManagement = lazy(() => import("../components/CropInsuranceManagement"))
+const AdminUserCreation = lazy(() => import("../components/AdminUserCreation"))
 import AdminClaimFilingEnhanced from "../components/AdminClaimFilingEnhanced"
 import AdminAssistanceFiling from "../components/AdminAssistanceFiling"
 import CropPriceManagement from "../components/CropPriceManagement"
@@ -3120,6 +3121,12 @@ const AdminDashboard = () => {
             onClose={() => setShowViewModal(false)}
             assistance={selectedAssistance}
           />
+
+          {activeTab === "admin" && (
+            <div className="p-6">
+              <AdminUserCreation />
+            </div>
+          )}
 
           {activeTab === "crop-insurance" && (
             <div className="p-6">

@@ -73,6 +73,12 @@ export const useLoginFarmer = () => {
   })
 }
 
+export const useCreateAdminUser = () => {
+  return useMutation({
+    mutationFn: ({ username, password }) => api.createAdminUser(username, password),
+  })
+}
+
 // ============ CLAIMS ============
 export const useClaims = (farmerId = null) => {
   return useQuery({

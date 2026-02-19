@@ -384,8 +384,8 @@ const CropInsuranceManagement = () => {
     if (typeof farmerId === 'object' && farmerId !== null) {
       return `${farmerId.firstName || ''} ${farmerId.lastName || ''}`.trim() || 'Unknown Farmer'
     }
-    const farmer = farmers.find(f => f._id === farmerId)
-    return farmer ? `${farmer.firstName} ${farmer.lastName}` : 'Unknown Farmer'
+      const farmer = farmers.find(f => f._id === farmerId)
+      return farmer ? `${farmer.firstName} ${farmer.lastName}` : 'Unknown Farmer'
   }
 
   const formatDate = (dateString) => {
@@ -436,41 +436,41 @@ const CropInsuranceManagement = () => {
           <h2 className="text-2xl font-bold text-gray-800">Crop Insurance Management</h2>
           <p className="text-sm text-gray-600">Manage crop insurance records with day limits</p>
         </div>
-        <button
-          onClick={async () => {
-            try {
+          <button
+            onClick={async () => {
+              try {
               await Promise.all([refetchInsurance(), refetchFarmers(), refetchStats()])
-            } catch (error) {
+              } catch (error) {
               console.error('Error refreshing data:', error)
-            }
-          }}
+              }
+            }}
           className="bg-lime-400 text-black px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-lime-500 transition-colors"
-          title="Refresh data"
-        >
-          <RefreshCw size={20} />
-          Refresh
-        </button>
-        <button
-          onClick={() => {
+            title="Refresh data"
+          >
+            <RefreshCw size={20} />
+            Refresh
+          </button>
+          <button
+            onClick={() => {
             setSubmitError(null)
             wakeUpBackend()
-            setPcicForm(getEmptyPcicForm())
-            setShowAddModal(true)
-          }}
+              setPcicForm(getEmptyPcicForm())
+              setShowAddModal(true)
+            }}
           className="bg-lime-400 text-black px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-lime-500 transition-colors"
-        >
-          <Plus size={20} />
-          Add New Crop
-        </button>
+          >
+            <Plus size={20} />
+            Add New Crop
+          </button>
         <div className="relative flex-1 min-w-[200px] max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input
-            type="text"
-            placeholder="Search by farmer name or crop type..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <input
+                type="text"
+                placeholder="Search by farmer name or crop type..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              />
         </div>
       </div>
 

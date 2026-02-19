@@ -1,4 +1,4 @@
-import { Map } from "lucide-react"
+import { Map, Shield } from "lucide-react"
 import adminLogoImage from "../assets/Images/DALOGO.png"
 import dashboardIcon from "../assets/Images/dashboard.png"
 import registrationIcon from "../assets/Images/Registration.png"
@@ -139,6 +139,21 @@ const AdminSidebar = ({
                 Assistance Inventory
               </button>
             </li>
+            <li>
+              <button
+                onClick={() => {
+                  handleTabSwitch("admin")
+                  setSidebarOpen(false)
+                }}
+                className={`flex items-center w-full p-2 rounded-lg ${
+                  activeTab === "admin" ? "text-black font-bold" : "text-black hover:bg-lime-600"
+                }`}
+                style={activeTab === "admin" ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
+              >
+                <Shield size={24} className="mr-3 w-10 min-w-[2.5rem]" />
+                Admin
+              </button>
+            </li>
             {/* File for Farmers - Hidden for now */}
             {/* <li>
               <button
@@ -265,6 +280,20 @@ const AdminSidebar = ({
           >
             <img src={inventoryIcon} alt="Inventory" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
             {sidebarExpanded && <span className="text-black">Assistance Inventory</span>}
+          </button>
+
+          <button
+            onClick={() => handleTabSwitch("admin")}
+            className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
+              activeTab === "admin"
+                ? "text-black font-bold"
+                : "text-black hover:bg-lime-600"
+            }`}
+            style={activeTab === "admin" && sidebarExpanded ? { backgroundColor: 'rgba(255, 255, 255, 0.3)' } : undefined}
+            title={!sidebarExpanded ? "Admin" : ""}
+          >
+            <Shield size={24} className="w-10 min-w-[2.5rem] flex-shrink-0" />
+            {sidebarExpanded && <span className="text-black">Admin</span>}
           </button>
 
           {/* File for Farmers - Hidden for now */}

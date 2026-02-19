@@ -164,6 +164,28 @@ export const updateUserProfile = async (userId, updateData, token) => {
   }, 3, timeout); // retries=3, timeout=90s for password updates, 15s for others
 };
 
+/** Create admin user (admin only). Requires auth token from localStorage. */
+export const createAdminUser = async (username, password) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  if (!token) {
+    throw new Error('Not authenticated. Please log in again.');
+  }
+  const response = await fetchWithRetry(
+    apiUrl('/api/users/admin'),
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ username, password }),
+    },
+    3,
+    30000
+  );
+  return response;
+};
+
 // Claim operations without caching
 export const createClaim = async (claimData) => {
   try {

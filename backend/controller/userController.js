@@ -186,6 +186,70 @@ const updateUser = asyncHandler(async (req, res) => {
     })
 })
 
+// @desc    Create admin user (admin only)
+// @route   POST /api/users/admin
+// @access  Private (admin only)
+const registerAdmin = asyncHandler(async (req, res) => {
+    if (req.user.role !== 'admin') {
+        res.status(403)
+        throw new Error('Not authorized to create admin users')
+    }
+
+    const { username, password } = req.body
+
+    if (!username || !password) {
+        res.status(400)
+        throw new Error('Please add username and password')
+    }
+
+    // Username: at least 3 characters, letters and numbers only (no special characters)
+    if (username.length < 3) {
+        res.status(400)
+        throw new Error('Username must be at least 3 characters')
+    }
+    if (/[^a-zA-Z0-9]/.test(username)) {
+        res.status(400)
+        throw new Error('Username cannot contain special characters')
+    }
+
+    // Password: at least 3 characters, letters and numbers only
+    if (password.length < 3) {
+        res.status(400)
+        throw new Error('Password must be at least 3 characters')
+    }
+    if (/[^a-zA-Z0-9]/.test(password)) {
+        res.status(400)
+        throw new Error('Password cannot contain special characters')
+    }
+
+    const userExists = await User.findOne({ username })
+    if (userExists) {
+        res.status(400)
+        throw new Error('Username already exists')
+    }
+
+    const salt = await bcrypt.genSalt(6)
+    const hashedPassword = await bcrypt.hash(password, salt)
+
+    const user = await User.create({
+        username,
+        password: hashedPassword,
+        role: 'admin',
+    })
+
+    if (user) {
+        res.status(201).json({
+            _id: user._id,
+            username: user.username,
+            role: user.role,
+            message: 'Admin user created successfully',
+        })
+    } else {
+        res.status(400)
+        throw new Error('Invalid user data')
+    }
+})
+
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { 
         expiresIn: '30d' 
@@ -198,4 +262,5 @@ module.exports = {
     loginUser,
     getMe,
     updateUser,
+    registerAdmin,
 }
