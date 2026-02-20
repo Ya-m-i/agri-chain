@@ -9,6 +9,7 @@ const fs = require('fs')
 const asyncHandler = require('express-async-handler')
 const { getRSBSAFormHtml } = require('../utils/rsbsaPdfTemplate')
 const { getRSBSAFormHtmlWithBackground } = require('../utils/rsbsaPdfOverlay')
+const { fillRSBSATemplate } = require('../utils/rsbsaPdfFill')
 
 // @desc    Register a new farmer
 // @route   POST /api/farmers
@@ -470,19 +471,39 @@ function generateToken(id) {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 }
 
-// @desc    Generate RSBSA Enrollment Form PDF (Puppeteer + Chromium for serverless/Render)
+// @desc    Generate RSBSA Enrollment Form PDF
 // @route   POST /api/farmers/rsbsa-pdf
 // @access  Private (protect)
-// Uses form image as background + overlaid data when backend/assets/rsbsa-form-template.png|jpg exists.
+// Prefer: backend/assets/rsbsa-form-template.pdf (pdf-lib fill). Else image overlay or HTML template.
 const generateRSBSAFormPDF = asyncHandler(async (req, res) => {
     const formState = req.body.formState || req.body
     if (!formState || typeof formState !== 'object') {
         res.status(400).json({ message: 'Request body must include formState (RSBSA form data).' })
         return
     }
+    const assetsDir = path.join(__dirname, '..', 'assets')
+    const templatePdf = path.join(assetsDir, 'rsbsa-form-template.pdf')
+
+    // Step 1: If real PDF template exists, fill it with pdf-lib (exact layout, no stretching)
+    if (fs.existsSync(templatePdf)) {
+        try {
+            const templateBuffer = fs.readFileSync(templatePdf)
+            const pdfBytes = await fillRSBSATemplate(templateBuffer, formState)
+            const lastName = (formState.lastName || '').trim()
+            const firstName = (formState.firstName || '').trim()
+            const filename = `RSBSA-Enrollment-${lastName}-${firstName}.pdf`.replace(/\s+/g, '-')
+            res.setHeader('Content-Type', 'application/pdf')
+            res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+            res.send(Buffer.from(pdfBytes))
+            return
+        } catch (err) {
+            return res.status(500).json({ message: err.message || 'Failed to fill RSBSA PDF template.' })
+        }
+    }
+
+    // Step 2: Fallback to Puppeteer (image overlay or HTML)
     const puppeteer = require('puppeteer-core')
     const chromium = require('@sparticuz/chromium')
-    const assetsDir = path.join(__dirname, '..', 'assets')
     const templatePng = path.join(assetsDir, 'rsbsa-form-template.png')
     const templateJpg = path.join(assetsDir, 'rsbsa-form-template.jpg')
     let html
@@ -490,15 +511,13 @@ const generateRSBSAFormPDF = asyncHandler(async (req, res) => {
     if (fs.existsSync(templatePng)) {
         const imageBuffer = fs.readFileSync(templatePng)
         const base64 = imageBuffer.toString('base64')
-        const mime = 'image/png'
-        const dataUrl = `data:${mime};base64,${base64}`
+        const dataUrl = `data:image/png;base64,${base64}`
         html = getRSBSAFormHtmlWithBackground(formState, dataUrl)
         useOverlay = true
     } else if (fs.existsSync(templateJpg)) {
         const imageBuffer = fs.readFileSync(templateJpg)
         const base64 = imageBuffer.toString('base64')
-        const mime = 'image/jpeg'
-        const dataUrl = `data:${mime};base64,${base64}`
+        const dataUrl = `data:image/jpeg;base64,${base64}`
         html = getRSBSAFormHtmlWithBackground(formState, dataUrl)
         useOverlay = true
     } else {
