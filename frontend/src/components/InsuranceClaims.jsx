@@ -152,44 +152,84 @@ const InsuranceClaims = ({
 
   return (
     <div className="mt-6">
-      {/* Outside Title */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center">
+      {/* Single line: Insurance Claims title | Filter (Pending/Approved/Rejected) | Search | Generate Report */}
+      <div className="flex flex-wrap items-center gap-3 gap-y-2 mb-4">
+        <div className="flex items-center shrink-0">
           <FileText size={24} className="text-lime-600 mr-2" />
           <h1 className="text-2xl font-bold text-gray-800">Insurance Claims</h1>
         </div>
-        {!hideReportButtons && (
-        <>
-        <button
-          className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-sm font-semibold"
-          onClick={() => setShowReport(!showReport)}
-        >
-          <Download className="mr-2 h-5 w-5" />
-          {showReport ? 'Hide Report' : 'Generate Report'}
-        </button>
-        {showReport && (
-          <button
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center shadow-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={handleGeneratePDF}
-            disabled={isGeneratingPDF}
-          >
-            {isGeneratingPDF ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Generating...
-              </>
-            ) : (
-              <>
-                <Download className="mr-2 h-5 w-5" />
-                Download PDF Report
-              </>
-            )}
-          </button>
+        {!rsbsaClaimsMode && (
+          <div className="flex space-x-1 bg-white rounded-lg shadow-sm border border-gray-200 p-1 shrink-0">
+            <button
+              onClick={() => setClaimsTabView("pending")}
+              className={`py-1.5 px-3 rounded-md text-sm font-medium transition-colors ${
+                claimsTabView === "pending" ? "bg-black text-lime-400" : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              Pending
+            </button>
+            <button
+              onClick={() => setClaimsTabView("approved")}
+              className={`py-1.5 px-3 rounded-md text-sm font-medium transition-colors ${
+                claimsTabView === "approved" ? "bg-black text-lime-400" : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              Approved
+            </button>
+            <button
+              onClick={() => setClaimsTabView("rejected")}
+              className={`py-1.5 px-3 rounded-md text-sm font-medium transition-colors ${
+                claimsTabView === "rejected" ? "bg-black text-lime-400" : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              Rejected
+            </button>
+          </div>
         )}
-        </>
+        <div className="relative shrink-0 min-w-[180px] flex-1 max-w-xs">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search by name or crop..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500 text-sm"
+          />
+        </div>
+        {!hideReportButtons && (
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-sm font-semibold text-sm"
+              onClick={() => setShowReport(!showReport)}
+            >
+              <Download className="mr-2 h-5 w-5" />
+              {showReport ? 'Hide Report' : 'Generate Report'}
+            </button>
+            {showReport && (
+              <button
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center shadow-sm font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleGeneratePDF}
+                disabled={isGeneratingPDF}
+              >
+                {isGeneratingPDF ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Download className="mr-2 h-5 w-5" />
+                    Download PDF
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         )}
       </div>
 
@@ -413,63 +453,11 @@ const InsuranceClaims = ({
 
 
 
-      {!rsbsaClaimsMode && (
-      <div className="mb-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
-          <div className="flex space-x-1">
-            <button
-              onClick={() => setClaimsTabView("pending")}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                claimsTabView === "pending" ? "bg-black text-lime-400" : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Pending Claims
-            </button>
-            <button
-              onClick={() => setClaimsTabView("approved")}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                claimsTabView === "approved" ? "bg-black text-lime-400" : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Approved Claims
-            </button>
-            <button
-              onClick={() => setClaimsTabView("rejected")}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                claimsTabView === "rejected" ? "bg-black text-lime-400" : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Rejected Claims
-            </button>
-          </div>
-        </div>
-      </div>
-      )}
-
       <div className="p-6">
-        {/* Filter and Search */}
-        <div className="flex items-center justify-between mb-6 gap-4">
-          <h3 className="text-lg font-medium">
-            {effectiveTabView === "pending" && "Pending Claims"}
-            {effectiveTabView === "approved" && "Approved Claims"}
-            {effectiveTabView === "rejected" && "Rejected Claims"}
-            {effectiveTabView === "all" && "All Filed Claims"}
-          </h3>
-
-          {/* Search Field */}
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search by name or crop..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full md:w-64 shadow-sm focus:outline-none focus:ring-2 focus:ring-lime-500"
-            />
-          </div>
-        </div>
+        {/* Table section title (optional context) */}
+        {effectiveTabView === "all" && (
+          <p className="text-sm text-gray-600 mb-4">All Filed Claims</p>
+        )}
 
         {/* Claims Table */}
         {paginatedClaims.length === 0 ? (

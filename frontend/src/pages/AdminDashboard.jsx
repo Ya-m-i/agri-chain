@@ -2565,33 +2565,6 @@ const AdminDashboard = () => {
 
           {activeTab === "claims" && (
             <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-800">Cash Assistance Claims</h2>
-                {currentAdminRole !== "OfficeHead" && currentAdminRole !== "RSBSA" && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setClaimsTabView("pending")}
-                    className={`px-4 py-2 rounded-lg font-semibold ${
-                      claimsTabView === "pending"
-                        ? "bg-lime-400 text-black"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    Pending Cash Assistance Claims
-                  </button>
-                  <button
-                    onClick={() => setClaimsTabView("all")}
-                    className={`px-4 py-2 rounded-lg font-semibold ${
-                      claimsTabView === "all"
-                        ? "bg-lime-200 text-black"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    All Claims
-                  </button>
-                </div>
-                )}
-              </div>
               {(claims && claims.length > 0) ? (
                 <InsuranceClaims
                   claims={claims}
