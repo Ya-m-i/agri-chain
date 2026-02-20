@@ -1,3 +1,4 @@
+const path = require('path')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const Farmer = require('../models/farmerModel')
@@ -7,6 +8,7 @@ const csv = require('csv-parser')
 const fs = require('fs')
 const asyncHandler = require('express-async-handler')
 const { getRSBSAFormHtml } = require('../utils/rsbsaPdfTemplate')
+const { getRSBSAFormHtmlWithBackground } = require('../utils/rsbsaPdfOverlay')
 
 // @desc    Register a new farmer
 // @route   POST /api/farmers
@@ -471,6 +473,7 @@ function generateToken(id) {
 // @desc    Generate RSBSA Enrollment Form PDF (Puppeteer + Chromium for serverless/Render)
 // @route   POST /api/farmers/rsbsa-pdf
 // @access  Private (protect)
+// Uses form image as background + overlaid data when backend/assets/rsbsa-form-template.png|jpg exists.
 const generateRSBSAFormPDF = asyncHandler(async (req, res) => {
     const formState = req.body.formState || req.body
     if (!formState || typeof formState !== 'object') {
@@ -479,7 +482,28 @@ const generateRSBSAFormPDF = asyncHandler(async (req, res) => {
     }
     const puppeteer = require('puppeteer-core')
     const chromium = require('@sparticuz/chromium')
-    const html = getRSBSAFormHtml(formState)
+    const assetsDir = path.join(__dirname, '..', 'assets')
+    const templatePng = path.join(assetsDir, 'rsbsa-form-template.png')
+    const templateJpg = path.join(assetsDir, 'rsbsa-form-template.jpg')
+    let html
+    let useOverlay = false
+    if (fs.existsSync(templatePng)) {
+        const imageBuffer = fs.readFileSync(templatePng)
+        const base64 = imageBuffer.toString('base64')
+        const mime = 'image/png'
+        const dataUrl = `data:${mime};base64,${base64}`
+        html = getRSBSAFormHtmlWithBackground(formState, dataUrl)
+        useOverlay = true
+    } else if (fs.existsSync(templateJpg)) {
+        const imageBuffer = fs.readFileSync(templateJpg)
+        const base64 = imageBuffer.toString('base64')
+        const mime = 'image/jpeg'
+        const dataUrl = `data:${mime};base64,${base64}`
+        html = getRSBSAFormHtmlWithBackground(formState, dataUrl)
+        useOverlay = true
+    } else {
+        html = getRSBSAFormHtml(formState)
+    }
     let browser
     try {
         const executablePath = await chromium.executablePath()
@@ -490,12 +514,20 @@ const generateRSBSAFormPDF = asyncHandler(async (req, res) => {
             headless: chromium.headless,
         })
         const page = await browser.newPage()
+        if (useOverlay) {
+            await page.setViewport({ width: 595, height: 842 })
+        }
         await page.setContent(html, { waitUntil: 'networkidle0' })
-        const pdfBuffer = await page.pdf({
+        const pdfOptions = {
             format: 'A4',
             printBackground: true,
-            margin: { top: '6mm', right: '8mm', bottom: '8mm', left: '8mm' }
-        })
+        }
+        if (!useOverlay) {
+            pdfOptions.margin = { top: '6mm', right: '8mm', bottom: '8mm', left: '8mm' }
+        } else {
+            pdfOptions.margin = { top: 0, right: 0, bottom: 0, left: 0 }
+        }
+        const pdfBuffer = await page.pdf(pdfOptions)
         await browser.close()
         const lastName = (formState.lastName || '').trim()
         const firstName = (formState.firstName || '').trim()
