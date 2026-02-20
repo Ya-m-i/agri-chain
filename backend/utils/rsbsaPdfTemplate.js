@@ -1,7 +1,7 @@
 /**
- * Build HTML for RSBSA Enrollment Form - matches official template (Image 1) exactly.
+ * Build HTML for RSBSA Enrollment Form - matches official template (Image 2) exactly.
  * Receives formState (same shape as frontend farmerToRsbsaFormState).
- * Used by Puppeteer to generate PDF.
+ * Used by Puppeteer to generate PDF. Single page, full borders on all fields and sections.
  */
 function esc(v) {
   if (v == null || v === '') return '—'
@@ -95,6 +95,9 @@ function getRSBSAFormHtml(formState) {
     /* All input fields: full border (box) like official form */
     .label { font-size: 6px; font-weight: bold; text-transform: uppercase; color: #333; margin-bottom: 0; }
     .field { border: 1px solid #000; min-height: 14px; padding: 1px 3px; font-size: 8px; }
+    .name-row-1, .name-row-2 { display: flex; gap: 8px; margin-bottom: 2px; }
+    .name-half { flex: 1; }
+    .sex-row { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
     .two-cols { display: flex; gap: 8px; margin-bottom: 2px; }
     .two-cols .col { flex: 1; }
     .checkbox-inline { font-size: 7px; margin-right: 6px; }
@@ -176,22 +179,30 @@ function getRSBSAFormHtml(formState) {
 
     <div class="section-bar">PART I: PERSONAL INFORMATION</div>
     <div class="part1-inner">
-    <!-- Part I: Two columns - Left: Surname, Middle name, Address block, Mobile, DOB, Religion, Civil status, Spouse, Mother's maiden, Household head, members. Right: First name, Extension, Sex, Barangay, Region, Landline, Place of birth, Education, PWD, 4Ps, Indigenous, Gov ID, Farmers assoc, Emergency -->
+    <!-- Part I: Match image 2 - Row1: SURNAME, FIRST NAME; Row2: MIDDLE, EXTENSION; SEX; then two cols for rest -->
+    <div class="name-row-1">
+      <div class="name-half"><div class="label">SURNAME</div><div class="field">${esc(f.lastName)}</div></div>
+      <div class="name-half"><div class="label">FIRST NAME</div><div class="field">${esc(f.firstName)}</div></div>
+    </div>
+    <div class="name-row-2">
+      <div class="name-half"><div class="label">MIDDLE NAME</div><div class="field">${esc(f.middleName)}</div></div>
+      <div class="name-half"><div class="label">EXTENSION NAME</div><div class="field">${esc(f.extensionName)}</div></div>
+    </div>
+    <div class="sex-row">
+      <div class="label">SEX:</div>
+      <div><span class="checkbox-inline">${cb(f.gender === 'Male')} Male</span><span class="checkbox-inline">${cb(f.gender === 'Female')} Female</span></div>
+    </div>
+    <div class="label" style="margin-top: 4px;">ADDRESS</div>
     <div class="two-cols">
       <div class="col part1-left">
-        <div class="label">SURNAME</div>
-        <div class="field">${esc(f.lastName)}</div>
-        <div class="label">MIDDLE NAME</div>
-        <div class="field">${esc(f.middleName)}</div>
-        <div class="label" style="margin-top: 6px;">ADDRESS</div>
         <div class="addr-block">
           <div class="row">
             <div><div class="label">HOUSE/LOT/BLDG. NO./PUROK</div><div class="field">${esc(f.houseLotPurok)}</div></div>
             <div><div class="label">STREET/SITIO/SUBDV.</div><div class="field">${esc(f.streetSitioSubdv)}</div></div>
           </div>
           <div class="row">
-            <div><div class="label">MUNICIPALITY/CITY</div><div class="field">${esc(f.municipalityCity)}</div></div>
             <div><div class="label">BARANGAY</div><div class="field">${esc(f.barangay)}</div></div>
+            <div><div class="label">MUNICIPALITY/CITY</div><div class="field">${esc(f.municipalityCity)}</div></div>
           </div>
           <div class="row">
             <div><div class="label">PROVINCE</div><div class="field">${esc(f.province)}</div></div>
@@ -225,16 +236,6 @@ function getRSBSAFormHtml(formState) {
         <div class="field">${esc(f.numFemale)}</div>
       </div>
       <div class="col part1-right">
-        <div class="label">FIRST NAME</div>
-        <div class="field">${esc(f.firstName)}</div>
-        <div class="label">EXTENSION NAME</div>
-        <div class="field">${esc(f.extensionName)}</div>
-        <div class="label">SEX:</div>
-        <div><span class="checkbox-inline">${cb(f.gender === 'Male')} Male</span><span class="checkbox-inline">${cb(f.gender === 'Female')} Female</span></div>
-        <div class="label">BARANGAY</div>
-        <div class="field">${esc(f.barangay)}</div>
-        <div class="label">REGION</div>
-        <div class="field">${esc(f.region)}</div>
         <div class="label">LANDLINE NUMBER:</div>
         ${segmentedBoxes(f.landlineNum || '', 7, { digitsOnly: true })}
         <div class="label">PLACE OF BIRTH:</div>
@@ -356,7 +357,7 @@ function getRSBSAFormHtml(formState) {
         <div class="ref-seg-group">${segmentedBoxes(f.refBarangay, 4)}</div>
       </div>
       <div class="ref-labels"><span>REGION</span><span>PROVINCE</span><span>CITY/MUN</span><span>BARANGAY</span></div>
-      <div class="client-copy name-row">
+      <div class="name-row">
         <div><div class="label">SURNAME</div><div class="field">${esc(f.lastName)}</div></div>
         <div><div class="label">MIDDLE NAME</div><div class="field">${esc(f.middleName)}</div></div>
         <div><div class="label">EXTENSION NAME</div><div class="field">${esc(f.extensionName)}</div></div>
