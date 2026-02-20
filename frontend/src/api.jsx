@@ -624,6 +624,23 @@ export const getAllFarmerProfileImages = async () => {
   return await fetchWithRetry(apiUrl('/api/farmers/profile-images'));
 };
 
+/** Generate RSBSA Enrollment Form PDF via backend (Puppeteer). Returns blob. Requires auth token. */
+export const fetchRSBSAFormPDF = async (formState, token) => {
+  const res = await fetch(apiUrl('/api/farmers/rsbsa-pdf'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ formState }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ message: res.statusText }));
+    throw new Error(err.message || 'Failed to generate PDF');
+  }
+  return await res.blob();
+};
+
 // Notification API functions
 export const fetchNotifications = async (recipientType, recipientId = null) => {
   const endpoint = recipientType === 'admin' 

@@ -40,7 +40,8 @@ import { getCropTypeDistributionFromInsurance } from '../utils/cropTypeDistribut
 import SimpleMapPicker from './SimpleMapPicker'
 import { validatePassword } from '../utils/passwordValidator'
 import { generateFarmerRegistrationReportPDF } from '../utils/farmerReportPdfGenerator'
-import { generateRSBSAFormPDF } from '../utils/rsbsaFormPdfGenerator'
+import { fetchRSBSAFormPDF } from '../api'
+import { farmerToRsbsaFormState } from './RSBSAEnrollmentForm'
 import { toast } from 'react-hot-toast'
 import RSBSAEnrollmentForm from './RSBSAEnrollmentForm'
 
@@ -786,7 +787,19 @@ const FarmerRegistration = ({
                           type="button"
                           onClick={async () => {
                             try {
-                              await generateRSBSAFormPDF(farmer)
+                              const token = localStorage.getItem("token")
+                              if (!token) {
+                                toast.error("Please log in again.")
+                                return
+                              }
+                              const formState = farmerToRsbsaFormState(farmer)
+                              const blob = await fetchRSBSAFormPDF(formState, token)
+                              const url = URL.createObjectURL(blob)
+                              const a = document.createElement("a")
+                              a.href = url
+                              a.download = `RSBSA-Enrollment-${(farmer.lastName || "").trim()}-${(farmer.firstName || "").trim()}.pdf`
+                              a.click()
+                              URL.revokeObjectURL(url)
                               toast.success("RSBSA form PDF downloaded.")
                             } catch (err) {
                               toast.error(err?.message || "Failed to generate PDF.")

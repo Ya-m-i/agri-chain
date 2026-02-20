@@ -5,6 +5,8 @@ const { validatePasswordWithMessage } = require('../utils/passwordValidator')
 const multer = require('multer')
 const csv = require('csv-parser')
 const fs = require('fs')
+const asyncHandler = require('express-async-handler')
+const { getRSBSAFormHtml } = require('../utils/rsbsaPdfTemplate')
 
 // @desc    Register a new farmer
 // @route   POST /api/farmers
@@ -466,6 +468,44 @@ function generateToken(id) {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 }
 
+// @desc    Generate RSBSA Enrollment Form PDF (Puppeteer)
+// @route   POST /api/farmers/rsbsa-pdf
+// @access  Private (protect)
+const generateRSBSAFormPDF = asyncHandler(async (req, res) => {
+    const formState = req.body.formState || req.body
+    if (!formState || typeof formState !== 'object') {
+        res.status(400).json({ message: 'Request body must include formState (RSBSA form data).' })
+        return
+    }
+    const puppeteer = require('puppeteer')
+    const html = getRSBSAFormHtml(formState)
+    let browser
+    try {
+        browser = await puppeteer.launch({
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+        })
+        const page = await browser.newPage()
+        await page.setContent(html, { waitUntil: 'networkidle0' })
+        const pdfBuffer = await page.pdf({
+            format: 'A4',
+            printBackground: true,
+            margin: { top: '8mm', right: '10mm', bottom: '10mm', left: '10mm' }
+        })
+        await browser.close()
+        const lastName = (formState.lastName || '').trim()
+        const firstName = (formState.firstName || '').trim()
+        const filename = `RSBSA-Enrollment-${lastName}-${firstName}.pdf`.replace(/\s+/g, '-')
+        res.setHeader('Content-Type', 'application/pdf')
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+        res.send(pdfBuffer)
+    } catch (err) {
+        if (browser) await browser.close().catch(() => {})
+        res.status(500).json({ message: err.message || 'Failed to generate RSBSA PDF.' })
+        return
+    }
+})
+
 module.exports = {
     createFarmer,
     getFarmers,
@@ -477,5 +517,6 @@ module.exports = {
     getFarmerProfileImage,
     getAllFarmerProfileImages,
     updateFarmer,
-    bulkImportFarmers
+    bulkImportFarmers,
+    generateRSBSAFormPDF
 } 

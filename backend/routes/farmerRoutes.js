@@ -1,7 +1,8 @@
 const express = require('express')
 const router = express.Router()
 const multer = require('multer')
-const { createFarmer, getFarmers, loginFarmer, deleteFarmer, getActiveFarmers, logoutFarmer, saveFarmerProfileImage, getFarmerProfileImage, getAllFarmerProfileImages, updateFarmer, bulkImportFarmers } = require('../controller/farmerController')
+const { protect } = require('../middleware/authMiddleware')
+const { createFarmer, getFarmers, loginFarmer, deleteFarmer, getActiveFarmers, logoutFarmer, saveFarmerProfileImage, getFarmerProfileImage, getAllFarmerProfileImages, updateFarmer, bulkImportFarmers, generateRSBSAFormPDF } = require('../controller/farmerController')
 
 // Configure multer for file uploads
 const csvUpload = multer({ dest: 'uploads/' })
@@ -25,5 +26,8 @@ router.get('/profile-images', getAllFarmerProfileImages)
 
 // CSV import route
 router.post('/import', csvUpload.single('csvFile'), bulkImportFarmers)
+
+// RSBSA form PDF (Puppeteer) - requires auth
+router.post('/rsbsa-pdf', protect, generateRSBSAFormPDF)
 
 module.exports = router 
