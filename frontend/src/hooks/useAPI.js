@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import * as api from '../api.jsx'
 import { SOCKET_QUERY_KEYS } from './useSocketQuery.js'
@@ -110,6 +111,47 @@ export const useSaveAdminProfileImage = () => {
       queryClient.invalidateQueries({ queryKey: [ADMIN_USERS_KEY] })
     },
   })
+}
+
+/** Fetch admin profile image and return a blob URL so it renders reliably (avoids direct img src cross-origin/cache issues). */
+export const useAdminProfileImage = (userId, version) => {
+  const [src, setSrc] = useState(null)
+  const [error, setError] = useState(false)
+  const blobUrlRef = useRef(null)
+  useEffect(() => {
+    if (!userId || version == null || version === 0) {
+      setSrc(null)
+      setError(false)
+      return
+    }
+    let cancelled = false
+    const url = api.getAdminProfileImageUrl(userId, version)
+    fetch(url)
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to load')
+        return res.blob()
+      })
+      .then((blob) => {
+        if (cancelled) return
+        if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current)
+        const blobUrl = URL.createObjectURL(blob)
+        blobUrlRef.current = blobUrl
+        setSrc(blobUrl)
+        setError(false)
+      })
+      .catch(() => {
+        if (!cancelled) setError(true)
+      })
+    return () => {
+      cancelled = true
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current)
+        blobUrlRef.current = null
+      }
+      setSrc(null)
+    }
+  }, [userId, version])
+  return { src, error }
 }
 
 // ============ CLAIMS ============

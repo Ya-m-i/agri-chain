@@ -7,8 +7,9 @@ import {
   useAdminUsers,
   useDeleteAdminUser,
   useSaveAdminProfileImage,
+  useAdminProfileImage,
 } from "../hooks/useAPI"
-import { getAdminProfileImageUrl, updateUserProfile } from "../api"
+import { updateUserProfile } from "../api"
 import { compressImageForProfile } from "../utils/imageOptimization"
 import { useAuthStore } from "../store/authStore"
 import { toast } from "react-hot-toast"
@@ -21,6 +22,19 @@ function validateField(value, fieldName) {
   if (value.length < MIN_LENGTH) return `${fieldName} must be at least ${MIN_LENGTH} characters`
   if (!NO_SPECIAL.test(value)) return `${fieldName} cannot contain special characters (letters and numbers only)`
   return null
+}
+
+/** Renders admin profile image via fetch→blob URL so it always loads (no direct img src cross-origin issues). */
+function AdminProfileAvatar({ userId, version, imgClassName, placeholderClassName, placeholderIconClassName }) {
+  const { src, error } = useAdminProfileImage(userId, version)
+  if (src && !error) {
+    return <img src={src} alt="" className={imgClassName} />
+  }
+  return (
+    <div className={placeholderClassName || "h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center border-2 border-black"}>
+      <UserCircle className={placeholderIconClassName || "h-6 w-6 text-gray-500"} />
+    </div>
+  )
 }
 
 const AdminUserCreation = () => {
@@ -44,9 +58,6 @@ const AdminUserCreation = () => {
 
   // Delete modal state
   const [deleteModalAdmin, setDeleteModalAdmin] = useState(null)
-
-  // Track which profile images failed to load (show placeholder instead of broken img)
-  const [profileImageLoadFailed, setProfileImageLoadFailed] = useState(new Set())
 
   const createAdminMutation = useCreateAdminUser()
   const { data: adminUsers = [], isLoading: adminUsersLoading, refetch: refetchAdmins } = useAdminUsers()
@@ -106,11 +117,6 @@ const AdminUserCreation = () => {
     setProfileConfirmPassword("")
     setProfilePasswordError(null)
     setProfileConfirmError(null)
-    setProfileImageLoadFailed((prev) => {
-      const next = new Set(prev)
-      next.delete(admin._id)
-      return next
-    })
   }
 
   const closeProfileModal = () => {
@@ -149,16 +155,11 @@ const AdminUserCreation = () => {
         file: profileImageFile,
       })
       const newVersion = res?.version ?? (profileModalAdmin.profileImageVersion || 0) + 1
-      // Update modal admin with new version immediately so the image URL changes and renders
+      // Update modal admin with new version immediately so the blob hook refetches and shows new image
       setProfileModalAdmin((prev) => (prev && prev._id === adminId ? { ...prev, profileImageVersion: newVersion } : prev))
       setProfileImageFile(null)
       if (profileImagePreview && profileImagePreview.startsWith("blob:")) URL.revokeObjectURL(profileImagePreview)
       setProfileImagePreview(null)
-      setProfileImageLoadFailed((prev) => {
-        const next = new Set(prev)
-        next.delete(adminId)
-        return next
-      })
       toast.success("Profile picture saved.")
       // Refetch so the table gets fresh data and shows the new image
       const refetchResult = await refetchAdmins()
@@ -345,19 +346,12 @@ const AdminUserCreation = () => {
                           onClick={() => openProfileModal(admin)}
                           className="flex items-center gap-2 focus:outline-none"
                         >
-                          {admin.profileImageVersion != null && admin.profileImageVersion > 0 && !profileImageLoadFailed.has(admin._id) ? (
-                            <img
-                              key={`avatar-${admin._id}-v${admin.profileImageVersion}`}
-                              src={getAdminProfileImageUrl(admin._id, admin.profileImageVersion)}
-                              alt=""
-                              className="h-12 w-12 rounded-full object-cover border-2 border-black"
-                              onError={() => setProfileImageLoadFailed((prev) => new Set(prev).add(admin._id))}
-                            />
-                          ) : (
-                            <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center border-2 border-black">
-                              <UserCircle className="h-6 w-6 text-gray-500" />
-                            </div>
-                          )}
+                          <AdminProfileAvatar
+                            userId={admin._id}
+                            version={admin.profileImageVersion}
+                            imgClassName="h-12 w-12 rounded-full object-cover border-2 border-black"
+                            placeholderClassName="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center border-2 border-black"
+                          />
                         </button>
                       </td>
                       <td className="px-4 py-3 text-sm font-medium text-black">{admin.username}</td>
@@ -413,18 +407,21 @@ const AdminUserCreation = () => {
                   <h4 className="text-sm font-black text-black uppercase">Profile picture</h4>
                 </div>
                 <div className="flex flex-col items-center gap-3">
-                  {(profileImagePreview || (profileModalAdmin.profileImageVersion != null && profileModalAdmin.profileImageVersion > 0 && !profileImageLoadFailed.has(profileModalAdmin._id))) ? (
+                  {profileImagePreview ? (
                     <img
-                      key={profileImagePreview ? "preview" : `profile-${profileModalAdmin._id}-v${profileModalAdmin.profileImageVersion}`}
-                      src={profileImagePreview || getAdminProfileImageUrl(profileModalAdmin._id, profileModalAdmin.profileImageVersion)}
+                      key="preview"
+                      src={profileImagePreview}
                       alt="Profile"
                       className="h-24 w-24 rounded-full object-cover border-2 border-black"
-                      onError={() => setProfileImageLoadFailed((prev) => new Set(prev).add(profileModalAdmin._id))}
                     />
                   ) : (
-                    <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center border-2 border-black">
-                      <UserCircle className="h-12 w-12 text-gray-400" />
-                    </div>
+                    <AdminProfileAvatar
+                      userId={profileModalAdmin._id}
+                      version={profileModalAdmin.profileImageVersion}
+                      imgClassName="h-24 w-24 rounded-full object-cover border-2 border-black"
+                      placeholderClassName="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center border-2 border-black"
+                      placeholderIconClassName="h-12 w-12 text-gray-500"
+                    />
                   )}
                   <input
                     type="file"

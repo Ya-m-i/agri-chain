@@ -349,12 +349,28 @@ const getAdminProfileImage = asyncHandler(async (req, res) => {
         res.status(404)
         throw new Error('User not found')
     }
-    if (user.profileImageData && user.profileImageData.length) {
-        res.set('Content-Type', user.profileImageType || 'image/jpeg')
-        res.set('Cache-Control', 'public, max-age=31536000, immutable')
-        return res.send(user.profileImageData)
+    const data = user.profileImageData
+    if (!data) {
+        return res.status(404).json({ message: 'No profile image found' })
     }
-    res.status(404).json({ message: 'No profile image found' })
+    // MongoDB may return Buffer (Mongoose) or Binary (BSON) when using .lean()
+    let buffer
+    if (Buffer.isBuffer(data)) {
+        buffer = data
+    } else if (data.buffer !== undefined) {
+        buffer = Buffer.from(data.buffer)
+    } else if (data.length !== undefined && data.length > 0) {
+        buffer = Buffer.from(data)
+    } else {
+        return res.status(404).json({ message: 'No profile image found' })
+    }
+    if (buffer.length === 0) {
+        return res.status(404).json({ message: 'No profile image found' })
+    }
+    res.set('Content-Type', user.profileImageType || 'image/jpeg')
+    res.set('Cache-Control', 'public, max-age=3600, immutable')
+    res.set('Content-Length', buffer.length)
+    return res.end(buffer)
 })
 
 const generateToken = (id) => {
