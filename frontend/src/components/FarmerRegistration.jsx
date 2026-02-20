@@ -54,6 +54,8 @@ const FarmerRegistration = ({
   selectedLocation,
   setSelectedLocation,
   onTabSwitch,
+  /** When true (e.g. OfficeHead): farm list view only — no Register/Crop Insurance buttons, no Actions column */
+  viewOnlyFarmList = false,
 }) => {
   // React Query hooks
   const { data: farmers = [], isLoading: farmersLoading, refetch: refetchFarmers } = useFarmers()
@@ -660,6 +662,8 @@ const FarmerRegistration = ({
           onChange={(e) => setSearchQuery(e.target.value)}
           className="bg-transparent text-gray-800 border-2 border-lime-800 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-lime-400 text-sm w-52 min-w-[10rem] placeholder-gray-500"
         />
+        {!viewOnlyFarmList && (
+        <>
         <button
           className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center font-bold uppercase tracking-wide border-0"
           onClick={() => setShowRegisterForm(true)}
@@ -675,6 +679,8 @@ const FarmerRegistration = ({
           <Shield className="mr-2 h-5 w-5 text-black" />
           Crop Insurance
         </button>
+        </>
+        )}
         <button
           className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center font-semibold border-0"
           onClick={() => setShowReport(!showReport)}
@@ -782,8 +788,8 @@ const FarmerRegistration = ({
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Lot No.</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Lot Area</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Certified</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words">Location</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider rounded-tr-lg whitespace-normal break-words">Actions</th>
+                  <th className={`px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-normal break-words ${viewOnlyFarmList ? 'rounded-tr-lg' : ''}`}>Location</th>
+                  {!viewOnlyFarmList && <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider rounded-tr-lg whitespace-normal break-words">Actions</th>}
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
@@ -824,6 +830,7 @@ const FarmerRegistration = ({
                         <span className="text-gray-400">Add</span>
                       )}
                     </td>
+                    {!viewOnlyFarmList && (
                     <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
@@ -833,6 +840,7 @@ const FarmerRegistration = ({
                         Delete
                       </button>
                     </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

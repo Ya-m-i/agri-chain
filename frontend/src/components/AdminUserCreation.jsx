@@ -219,7 +219,31 @@ const AdminUserCreation = () => {
 
   const currentUser = useAuthStore((s) => s.user)
   const currentUserId = currentUser?.id ?? currentUser?._id ?? null
+  const currentAdminRole = currentUser?.adminRole || "SuperAdmin"
   const canDelete = (admin) => admin._id !== currentUserId
+  const canChangeRole = currentAdminRole === "SuperAdmin"
+
+  const [updatingRoleForId, setUpdatingRoleForId] = useState(null)
+  const handleRoleChange = async (adminId, newRole) => {
+    if (!canChangeRole) return
+    const token = localStorage.getItem("token")
+    if (!token) {
+      toast.error("Not authenticated. Please log in again.")
+      return
+    }
+    setUpdatingRoleForId(adminId)
+    try {
+      await updateUserProfile(adminId, { adminRole: newRole }, token)
+      toast.success("Role updated.")
+      await refetchAdmins()
+    } catch (err) {
+      toast.error(err?.message || "Failed to update role")
+    } finally {
+      setUpdatingRoleForId(null)
+    }
+  }
+
+  const ADMIN_ROLES = ["SuperAdmin", "OfficeHead", "RSBSA", "PCIC"]
 
   return (
     <div className="mt-6 bg-white rounded-lg p-6">
@@ -334,6 +358,7 @@ const AdminUserCreation = () => {
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-black uppercase tracking-wider">Profile</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-black uppercase tracking-wider">Username</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-black uppercase tracking-wider">Role</th>
                     <th className="px-4 py-3 text-left text-xs font-semibold text-black uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
@@ -355,14 +380,23 @@ const AdminUserCreation = () => {
                         </button>
                       </td>
                       <td className="px-4 py-3 text-sm font-medium text-black">{admin.username}</td>
+                      <td className="px-4 py-3">
+                        {canChangeRole ? (
+                          <select
+                            value={admin.adminRole || "SuperAdmin"}
+                            onChange={(e) => handleRoleChange(admin._id, e.target.value)}
+                            disabled={updatingRoleForId === admin._id}
+                            className="px-2 py-1.5 text-sm font-medium border-2 border-black rounded-lg bg-white text-black focus:outline-none focus:ring-2 focus:ring-lime-400 disabled:opacity-50"
+                          >
+                            {ADMIN_ROLES.map((r) => (
+                              <option key={r} value={r}>{r}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="text-sm font-medium text-black">{admin.adminRole || "SuperAdmin"}</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => openProfileModal(admin)}
-                          className="px-3 py-1.5 bg-lime-400 text-black rounded-lg border-2 border-black font-semibold text-sm hover:bg-lime-500"
-                        >
-                          Profile
-                        </button>
                         {canDelete(admin) ? (
                           <button
                             type="button"

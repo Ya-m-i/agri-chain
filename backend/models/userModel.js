@@ -14,6 +14,12 @@ const userSchema = mongoose.Schema({
         enum: ['admin', 'user'],
         default: 'user'
     },
+    // Admin dashboard sub-role: only used when role === 'admin'
+    adminRole: {
+        type: String,
+        enum: ['SuperAdmin', 'OfficeHead', 'RSBSA', 'PCIC'],
+        default: 'SuperAdmin'
+    },
     name: {
         type: String
     },

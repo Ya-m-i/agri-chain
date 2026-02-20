@@ -17,8 +17,12 @@ const AdminSidebar = ({
   setActiveTab,
   showMapModal,
   setShowMapModal,
-  setMapMode
+  setMapMode,
+  /** SuperAdmin, OfficeHead, RSBSA, PCIC - Admin tab hidden for OfficeHead and RSBSA */
+  currentAdminRole = "SuperAdmin",
 }) => {
+  const hideAdminTab = currentAdminRole === "OfficeHead" || currentAdminRole === "RSBSA"
+  const hideBlockchainTab = currentAdminRole === "RSBSA"
   return (
     <>
       {/* Mobile Sidebar */}
@@ -109,6 +113,7 @@ const AdminSidebar = ({
                 Cash Assistance Claims
               </button>
             </li>
+            {!hideBlockchainTab && (
             <li>
               <button
                 onClick={() => {
@@ -124,6 +129,7 @@ const AdminSidebar = ({
                 Blockchain Records
               </button>
             </li>
+            )}
             <li>
               <button
                 onClick={() => {
@@ -139,6 +145,7 @@ const AdminSidebar = ({
                 Assistance Inventory
               </button>
             </li>
+            {!hideAdminTab && (
             <li>
               <button
                 onClick={() => {
@@ -154,6 +161,7 @@ const AdminSidebar = ({
                 Admin
               </button>
             </li>
+            )}
             {/* File for Farmers - Hidden for now */}
             {/* <li>
               <button
@@ -251,6 +259,7 @@ const AdminSidebar = ({
             {sidebarExpanded && <span className="text-black">Cash Assistance Claims</span>}
           </button>
 
+          {!hideBlockchainTab && (
           <button
             onClick={() => handleTabSwitch("distribution")}
             className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
@@ -264,6 +273,7 @@ const AdminSidebar = ({
             <img src={distributionIcon} alt="Distribution" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
             {sidebarExpanded && <span className="text-black">Blockchain Records</span>}
           </button>
+          )}
         </div>
 
         {/* Secondary Navigation Section */}
@@ -282,6 +292,7 @@ const AdminSidebar = ({
             {sidebarExpanded && <span className="text-black">Assistance Inventory</span>}
           </button>
 
+          {!hideAdminTab && (
           <button
             onClick={() => handleTabSwitch("admin")}
             className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
@@ -295,6 +306,7 @@ const AdminSidebar = ({
             <Shield size={24} className="w-10 min-w-[2.5rem] flex-shrink-0" />
             {sidebarExpanded && <span className="text-black">Admin</span>}
           </button>
+          )}
 
           {/* File for Farmers - Hidden for now */}
           {/* <button

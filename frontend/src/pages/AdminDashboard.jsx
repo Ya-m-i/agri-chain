@@ -176,6 +176,9 @@ import {
 const AdminDashboard = () => {
   const navigate = useNavigate()
   const logout = useAuthStore((state) => state.logout)
+  const user = useAuthStore((state) => state.user)
+  const currentUsername = user?.name || user?.username || ""
+  const currentAdminRole = user?.adminRole || "SuperAdmin"
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarExpanded, setSidebarExpanded] = useState(false)
@@ -215,9 +218,21 @@ const AdminDashboard = () => {
     return () => cancelAnimationFrame(rafId);
   }, []);
 
+  // Redirect restricted roles away from admin/distribution tabs (in case they navigate via URL or state)
+  useEffect(() => {
+    if (currentAdminRole === "OfficeHead" || currentAdminRole === "RSBSA") {
+      if (activeTab === "admin") setActiveTab("home");
+    }
+    if (currentAdminRole === "RSBSA" && activeTab === "distribution") {
+      setActiveTab("home");
+    }
+  }, [currentAdminRole, activeTab]);
+
   // Tab switch: brief loading state, clear on next frame (no 800ms delay)
   const handleTabSwitch = (newTab) => {
     if (newTab === activeTab) return;
+    if ((currentAdminRole === "OfficeHead" || currentAdminRole === "RSBSA") && newTab === "admin") return;
+    if (currentAdminRole === "RSBSA" && newTab === "distribution") return;
     setIsTabLoading(true);
     setActiveTab(newTab);
     setSidebarOpen(false);
@@ -2460,6 +2475,7 @@ const AdminDashboard = () => {
         darkMode={darkMode}
         setDarkMode={setDarkMode}
         handleLogout={handleLogout}
+        currentUsername={currentUsername}
       />
 
       <div className="flex flex-1">
@@ -2475,6 +2491,7 @@ const AdminDashboard = () => {
           showMapModal={showMapModal}
           setShowMapModal={setShowMapModal}
           setMapMode={setMapMode}
+          currentAdminRole={currentAdminRole}
         />
 
         {/* Main Content */}
@@ -2542,6 +2559,7 @@ const AdminDashboard = () => {
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">Cash Assistance Claims</h2>
+                {currentAdminRole !== "OfficeHead" && currentAdminRole !== "RSBSA" && (
                 <div className="flex gap-2">
                   <button
                     onClick={() => setClaimsTabView("pending")}
@@ -2564,6 +2582,7 @@ const AdminDashboard = () => {
                     All Claims
                   </button>
                 </div>
+                )}
               </div>
               {(claims && claims.length > 0) ? (
                 <InsuranceClaims
@@ -2583,6 +2602,8 @@ const AdminDashboard = () => {
                   confirmStatusUpdate={confirmStatusUpdate}
                   searchQuery={searchQuery}
                   setSearchQuery={setSearchQuery}
+                  viewOnlyClaims={currentAdminRole === "OfficeHead"}
+                  rsbsaClaimsMode={currentAdminRole === "RSBSA"}
                 />
               ) : (
                 <div className="text-center py-10 text-gray-500 italic text-lg">No claims found.</div>
@@ -2613,6 +2634,7 @@ const AdminDashboard = () => {
               formData={formData}
               setFormData={setFormData}
               reverseGeocode={reverseGeocode}
+              viewOnlyFarmList={currentAdminRole === "OfficeHead"}
             />
           )}
 
@@ -2630,6 +2652,7 @@ const AdminDashboard = () => {
             <div className="p-6 bg-white min-h-screen">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-black">Assistance Inventory</h2>
+                {currentAdminRole !== "OfficeHead" && (
                 <button
                   onClick={() => setShowEventModal(true)}
                   className="flex items-center gap-2 bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-all duration-300 font-semibold shadow-md hover:shadow-lg"
@@ -2637,6 +2660,7 @@ const AdminDashboard = () => {
                   <span className="text-xl font-bold">+</span>
                   <span className="font-semibold">Add New Assistance</span>
                 </button>
+                )}
               </div>
 
               {/* Loading State */}
@@ -2708,7 +2732,7 @@ const AdminDashboard = () => {
                             </div>
                           </div>
                           
-                          {/* Actions */}
+                          {/* Actions - OfficeHead: view only (View button only) */}
                           <div className="flex gap-2 mt-4">
                             <button
                               onClick={() => handleViewAssistance(item)}
@@ -2716,6 +2740,8 @@ const AdminDashboard = () => {
                             >
                               View
                             </button>
+                            {currentAdminRole !== "OfficeHead" && (
+                            <>
                             <button
                               onClick={() => handleEditEvent(index)}
                               className="flex-1 bg-lime-400 text-black px-3 py-2 rounded-lg font-semibold shadow-sm hover:bg-lime-500 transition"
@@ -2728,6 +2754,8 @@ const AdminDashboard = () => {
                             >
                               Delete
                             </button>
+                            </>
+                            )}
                           </div>
                         </div>
                         
@@ -2874,7 +2902,7 @@ const AdminDashboard = () => {
                               <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wider border-r border-gray-300">Quarter</th>
                               <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wider border-r border-gray-300">Date Applied</th>
                               <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wider border-r border-gray-300">Status</th>
-                              <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wider">Actions</th>
+                              {currentAdminRole !== "OfficeHead" && <th className="px-6 py-3 text-left text-xs font-bold text-black uppercase tracking-wider">Actions</th>}
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
@@ -2965,6 +2993,7 @@ const AdminDashboard = () => {
                                     </div>
                                   )}
                                 </td>
+                                {currentAdminRole !== "OfficeHead" && (
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                   {application.status === 'pending' && (
                                     <div className="flex gap-2">
@@ -2999,6 +3028,7 @@ const AdminDashboard = () => {
                                     </div>
                                   )}
                                 </td>
+                                )}
                               </tr>
                             ))}
                           </tbody>

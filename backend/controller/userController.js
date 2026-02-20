@@ -61,7 +61,7 @@ const loginUser = asyncHandler(async (req, res) => {
     // Optimize: Only fetch essential fields for login
     // Use lean() for faster query (returns plain JS object, no Mongoose overhead)
     const user = await User.findOne({ username })
-        .select('_id username password role name profileImageVersion')
+        .select('_id username password role adminRole name profileImageVersion')
         .lean()
 
     if(user && (await bcrypt.compare(password, user.password))) {
@@ -71,6 +71,7 @@ const loginUser = asyncHandler(async (req, res) => {
             id: user._id,
             username: user.username,
             role: user.role || 'user',
+            adminRole: user.adminRole || 'SuperAdmin',
             name: user.name || user.username,
             profileImageVersion: user.profileImageVersion ?? 0,
             token: generateToken(user._id)
@@ -92,6 +93,7 @@ const getMe = asyncHandler(async (req, res) => {
         id: user._id,
         username: user.username,
         role: user.role || 'user',
+        adminRole: user.adminRole || 'SuperAdmin',
         name: user.name || user.username,
         profileImageVersion: user.profileImageVersion ?? 0,
     })
@@ -101,7 +103,7 @@ const getMe = asyncHandler(async (req, res) => {
 // @route PUT /api/users/:id
 // @access Private
 const updateUser = asyncHandler(async (req, res) => {
-    const { username, password, name } = req.body
+    const { username, password, name, adminRole } = req.body
     const updateData = {}
 
     // Security check: Only allow users to update their own profile, or admins to update any profile
@@ -172,6 +174,22 @@ const updateUser = asyncHandler(async (req, res) => {
         updateData.name = name
     }
 
+    // Update adminRole if provided (only SuperAdmin can set other users' adminRole)
+    if (adminRole !== undefined) {
+        const allowedRoles = ['SuperAdmin', 'OfficeHead', 'RSBSA', 'PCIC']
+        if (!allowedRoles.includes(adminRole)) {
+            res.status(400)
+            throw new Error('Invalid admin role')
+        }
+        const currentUser = await User.findById(req.user.id).select('adminRole').lean()
+        const callerAdminRole = currentUser?.adminRole || 'SuperAdmin'
+        if (callerAdminRole !== 'SuperAdmin') {
+            res.status(403)
+            throw new Error('Only SuperAdmin can change admin roles')
+        }
+        updateData.adminRole = adminRole
+    }
+
     if (Object.keys(updateData).length === 0) {
         res.status(400)
         throw new Error('No fields to update')
@@ -194,6 +212,7 @@ const updateUser = asyncHandler(async (req, res) => {
         _id: updatedUser._id,
         username: updatedUser.username,
         role: updatedUser.role || 'user',
+        adminRole: updatedUser.adminRole || 'SuperAdmin',
         name: updatedUser.name || updatedUser.username,
         message: 'Profile updated successfully'
     })
@@ -248,6 +267,7 @@ const registerAdmin = asyncHandler(async (req, res) => {
         username,
         password: hashedPassword,
         role: 'admin',
+        adminRole: 'SuperAdmin',
     })
 
     if (user) {
@@ -272,7 +292,7 @@ const getAdminUsers = asyncHandler(async (req, res) => {
         throw new Error('Not authorized to list admin users')
     }
     const admins = await User.find({ role: 'admin' })
-        .select('_id username role name profileImageVersion createdAt')
+        .select('_id username role adminRole name profileImageVersion createdAt')
         .sort({ createdAt: -1 })
         .lean()
     res.status(200).json(admins)

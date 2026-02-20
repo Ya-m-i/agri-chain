@@ -91,6 +91,7 @@ const Login = () => {
           name: user.name || user.username,
           username: user.username,
           role: user.role,
+          adminRole: user.adminRole || 'SuperAdmin',
           profileImageVersion: user.profileImageVersion ?? 0,
         };
         

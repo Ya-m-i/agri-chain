@@ -31,7 +31,9 @@ const AdminNavbar = ({
   setShowCalendar,
   darkMode,
   setDarkMode,
-  handleLogout
+  handleLogout,
+  /** Logged-in admin username (or name) to show instead of "ADMIN DASHBOARD" */
+  currentUsername = "",
 }) => {
   const [sendModalOpen, setSendModalOpen] = useState(false)
   return (
@@ -41,7 +43,7 @@ const AdminNavbar = ({
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="mr-4 md:hidden" aria-label="Toggle menu">
             {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-          <h1 className="text-xl font-sans font-semibold tracking-wide text-black">ADMIN DASHBOARD</h1>
+          <h1 className="text-xl font-sans font-semibold tracking-wide text-black">{currentUsername || "ADMIN DASHBOARD"}</h1>
         </div>
 
         <div className="flex items-center space-x-4">

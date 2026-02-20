@@ -47,6 +47,10 @@ const InsuranceClaims = ({
   openClaimDetails = () => {},
   initiateStatusUpdate = () => {},
   confirmStatusUpdate = () => {},
+  /** OfficeHead: table view only — hide Approve/Reject, keep View and PDF */
+  viewOnlyClaims = false,
+  /** RSBSA: single table (all claims), no tab switcher, no Approve/Reject, only View and PDF; hide top report buttons */
+  rsbsaClaimsMode = false,
 }) => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -60,10 +64,13 @@ const InsuranceClaims = ({
   const barChartRef = useRef(null)
   const doughnutChartRef = useRef(null)
   
+  // RSBSA: treat as "all" claims view (single table)
+  const effectiveTabView = rsbsaClaimsMode ? "all" : claimsTabView
+  
   // Reset to first page when search query or tab view changes
   useEffect(() => {
     setCurrentPage(1)
-  }, [searchQuery, claimsTabView])
+  }, [searchQuery, claimsTabView, effectiveTabView])
   
   // Handler for downloading claim PDF
   const handleDownloadPDF = (claim) => {
@@ -125,9 +132,9 @@ const InsuranceClaims = ({
     )
   }
 
-  // Re-enable search filter for claims
+  // Re-enable search filter for claims (use effectiveTabView for RSBSA "all" view)
   const filteredClaims = claims.filter((claim) => {
-    const matchesStatus = claimsTabView === "all" ? true : (claim.status && claim.status.toLowerCase() === claimsTabView);
+    const matchesStatus = effectiveTabView === "all" ? true : (claim.status && claim.status.toLowerCase() === effectiveTabView);
     const matchesSearch =
       (claim.name && claim.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (claim.crop && claim.crop.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -140,6 +147,9 @@ const InsuranceClaims = ({
   const endIndex = startIndex + itemsPerPage
   const paginatedClaims = filteredClaims.slice(startIndex, endIndex)
 
+  const hideReportButtons = rsbsaClaimsMode
+  const hideApproveReject = viewOnlyClaims || rsbsaClaimsMode
+
   return (
     <div className="mt-6">
       {/* Outside Title */}
@@ -148,6 +158,8 @@ const InsuranceClaims = ({
           <FileText size={24} className="text-lime-600 mr-2" />
           <h1 className="text-2xl font-bold text-gray-800">Insurance Claims</h1>
         </div>
+        {!hideReportButtons && (
+        <>
         <button
           className="bg-lime-400 text-black px-4 py-2 rounded-lg hover:bg-lime-500 transition-colors flex items-center justify-center shadow-sm font-semibold"
           onClick={() => setShowReport(!showReport)}
@@ -177,10 +189,12 @@ const InsuranceClaims = ({
             )}
           </button>
         )}
+        </>
+        )}
       </div>
 
-      {/* Charts Section - Only show when report is generated */}
-      {showReport && (
+      {/* Charts Section - Only show when report is generated (hidden for RSBSA) */}
+      {showReport && !hideReportButtons && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Status Comparison Over Time - Grouped Bar Chart */}
           <div className="p-6 border-2 border-black rounded-lg">
@@ -399,6 +413,7 @@ const InsuranceClaims = ({
 
 
 
+      {!rsbsaClaimsMode && (
       <div className="mb-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
           <div className="flex space-x-1">
@@ -429,14 +444,16 @@ const InsuranceClaims = ({
           </div>
         </div>
       </div>
+      )}
 
       <div className="p-6">
         {/* Filter and Search */}
         <div className="flex items-center justify-between mb-6 gap-4">
           <h3 className="text-lg font-medium">
-            {claimsTabView === "pending" && "Pending Claims"}
-            {claimsTabView === "approved" && "Approved Claims"}
-            {claimsTabView === "rejected" && "Rejected Claims"}
+            {effectiveTabView === "pending" && "Pending Claims"}
+            {effectiveTabView === "approved" && "Approved Claims"}
+            {effectiveTabView === "rejected" && "Rejected Claims"}
+            {effectiveTabView === "all" && "All Filed Claims"}
           </h3>
 
           {/* Search Field */}
@@ -526,7 +543,7 @@ const InsuranceClaims = ({
                           <Download size={14} className="mr-1" />
                           PDF
                         </button>
-                        {claim.status === "pending" && (
+                        {!hideApproveReject && claim.status === "pending" && (
                           <>
                             <button
                               onClick={() => initiateStatusUpdate(claim._id, "approved", claim.farmerId)}
