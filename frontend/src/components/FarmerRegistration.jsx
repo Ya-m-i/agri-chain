@@ -104,6 +104,8 @@ const FarmerRegistration = ({
   const [showCropFilter, setShowCropFilter] = useState(false)
   const [showBarangayFilter, setShowBarangayFilter] = useState(false)
   const tableScrollRef = useRef(null)
+  const registerFormScrollRef = useRef(null)
+  const farmerDetailsScrollRef = useRef(null)
   
   // Report state
   const [showReport, setShowReport] = useState(false)
@@ -431,6 +433,26 @@ const FarmerRegistration = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [])
+
+  // Scroll RSBSA modals to top when opened (fixes 80% zoom: top was not reachable)
+  useEffect(() => {
+    if (!showRegisterForm) return
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (registerFormScrollRef.current) registerFormScrollRef.current.scrollTop = 0
+      })
+    })
+    return () => cancelAnimationFrame(id)
+  }, [showRegisterForm])
+  useEffect(() => {
+    if (!showFarmerDetails || !selectedFarmer) return
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (farmerDetailsScrollRef.current) farmerDetailsScrollRef.current.scrollTop = 0
+      })
+    })
+    return () => cancelAnimationFrame(id)
+  }, [showFarmerDetails, selectedFarmer])
 
   return (
     <div className="mt-6 bg-white rounded-lg p-6">
@@ -789,11 +811,16 @@ const FarmerRegistration = ({
         DO NOT create duplicate modals elsewhere!
         ============================================
       */}
-      {/* Register Farmer Modal - RSBSA Template (80% screen) */}
+      {/* Register Farmer Modal - RSBSA Template (80% screen); scroll container so top is visible at 80% zoom */}
       {showRegisterForm && (
-        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="py-6 flex justify-center min-h-full w-full">
-            <RSBSAEnrollmentForm
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-md flex flex-col p-4" style={{ height: "100vh" }}>
+          <div
+            ref={registerFormScrollRef}
+            className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
+            style={{ WebkitOverflowScrolling: "touch" }}
+          >
+            <div className="py-6 flex justify-center w-full">
+              <RSBSAEnrollmentForm
               mode="edit"
               onSubmit={async (payload) => {
                 try {
@@ -810,14 +837,20 @@ const FarmerRegistration = ({
               setShowMapModal={setShowMapModal}
               setMapMode={setMapMode}
             />
+            </div>
           </div>
         </div>
       )}
 
-      {/* Farmer Details Modal - RSBSA Template (80% screen) */}
+      {/* Farmer Details Modal - RSBSA Template (80% screen); scroll container so top is visible at 80% zoom */}
       {showFarmerDetails && selectedFarmer && (
-        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-          <div className="w-full py-6 flex flex-col items-center min-h-full">
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-md flex flex-col p-4" style={{ height: "100vh" }}>
+          <div
+            ref={farmerDetailsScrollRef}
+            className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
+            style={{ WebkitOverflowScrolling: "touch" }}
+          >
+            <div className="w-full py-6 flex flex-col items-center">
             <div className="w-[80%] max-w-6xl flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-black">RSBSA Farmer Details</h2>
               <div className="flex items-center gap-2">
@@ -839,6 +872,7 @@ const FarmerRegistration = ({
               initialData={selectedFarmer}
               onCancel={() => setShowFarmerDetails(false)}
             />
+            </div>
           </div>
         </div>
       )}
