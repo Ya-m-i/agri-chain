@@ -59,7 +59,9 @@ const farmerSchema = mongoose.Schema({
     matchedInsuranceCount: {
         type: Number,
         default: 0
-    }
+    },
+    // RSBSA enrollment form extended data (matches ANI AT KITA RSBSA template)
+    rsbsaData: { type: mongoose.Schema.Types.Mixed }
 }, {
     timestamps: true,
 })

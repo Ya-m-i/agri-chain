@@ -38,9 +38,10 @@ import { Doughnut } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js'
 import { getCropTypeDistributionFromInsurance } from '../utils/cropTypeDistribution'
 import SimpleMapPicker from './SimpleMapPicker'
-import { validatePassword, getPasswordStrengthColor, getPasswordStrengthTextColor, getPasswordStrengthLabel } from '../utils/passwordValidator'
+import { validatePassword } from '../utils/passwordValidator'
 import { generateFarmerRegistrationReportPDF } from '../utils/farmerReportPdfGenerator'
 import { toast } from 'react-hot-toast'
+import RSBSAEnrollmentForm from './RSBSAEnrollmentForm'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
@@ -112,11 +113,6 @@ const FarmerRegistration = ({
   const areaChartRef = useRef(null)
   const doughnutChartRef = useRef(null)
   
-  // Password visibility state
-  const [showPassword, setShowPassword] = useState(false)
-  
-  // Password validation state
-  const [passwordValidation, setPasswordValidation] = useState(null)
 
   const buildProfileImageUrl = (farmerId, version = Date.now()) => {
     if (!farmerId) return ''
@@ -338,79 +334,6 @@ const FarmerRegistration = ({
       setIsGeneratingPDF(false)
     }
   }
-
-  // Handle form input changes
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }))
-    
-    // Validate password in real-time
-    if (name === 'password' && value) {
-      const validation = validatePassword(value)
-      setPasswordValidation(validation)
-    } else if (name === 'password' && !value) {
-      setPasswordValidation(null)
-    }
-  }
-
-  // Fetch farmers from backend on mount - now handled by React Query
-  // useEffect(() => {
-  //   fetchFarmers()
-  //     .then(setFarmers)
-  //     .catch((err) => console.error('Failed to fetch farmers:', err));
-  // }, [setFarmers]);
-
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    // Validate password on submit so backend is not hit with invalid passwords
-    const pwd = formData.password
-    if (pwd) {
-      const pwdValidation = validatePassword(pwd)
-      if (!pwdValidation.isValid) {
-        toast.error(pwdValidation.errors[0] || 'Password does not meet requirements')
-        return
-      }
-    }
-    const newFarmer = {
-      ...formData,
-      farmerName: `${formData.firstName} ${formData.middleName} ${formData.lastName}`.trim(),
-      location: selectedLocation,
-      registrationDate: new Date().toISOString(), // Add registration date
-    }
-    try {
-      await registerFarmerMutation.mutateAsync(newFarmer)
-      
-      // Note: Notifications are now created by backend API automatically
-      
-      setFormData({
-        firstName: "",
-        middleName: "",
-        lastName: "",
-        birthday: "",
-        gender: "",
-        contactNum: "",
-        address: "",
-        cropArea: "",
-        isCertified: false,
-        periodFrom: "",
-        periodTo: "",
-        username: "",
-        password: "",
-        rsbsaRegistered: false,
-      })
-      setSelectedLocation(null)
-      setShowRegisterForm(false)
-    } catch (err) {
-      console.error('Registration error:', err);
-      // Note: Error feedback handled by parent component or backend API
-      console.error(err)
-    }
-  }
-
 
   // Handle location view - navigate to dashboard map
   const handleLocationView = (farmer) => {
@@ -866,471 +789,56 @@ const FarmerRegistration = ({
         DO NOT create duplicate modals elsewhere!
         ============================================
       */}
-      {/* Register Farmer Modal - Farm Vibe Design */}
+      {/* Register Farmer Modal - RSBSA Template (80% screen) */}
       {showRegisterForm && (
-        <div className="fixed inset-0 z-50 bg-transparent backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto hide-scrollbar border-2 border-black">
-            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
-              <h2 className="text-2xl font-bold text-black">🌾 Register a New Farmer</h2>
-              <button
-                className="text-black hover:bg-lime-200 rounded-full p-1 focus:outline-none transition-all"
-                onClick={() => setShowRegisterForm(false)}
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className="p-6 md:p-8 bg-white">
-              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Personal Information Block - Minimalist Blockchain Style */}
-                <div className="bg-white rounded-lg p-5 border-2 border-black relative" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-                  <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
-                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
-                      <User size={18} className="text-lime-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Personal Data</h3>
-                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
-                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
-                        Blockchain Record
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">First Name</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <User size={16} className="text-lime-500" />
-                        </div>
-                        <input
-                          type="text"
-                          name="firstName"
-                          value={formData.firstName || ""}
-                          onChange={handleChange}
-                          placeholder="Enter first name"
-                          className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Middle Name</label>
-                      <input
-                        type="text"
-                        name="middleName"
-                        value={formData.middleName || ""}
-                        onChange={handleChange}
-                        placeholder="Enter middle name (optional)"
-                        className="w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Last Name</label>
-                      <input
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName || ""}
-                        onChange={handleChange}
-                        placeholder="Enter last name"
-                        className="w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Birthday</label>
-                      <input
-                        type="date"
-                        name="birthday"
-                        value={formData.birthday || ""}
-                        onChange={handleChange}
-                        className="w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Gender</label>
-                      <select
-                        name="gender"
-                        value={formData.gender || ""}
-                        onChange={handleChange}
-                        className="w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
-                        required
-                      >
-                        <option value="">Select Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Contact Number</label>
-                      <input
-                        type="tel"
-                        name="contactNum"
-                        value={formData.contactNum || ""}
-                        onChange={handleChange}
-                        placeholder="Enter contact number (e.g., 09123456789)"
-                        className="w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Address Information Block - Minimalist Blockchain Style */}
-                <div className="bg-white rounded-lg p-5 border-2 border-black relative" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-                  <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
-                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
-                      <MapPin size={18} className="text-lime-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Location Data</h3>
-                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
-                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
-                        GPS Verified
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-bold text-black mb-1 uppercase">Address</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          name="address"
-                          value={formData.address || ""}
-                          onChange={handleChange}
-                          className="w-full pr-10 bg-white border-2 border-black p-3 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all"
-                          required
-                          placeholder="Enter address or click map icon to select location"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (setShowMapModal) {
-                              setShowMapModal(true)
-                            }
-                            if (setMapMode) {
-                              setMapMode("add")
-                            }
-                          }}
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-auto z-10 hover:opacity-80 transition-opacity"
-                          title="Click to select location on map"
-                        >
-                          <MapPin size={20} className="text-black" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Farm Information Block - Minimalist Blockchain Style */}
-                <div className="bg-white rounded-lg p-5 border-2 border-black relative" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-                  <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
-                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
-                      <Layers size={18} className="text-lime-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Farm Registry</h3>
-                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
-                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
-                        Immutable Ledger
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-bold text-lime-600 mb-1 uppercase">Crop Area (hectares)</label>
-                      <input
-                        type="text"
-                        name="cropArea"
-                        value={formData.cropArea || ""}
-                        onChange={handleChange}
-                        placeholder="Enter crop area (e.g., 2.5)"
-                        className="w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3 py-3 bg-white p-4 rounded-lg border-2 border-black" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-                  <input
-                    type="checkbox"
-                    id="isCertified"
-                    name="isCertified"
-                    checked={formData.isCertified || false}
-                    onChange={handleChange}
-                    className="w-5 h-5 text-lime-600 bg-white border-2 border-black rounded focus:ring-2 focus:ring-lime-400"
-                  />
-                  <label htmlFor="isCertified" className="text-black font-bold uppercase text-sm tracking-wide">
-                    Certified Farmer
-                  </label>
-                </div>
-                {/* RSBSA Registered checkbox - Minimalist */}
-                <div className="flex items-center space-x-3 py-3 bg-white p-4 rounded-lg border-2 border-black" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-                  <input
-                    type="checkbox"
-                    id="rsbsaRegistered"
-                    name="rsbsaRegistered"
-                    checked={formData.rsbsaRegistered || false}
-                    onChange={handleChange}
-                    className="w-5 h-5 text-lime-600 bg-white border-2 border-black rounded focus:ring-2 focus:ring-lime-400"
-                  />
-                  <label htmlFor="rsbsaRegistered" className="text-black font-bold uppercase text-sm tracking-wide">
-                    RSBSA Registered <span className="text-xs text-gray-600 normal-case font-normal">(Required)</span>
-                  </label>
-                </div>
-
-                {/* Farmer Account Information - Minimalist Blockchain Style */}
-                <div className="md:col-span-2 border-t-2 border-lime-500 pt-6 mt-6">
-                  <div className="flex items-center mb-4 pb-3 border-b-2 border-lime-500">
-                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
-                      <User size={18} className="text-lime-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Account Protocol</h3>
-                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
-                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
-                        Encrypted Credentials
-                      </span>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-lime-600 uppercase">Username</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <User size={16} className="text-lime-500" />
-                        </div>
-                        <input
-                          type="text"
-                          name="username"
-                          value={formData.username || ""}
-                          onChange={handleChange}
-                          placeholder="Enter username for farmer login"
-                          className="pl-10 w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-lime-600 uppercase">Password</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <FileText size={16} className="text-lime-500" />
-                        </div>
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          name="password"
-                          value={formData.password || ""}
-                          onChange={handleChange}
-                          placeholder="Enter password for farmer login"
-                          className="pl-10 pr-10 w-full bg-white border-2 border-black p-3 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-500 transition-all hover:border-lime-400"
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-lime-600 hover:text-lime-700"
-                        >
-                          {showPassword ? (
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                            </svg>
-                          ) : (
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Password Validation Display - Full Width */}
-                  {formData.password && passwordValidation && (
-                    <div className="mt-3 p-3 bg-white rounded-lg" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-black uppercase">Password Strength</span>
-                        <span className={`text-xs font-bold px-2 py-1 rounded ${getPasswordStrengthTextColor(passwordValidation.strength.level)}`}>
-                          {getPasswordStrengthLabel(passwordValidation.strength.level)}
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                        <div
-                          className={`h-2 rounded-full transition-all ${getPasswordStrengthColor(passwordValidation.strength.level)}`}
-                          style={{ width: `${passwordValidation.strength.score}%` }}
-                        />
-                      </div>
-                      {passwordValidation.errors.length > 0 && (
-                        <div className="mt-2 space-y-1">
-                          <p className="text-xs font-bold text-red-600">Requirements:</p>
-                          <ul className="list-disc list-inside text-xs text-gray-700 space-y-0.5">
-                            {passwordValidation.errors.map((error, index) => (
-                              <li key={index} className="text-red-600">{error}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {passwordValidation.isValid && (
-                        <p className="text-xs text-green-600 font-semibold mt-2">✓ Password meets all requirements</p>
-                      )}
-                    </div>
-                  )}
-                  {/* Username Validation Display */}
-                  {formData.username && (
-                    <div className="mt-3 p-3 bg-white rounded-lg border-2 border-lime-500" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}>
-                      <div className="flex items-center justify-between">
-                        <p className="text-xs text-gray-700 flex items-center">
-                          <span className="text-lime-500 mr-2 font-bold">►</span>
-                          Username: <span className="font-bold text-black ml-1">{formData.username}</span>
-                        </p>
-                        {formData.username.length >= 3 ? (
-                          <span className="text-xs text-green-600 font-semibold">✓ Valid</span>
-                        ) : (
-                          <span className="text-xs text-red-600 font-semibold">⚠ Minimum 3 characters</span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  <div className="mt-3 p-3 bg-white rounded-lg border-2 border-lime-500" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.2)' }}>
-                    <p className="text-xs text-gray-700 flex items-center">
-                      <span className="text-lime-500 mr-2 font-bold">►</span>
-                      Secure blockchain-encrypted credentials for farmer dashboard access
-                    </p>
-                  </div>
-                </div>
-
-                <div className="md:col-span-2 flex gap-4 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowRegisterForm(false)}
-                    className="flex-1 bg-white border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-gray-100 transition-all font-semibold"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 bg-lime-400 border-2 border-black text-black px-4 py-3 rounded-lg hover:bg-lime-500 transition-all font-bold shadow-lg flex items-center justify-center"
-                    style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
-                  >
-                    <UserPlus className="mr-2 h-5 w-5" />
-                    Register Farmer
-                  </button>
-                </div>
-              </form>
-            </div>
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="py-6 flex justify-center min-h-full w-full">
+            <RSBSAEnrollmentForm
+              mode="edit"
+              onSubmit={async (payload) => {
+                try {
+                  const fullPayload = { ...payload, location: selectedLocation }
+                  await registerFarmerMutation.mutateAsync(fullPayload)
+                  toast.success("Farmer registered successfully.")
+                  setShowRegisterForm(false)
+                  setSelectedLocation(null)
+                } catch (err) {
+                  toast.error(err?.message || "Registration failed.")
+                }
+              }}
+              onCancel={() => setShowRegisterForm(false)}
+              setShowMapModal={setShowMapModal}
+              setMapMode={setMapMode}
+            />
           </div>
         </div>
       )}
 
-      {/* Farmer Details Modal - 80% width and height */}
+      {/* Farmer Details Modal - RSBSA Template (80% screen) */}
       {showFarmerDetails && selectedFarmer && (
-        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-[80vw] h-[80vh] overflow-y-auto border-2 border-black flex flex-col">
-            <div className="sticky top-0 bg-gradient-to-r from-lime-100 to-lime-50 border-b-2 border-black p-5 rounded-t-xl flex justify-between items-center z-20">
-              <h2 className="text-2xl font-bold text-black">🌾 Farmer Details</h2>
-              <button
-                onClick={() => setShowFarmerDetails(false)}
-                className="text-black hover:bg-lime-200 rounded-full p-1 focus:outline-none transition-all"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            <div className="p-6 md:p-8 bg-white">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div className="bg-white rounded-lg p-5 border-2 border-black relative" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-                  <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
-                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
-                      <User size={18} className="text-lime-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Personal Data</h3>
-                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
-                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
-                        Blockchain Record
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div><span className="text-gray-500 text-xs uppercase font-bold">Full Name</span><p className="font-medium text-black">{selectedFarmer.farmerName}</p></div>
-                    <div><span className="text-gray-500 text-xs uppercase font-bold">Birthday</span><p className="font-medium text-black">{selectedFarmer.birthday || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-xs uppercase font-bold">Gender</span><p className="font-medium text-black">{selectedFarmer.gender || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-xs uppercase font-bold">Contact Number</span><p className="font-medium text-black">{selectedFarmer.contactNum || "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-xs uppercase font-bold">Address</span><p className="font-medium text-black">{selectedFarmer.address}</p></div>
-                  </div>
-                </div>
-                <div className="bg-white rounded-lg p-5 border-2 border-black relative" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-                  <div className="flex items-center mb-4 pb-3 border-b-2 border-black">
-                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
-                      <Layers size={18} className="text-lime-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Farm Registry</h3>
-                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
-                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
-                        Immutable Ledger
-                      </span>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    <div><span className="text-gray-500 text-xs uppercase font-bold">Crop Area</span><p className="font-medium text-black">{selectedFarmer.cropArea ? `${selectedFarmer.cropArea} hectares` : "Not provided"}</p></div>
-                    <div><span className="text-gray-500 text-xs uppercase font-bold">Certified</span><p className="font-medium">{selectedFarmer.isCertified ? (<span className="text-green-600 flex items-center"><CheckCircle size={16} className="mr-1" /> Yes</span>) : (<span className="text-gray-600">No</span>)}</p></div>
-                    <div><span className="text-gray-500 text-xs uppercase font-bold">RSBSA Registered</span><p className="font-medium">{selectedFarmer.rsbsaRegistered ? (<span className="text-green-600 flex items-center"><CheckCircle size={16} className="mr-1" /> Yes</span>) : (<span className="text-red-600 flex items-center"><AlertTriangle size={16} className="mr-1" /> No</span>)}</p></div>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white rounded-lg p-5 border-2 border-black relative mb-6" style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)' }}>
-                <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-black">
-                  <div className="flex items-center">
-                    <div className="p-2 bg-black rounded-lg mr-3" style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.6)' }}>
-                      <Shield size={18} className="text-lime-500" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-black text-black uppercase tracking-wider">Insurance Information</h3>
-                      <span className="text-[10px] text-gray-600 flex items-center gap-1">
-                        <span className="w-1 h-1 bg-lime-500 rounded-full"></span>
-                        Coverage Details
-                      </span>
-                    </div>
-                  </div>
-                  {onTabSwitch && (
-                    <button
-                      onClick={() => {
-                        setShowFarmerDetails(false)
-                        onTabSwitch('crop-insurance')
-                      }}
-                      className="px-4 py-2 bg-lime-400 text-black rounded-lg hover:bg-lime-500 transition-all font-bold border-2 border-black text-xs uppercase"
-                      style={{ boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}
-                    >
-                      View Crop Insurance
-                    </button>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-gray-500 text-xs uppercase font-bold">Insured Crops</span>
-                    <p className="font-medium text-black">{getInsuredCrops(selectedFarmer)}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setShowFarmerDetails(false)}
-                  className="bg-lime-400 border-2 border-black text-black px-6 py-3 rounded-lg hover:bg-lime-500 transition-all font-bold shadow-lg"
-                  style={{ boxShadow: '0 0 10px rgba(132, 204, 22, 0.5)' }}
-                >
-                  Close
+        <div className="fixed inset-0 z-50 bg-black/30 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="w-full py-6 flex flex-col items-center min-h-full">
+            <div className="w-[80%] max-w-6xl flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold text-black">RSBSA Farmer Details</h2>
+              <div className="flex items-center gap-2">
+                {onTabSwitch && (
+                  <button
+                    onClick={() => { setShowFarmerDetails(false); onTabSwitch("crop-insurance"); }}
+                    className="px-4 py-2 bg-lime-400 text-black rounded-lg hover:bg-lime-500 font-bold border-2 border-black text-sm"
+                  >
+                    View Crop Insurance
+                  </button>
+                )}
+                <button onClick={() => setShowFarmerDetails(false)} className="p-2 rounded-full border-2 border-black hover:bg-gray-100">
+                  <X size={24} />
                 </button>
               </div>
             </div>
+            <RSBSAEnrollmentForm
+              mode="view"
+              initialData={selectedFarmer}
+              onCancel={() => setShowFarmerDetails(false)}
+            />
           </div>
         </div>
       )}
