@@ -79,64 +79,80 @@ function App() {
     // Initialize optimizations first
     initAssetOptimization()
     initImageOptimization()
-
-    // Show update banner: avoid duplicate per session
-    const showUpdateBannerIfNew = (serverVersion) => {
-      const lastShown = sessionStorage.getItem('last_shown_update_version')
-      if (lastShown !== serverVersion) {
-        setShowUpdateNotification(true)
-        if (serverVersion) sessionStorage.setItem('last_shown_update_version', serverVersion)
-      }
-    }
-
-    // 1) Register callback first so it's ready when initUpdateChecker runs
+    
+    // Initialize update checker
+    initUpdateChecker()
+    
+    // Listen for update notifications (only show once per version)
     const unsubscribe = onUpdateAvailable(async () => {
+      // Check if we've already shown this notification in this session
+      const lastShownVersion = sessionStorage.getItem('last_shown_update_version')
+      
+      // Get current server version
       try {
         const response = await fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
         if (response.ok) {
           const data = await response.json()
-          showUpdateBannerIfNew(data.version)
-        } else {
-          setShowUpdateNotification(true)
+          const serverVersion = data.version
+          
+          // Only show if we haven't shown this version in this session
+          if (lastShownVersion !== serverVersion) {
+            setShowUpdateNotification(true)
+            // Mark as shown in this session
+            sessionStorage.setItem('last_shown_update_version', serverVersion)
+          }
         }
       } catch {
+        // If we can't get version, show notification anyway (better to show than miss)
         setShowUpdateNotification(true)
       }
     })
-
-    // 2) Listen for custom event (from updateChecker or service worker)
-    const handleUpdateEvent = (event) => {
-      const version = event?.detail?.version
-      if (version) {
-        showUpdateBannerIfNew(version)
-        return
-      }
-      try {
-        fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
-          .then((r) => r.ok ? r.json() : null)
-          .then((data) => {
-            if (data?.version) showUpdateBannerIfNew(data.version)
-            else setShowUpdateNotification(true)
-          })
-          .catch(() => setShowUpdateNotification(true))
-      } catch {
-        setShowUpdateNotification(true)
-      }
-    }
-    window.addEventListener('app-update-available', handleUpdateEvent)
-
-    // 3) Then start update checker (single init, no duplicate intervals)
-    initUpdateChecker()
-
-    // Service worker: when SW reports update, fire same event so one path shows banner
+    
+    // Listen for service worker messages
     let handleServiceWorkerMessage = null
+    let handleUpdateEvent = null
+    
     if ('serviceWorker' in navigator) {
-      handleServiceWorkerMessage = (event) => {
-        if (event.data?.type === 'SW_UPDATED') {
-          window.dispatchEvent(new CustomEvent('app-update-available', { detail: { version: event.data.version } }))
+      handleServiceWorkerMessage = async (event) => {
+        if (event.data && event.data.type === 'SW_UPDATED') {
+          // Check if we've already shown this version
+          const lastShownVersion = sessionStorage.getItem('last_shown_update_version')
+          const swVersion = event.data.version
+          
+          // Only show if we haven't shown this version in this session
+          if (lastShownVersion !== swVersion) {
+            setShowUpdateNotification(true)
+            if (swVersion) {
+              sessionStorage.setItem('last_shown_update_version', swVersion)
+            }
+          }
         }
       }
       navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage)
+      
+      // Also listen for custom update events
+      handleUpdateEvent = async () => {
+        // Check if we've already shown this version
+        const lastShownVersion = sessionStorage.getItem('last_shown_update_version')
+        
+        try {
+          const response = await fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
+          if (response.ok) {
+            const data = await response.json()
+            const serverVersion = data.version
+            
+            // Only show if we haven't shown this version in this session
+            if (lastShownVersion !== serverVersion) {
+              setShowUpdateNotification(true)
+              sessionStorage.setItem('last_shown_update_version', serverVersion)
+            }
+          }
+        } catch {
+          // If we can't get version, show notification anyway
+          setShowUpdateNotification(true)
+        }
+      }
+      window.addEventListener('app-update-available', handleUpdateEvent)
     }
     
     // Initialize authentication state from storage
@@ -173,9 +189,11 @@ function App() {
     return () => {
       clearTimeout(loadingTimeout)
       if (unsubscribe) unsubscribe()
-      window.removeEventListener('app-update-available', handleUpdateEvent)
       if (handleServiceWorkerMessage) {
         navigator.serviceWorker?.removeEventListener('message', handleServiceWorkerMessage)
+      }
+      if (handleUpdateEvent) {
+        window.removeEventListener('app-update-available', handleUpdateEvent)
       }
     }
   }, [isInitialized, initializeAuth, isAuthenticated])

@@ -3,19 +3,16 @@
 let currentVersion = null
 let updateAvailable = false
 let updateCallbacks = []
-let initialized = false
 
-// Load current version from server (used for update check)
+// Load current version
 export const loadCurrentVersion = async () => {
   try {
+    // Try to load version.json from public directory
     const response = await fetch('/version.json?t=' + Date.now(), { cache: 'no-store' })
     if (response.ok) {
       const data = await response.json()
       currentVersion = data.version
       return data
-    }
-    if (response.status === 404) {
-      console.warn('Update check: /version.json not found (run build to generate)')
     }
   } catch (error) {
     console.warn('Failed to load version:', error)
@@ -51,10 +48,6 @@ export const checkForUpdates = async () => {
       if (!shownVersions.includes(serverVersion)) {
         updateAvailable = true
         notifyUpdateCallbacks()
-        // Dispatch so App's event listener can also show the banner (e.g. when SW not used)
-        if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('app-update-available', { detail: { version: serverVersion } }))
-        }
         return true
       }
       // Version already shown, but update stored version to prevent future checks
@@ -92,18 +85,20 @@ const notifyUpdateCallbacks = () => {
   })
 }
 
-// Initialize update checker (only once to avoid duplicate intervals/listeners)
+// Initialize update checker
 export const initUpdateChecker = async () => {
-  if (initialized) return
-  initialized = true
-
+  // Load current version
   await loadCurrentVersion()
+  
+  // Check for updates immediately
   await checkForUpdates()
-
+  
+  // Check for updates periodically (every 5 minutes)
   setInterval(async () => {
     await checkForUpdates()
-  }, 5 * 60 * 1000)
-
+  }, 5 * 60 * 1000) // 5 minutes
+  
+  // Also check when page becomes visible (user returns to tab)
   document.addEventListener('visibilitychange', async () => {
     if (!document.hidden) {
       await checkForUpdates()
