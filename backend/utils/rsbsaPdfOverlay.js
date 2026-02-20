@@ -28,64 +28,71 @@ function digitsOnly(str, maxLen) {
   return s
 }
 
-/** Position map: left/top in %, width in %. Matches typical RSBSA layout (header → enrollment → Part I two cols → Part II → client copy). */
+/** Truncate to max chars so text fits in form boxes and does not overflow */
+function truncate(str, maxLen) {
+  const s = String(str || '').trim()
+  if (s.length <= maxLen) return s
+  return s.slice(0, maxLen)
+}
+
+/** Position map: left/top in %, width in %. Left col ends before 48%, right col starts at 50%. */
 const POS = {
-  dateAdministered: { left: 54, top: 16, width: 20 },
-  refRegion: { left: 14, top: 19, width: 8 },
-  refProvince: { left: 26, top: 19, width: 8 },
-  refCityMuni: { left: 38, top: 19, width: 8 },
-  refBarangay: { left: 50, top: 19, width: 8 },
-  lastName: { left: 10, top: 24, width: 36 },
-  firstName: { left: 50, top: 24, width: 36 },
-  middleName: { left: 10, top: 27, width: 36 },
-  extensionName: { left: 50, top: 27, width: 36 },
-  gender: { left: 50, top: 30, width: 18 },
-  houseLotPurok: { left: 10, top: 33, width: 36 },
-  streetSitioSubdv: { left: 50, top: 33, width: 36 },
-  barangay: { left: 10, top: 36, width: 36 },
-  municipalityCity: { left: 50, top: 36, width: 36 },
-  province: { left: 10, top: 39, width: 36 },
-  region: { left: 50, top: 39, width: 36 },
-  contactNum: { left: 10, top: 42, width: 36 },
-  landlineNum: { left: 50, top: 42, width: 36 },
-  birthday: { left: 10, top: 45, width: 36 },
-  placeOfBirth: { left: 50, top: 45, width: 36 },
-  highestEducation: { left: 10, top: 48, width: 36 },
-  religion: { left: 50, top: 48, width: 36 },
-  civilStatus: { left: 10, top: 51, width: 36 },
-  pwd: { left: 50, top: 51, width: 18 },
-  fourPsBeneficiary: { left: 50, top: 54, width: 18 },
-  indigenousGroup: { left: 50, top: 57, width: 18 },
-  indigenousSpecify: { left: 50, top: 60, width: 36 },
-  withGovId: { left: 50, top: 63, width: 18 },
+  dateAdministered: { left: 54, top: 16, width: 16 },
+  refRegion: { left: 14, top: 19, width: 7 },
+  refProvince: { left: 24, top: 19, width: 7 },
+  refCityMuni: { left: 34, top: 19, width: 7 },
+  refBarangay: { left: 44, top: 19, width: 7 },
+  lastName: { left: 10, top: 24, width: 35 },
+  firstName: { left: 50, top: 24, width: 35 },
+  middleName: { left: 10, top: 27, width: 35 },
+  extensionName: { left: 50, top: 27, width: 35 },
+  gender: { left: 50, top: 30, width: 14 },
+  houseLotPurok: { left: 10, top: 33, width: 35 },
+  streetSitioSubdv: { left: 50, top: 33, width: 35 },
+  barangay: { left: 10, top: 36, width: 35 },
+  municipalityCity: { left: 50, top: 36, width: 35 },
+  province: { left: 10, top: 39, width: 35 },
+  region: { left: 50, top: 39, width: 35 },
+  contactNum: { left: 10, top: 42, width: 35 },
+  landlineNum: { left: 50, top: 42, width: 35 },
+  birthday: { left: 10, top: 45, width: 35 },
+  placeOfBirth: { left: 50, top: 45, width: 35 },
+  highestEducation: { left: 10, top: 48, width: 35 },
+  religion: { left: 50, top: 48, width: 35 },
+  civilStatus: { left: 10, top: 51, width: 35 },
+  pwd: { left: 50, top: 51, width: 14 },
+  fourPsBeneficiary: { left: 50, top: 54, width: 14 },
+  indigenousGroup: { left: 50, top: 57, width: 14 },
+  indigenousSpecify: { left: 50, top: 60, width: 35 },
+  withGovId: { left: 50, top: 63, width: 14 },
   govIdType: { left: 50, top: 66, width: 18 },
-  govIdNumber: { left: 50, top: 69, width: 36 },
-  farmersAssociation: { left: 50, top: 72, width: 18 },
-  farmersAssociationSpecify: { left: 50, top: 75, width: 36 },
-  spouseName: { left: 10, top: 54, width: 36 },
-  motherMaidenName: { left: 10, top: 57, width: 36 },
-  householdHead: { left: 10, top: 60, width: 36 },
-  householdHeadName: { left: 10, top: 63, width: 36 },
-  householdHeadRelationship: { left: 10, top: 66, width: 36 },
-  numHouseholdMembers: { left: 10, top: 69, width: 12 },
-  numMale: { left: 26, top: 69, width: 12 },
-  numFemale: { left: 42, top: 69, width: 12 },
-  emergencyContactName: { left: 10, top: 78, width: 36 },
-  emergencyContactNum: { left: 50, top: 78, width: 36 },
-  address: { left: 10, top: 81, width: 80 },
-  addressFull: { left: 10, top: 84, width: 80 },
-  mainLivelihood: { left: 10, top: 87, width: 80 },
-  grossIncomeFarming: { left: 10, top: 90, width: 35 },
-  grossIncomeNonFarming: { left: 50, top: 90, width: 35 },
-  clientLastName: { left: 10, top: 93, width: 20 },
-  clientMiddleName: { left: 32, top: 93, width: 20 },
-  clientExtensionName: { left: 54, top: 93, width: 15 },
-  clientFirstName: { left: 72, top: 93, width: 20 },
+  govIdNumber: { left: 50, top: 69, width: 35 },
+  farmersAssociation: { left: 50, top: 72, width: 14 },
+  farmersAssociationSpecify: { left: 50, top: 75, width: 35 },
+  spouseName: { left: 10, top: 54, width: 35 },
+  motherMaidenName: { left: 10, top: 57, width: 35 },
+  householdHead: { left: 10, top: 60, width: 35 },
+  householdHeadName: { left: 10, top: 63, width: 35 },
+  householdHeadRelationship: { left: 10, top: 66, width: 35 },
+  numHouseholdMembers: { left: 10, top: 69, width: 10 },
+  numMale: { left: 24, top: 69, width: 10 },
+  numFemale: { left: 38, top: 69, width: 10 },
+  emergencyContactName: { left: 10, top: 78, width: 35 },
+  emergencyContactNum: { left: 50, top: 78, width: 35 },
+  address: { left: 10, top: 81, width: 78 },
+  addressFull: { left: 10, top: 84, width: 78 },
+  mainLivelihood: { left: 10, top: 87, width: 78 },
+  grossIncomeFarming: { left: 10, top: 90, width: 32 },
+  grossIncomeNonFarming: { left: 48, top: 90, width: 32 },
+  clientLastName: { left: 10, top: 93, width: 18 },
+  clientMiddleName: { left: 30, top: 93, width: 18 },
+  clientExtensionName: { left: 50, top: 93, width: 12 },
+  clientFirstName: { left: 65, top: 93, width: 18 },
 }
 
 function styleFor(pos) {
-  const w = pos.width != null ? pos.width : 20
-  return `position:absolute;left:${pos.left}%;top:${pos.top}%;width:${w}%;font-size:9px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:transparent;border:none;color:#000;font-family:Arial,sans-serif;padding:0 1px;margin:0;z-index:2;display:block;`
+  const w = pos.width != null ? pos.width : 18
+  return `position:absolute;left:${pos.left}%;top:${pos.top}%;width:${w}%;max-width:${w}%;font-size:7px;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:transparent;border:none;color:#000;font-family:Arial,sans-serif;padding:0;margin:0;z-index:2;display:block;box-sizing:border-box;`
 }
 
 /**
@@ -104,52 +111,52 @@ function getRSBSAFormHtmlWithBackground(formState, imageDataUrl) {
     { key: 'refProvince', value: digitsOnly(f.refProvince, 4) },
     { key: 'refCityMuni', value: digitsOnly(f.refCityMuni, 4) },
     { key: 'refBarangay', value: digitsOnly(f.refBarangay, 4) },
-    { key: 'lastName', value: esc(f.lastName) },
-    { key: 'middleName', value: esc(f.middleName) },
-    { key: 'address', value: esc(f.address) },
-    { key: 'houseLotPurok', value: esc(f.houseLotPurok) },
-    { key: 'municipalityCity', value: esc(f.municipalityCity) },
+    { key: 'lastName', value: truncate(esc(f.lastName), 28) },
+    { key: 'middleName', value: truncate(esc(f.middleName), 28) },
+    { key: 'address', value: truncate(esc(f.address), 50) },
+    { key: 'houseLotPurok', value: truncate(esc(f.houseLotPurok), 22) },
+    { key: 'municipalityCity', value: truncate(esc(f.municipalityCity), 22) },
     { key: 'contactNum', value: digitsOnly(f.contactNum, 11) },
     { key: 'birthday', value: formatDate(f.birthday) },
-    { key: 'religion', value: f.religion === 'Others' ? esc(f.religionOthers) : esc(f.religion) },
-    { key: 'civilStatus', value: esc(f.civilStatus) },
-    { key: 'spouseName', value: esc(f.spouseName) },
-    { key: 'motherMaidenName', value: esc(f.motherMaidenName) },
+    { key: 'religion', value: truncate(f.religion === 'Others' ? esc(f.religionOthers) : esc(f.religion), 18) },
+    { key: 'civilStatus', value: truncate(esc(f.civilStatus), 12) },
+    { key: 'spouseName', value: truncate(esc(f.spouseName), 28) },
+    { key: 'motherMaidenName', value: truncate(esc(f.motherMaidenName), 28) },
     { key: 'householdHead', value: esc(f.householdHead) },
-    { key: 'householdHeadName', value: esc(f.householdHeadName) },
-    { key: 'householdHeadRelationship', value: esc(f.householdHeadRelationship) },
+    { key: 'householdHeadName', value: truncate(esc(f.householdHeadName), 28) },
+    { key: 'householdHeadRelationship', value: truncate(esc(f.householdHeadRelationship), 18) },
     { key: 'numHouseholdMembers', value: esc(f.numHouseholdMembers) },
     { key: 'numMale', value: esc(f.numMale) },
     { key: 'numFemale', value: esc(f.numFemale) },
-    { key: 'firstName', value: esc(f.firstName) },
-    { key: 'extensionName', value: esc(f.extensionName) },
+    { key: 'firstName', value: truncate(esc(f.firstName), 28) },
+    { key: 'extensionName', value: truncate(esc(f.extensionName), 10) },
     { key: 'gender', value: esc(f.gender) },
-    { key: 'streetSitioSubdv', value: esc(f.streetSitioSubdv) },
-    { key: 'barangay', value: esc(f.barangay) },
-    { key: 'province', value: esc(f.province) },
-    { key: 'region', value: esc(f.region) },
+    { key: 'streetSitioSubdv', value: truncate(esc(f.streetSitioSubdv), 22) },
+    { key: 'barangay', value: truncate(esc(f.barangay), 22) },
+    { key: 'province', value: truncate(esc(f.province), 22) },
+    { key: 'region', value: truncate(esc(f.region), 22) },
     { key: 'landlineNum', value: digitsOnly(f.landlineNum, 7) },
-    { key: 'placeOfBirth', value: placeBirth },
-    { key: 'highestEducation', value: education },
+    { key: 'placeOfBirth', value: truncate(placeBirth, 28) },
+    { key: 'highestEducation', value: truncate(education, 35) },
     { key: 'pwd', value: esc(f.pwd) },
     { key: 'fourPsBeneficiary', value: esc(f.fourPsBeneficiary) },
     { key: 'indigenousGroup', value: esc(f.indigenousGroup) },
-    { key: 'indigenousSpecify', value: esc(f.indigenousSpecify) },
+    { key: 'indigenousSpecify', value: truncate(esc(f.indigenousSpecify), 22) },
     { key: 'withGovId', value: esc(f.withGovId) },
-    { key: 'govIdType', value: esc(f.govIdType) },
-    { key: 'govIdNumber', value: esc(f.govIdNumber) },
+    { key: 'govIdType', value: truncate(esc(f.govIdType), 18) },
+    { key: 'govIdNumber', value: truncate(esc(f.govIdNumber), 20) },
     { key: 'farmersAssociation', value: esc(f.farmersAssociation) },
-    { key: 'farmersAssociationSpecify', value: esc(f.farmersAssociationSpecify) },
-    { key: 'emergencyContactName', value: esc(f.emergencyContactName) },
+    { key: 'farmersAssociationSpecify', value: truncate(esc(f.farmersAssociationSpecify), 28) },
+    { key: 'emergencyContactName', value: truncate(esc(f.emergencyContactName), 28) },
     { key: 'emergencyContactNum', value: digitsOnly(f.emergencyContactNum, 11) },
-    { key: 'addressFull', value: esc(f.address) },
-    { key: 'mainLivelihood', value: esc(f.mainLivelihood) },
-    { key: 'grossIncomeFarming', value: esc(f.grossIncomeFarming) },
-    { key: 'grossIncomeNonFarming', value: esc(f.grossIncomeNonFarming) },
-    { key: 'clientLastName', value: esc(f.lastName) },
-    { key: 'clientMiddleName', value: esc(f.middleName) },
-    { key: 'clientExtensionName', value: esc(f.extensionName) },
-    { key: 'clientFirstName', value: esc(f.firstName) },
+    { key: 'addressFull', value: truncate(esc(f.address), 60) },
+    { key: 'mainLivelihood', value: truncate(esc(f.mainLivelihood), 22) },
+    { key: 'grossIncomeFarming', value: truncate(esc(f.grossIncomeFarming), 18) },
+    { key: 'grossIncomeNonFarming', value: truncate(esc(f.grossIncomeNonFarming), 18) },
+    { key: 'clientLastName', value: truncate(esc(f.lastName), 18) },
+    { key: 'clientMiddleName', value: truncate(esc(f.middleName), 18) },
+    { key: 'clientExtensionName', value: truncate(esc(f.extensionName), 8) },
+    { key: 'clientFirstName', value: truncate(esc(f.firstName), 18) },
   ]
 
   const overlayDivs = fields
@@ -169,14 +176,14 @@ function getRSBSAFormHtmlWithBackground(formState, imageDataUrl) {
   <title>RSBSA Enrollment Form</title>
   <style>
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 0; width: 595px; height: 842px; overflow: visible; }
+    html, body { margin: 0; padding: 0; width: 595px; height: 842px; overflow: hidden; }
     .page {
       position: relative;
       width: 595px;
       height: 842px;
-      overflow: visible;
+      overflow: hidden;
       background-image: url('${imageDataUrl.replace(/'/g, "\\'")}');
-      background-size: contain;
+      background-size: cover;
       background-position: top center;
       background-repeat: no-repeat;
       background-color: #fff;
