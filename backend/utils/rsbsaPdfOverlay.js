@@ -28,64 +28,64 @@ function digitsOnly(str, maxLen) {
   return s
 }
 
-/** Position map: left/top in %, width in %. Tune these to match your RSBSA form image. */
+/** Position map: left/top in %, width in %. Matches typical RSBSA layout (header → enrollment → Part I two cols → Part II → client copy). */
 const POS = {
-  dateAdministered: { left: 52, top: 18, width: 18 },
-  refRegion: { left: 12, top: 21, width: 8 },
-  refProvince: { left: 24, top: 21, width: 8 },
-  refCityMuni: { left: 36, top: 21, width: 8 },
-  refBarangay: { left: 48, top: 21, width: 8 },
-  lastName: { left: 10, top: 30, width: 36 },
-  middleName: { left: 10, top: 33.5, width: 36 },
-  houseLotPurok: { left: 10, top: 37, width: 36 },
-  municipalityCity: { left: 10, top: 40.5, width: 36 },
-  contactNum: { left: 10, top: 44, width: 36 },
-  birthday: { left: 10, top: 47.5, width: 36 },
-  religion: { left: 10, top: 51, width: 36 },
-  civilStatus: { left: 10, top: 54.5, width: 36 },
-  spouseName: { left: 10, top: 58, width: 36 },
-  motherMaidenName: { left: 10, top: 61.5, width: 36 },
-  householdHead: { left: 10, top: 65, width: 36 },
-  householdHeadName: { left: 10, top: 68.5, width: 36 },
-  householdHeadRelationship: { left: 10, top: 72, width: 36 },
-  numHouseholdMembers: { left: 10, top: 75.5, width: 12 },
-  numMale: { left: 26, top: 75.5, width: 12 },
-  numFemale: { left: 42, top: 75.5, width: 12 },
-  firstName: { left: 52, top: 30, width: 36 },
-  extensionName: { left: 52, top: 33.5, width: 36 },
-  gender: { left: 52, top: 37, width: 18 },
-  streetSitioSubdv: { left: 52, top: 40.5, width: 36 },
-  barangay: { left: 52, top: 44, width: 36 },
-  province: { left: 52, top: 47.5, width: 36 },
-  region: { left: 52, top: 51, width: 36 },
-  landlineNum: { left: 52, top: 54.5, width: 36 },
-  placeOfBirth: { left: 52, top: 58, width: 36 },
-  highestEducation: { left: 52, top: 61.5, width: 36 },
-  pwd: { left: 52, top: 65, width: 18 },
-  fourPsBeneficiary: { left: 52, top: 68.5, width: 18 },
-  indigenousGroup: { left: 52, top: 72, width: 18 },
-  indigenousSpecify: { left: 52, top: 75.5, width: 36 },
-  withGovId: { left: 52, top: 79, width: 18 },
-  govIdType: { left: 52, top: 82, width: 18 },
-  govIdNumber: { left: 52, top: 85, width: 36 },
-  farmersAssociation: { left: 52, top: 88, width: 18 },
-  farmersAssociationSpecify: { left: 52, top: 91, width: 36 },
-  emergencyContactName: { left: 52, top: 94, width: 36 },
-  emergencyContactNum: { left: 52, top: 97, width: 36 },
-  address: { left: 10, top: 80, width: 80 },
-  addressFull: { left: 10, top: 83, width: 80 },
-  mainLivelihood: { left: 10, top: 86, width: 80 },
-  grossIncomeFarming: { left: 10, top: 89, width: 35 },
-  grossIncomeNonFarming: { left: 50, top: 89, width: 35 },
-  clientLastName: { left: 10, top: 92, width: 20 },
-  clientMiddleName: { left: 32, top: 92, width: 20 },
-  clientExtensionName: { left: 54, top: 92, width: 15 },
-  clientFirstName: { left: 72, top: 92, width: 20 },
+  dateAdministered: { left: 54, top: 16, width: 20 },
+  refRegion: { left: 14, top: 19, width: 8 },
+  refProvince: { left: 26, top: 19, width: 8 },
+  refCityMuni: { left: 38, top: 19, width: 8 },
+  refBarangay: { left: 50, top: 19, width: 8 },
+  lastName: { left: 10, top: 24, width: 36 },
+  firstName: { left: 50, top: 24, width: 36 },
+  middleName: { left: 10, top: 27, width: 36 },
+  extensionName: { left: 50, top: 27, width: 36 },
+  gender: { left: 50, top: 30, width: 18 },
+  houseLotPurok: { left: 10, top: 33, width: 36 },
+  streetSitioSubdv: { left: 50, top: 33, width: 36 },
+  barangay: { left: 10, top: 36, width: 36 },
+  municipalityCity: { left: 50, top: 36, width: 36 },
+  province: { left: 10, top: 39, width: 36 },
+  region: { left: 50, top: 39, width: 36 },
+  contactNum: { left: 10, top: 42, width: 36 },
+  landlineNum: { left: 50, top: 42, width: 36 },
+  birthday: { left: 10, top: 45, width: 36 },
+  placeOfBirth: { left: 50, top: 45, width: 36 },
+  highestEducation: { left: 10, top: 48, width: 36 },
+  religion: { left: 50, top: 48, width: 36 },
+  civilStatus: { left: 10, top: 51, width: 36 },
+  pwd: { left: 50, top: 51, width: 18 },
+  fourPsBeneficiary: { left: 50, top: 54, width: 18 },
+  indigenousGroup: { left: 50, top: 57, width: 18 },
+  indigenousSpecify: { left: 50, top: 60, width: 36 },
+  withGovId: { left: 50, top: 63, width: 18 },
+  govIdType: { left: 50, top: 66, width: 18 },
+  govIdNumber: { left: 50, top: 69, width: 36 },
+  farmersAssociation: { left: 50, top: 72, width: 18 },
+  farmersAssociationSpecify: { left: 50, top: 75, width: 36 },
+  spouseName: { left: 10, top: 54, width: 36 },
+  motherMaidenName: { left: 10, top: 57, width: 36 },
+  householdHead: { left: 10, top: 60, width: 36 },
+  householdHeadName: { left: 10, top: 63, width: 36 },
+  householdHeadRelationship: { left: 10, top: 66, width: 36 },
+  numHouseholdMembers: { left: 10, top: 69, width: 12 },
+  numMale: { left: 26, top: 69, width: 12 },
+  numFemale: { left: 42, top: 69, width: 12 },
+  emergencyContactName: { left: 10, top: 78, width: 36 },
+  emergencyContactNum: { left: 50, top: 78, width: 36 },
+  address: { left: 10, top: 81, width: 80 },
+  addressFull: { left: 10, top: 84, width: 80 },
+  mainLivelihood: { left: 10, top: 87, width: 80 },
+  grossIncomeFarming: { left: 10, top: 90, width: 35 },
+  grossIncomeNonFarming: { left: 50, top: 90, width: 35 },
+  clientLastName: { left: 10, top: 93, width: 20 },
+  clientMiddleName: { left: 32, top: 93, width: 20 },
+  clientExtensionName: { left: 54, top: 93, width: 15 },
+  clientFirstName: { left: 72, top: 93, width: 20 },
 }
 
 function styleFor(pos) {
   const w = pos.width != null ? pos.width : 20
-  return `position:absolute;left:${pos.left}%;top:${pos.top}%;width:${w}%;font-size:8px;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:transparent;border:none;color:#000;font-family:Arial,sans-serif;padding:0;margin:0;`
+  return `position:absolute;left:${pos.left}%;top:${pos.top}%;width:${w}%;font-size:9px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:transparent;border:none;color:#000;font-family:Arial,sans-serif;padding:0 1px;margin:0;z-index:2;display:block;`
 }
 
 /**
@@ -155,9 +155,10 @@ function getRSBSAFormHtmlWithBackground(formState, imageDataUrl) {
   const overlayDivs = fields
     .filter(({ key }) => POS[key])
     .map(({ key, value }) => {
-      if (!value) return ''
+      const str = value != null && value !== '' ? String(value).trim() : ''
+      if (str === '') return ''
       const p = POS[key]
-      return `<div style="${styleFor(p)}">${value}</div>`
+      return `<div style="${styleFor(p)}">${esc(str)}</div>`
     })
     .join('')
 
@@ -168,15 +169,17 @@ function getRSBSAFormHtmlWithBackground(formState, imageDataUrl) {
   <title>RSBSA Enrollment Form</title>
   <style>
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 0; width: 595px; height: 842px; }
+    body { margin: 0; padding: 0; width: 595px; height: 842px; overflow: visible; }
     .page {
       position: relative;
       width: 595px;
       height: 842px;
+      overflow: visible;
       background-image: url('${imageDataUrl.replace(/'/g, "\\'")}');
-      background-size: cover;
-      background-position: center;
+      background-size: contain;
+      background-position: top center;
       background-repeat: no-repeat;
+      background-color: #fff;
     }
   </style>
 </head>
