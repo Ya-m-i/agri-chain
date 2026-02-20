@@ -468,7 +468,7 @@ function generateToken(id) {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 }
 
-// @desc    Generate RSBSA Enrollment Form PDF (Puppeteer)
+// @desc    Generate RSBSA Enrollment Form PDF (Puppeteer + Chromium for serverless/Render)
 // @route   POST /api/farmers/rsbsa-pdf
 // @access  Private (protect)
 const generateRSBSAFormPDF = asyncHandler(async (req, res) => {
@@ -477,13 +477,17 @@ const generateRSBSAFormPDF = asyncHandler(async (req, res) => {
         res.status(400).json({ message: 'Request body must include formState (RSBSA form data).' })
         return
     }
-    const puppeteer = require('puppeteer')
+    const puppeteer = require('puppeteer-core')
+    const chromium = require('@sparticuz/chromium')
     const html = getRSBSAFormHtml(formState)
     let browser
     try {
+        const executablePath = await chromium.executablePath()
         browser = await puppeteer.launch({
-            headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+            executablePath,
+            headless: chromium.headless,
         })
         const page = await browser.newPage()
         await page.setContent(html, { waitUntil: 'networkidle0' })
