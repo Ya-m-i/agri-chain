@@ -142,24 +142,30 @@ const AdminUserCreation = () => {
   const saveProfileImage = async () => {
     if (!profileModalAdmin || !profileImageFile) return
     setProfileSavingImage(true)
+    const adminId = profileModalAdmin._id
     try {
-      await saveProfileImageMutation.mutateAsync({
-        userId: profileModalAdmin._id,
+      const res = await saveProfileImageMutation.mutateAsync({
+        userId: adminId,
         file: profileImageFile,
       })
-      toast.success("Profile picture saved.")
+      const newVersion = res?.version ?? (profileModalAdmin.profileImageVersion || 0) + 1
+      // Update modal admin with new version immediately so the image URL changes and renders
+      setProfileModalAdmin((prev) => (prev && prev._id === adminId ? { ...prev, profileImageVersion: newVersion } : prev))
       setProfileImageFile(null)
       if (profileImagePreview && profileImagePreview.startsWith("blob:")) URL.revokeObjectURL(profileImagePreview)
       setProfileImagePreview(null)
-      const { data: updatedList } = await refetchAdmins()
-      if (updatedList && profileModalAdmin) {
-        const updated = updatedList.find((a) => a._id === profileModalAdmin._id)
+      setProfileImageLoadFailed((prev) => {
+        const next = new Set(prev)
+        next.delete(adminId)
+        return next
+      })
+      toast.success("Profile picture saved.")
+      // Refetch so the table gets fresh data and shows the new image
+      const refetchResult = await refetchAdmins()
+      const updatedList = refetchResult?.data
+      if (updatedList && adminId) {
+        const updated = updatedList.find((a) => a._id === adminId)
         if (updated) setProfileModalAdmin(updated)
-        setProfileImageLoadFailed((prev) => {
-          const next = new Set(prev)
-          next.delete(profileModalAdmin._id)
-          return next
-        })
       }
     } catch (err) {
       toast.error(err?.message || "Failed to save profile image")
@@ -341,6 +347,7 @@ const AdminUserCreation = () => {
                         >
                           {admin.profileImageVersion != null && admin.profileImageVersion > 0 && !profileImageLoadFailed.has(admin._id) ? (
                             <img
+                              key={`avatar-${admin._id}-v${admin.profileImageVersion}`}
                               src={getAdminProfileImageUrl(admin._id, admin.profileImageVersion)}
                               alt=""
                               className="h-12 w-12 rounded-full object-cover border-2 border-black"
@@ -408,6 +415,7 @@ const AdminUserCreation = () => {
                 <div className="flex flex-col items-center gap-3">
                   {(profileImagePreview || (profileModalAdmin.profileImageVersion != null && profileModalAdmin.profileImageVersion > 0 && !profileImageLoadFailed.has(profileModalAdmin._id))) ? (
                     <img
+                      key={profileImagePreview ? "preview" : `profile-${profileModalAdmin._id}-v${profileModalAdmin.profileImageVersion}`}
                       src={profileImagePreview || getAdminProfileImageUrl(profileModalAdmin._id, profileModalAdmin.profileImageVersion)}
                       alt="Profile"
                       className="h-24 w-24 rounded-full object-cover border-2 border-black"
