@@ -218,6 +218,13 @@ const AdminDashboard = () => {
     return () => cancelAnimationFrame(rafId);
   }, []);
 
+  // PCIC: only Claims tab — redirect to claims when on any other tab
+  useEffect(() => {
+    if (currentAdminRole === "PCIC" && activeTab !== "claims") {
+      setActiveTab("claims");
+    }
+  }, [currentAdminRole, activeTab]);
+
   // Redirect restricted roles away from admin/distribution tabs (in case they navigate via URL or state)
   useEffect(() => {
     if (currentAdminRole === "OfficeHead" || currentAdminRole === "RSBSA") {
@@ -231,6 +238,7 @@ const AdminDashboard = () => {
   // Tab switch: brief loading state, clear on next frame (no 800ms delay)
   const handleTabSwitch = (newTab) => {
     if (newTab === activeTab) return;
+    if (currentAdminRole === "PCIC" && newTab !== "claims") return;
     if ((currentAdminRole === "OfficeHead" || currentAdminRole === "RSBSA") && newTab === "admin") return;
     if (currentAdminRole === "RSBSA" && newTab === "distribution") return;
     setIsTabLoading(true);

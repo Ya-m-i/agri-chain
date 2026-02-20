@@ -23,6 +23,8 @@ const AdminSidebar = ({
 }) => {
   const hideAdminTab = currentAdminRole === "OfficeHead" || currentAdminRole === "RSBSA"
   const hideBlockchainTab = currentAdminRole === "RSBSA"
+  /** PCIC: only Cash Assistance Claims tab is visible; all other tabs hidden */
+  const isPcicOnly = currentAdminRole === "PCIC"
   return (
     <>
       {/* Mobile Sidebar */}
@@ -58,6 +60,7 @@ const AdminSidebar = ({
         </div>
         <nav className="p-4">
           <ul className="space-y-2">
+            {!isPcicOnly && (
             <li>
               <button
                 onClick={() => handleTabSwitch("home")}
@@ -70,6 +73,8 @@ const AdminSidebar = ({
                 Dashboard
               </button>
             </li>
+            )}
+            {!isPcicOnly && (
             <li>
               <button
                 onClick={() => handleTabSwitch("farmer-registration")}
@@ -84,6 +89,8 @@ const AdminSidebar = ({
                 Farmer Registration
               </button>
             </li>
+            )}
+            {!isPcicOnly && (
             <li>
               <button
                 onClick={() => {
@@ -98,6 +105,7 @@ const AdminSidebar = ({
                 View Farm Locations
               </button>
             </li>
+            )}
             <li>
               <button
                 onClick={() => {
@@ -113,7 +121,7 @@ const AdminSidebar = ({
                 Cash Assistance Claims
               </button>
             </li>
-            {!hideBlockchainTab && (
+            {!hideBlockchainTab && !isPcicOnly && (
             <li>
               <button
                 onClick={() => {
@@ -130,6 +138,7 @@ const AdminSidebar = ({
               </button>
             </li>
             )}
+            {!isPcicOnly && (
             <li>
               <button
                 onClick={() => {
@@ -145,7 +154,8 @@ const AdminSidebar = ({
                 Assistance Inventory
               </button>
             </li>
-            {!hideAdminTab && (
+            )}
+            {!hideAdminTab && !isPcicOnly && (
             <li>
               <button
                 onClick={() => {
@@ -215,6 +225,7 @@ const AdminSidebar = ({
 
         {/* Main Navigation Section */}
         <div className="space-y-1 px-3">
+          {!isPcicOnly && (
           <button
             onClick={() => handleTabSwitch("home")}
             className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
@@ -228,7 +239,8 @@ const AdminSidebar = ({
             <img src={dashboardIcon} alt="Dashboard" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
             {sidebarExpanded && <span className="text-black">Dashboard</span>}
           </button>
-
+          )}
+          {!isPcicOnly && (
           <button
             onClick={() => {
               handleTabSwitch("farmer-registration")
@@ -244,6 +256,7 @@ const AdminSidebar = ({
             <img src={registrationIcon} alt="Registration" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
             {sidebarExpanded && <span className="text-black">Farmer Registration</span>}
           </button>
+          )}
 
           <button
             onClick={() => handleTabSwitch("claims")}
@@ -259,7 +272,7 @@ const AdminSidebar = ({
             {sidebarExpanded && <span className="text-black">Cash Assistance Claims</span>}
           </button>
 
-          {!hideBlockchainTab && (
+          {!hideBlockchainTab && !isPcicOnly && (
           <button
             onClick={() => handleTabSwitch("distribution")}
             className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
@@ -278,6 +291,7 @@ const AdminSidebar = ({
 
         {/* Secondary Navigation Section */}
         <div className="space-y-1 px-3">
+          {!isPcicOnly && (
           <button
             onClick={() => handleTabSwitch("assistance")}
             className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
@@ -291,8 +305,9 @@ const AdminSidebar = ({
             <img src={inventoryIcon} alt="Inventory" className="w-10 h-10 min-w-[2.5rem] min-h-[2.5rem] max-w-[2.5rem] max-h-[2.5rem] flex-shrink-0 object-contain" />
             {sidebarExpanded && <span className="text-black">Assistance Inventory</span>}
           </button>
+          )}
 
-          {!hideAdminTab && (
+          {!hideAdminTab && !isPcicOnly && (
           <button
             onClick={() => handleTabSwitch("admin")}
             className={`flex items-center ${sidebarExpanded ? 'gap-3 px-4' : 'justify-center px-2'} py-2.5 rounded-lg w-full text-left transition-colors ${
