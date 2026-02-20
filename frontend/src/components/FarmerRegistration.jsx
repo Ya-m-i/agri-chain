@@ -40,6 +40,7 @@ import { getCropTypeDistributionFromInsurance } from '../utils/cropTypeDistribut
 import SimpleMapPicker from './SimpleMapPicker'
 import { validatePassword } from '../utils/passwordValidator'
 import { generateFarmerRegistrationReportPDF } from '../utils/farmerReportPdfGenerator'
+import { generateRSBSAFormPDF } from '../utils/rsbsaFormPdfGenerator'
 import { toast } from 'react-hot-toast'
 import RSBSAEnrollmentForm from './RSBSAEnrollmentForm'
 
@@ -106,7 +107,10 @@ const FarmerRegistration = ({
   const tableScrollRef = useRef(null)
   const registerFormScrollRef = useRef(null)
   const farmerDetailsScrollRef = useRef(null)
-  
+
+  /** Map picker result: address parts to auto-fill RSBSA form (houseLotPurok, streetSitioSubdv, barangay, etc.) */
+  const [mapSelectedAddress, setMapSelectedAddress] = useState(null)
+
   // Report state
   const [showReport, setShowReport] = useState(false)
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
@@ -777,13 +781,30 @@ const FarmerRegistration = ({
                     </td>
                     {!viewOnlyFarmList && (
                     <td className="px-4 py-4 whitespace-normal break-words text-sm text-gray-500" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        type="button"
-                        onClick={() => { setFarmerToDelete(farmer); setShowDeleteConfirmation(true); }}
-                        className="text-black hover:text-gray-800 font-semibold hover:font-bold transition-all"
-                      >
-                        Delete
-                      </button>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              await generateRSBSAFormPDF(farmer)
+                              toast.success("RSBSA form PDF downloaded.")
+                            } catch (err) {
+                              toast.error(err?.message || "Failed to generate PDF.")
+                            }
+                          }}
+                          className="inline-flex items-center gap-1 text-lime-700 hover:text-lime-800 font-semibold hover:font-bold transition-all"
+                        >
+                          <Download className="h-4 w-4" />
+                          PDF
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setFarmerToDelete(farmer); setShowDeleteConfirmation(true); }}
+                          className="text-black hover:text-gray-800 font-semibold hover:font-bold transition-all"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                     )}
                   </tr>
@@ -833,9 +854,11 @@ const FarmerRegistration = ({
                   toast.error(err?.message || "Registration failed.")
                 }
               }}
-              onCancel={() => setShowRegisterForm(false)}
+              onCancel={() => { setShowRegisterForm(false); setMapSelectedAddress(null); }}
               setShowMapModal={setShowMapModal}
               setMapMode={setMapMode}
+              mapSelectedAddress={mapSelectedAddress}
+              onClearMapSelection={() => setMapSelectedAddress(null)}
             />
             </div>
           </div>
@@ -1215,21 +1238,17 @@ const FarmerRegistration = ({
       {showMapModal && mapMode === "add" && (
         <SimpleMapPicker
           onLocationSelect={(location) => {
-            // Update the address field if address is available
+            const addressValue = location.address || `Lat: ${location.lat.toFixed(6)}, Lng: ${location.lng.toFixed(6)}`;
             if (setFormData) {
-              const addressValue = location.address || `Lat: ${location.lat.toFixed(6)}, Lng: ${location.lng.toFixed(6)}`;
-              
-              setFormData((prev) => ({
-                ...prev,
-                address: addressValue
-              }));
+              setFormData((prev) => ({ ...prev, address: addressValue }));
             }
-            // Update selected location
             if (setSelectedLocation) {
-              setSelectedLocation({
-                lat: location.lat,
-                lng: location.lng
-              });
+              setSelectedLocation({ lat: location.lat, lng: location.lng });
+            }
+            if (location.addressParts) {
+              setMapSelectedAddress({ ...location.addressParts, address: addressValue });
+            } else {
+              setMapSelectedAddress({ address: addressValue, houseLotPurok: '', streetSitioSubdv: '', barangay: '', municipalityCity: '', province: '', region: '' });
             }
           }}
           onClose={() => {

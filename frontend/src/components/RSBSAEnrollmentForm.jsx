@@ -282,6 +282,8 @@ const CheckboxGroup = ({ options, value, onChange, readOnly, name, singleSelect 
  * onSubmit: (payload) => void for edit mode
  * onCancel: () => void
  * setShowMapModal, setMapMode: optional, for map picker in edit
+ * mapSelectedAddress: optional, { address, houseLotPurok, streetSitioSubdv, barangay, municipalityCity, province, region } from map picker
+ * onClearMapSelection: optional, called after merging map address into form
  */
 const RSBSAEnrollmentForm = ({
   mode = "edit",
@@ -290,6 +292,8 @@ const RSBSAEnrollmentForm = ({
   onCancel,
   setShowMapModal,
   setMapMode,
+  mapSelectedAddress,
+  onClearMapSelection,
   title = "ANI AT KITA RSBSA ENROLLMENT FORM",
   subTitle = "REGISTRY SYSTEM FOR BASIC SECTORS IN AGRICULTURE (RSBSA)",
 }) => {
@@ -300,6 +304,21 @@ const RSBSAEnrollmentForm = ({
     if (initialData) setForm(farmerToRsbsaFormState(initialData))
     else setForm(getDefaultRsbsaFormState())
   }, [initialData])
+
+  useEffect(() => {
+    if (!mapSelectedAddress || readOnly) return
+    setForm((prev) => ({
+      ...prev,
+      address: mapSelectedAddress.address ?? prev.address,
+      houseLotPurok: mapSelectedAddress.houseLotPurok ?? prev.houseLotPurok,
+      streetSitioSubdv: mapSelectedAddress.streetSitioSubdv ?? prev.streetSitioSubdv,
+      barangay: mapSelectedAddress.barangay ?? prev.barangay,
+      municipalityCity: mapSelectedAddress.municipalityCity ?? prev.municipalityCity,
+      province: mapSelectedAddress.province ?? prev.province,
+      region: mapSelectedAddress.region ?? prev.region,
+    }))
+    onClearMapSelection?.()
+  }, [mapSelectedAddress, readOnly, onClearMapSelection])
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target

@@ -94,25 +94,41 @@ const SimpleMapPicker = ({ onLocationSelect, onClose }) => {
 
         markerRef.current = L.marker([lat, lng], { icon: greenIcon }).addTo(map);
 
-        // Get address
+        // Get address and structured parts for RSBSA form
         try {
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`,
             { headers: { 'User-Agent': 'AGRI-CHAIN-App' } }
           );
           const data = await response.json();
-          
+
           if (data && data.display_name) {
             setSelectedAddress(data.display_name);
+            const addr = data.address || {};
+            const houseLotPurok = [addr.house_number, addr.road].filter(Boolean).join(' ').trim() || addr.house_number || addr.road || '';
+            const streetSitioSubdv = addr.road || '';
+            const barangay = addr.suburb || addr.village || addr.neighbourhood || addr.hamlet || '';
+            const municipalityCity = addr.city || addr.municipality || addr.town || addr.county || '';
+            const province = addr.state || '';
+            const region = addr.region || addr.state || '';
+            const addressParts = {
+              address: data.display_name,
+              houseLotPurok,
+              streetSitioSubdv,
+              barangay,
+              municipalityCity,
+              province,
+              region,
+            };
             if (onLocationSelect) {
-              onLocationSelect({ lat, lng, address: data.display_name });
+              onLocationSelect({ lat, lng, address: data.display_name, addressParts });
             }
           }
         } catch (error) {
           console.error('❌ Error getting address:', error);
           setSelectedAddress(`Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`);
           if (onLocationSelect) {
-            onLocationSelect({ lat, lng, address: '' });
+            onLocationSelect({ lat, lng, address: '', addressParts: null });
           }
         }
       });
