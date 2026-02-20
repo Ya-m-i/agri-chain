@@ -494,7 +494,7 @@ const generateRSBSAFormPDF = asyncHandler(async (req, res) => {
         const pdfBuffer = await page.pdf({
             format: 'A4',
             printBackground: true,
-            margin: { top: '8mm', right: '10mm', bottom: '10mm', left: '10mm' }
+            margin: { top: '6mm', right: '8mm', bottom: '8mm', left: '8mm' }
         })
         await browser.close()
         const lastName = (formState.lastName || '').trim()

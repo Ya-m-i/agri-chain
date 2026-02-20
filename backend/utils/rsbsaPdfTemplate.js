@@ -60,66 +60,68 @@ function getRSBSAFormHtml(formState) {
   <title>RSBSA Enrollment Form</title>
   <style>
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 10px 12px; font-family: Arial, Helvetica, sans-serif; font-size: 10px; color: #000; background: #fff; }
-    .page { max-width: 210mm; margin: 0 auto; }
-    /* Header: logo left, title center-left, revised + photo right */
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
-    .header-left { display: flex; align-items: flex-start; gap: 10px; flex: 1; }
+    body { margin: 0; padding: 4px 6px; font-family: Arial, Helvetica, sans-serif; font-size: 8px; color: #000; background: #fff; }
+    /* Single page: compact layout so content fits A4 */
+    .page { max-width: 210mm; margin: 0 auto; padding: 5px 7px; border: 2px solid #000; }
+    /* Header */
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; }
+    .header-left { display: flex; align-items: flex-start; gap: 8px; flex: 1; }
     .logo-wrap { flex-shrink: 0; }
-    .logo-circle { width: 44px; height: 44px; border: 2px solid #000; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 6px; text-align: center; line-height: 1.2; }
-    .logo-circle .da { font-weight: bold; font-size: 5px; }
-    .logo-circle .yr { margin-top: 2px; }
+    .logo-circle { width: 36px; height: 36px; border: 2px solid #000; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 5px; text-align: center; line-height: 1.2; }
+    .logo-circle .da { font-weight: bold; }
+    .logo-circle .yr { margin-top: 1px; }
     .title-wrap { flex: 1; }
-    .dept { font-size: 8px; font-weight: bold; margin-bottom: 1px; }
-    .main-title { font-size: 14px; font-weight: bold; text-transform: uppercase; margin: 0 0 2px 0; letter-spacing: 0.02em; }
-    .subtitle { font-size: 9px; font-weight: bold; text-transform: uppercase; color: #222; }
+    .dept { font-size: 6px; font-weight: bold; margin-bottom: 0; }
+    .main-title { font-size: 11px; font-weight: bold; text-transform: uppercase; margin: 0 0 1px 0; letter-spacing: 0.02em; }
+    .subtitle { font-size: 7px; font-weight: bold; text-transform: uppercase; color: #222; }
     .header-right { text-align: right; flex-shrink: 0; }
-    .revised { font-size: 7px; margin-bottom: 4px; }
-    .photo-box { width: 48px; height: 58px; border: 2px solid #000; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; font-size: 7px; text-align: center; padding: 2px; font-weight: bold; }
+    .revised { font-size: 6px; margin-bottom: 2px; }
+    .photo-box { width: 40px; height: 48px; border: 2px solid #000; display: inline-flex; flex-direction: column; align-items: center; justify-content: center; font-size: 6px; text-align: center; padding: 1px; font-weight: bold; }
     .photo-box span { display: block; }
-    .anikita { text-align: center; margin: 6px 0 8px; font-size: 9px; font-weight: bold; }
-    /* Section bar */
-    .section-bar { background: #2d2d2d; color: #fff; padding: 5px 10px; font-weight: bold; font-size: 10px; text-transform: uppercase; margin: 8px 0 6px 0; letter-spacing: 0.02em; }
-    /* Segmented boxes (date, ref, phone) */
+    .anikita { text-align: center; margin: 3px 0 4px; font-size: 7px; font-weight: bold; }
+    /* Enrollment box: bordered */
+    .enrollment-box { border: 1px solid #000; padding: 4px 6px; margin-bottom: 4px; }
+    .section-bar { background: #2d2d2d; color: #fff; padding: 3px 8px; font-weight: bold; font-size: 9px; text-transform: uppercase; margin: 0; letter-spacing: 0.02em; }
+    .part1-inner { border: 1px solid #000; border-top: none; padding: 4px 6px; }
+    .part2-inner { border: 1px solid #000; border-top: none; padding: 4px 6px; }
+    /* Segmented boxes */
     .seg-row { display: flex; gap: 1px; align-items: stretch; }
-    .seg-box { width: 14px; height: 20px; border: 1px solid #000; display: inline-flex; align-items: center; justify-content: center; font-size: 9px; }
-    .ref-seg-row { display: flex; gap: 2px; margin-bottom: 2px; }
+    .seg-box { width: 12px; height: 16px; border: 1px solid #000; display: inline-flex; align-items: center; justify-content: center; font-size: 7px; }
+    .ref-seg-row { display: flex; gap: 2px; margin-bottom: 1px; }
     .ref-seg-group { flex: 1; display: flex; gap: 1px; }
-    .ref-seg-group .seg-box { flex: 1; min-width: 12px; }
-    .ref-labels { display: flex; gap: 2px; font-size: 6px; text-align: center; margin-bottom: 6px; }
+    .ref-seg-group .seg-box { flex: 1; min-width: 10px; }
+    .ref-labels { display: flex; gap: 2px; font-size: 5px; text-align: center; margin-bottom: 4px; }
     .ref-labels span { flex: 1; }
-    /* Labels and fields */
-    .label { font-size: 7px; font-weight: bold; text-transform: uppercase; color: #333; margin-bottom: 1px; }
-    .field { border-bottom: 1px solid #000; min-height: 16px; padding: 1px 3px; font-size: 9px; }
-    .two-cols { display: flex; gap: 14px; margin-bottom: 4px; }
+    /* All input fields: full border (box) like official form */
+    .label { font-size: 6px; font-weight: bold; text-transform: uppercase; color: #333; margin-bottom: 0; }
+    .field { border: 1px solid #000; min-height: 14px; padding: 1px 3px; font-size: 8px; }
+    .two-cols { display: flex; gap: 8px; margin-bottom: 2px; }
     .two-cols .col { flex: 1; }
-    .checkbox-inline { font-size: 9px; margin-right: 8px; }
-    /* Part I: two columns - left has Surname, Middle, Address..., right has First, Extension, Sex, etc. */
-    .part1-left .label, .part1-right .label { margin-top: 4px; }
+    .checkbox-inline { font-size: 7px; margin-right: 6px; }
+    .part1-left .label, .part1-right .label { margin-top: 2px; }
     .part1-left .label:first-child, .part1-right .label:first-child { margin-top: 0; }
-    .addr-block .row { display: flex; gap: 8px; margin-bottom: 4px; }
+    .addr-block .row { display: flex; gap: 6px; margin-bottom: 2px; }
     .addr-block .row .field { flex: 1; }
-    .education-cols { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
-    .education-cols .col { min-width: 80px; }
-    .education-cols .checkbox-inline { display: block; margin-bottom: 1px; }
-    /* Part II: four columns */
-    .part2-cols { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
-    .part2-cols .block { flex: 1; min-width: 90px; border: 1px solid #333; padding: 6px; }
-    .part2-cols .block-title { font-size: 8px; font-weight: bold; margin-bottom: 4px; }
-    .part2-cols .block .label { margin-top: 4px; }
+    .education-cols { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 1px; }
+    .education-cols .col { min-width: 70px; }
+    .education-cols .checkbox-inline { display: block; margin-bottom: 0; font-size: 6px; }
+    /* Part II: four columns with clear borders */
+    .part2-cols { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
+    .part2-cols .block { flex: 1; min-width: 75px; border: 1px solid #000; padding: 4px; }
+    .part2-cols .block-title { font-size: 7px; font-weight: bold; margin-bottom: 2px; }
+    .part2-cols .block .label { margin-top: 2px; }
     .part2-cols .block .label:first-of-type { margin-top: 0; }
-    .part2-cols .note { font-size: 6px; margin: 4px 0; line-height: 1.3; color: #333; }
-    .income-row { display: flex; gap: 8px; margin-top: 8px; }
+    .part2-cols .note { font-size: 5px; margin: 2px 0; line-height: 1.2; color: #333; }
+    .income-row { display: flex; gap: 6px; margin-top: 4px; }
     .income-row .col { flex: 1; }
-    /* Client's copy */
-    .client-copy { margin-top: 12px; padding-top: 8px; border-top: 2px dashed #555; position: relative; }
-    .client-copy .scissors { position: absolute; right: 0; top: -2px; font-size: 10px; }
-    .client-copy .main-title { font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 6px; }
-    .client-copy .ref-row { display: flex; gap: 4px; margin: 4px 0; }
-    .client-copy .ref-row .field { flex: 1; border-bottom: 1px solid #000; min-height: 14px; }
-    .client-copy .name-row { display: flex; gap: 8px; margin: 4px 0; }
-    .client-copy .name-row .field { flex: 1; border-bottom: 1px solid #000; min-height: 14px; font-size: 9px; }
-    .not-for-sale { font-weight: bold; text-transform: uppercase; margin-top: 8px; font-size: 9px; }
+    /* Client's copy: bordered box, dashed line at top */
+    .client-copy { margin-top: 6px; padding: 4px 6px; border: 1px solid #000; border-top: 2px dashed #555; position: relative; }
+    .client-copy .scissors { position: absolute; right: 4px; top: 2px; font-size: 8px; }
+    .client-copy .main-title { font-size: 8px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px; }
+    .client-copy .name-row { display: flex; gap: 6px; margin: 2px 0; }
+    .client-copy .name-row .field { border: 1px solid #000; min-height: 12px; font-size: 8px; }
+    .client-copy .name-row > div { flex: 1; }
+    .not-for-sale { font-weight: bold; text-transform: uppercase; margin-top: 4px; font-size: 8px; }
   </style>
 </head>
 <body>
@@ -149,12 +151,13 @@ function getRSBSAFormHtml(formState) {
     </div>
     <div class="anikita">Masaganang ANI Mataas na KITA</div>
 
+    <div class="enrollment-box">
     <!-- Enrollment Type & Date Administered -->
     <div class="label">ENROLLMENT TYPE &amp; DATE ADMINISTERED:</div>
-    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px; flex-wrap: wrap;">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
       <span class="checkbox-inline">${cb(f.enrollmentType === 'New')} New</span>
       <span class="checkbox-inline">${cb(f.enrollmentType === 'Updating')} Updating</span>
-      <span style="margin-left: 8px;">Date:</span>
+      <span style="margin-left: 4px;">Date:</span>
       ${dateBoxes(f.dateAdministered)}
     </div>
 
@@ -169,9 +172,10 @@ function getRSBSAFormHtml(formState) {
     <div class="ref-labels">
       <span>REGION</span><span>PROVINCE</span><span>CITY/MUNI</span><span>BARANGAY</span>
     </div>
+    </div>
 
     <div class="section-bar">PART I: PERSONAL INFORMATION</div>
-
+    <div class="part1-inner">
     <!-- Part I: Two columns - Left: Surname, Middle name, Address block, Mobile, DOB, Religion, Civil status, Spouse, Mother's maiden, Household head, members. Right: First name, Extension, Sex, Barangay, Region, Landline, Place of birth, Education, PWD, 4Ps, Indigenous, Gov ID, Farmers assoc, Emergency -->
     <div class="two-cols">
       <div class="col part1-left">
@@ -269,14 +273,16 @@ function getRSBSAFormHtml(formState) {
       </div>
     </div>
 
-    <div style="margin-top: 6px;">
+    <div style="margin-top: 4px;">
       <div class="label">FULL ADDRESS (OR MAP)</div>
       <div class="field">${esc(f.address)}</div>
     </div>
+    </div>
 
     <div class="section-bar">PART II: FARM PROFILE</div>
+    <div class="part2-inner">
     <div class="label">MAIN LIVELIHOOD</div>
-    <div style="margin-bottom: 6px;">
+    <div style="margin-bottom: 4px;">
       <span class="checkbox-inline">${cb(f.mainLivelihood === 'FARMER')} FARMER</span>
       <span class="checkbox-inline">${cb(f.mainLivelihood === 'FARMWORKER/LABORER')} FARMWORKER/LABORER</span>
       <span class="checkbox-inline">${cb(f.mainLivelihood === 'FISHERFOLK')} FISHERFOLK</span>
@@ -333,8 +339,9 @@ function getRSBSAFormHtml(formState) {
     <div class="income-row">
       <div class="col"><div class="label">Non-farming:</div><div class="field">${esc(f.grossIncomeNonFarming)}</div></div>
     </div>
-    <div style="margin-top: 6px;">
+    <div style="margin-top: 4px;">
       <span class="checkbox-inline">${cb(f.rsbsaRegistered)} RSBSA REGISTERED: Yes (Required for some programs)</span>
+    </div>
     </div>
 
     <!-- Client's copy -->
